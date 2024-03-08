@@ -29,7 +29,8 @@ export default {
         'ff-btn': '#FEAA2B'
       },
       boxShadow: {
-        'input': '0 0 3px 3px #FEAA2B'
+        'input': '0 0 3px 3px #FEAA2B',
+        'input-error': '0 0 3px 3px rgb(239 68 68)'
       }
     },
   },

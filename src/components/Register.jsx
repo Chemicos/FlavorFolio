@@ -11,14 +11,10 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons"
 const cookies = new Cookies()
 
 export default function Register() {
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-
-
-let navigate = useNavigate()
+  let navigate = useNavigate()
   const signInWithGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, provider); 
@@ -28,44 +24,75 @@ let navigate = useNavigate()
       console.error(err);
     }
   }
-
+  
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  
   useEffect(() => {
     if (password === '') {
       setShowPassword(false)
     }
   }, [password])
-
+  
   const togglePasswordVisibility = () => {
     if (password.length > 0) {
       setShowPassword(!showPassword)
     }
   }
-
-  const passwordCriteria = [
-    { id: 'minLength', text: 'At least 6 characters', isValid: password.length >= 6 },
-    { id: 'specialChar', text: 'At least one special character', isValid: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
-    { id: 'upperCase', text: 'At least one uppercase character', isValid: /[A-Z]/.test(password) },
-    { id: 'number', text: 'At least one number', isValid: /[0-9]/.test(password) }
-  ]
-
-  const validCriteriaCount = Object.values({
-    minLength: password.length >= 6,
-    specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-    number: /[0-9]/.test(password),
-    upperCase: /[A-Z]/.test(password),
-  }).filter(isValid => isValid).length
-
-  const progressPercentage = (validCriteriaCount / 4) * 100
-
+  
   const handleChangePassword = (e) => {
     setPassword(e.target.value)
   }
-
-  useEffect(() => {
-    if(confirmPassword === '') {
-      setShowConfirmPassword(false)
-    }
-  }, [confirmPassword])
+  // Password criteria -->
+  const passwordCriteria = [
+    { 
+      id: 'minLength', 
+      text: 'At least 6 characters', 
+      isValid: password.length >= 6 
+    },
+    { 
+      id: 'specialChar', 
+      text: 'At least one special character', 
+      isValid: /[!@#$%^&*(),.?":{}|<>]/.test(password) 
+    },
+    { 
+      id: 'upperCase',
+      text: 'At least one uppercase character',
+      isValid: /[A-Z]/.test(password) },
+      { 
+        id: 'number', 
+        text: 'At least one number', 
+        isValid: /[0-9]/.test(password) 
+      }
+    ]
+    
+    const validCriteriaCount = Object.values({
+      minLength: password.length >= 6,
+      specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+      number: /[0-9]/.test(password),
+      upperCase: /[A-Z]/.test(password),
+    }).filter(isValid => isValid).length
+    
+    const progressBarColor = (() => {
+      switch(validCriteriaCount) {
+        case 1: return 'bg-red-600'
+        case 2: return 'bg-orange-600'
+        case 3: return 'bg-amber-500'
+        case 4: return 'bg-emerald-500'
+        default: return 'bg-transparent'
+      }
+    })()
+    const progressPercentage = (validCriteriaCount / 4) * 100
+    // Password criteria <--
+    
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    
+    useEffect(() => {
+      if(confirmPassword === '') {
+        setShowConfirmPassword(false)
+      }
+    }, [confirmPassword])
 
   const toggleConfirmPasswordVisibility = () => {
     if (confirmPassword.length > 0) {
@@ -92,14 +119,22 @@ let navigate = useNavigate()
             />
         </div>
 
-        <div className="flex flex-col mb-6">
+        <div className={`${ email && !isValidEmail(email) ? 'mb-2' : 'mb-6'} flex flex-col`}>
             <label className="mb-2 font-semibold">Email</label>
             <input 
-              className=" bg-transparent border border-zinc-800 rounded-lg px-4 py-3
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`bg-transparent border border-zinc-800 rounded-lg px-4 py-3
               placeholder:text-ff-googlebtn placeholder:opacity-50
-              hover:shadow-input duration-150 focus:shadow-input" 
+              hover:shadow-input duration-150 
+              ${!isValidEmail(email) && email ? 
+                'focus:shadow-input-error' : 'focus:shadow-input'
+              }`} 
               type="email"
             />
+            {!isValidEmail(email) && email && (
+              <p className="text-red-500 text-sm mt-2">Invalid email format</p>
+            )}
         </div>
 
         <div className={`${password ? 'mb-0' : 'mb-6'} flex flex-col`}>
@@ -129,18 +164,18 @@ let navigate = useNavigate()
 
               {password && (
                 <ul className="animate-dropdown pb-2">
-                  <div className="w-full rounded-lg h-2.5 dark:bg-gray-100 mb-2">
+                  <div className="w-full rounded-lg h-2.5 dark:bg-gray-200 mb-2">
                     <div 
-                      className="bg-emerald-500 h-2.5 rounded-lg" 
+                      className={`${progressBarColor} h-2.5 rounded-lg`}
                       style={{width: `${progressPercentage}%`, transition: `300ms`}}>
                     </div>
                   </div>
 
                   {passwordCriteria.map((criteria) => (
                     <li 
-                      className="flex flex-row items-center gap-2 mb-2" 
+                      className="flex flex-row items-center gap-2 mb-2 text-sm" 
                       key={criteria.id} 
-                      style={{color: criteria.isValid ? 'green' : 'red'}}
+                      style={{color: criteria.isValid ? 'green' : 'red',}}
                     >
                       <FontAwesomeIcon icon={faCheck} /> 
                       {criteria.text}
@@ -152,28 +187,40 @@ let navigate = useNavigate()
         </div>
 
         <div className="flex flex-col">
-            <label className="mb-2 font-semibold" >Confirm Password</label>
-            <div className="relative">
-              <input
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}  
-                className="bg-transparent w-80 border border-zinc-800 rounded-lg px-4 py-3
-                placeholder:text-ff-googlebtn placeholder:opacity-50
-                hover:shadow-input duration-150 focus:shadow-input" 
-                type={showConfirmPassword ? 'text' : 'password'} 
-              />
+          <label className="mb-2 font-semibold" >Confirm Password</label>
+
+            <div className="flex flex-col gap-2">
+              <div className="relative">
+                <input
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}  
+                  className={
+                  `bg-transparent w-80 border border-zinc-800 rounded-lg px-4 py-3
+                  placeholder:text-ff-googlebtn placeholder:opacity-50
+                  hover:shadow-input duration-150 
+                  ${password !== confirmPassword && confirmPassword ? 
+                    'focus:shadow-input-error' : 'focus:shadow-input'
+                  }`} 
+                  type={showConfirmPassword ? 'text' : 'password'} 
+                />
+                
+                <FontAwesomeIcon 
+                  className={
+                    `absolute inset-y-0 right-0 my-auto mr-3 
+                    ${confirmPassword ? 'cursor-pointer': 'cursor-not-allowed opacity-50'}`}
+                    icon={showConfirmPassword ? faEyeSlash : faEye} 
+                    onClick={toggleConfirmPasswordVisibility}
+                />
+              </div>
               
-              <FontAwesomeIcon 
-                className={
-                  `absolute inset-y-0 right-0 my-auto mr-3 
-                  ${confirmPassword ? 'cursor-pointer': 'cursor-not-allowed opacity-50'}`}
-                  icon={showConfirmPassword ? faEyeSlash : faEye} 
-                  onClick={toggleConfirmPasswordVisibility}
-              />
+              {confirmPassword && password != confirmPassword && (
+                <p className="text-red-500 text-sm animate-dropdown">Password does not match</p>
+              )}
             </div>
+
         </div>
 
-        <button className="rounded-lg border border-ff-btn px-2 py-3 font-medium bg-ff-btn mt-8 
+        <button className="rounded-lg border border-ff-btn px-2 py-3 font-medium bg-ff-btn mt-6 
           hover:bg-ff-bg hover:border-ff-googlebtn duration-300">
           Register
         </button>
