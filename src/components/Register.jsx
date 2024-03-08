@@ -24,7 +24,7 @@ export default function Register() {
       console.error(err);
     }
   }
-  
+  // Password functionality -->
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   
@@ -43,6 +43,8 @@ export default function Register() {
   const handleChangePassword = (e) => {
     setPassword(e.target.value)
   }
+  // Password functionality <--
+
   // Password criteria -->
   const passwordCriteria = [
     { 
@@ -52,7 +54,7 @@ export default function Register() {
     },
     { 
       id: 'specialChar', 
-      text: 'At least one special character', 
+      text: 'At least one special character (!@#$%^&*().)', 
       isValid: /[!@#$%^&*(),.?":{}|<>]/.test(password) 
     },
     { 
@@ -85,6 +87,7 @@ export default function Register() {
     const progressPercentage = (validCriteriaCount / 4) * 100
     // Password criteria <--
     
+    // Confirm Password Functionality -->
     const [confirmPassword, setConfirmPassword] = useState('')
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     
@@ -99,6 +102,13 @@ export default function Register() {
       setShowConfirmPassword(!showConfirmPassword)
     }
   }
+  // Confirm Password Functionality <--
+
+  // Register Access -->
+  const isFormValid = email && password && confirmPassword && 
+    isValidEmail(email) && password === confirmPassword &&
+    passwordCriteria.every(criteria => criteria.isValid)
+  // Register Access <--
 
   return (
     <div className="flex flex-col items-center gap-5">
@@ -220,8 +230,15 @@ export default function Register() {
 
         </div>
 
-        <button className="rounded-lg border border-ff-btn px-2 py-3 font-medium bg-ff-btn mt-6 
-          hover:bg-ff-bg hover:border-ff-googlebtn duration-300">
+        <button 
+          className={
+            `rounded-lg border border-ff-btn px-2 py-3 font-medium bg-ff-btn mt-6
+            ${!isFormValid ? 
+              'opacity-50 cursor-not-allowed': 
+              'hover:bg-ff-bg hover:border-ff-googlebtn duration-300'
+            }`}
+          disabled={!isFormValid}
+        >
           Register
         </button>
       </form>
