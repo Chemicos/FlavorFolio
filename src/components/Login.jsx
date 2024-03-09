@@ -1,4 +1,4 @@
-import { signInWithPopup } from "firebase/auth"
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
 import { auth, provider } from "../firebase-config"
 import Cookies from "universal-cookie"
 import googleIcon from '../assets/google-icon.webp'
@@ -10,8 +10,22 @@ import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons"
 const cookies = new Cookies()
 
 export default function Login() {
+  const [email, setEmail] = useState('')
+  const [error, setError] = useState('')
+
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(true)
+
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+      navigate("/home")
+    } catch (err) {
+      setError(err.message)
+      console.error(err)
+    }
+  }
 
   useEffect(() => {
     if (password === '') {
@@ -24,6 +38,7 @@ export default function Login() {
       setShowPassword(!showPassword)
     }
   }
+  
 
 
   let navigate = useNavigate()
@@ -45,14 +60,16 @@ export default function Login() {
         <span className="text-ff-folio">Folio</span>
       </h1>
 
-      <form className="flex flex-col w-80" action="">
+      <form className="flex flex-col w-80">
         <div className="flex flex-col mb-6">
-              <label className="mb-2 font-semibold">Username</label>
+              <label className="mb-2 font-semibold">Email</label>
               <input 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className=" bg-transparent border border-zinc-800 rounded-lg px-4 py-3
                 placeholder:text-ff-googlebtn placeholder:opacity-50
                 hover:shadow-input duration-150 focus:shadow-input" 
-                type="text"
+                type="email"
               />
           </div>
 
@@ -80,7 +97,10 @@ export default function Login() {
             </div>
           </div>
 
-        <button className="rounded-lg border border-ff-btn px-2 py-3 font-medium bg-ff-btn mt-8 
+        <button 
+        onClick={handleLogin}
+        className="
+          rounded-lg border border-ff-btn px-2 py-3 font-medium bg-ff-btn mt-8 
           hover:bg-ff-bg hover:border-ff-googlebtn duration-300">
           Login
         </button>

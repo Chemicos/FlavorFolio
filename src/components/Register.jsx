@@ -1,4 +1,4 @@
-import { signInWithPopup } from "firebase/auth"
+import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth"
 import { auth, provider } from "../firebase-config"
 import Cookies from "universal-cookie"
 import googleIcon from '../assets/google-icon.webp'
@@ -7,10 +7,13 @@ import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
+// import { addDoc, collection } from "@firebase/firestore"
 
 const cookies = new Cookies()
 
 export default function Register() {
+  const [username, setUsername] = useState('')
+
   const [email, setEmail] = useState('')
   const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
@@ -104,10 +107,27 @@ export default function Register() {
   }
   // Confirm Password Functionality <--
 
-  // Register Access -->
-  const isFormValid = email && password && confirmPassword && 
+  // Register Access and account creation -->
+  const isFormValid = username && email && password && confirmPassword && 
     isValidEmail(email) && password === confirmPassword &&
     passwordCriteria.every(criteria => criteria.isValid)
+
+    const handleRegister = async (e) => {
+      e.preventDefault()
+      if(isFormValid) {
+        try {
+         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+         const user = userCredential.user
+         console.log("User created with UID: ", user.uid)
+         setUsername('')
+         setEmail('')
+         setPassword('')
+         setConfirmPassword('')
+        } catch (error) {
+          console.error("Error signing up: ", error)
+        }
+      }
+    }
   // Register Access <--
 
   return (
@@ -118,10 +138,12 @@ export default function Register() {
         <span className="text-ff-folio">Folio</span>
       </h1>
 
-      <form className="flex flex-col w-80" action="">
+      <form className="flex flex-col w-80">
         <div className="flex flex-col mb-6">
             <label className="mb-2 font-semibold">Username</label>
             <input 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className=" bg-transparent border border-zinc-800 rounded-lg px-4 py-3
               placeholder:text-ff-googlebtn placeholder:opacity-50
               hover:shadow-input duration-150 focus:shadow-input" 
@@ -238,6 +260,7 @@ export default function Register() {
               'hover:bg-ff-bg hover:border-ff-googlebtn duration-300'
             }`}
           disabled={!isFormValid}
+          onClick={handleRegister}
         >
           Register
         </button>
