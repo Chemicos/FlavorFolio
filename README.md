@@ -8,8 +8,9 @@ npm install
 
 # Step 2: Firebase
 npm install firebase
-npm install @firebase/firestore
 npm install firebase universal-cookie
+npm install @firebase/firestore
+
 
 # Step3: Tailwind CSS
 npm install -D tailwindcss postcss autoprefixer
