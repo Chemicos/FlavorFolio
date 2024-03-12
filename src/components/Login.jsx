@@ -1,15 +1,13 @@
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
+import { onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
 import { auth, provider } from "../firebase-config"
-import Cookies from "universal-cookie"
 import googleIcon from '../assets/google-icon.webp'
 import { Link, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons"
 
-const cookies = new Cookies()
-
 export default function Login() {
+  let navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
 
@@ -38,15 +36,21 @@ export default function Login() {
       setShowPassword(!showPassword)
     }
   }
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigate("/home")
+      } else {
+        navigate("/")
+      }
+    })
+    return () => unsubscribe()
+  }, [navigate])
   
-
-
-  let navigate = useNavigate()
   const signInWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, provider); 
-      cookies.set("auth-token", result.user.refreshToken); 
-      navigate("/home")
+      await signInWithPopup(auth, provider); 
     } catch (err) {
       console.error(err);
     }

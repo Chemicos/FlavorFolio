@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth"
-import { auth, provider } from "../firebase-config"
+import { auth, provider, db } from "../firebase-config"
 import Cookies from "universal-cookie"
 import googleIcon from '../assets/google-icon.webp'
 import { Link, useNavigate } from "react-router-dom"
@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
-// import { addDoc, collection } from "@firebase/firestore"
+import { doc, setDoc } from "@firebase/firestore"
 
 const cookies = new Cookies()
 
@@ -27,7 +27,7 @@ export default function Register() {
       console.error(err);
     }
   }
-  // Password functionality -->
+  // Password functionality >>
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   
@@ -46,9 +46,9 @@ export default function Register() {
   const handleChangePassword = (e) => {
     setPassword(e.target.value)
   }
-  // Password functionality <--
+  // Password functionality <<
 
-  // Password criteria -->
+  // Password criteria >>
   const passwordCriteria = [
     { 
       id: 'minLength', 
@@ -88,9 +88,9 @@ export default function Register() {
       }
     })()
     const progressPercentage = (validCriteriaCount / 4) * 100
-    // Password criteria <--
+    // Password criteria <<
     
-    // Confirm Password Functionality -->
+    // Confirm Password Functionality >>
     const [confirmPassword, setConfirmPassword] = useState('')
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     
@@ -105,9 +105,9 @@ export default function Register() {
       setShowConfirmPassword(!showConfirmPassword)
     }
   }
-  // Confirm Password Functionality <--
+  // Confirm Password Functionality <<
 
-  // Register Access and account creation -->
+  // Register Access and account creation >>
   const isFormValid = username && email && password && confirmPassword && 
     isValidEmail(email) && password === confirmPassword &&
     passwordCriteria.every(criteria => criteria.isValid)
@@ -118,7 +118,13 @@ export default function Register() {
         try {
          const userCredential = await createUserWithEmailAndPassword(auth, email, password)
          const user = userCredential.user
-         console.log("User created with UID: ", user.uid)
+        //  console.log("User created with UID: ", user.uid)
+
+         await setDoc(doc(db, "users", user.uid), {
+          username: username,
+          email:email
+         })
+
          setUsername('')
          setEmail('')
          setPassword('')
@@ -128,7 +134,7 @@ export default function Register() {
         }
       }
     }
-  // Register Access <--
+  // Register Access <<
 
   return (
     <div className="flex flex-col items-center gap-5">
