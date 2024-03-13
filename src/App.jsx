@@ -8,20 +8,9 @@ import Register from './components/Register'
 const cookies = new Cookies()
 
 function App() {
-  // const [isAuthenticated, setIsAuthenticated] = useState(false)
-  
-  // useEffect(() => {
-  //   const authToken = cookies.get('auth-token');
-  //   if (authToken) {
-  //     setIsAuthenticated(true);
-  //   }
-  // }, [])
 
+  //TODO: de scos cookie-urile
   const isAuthenticated = !!cookies.get('auth-token')
-
-  // const handleAuthentication = (isUserAuthenticated) => {
-  //   setIsAuthenticated(isUserAuthenticated);
-  // }
 
   return (
     <Router>
@@ -33,14 +22,6 @@ function App() {
         </Routes>
       </div>
     </Router>
-
-
-    // <div className="">
-    //   { isAuthenticated ? 
-    //   <Home /> : 
-    //   <Login onAuthenticate={handleAuthentication} /> 
-    //   }
-    // </div>
   )
 }
 

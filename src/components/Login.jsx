@@ -66,11 +66,20 @@ export default function Login() {
 
       <form className="flex flex-col w-80">
         <div className="flex flex-col mb-6">
+              {error && 
+                <p className="text-red-500 mb-4 bg-red-200 rounded-lg px-4 py-3 
+                duration-500 ease-out opacity-0 animate-fadeIn">
+                  {error}
+                </p>
+              }
               <label className="mb-2 font-semibold">Email</label>
               <input 
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className=" bg-transparent border border-zinc-800 rounded-lg px-4 py-3
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  setError("")
+                }}
+                className="bg-transparent border border-zinc-800 rounded-lg px-4 py-3
                 placeholder:text-ff-googlebtn placeholder:opacity-50
                 hover:shadow-input duration-150 focus:shadow-input" 
                 type="email"
@@ -82,9 +91,12 @@ export default function Login() {
             <div className="relative">
               <input
                 value={password} 
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  setError("")
+                }} 
                 placeholder="6+ characters" 
-                className="bg-transparent w-80 border border-zinc-800 rounded-lg px-4 py-3
+                className="bg-transparent w-80 border border-zinc-800 rounded-lg pl-4 pr-10 py-3
                 placeholder:text-ff-googlebtn placeholder:opacity-50
                 hover:shadow-input duration-150 focus:shadow-input" 
                 type={showPassword ? 'text' : 'password'} 

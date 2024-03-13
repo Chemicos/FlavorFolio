@@ -1,35 +1,69 @@
-import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth"
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithPopup } from "firebase/auth"
 import { auth, provider, db } from "../firebase-config"
-import Cookies from "universal-cookie"
 import googleIcon from '../assets/google-icon.webp'
 import { Link, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons"
-import { faCheck } from "@fortawesome/free-solid-svg-icons"
+import { faCheck, faCircleExclamation } from "@fortawesome/free-solid-svg-icons"
 import { doc, setDoc } from "@firebase/firestore"
 
-const cookies = new Cookies()
-
 export default function Register() {
+  let navigate = useNavigate()
   const [username, setUsername] = useState('')
+  
+  // empty username error >>
+  const [usernameError, setUsernameError] = useState(false)
 
+  const handleUsernameChange = (e) => {
+    setUsername(e.target.value)
+    if (e.target.value.trim() === '') {
+      setUsernameError(true)
+    } else {
+      setUsernameError(false)
+    }
+  }
+
+  const usernameClass = usernameError ? 'shadow-input-error' : 'focus:shadow-input'
+  // <<
+
+  // email functions >>
   const [email, setEmail] = useState('')
+  const [emailError, setEmailError] = useState(false)
   const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
-  let navigate = useNavigate()
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value)
+    setEmailError(!isValidEmail(e.target.value))
+  }
+  const emailClass = emailError ? 'shadow-input-error' : 'focus:shadow-input'
+  // <<
+
+  // Google sign in >>
   const signInWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, provider); 
-      cookies.set("auth-token", result.user.refreshToken); 
-      navigate("/home")
+      await signInWithPopup(auth, provider); 
     } catch (err) {
       console.error(err);
     }
   }
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigate("/home")
+      } else {
+        navigate("/register")
+      }
+    })
+    return () => unsubscribe()
+  }, [navigate])
+  // <<
+
   // Password functionality >>
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState(false)
   
   useEffect(() => {
     if (password === '') {
@@ -45,8 +79,13 @@ export default function Register() {
   
   const handleChangePassword = (e) => {
     setPassword(e.target.value)
+    if (e.target.value.trim() === '') {
+      setPasswordError(true)
+    } else {
+      setPasswordError(false)
+    }
   }
-  // Password functionality <<
+  // <<
 
   // Password criteria >>
   const passwordCriteria = [
@@ -88,12 +127,22 @@ export default function Register() {
       }
     })()
     const progressPercentage = (validCriteriaCount / 4) * 100
-    // Password criteria <<
+    // <<
     
     // Confirm Password Functionality >>
     const [confirmPassword, setConfirmPassword] = useState('')
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    
+    const [confirmPasswordError, setConfirmPasswordError] = useState(false)
+
+    const handleConfirmPasswordChange = (e) => {
+      setConfirmPassword(e.target.value)
+      if(e.target.value.trim() === '') {
+        setConfirmPasswordError(true)
+      } else {
+        setConfirmPasswordError(false)
+      }
+    }
+
     useEffect(() => {
       if(confirmPassword === '') {
         setShowConfirmPassword(false)
@@ -105,7 +154,7 @@ export default function Register() {
       setShowConfirmPassword(!showConfirmPassword)
     }
   }
-  // Confirm Password Functionality <<
+  // <<
 
   // Register Access and account creation >>
   const isFormValid = username && email && password && confirmPassword && 
@@ -118,7 +167,6 @@ export default function Register() {
         try {
          const userCredential = await createUserWithEmailAndPassword(auth, email, password)
          const user = userCredential.user
-        //  console.log("User created with UID: ", user.uid)
 
          await setDoc(doc(db, "users", user.uid), {
           username: username,
@@ -134,7 +182,7 @@ export default function Register() {
         }
       }
     }
-  // Register Access <<
+  // <<
 
   return (
     <div className="flex flex-col items-center gap-5">
@@ -147,32 +195,54 @@ export default function Register() {
       <form className="flex flex-col w-80">
         <div className="flex flex-col mb-6">
             <label className="mb-2 font-semibold">Username</label>
-            <input 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className=" bg-transparent border border-zinc-800 rounded-lg px-4 py-3
-              placeholder:text-ff-googlebtn placeholder:opacity-50
-              hover:shadow-input duration-150 focus:shadow-input" 
-              type="text"
-            />
+
+            <div className="flex flex-col relative">
+              <input 
+                value={username}
+                onChange={handleUsernameChange}
+                onBlur={() => setUsernameError(username.trim() === '')}
+                className={`bg-transparent border border-zinc-800 rounded-lg px-4 py-3
+                placeholder:text-ff-googlebtn placeholder:opacity-50
+                hover:shadow-input duration-150 ${usernameClass}`} 
+                type="text"
+              />
+
+              {usernameError && (
+                <FontAwesomeIcon 
+                  icon={faCircleExclamation}
+                  className="absolute inset-y-0 right-0 my-auto mr-3 text-red-500"
+                />
+              )}
+            </div>
         </div>
 
         <div className={`${ email && !isValidEmail(email) ? 'mb-2' : 'mb-6'} flex flex-col`}>
             <label className="mb-2 font-semibold">Email</label>
-            <input 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={`bg-transparent border border-zinc-800 rounded-lg px-4 py-3
-              placeholder:text-ff-googlebtn placeholder:opacity-50
-              hover:shadow-input duration-150 
-              ${!isValidEmail(email) && email ? 
-                'focus:shadow-input-error' : 'focus:shadow-input'
-              }`} 
-              type="email"
-            />
-            {!isValidEmail(email) && email && (
-              <p className="text-red-500 text-sm mt-2">Invalid email format</p>
-            )}
+
+            <div className="relative flex flex-col">
+              <input 
+                value={email}
+                onChange={handleEmailChange}
+                onBlur={() => setEmailError(!isValidEmail(email))}
+                className={`bg-transparent border border-zinc-800 rounded-lg px-4 py-3
+                placeholder:text-ff-googlebtn placeholder:opacity-50
+                hover:shadow-input duration-150 
+                ${emailClass}`} 
+                type="email"
+              />
+
+              {emailError && (
+                <FontAwesomeIcon
+                icon={faCircleExclamation}
+                className={`absolute inset-y-0 right-0 my-auto mr-3 text-red-500
+                  ${!isValidEmail(email) && email ? "-top-7" : "top-0"}`
+                } />
+              )}
+
+              {!isValidEmail(email) && email && (
+                <p className="text-red-500 text-sm mt-2">Invalid email format (name@company.com)</p>
+              )}
+            </div>
         </div>
 
         <div className={`${password ? 'mb-0' : 'mb-6'} flex flex-col`}>
@@ -183,10 +253,14 @@ export default function Register() {
                 <input
                   value={password} 
                   onChange={handleChangePassword}
+                  onBlur={() => 
+                    setPasswordError(!passwordCriteria.every(criteria => criteria.isValid)
+                  )}
                   placeholder="6+ characters" 
-                  className="bg-transparent w-80 border border-zinc-800 rounded-lg px-4 py-3
+                  className={`bg-transparent w-80 border border-zinc-800 rounded-lg pr-10 pl-4 py-3 
                   placeholder:text-ff-googlebtn placeholder:opacity-50
-                  hover:shadow-input duration-150 focus:shadow-input" 
+                  hover:shadow-input duration-150 ${passwordError ? 'shadow-input-error' : 'focus:shadow-input'}
+                  `} 
                   type={showPassword ? 'text' : 'password'} 
                 />
 
@@ -231,14 +305,15 @@ export default function Register() {
               <div className="relative">
                 <input
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}  
+                  onChange={handleConfirmPasswordChange}
+                  onBlur={() => 
+                    setConfirmPasswordError(password !== confirmPassword || confirmPassword === "")
+                  }
                   className={
-                  `bg-transparent w-80 border border-zinc-800 rounded-lg px-4 py-3
+                  `bg-transparent w-80 border border-zinc-800 rounded-lg pl-4 pr-10 py-3
                   placeholder:text-ff-googlebtn placeholder:opacity-50
                   hover:shadow-input duration-150 
-                  ${password !== confirmPassword && confirmPassword ? 
-                    'focus:shadow-input-error' : 'focus:shadow-input'
-                  }`} 
+                  ${confirmPasswordError ? 'shadow-input-error' : 'focus:shadow-input'}`} 
                   type={showConfirmPassword ? 'text' : 'password'} 
                 />
                 
@@ -287,7 +362,7 @@ export default function Register() {
         <img className="w-5 h-5" src={googleIcon} alt="google-icon" />
           Continue with Google
       </button>
-      <p>No account? <Link to="/" className="text-ff-blue underline">Login</Link></p>
+      <p>Already have an account? <Link to="/" className="text-ff-blue underline">Login</Link></p>
     </div>
   )
 }

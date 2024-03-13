@@ -1,47 +1,28 @@
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth"
-import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { db } from "../firebase-config"
-import { doc, getDoc } from "@firebase/firestore"
+// import { getAuth, onAuthStateChanged } from "firebase/auth"
+// import { useEffect, useState } from "react"
+// import { useNavigate } from "react-router-dom"
+// import { db } from "../firebase-config"
+// import { doc, getDoc } from "@firebase/firestore"
+import Navigation from "./Navigation"
 
-const auth = getAuth()
 
 export default function Home() {
-  let navigate = useNavigate()
-  const [username, setUsername] = useState("")
+  // let navigate = useNavigate()
 
-// Retrieving username from users and remaining connected >>
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const uid = user.uid
-        const userRef = doc(db, "users", uid)
-        getDoc(userRef).then((docSnap) => {
-          if(docSnap.exists()) {
-            setUsername(docSnap.data().username)
-          }
-        })
-      } else {
-        console.log("No user is signed in.")
-        navigate("/")
-      }
-    })
-    return () => unsubscribe()
-  }, [navigate])
-// Retrieving username from users <<
-
-  const signOutUser = () => {
-    signOut(auth).then(() => {
-      navigate("/")
-    }).catch((error) => {
-      console.error("Sign out error", error)
-    })
-  }
+  // const signOutUser = () => {
+  //   signOut(auth).then(() => {
+  //     navigate("/")
+  //   }).catch((error) => {
+  //     console.error("Sign out error", error)
+  //   })
+  // }
 
   return (
-    <div>
-      <h1>Welcome to FlavorFolio, {username}</h1> 
-      <button onClick={signOutUser}>Sign out</button>
+    <div className="h-screen w-screen">
+      <Navigation />
+      <div className="flex flex-col items-center justify-center">
+        <h1>Search and cook</h1> 
+      </div>
     </div>
   )
 }
