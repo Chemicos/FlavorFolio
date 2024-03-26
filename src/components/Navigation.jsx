@@ -12,7 +12,7 @@ export default function Navigation() {
     const [username, setUsername] = useState('')
     const [userPhoto, setUserPhoto] = useState('')
     
-  // Retrieving username from users or google and remaining connected >>
+  // Retrieving username & avatar from users or google and remaining connected >>
     useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -45,7 +45,7 @@ export default function Navigation() {
         console.error("Sign out error", error))
     }
   return (
-    <nav className="bg-transparent shadow">
+    <nav className="bg-transparent">
       <div className="mx-auto px-4 lg:px-10">
         <div className="flex justify-between h-16">
             <div className="flex items-center gap-4">
@@ -77,7 +77,9 @@ export default function Navigation() {
               </div>
 
               {isOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" 
+                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md 
+                shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none
+                " 
                   role="menu" 
                   aria-labelledby="user-menu-button"
                 >
