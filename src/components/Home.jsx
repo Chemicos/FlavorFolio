@@ -22,17 +22,17 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen w-screen">
+    <div className="h-screen w-screen overflow-hidden">
       <Navigation />
 
       <div className="flex flex-col items-center justify-center gap-8">
         <div className="flex flex-col items-center gap-6 mt-4">
           <h1 className="font-base italic text-2xl">Search and cook</h1> 
           <div className="relative">
-            <input type="text" 
+            <input type="search" 
               placeholder="Search..."
               className="rounded-2xl w-80 bg-ff-search py-2 pl-10 pr-4
-              placeholder:text-ff-placeholder shadow-md"
+              placeholder:text-ff-placeholder shadow-md duration-150 opacity-70 hover:opacity-100 focus:opacity-100"
             />
 
             <FontAwesomeIcon 
@@ -41,7 +41,7 @@ export default function Home() {
             />
           </div>
         </div>
-
+      
       <Content handlePostClick={handlePostClick} />
 
       {isPostFormVisible && 

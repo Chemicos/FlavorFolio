@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import FlavorFolioLogo from '../assets/FlavorFolio_logo1.png'
 import { useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
@@ -11,6 +11,7 @@ export default function Navigation() {
     const [isOpen, setIsOpen] = useState(false)
     const [username, setUsername] = useState('')
     const [userPhoto, setUserPhoto] = useState('')
+    const dropdownRef = useRef(null)
     
   // Retrieving username & avatar from users or google and remaining connected >>
     useEffect(() => {
@@ -38,6 +39,16 @@ export default function Navigation() {
       return () => unsubscribe()
   }, [navigate])
   // <<
+
+  useEffect(() => {
+    const closeDropdown = (e) => {
+      if (isOpen && dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+    }
+    }
+    document.addEventListener('mousedown', closeDropdown);
+      return () => document.removeEventListener('mousedown', closeDropdown);
+  }, [isOpen])
     
     const handleSignOut = () => {
         signOut(auth).then(() => 
@@ -46,7 +57,7 @@ export default function Navigation() {
     }
   return (
     <nav className="bg-transparent">
-      <div className="mx-auto px-4 lg:px-10">
+      <div className="px-4 lg:px-10">
         <div className="flex justify-between h-16">
             <div className="flex items-center gap-4">
               <img className="block h-12 w-10" src={FlavorFolioLogo} alt="FlavorFolioLogo" />
@@ -77,9 +88,10 @@ export default function Navigation() {
               </div>
 
               {isOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md 
-                shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none
-                " 
+                <div ref={dropdownRef} 
+                  className="origin-top-right absolute right-0 mt-2 w-48 rounded-md z-10
+                  shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none
+                  " 
                   role="menu" 
                   aria-labelledby="user-menu-button"
                 >

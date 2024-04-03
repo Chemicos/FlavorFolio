@@ -7,8 +7,8 @@ export default function Content({ handlePostClick }) {
     const [showFilter, setShowFilter] = useState(false)
 
   return (
-    <div className="bg-ff-content flex flex-col w-4/5 h-content rounded-3xl shadow-md">
-        <div className="flex flex-row justify-between gap-2 ml-20 mr-20 mt-4">
+    <div className="bg-ff-content flex flex-col w-4/5 h-auto rounded-3xl shadow-md">
+        <div className="flex flex-row justify-between gap-2 px-10 py-4">
             <button 
                 className="bg-ff-btn px-3 py-2 rounded-lg shadow flex items-center gap-3 border border-ff-btn
                 duration-300 transition-all ease-in-out transform hover:scale-105"

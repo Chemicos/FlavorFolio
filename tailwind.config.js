@@ -12,7 +12,8 @@ export default {
         'ff-googlebtn': '#0E0C22',
         'ff-search': '#EFE6D7',
         'ff-content': '#FFE4BC',
-        'ff-form': '#FDD9A4'
+        'ff-form': '#FDD9A4',
+        "ff-close": '#ED6B28'
       },
       textColor: {
         'ff-flavor': '#02650C',
@@ -23,11 +24,13 @@ export default {
       },
       width: {
         '420': '420px',
-        '140': '140px'
+        '140': '140px',
+        'responsive-sm': '520px'
       },
       height: {
         '1px': '1px',
-        'content': '700px'
+        'content': '700px',
+        'post-form': '92%'
       },
       borderColor: {
         'ff-googlebtn': '#0E0C22',
