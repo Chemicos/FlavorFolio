@@ -2,41 +2,37 @@
 /* eslint-disable react/prop-types */
 import { faArrowUpFromBracket, faClose, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { update } from "firebase/database";
 import { useState } from "react";
 
 export default function PostForm({ handleClose }) {
+  // Upload Image functions <<
+  const [uploadedImage, setUploadedImage] = useState(null)
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const imageUrl = URL.createObjectURL(file)
+      setUploadedImage(imageUrl)
+    }
+  }
+  // >>
+
   // Title functions <<
   const [title, setTitle] = useState('')
   const [titleError, setTitleError] = useState(false)
 
   const handleTitleChange = (e) => {
-    setTitle(e.target.value)
-    if (e.target.value.trim() !== '') {
-      setTitleError(false)
-    }
+    const value = e.target.value
+    setTitle(value)
+
+    const hasInvalidChars = /[\d!@#\$%\^\&*\)\(+=._-]+/.test(value)
+    setTitleError(hasInvalidChars || value.trim() === '')
   }
 
   const handleTitleBlur = () => {
     if (title.trim() === '') {
       setTitleError(true)
-    }
-  }
-  // >>
-
-  // Calories functions <<
-  const [calories, setCalories] = useState('')
-  const [caloriesError, setCaloriesError] = useState(false)
-
-  const handleCaloriesChange = (e) => {
-    const value = e.target.value
-    setCalories(value)
-    const isValidNumber = /^[0-9]*$/.test(value)
-    setCaloriesError(!isValidNumber || value.trim() === '')
-  }
-
-  const handleCaloriesBlur = () => {
-    if (calories.trim() === '') {
-      setCaloriesError(true)
     }
   }
   // >>
@@ -117,11 +113,45 @@ export default function PostForm({ handleClose }) {
     setIngredients(ingredients.filter((_, i) => i !== index))
   }
   // >>
+
+  // Filter functions <<
+  const [meal, setMeal] = useState('')
+  const [mealError, setMealError] = useState(false)
+  const [cuisine, setCuisine] = useState('');
+  const [cuisineError, setCuisineError] = useState(false);
+  const [duration, setDuration] = useState('');
+  const [durationError, setDurationError] = useState(false);
+  const [servings, setServings] = useState('');
+  const [servingsError, setServingsError] = useState(false);
+  
+  const mealOptions = ["breakfast", "lunch", "dinner", "snack"]
+  const durationOptions = ["5-30 minutes", "30-50 minutes", "1+ hour", "2+ hours"]
+
+  const handleInputChange = (value, setter, setError, isSelect = false, isCuisine = false) => {
+      setter(value)
+
+      let isError
+      if (isSelect) {
+        isError = value.trim() === ''
+      } else if (isCuisine) {
+        const hasInvalidChars = /[^a-zA-Z\s]/.test(value)
+        isError = hasInvalidChars || value.trim() === ''
+      } else {
+        const isNumber = /^[0-9]+$/.test(value)
+        isError = !isNumber || value.trim() === ''
+      }
+      setError(isError)
+  }
+
+  const handleInputBlur = (value, setError) => {
+      setError(value.trim() === '')
+  }
+  // >>
   
   // Cooking steps functions<<
   const [cookingSteps, setCookingSteps] = useState([])
   const addCookingStep = () => {
-    setCookingSteps([...cookingSteps, { description: '', image: null }])
+    setCookingSteps([...cookingSteps, { description: '', image: null, error: false  }])
   }
 
   const removeCookingStep = index => {
@@ -131,7 +161,22 @@ export default function PostForm({ handleClose }) {
   const handleCookingStepChange = (index, field, value) => {
     const newSteps = cookingSteps.map((step, i) => {
       if (i === index) {
-        return { ...step, [field]: value }
+        const updatedStep = { ...step, [field]: value }
+
+        if(field === 'image') {
+          updatedStep.imageUrl = value ? URL.createObjectURL(value) : null
+        }
+        return updatedStep
+      }
+      return step
+    })
+    setCookingSteps(newSteps)
+  }
+
+  const handleCookingStepBlur = (index) => {
+    const newSteps = cookingSteps.map((step, i) => {
+      if (i === index) {
+        return {...step, error: !step.description.trim()}
       }
       return step
     })
@@ -154,38 +199,59 @@ export default function PostForm({ handleClose }) {
             <form className="lg:w-full mx-auto flex flex-col gap-4 items-center h-full py-4 overflow-y-auto">
               <h1 className="text-xl font-semibold">Post Your Recipe</h1>
 
-              <div className="flex flex-col items-center gap-2">
-                <input type="file" id="file-upload" className="hidden" />
-                <label htmlFor="file-upload" 
-                  className="flex flex-col justify-center cursor-pointer rounded-full w-24 h-24 border border-black
-                hover:bg-ff-btn hover:border-ff-btn duration-300"
-                >
-                  <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-3xl" />
-                </label>
-                  <span className="font-semibold">Upload Image</span>
+              <div className="relative flex flex-col items-center gap-2">
+                {uploadedImage ? (
+                  <>
+                    <img src={uploadedImage} 
+                      alt="uploaded" 
+                      className="w-full h-32 rounded-lg" 
+                      />
+
+                      <div className="absolute bg-black bg-opacity-20 opacity-0 
+                        hover:opacity-100 flex items-center rounded-lg justify-center 
+                        transition-opacity h-32 w-full duration-150"
+                      >
+                        <input type="file" id="file-upload" 
+                          className="hidden"
+                          onChange={handleImageUpload} 
+                        />
+
+                        <label htmlFor="file-upload" 
+                          className="cursor-pointer hover:scale-125 duration-100">
+                              <FontAwesomeIcon icon={faArrowUpFromBracket} 
+                              className="text-white text-3xl" 
+                              />
+                        </label>
+                      </div>
+                    </>
+                ) : (
+                  <>
+                    <input type="file" id="file-upload" 
+                      className="hidden"
+                      onChange={handleImageUpload} 
+                    />
+                    <label htmlFor="file-upload" 
+                      className="flex flex-col justify-center cursor-pointer rounded-full w-24 h-24 border border-black
+                      hover:bg-ff-btn hover:border-ff-btn duration-300"
+                      >
+                      <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-3xl" />
+                    </label>
+                    <span className="font-semibold">Upload Image</span>
+                  </>
+                )}
               </div>
 
               <div className="flex flex-col gap-4 w-full px-4 sm:px-8">
                 <h1 className="font-semibold text-lg">General Info</h1>
 
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <input type="text"
-                      value={title}
-                      onChange={handleTitleChange} 
-                      onBlur={handleTitleBlur}
-                      placeholder="Title" 
-                      className={`w-full px-2 py-2 rounded-lg hover:shadow-input placeholder:italic 
-                      duration-150 ${titleError ? 'shadow-input-error' : ''}`} 
-                    />
-                    <input type="number" 
-                      placeholder="Calories"
-                      value={calories}
-                      onChange={handleCaloriesChange}
-                      onBlur={handleCaloriesBlur} 
-                      className={`w-full px-2 py-2 rounded-lg hover:shadow-input 
-                      placeholder:italic duration-150 ${caloriesError ? 'shadow-input-error' : ''}`}
-                    />
-                </div>
+                <input type="text"
+                  value={title}
+                  onChange={handleTitleChange} 
+                  onBlur={handleTitleBlur}
+                  placeholder="Title" 
+                  className={`w-full px-2 py-2 rounded-lg hover:shadow-input placeholder:italic 
+                  duration-150 ${titleError ? 'shadow-input-error' : ''}`} 
+                />
 
                 <textarea placeholder="Description" 
                   value={description}
@@ -243,67 +309,106 @@ export default function PostForm({ handleClose }) {
                     </button>
                   </div>
                 ))}
-                    <button 
-                      className="bg-ff-btn w-8 h-8 rounded-lg transition duration-150 ease-in-out hover:scale-110"
-                      onClick={addIngredient}
-                    >
-                      <FontAwesomeIcon icon={faPlus} />
-                    </button>
+                  <button 
+                    className="bg-ff-btn w-8 h-8 rounded-lg transition duration-150 ease-in-out hover:scale-110"
+                    onClick={addIngredient}
+                  >
+                    <FontAwesomeIcon icon={faPlus} />
+                  </button>
 
                 
                   <h1 className="font-semibold text-lg">Filter</h1>                  
                   <div className="flex flex-col gap-4">
-                    <select className="px-2 bg-white py-2 rounded-lg w-full sm:w-auto" name="meal" id="meal-select">
+                    <select value={meal}
+                      onChange={(e) => handleInputChange(e.target.value, setMeal, setMealError, true)}
+                      onBlur={() => handleInputBlur(meal, setMealError)}
+                      className={`px-2 py-2 bg-white rounded-lg w-full sm:w-auto 
+                      ${mealError ? 'shadow-input-error' : 'hover:shadow-input duration-150'}`}
+                    >
                       <option value="">Select Meal Type</option>
-                      <option value="breakfast">Breakfast</option>
-                      <option value="lunch">Lunch</option>
-                      <option value="dinner">Dinner</option>
-                      <option value="snack">Snack</option>
+                      {mealOptions.map((option, index) => (
+                        <option key={index} value={option}>{option}</option>
+                      ))}
                     </select>
 
                     <input 
                       type="text" 
+                      value={cuisine}
+                      onChange={(e) => handleInputChange(e.target.value, setCuisine, setCuisineError, false, true)}
+                      onBlur={() => handleInputBlur(cuisine, setCuisineError)}
                       placeholder="Cuisine" 
-                      className="w-full px-2 py-2 rounded-lg hover:shadow-input placeholder:italic duration-150" 
+                      className={`w-full px-2 py-2 rounded-lg placeholder:italic duration-150 ${cuisineError ? 'shadow-input-error' : 'hover:shadow-input'}`}
                     />
 
-                    <input 
-                      type="text" 
-                      placeholder="Duration" 
-                      className="w-full px-2 py-2 rounded-lg hover:shadow-input placeholder:italic duration-150" 
-                    />
+                    <select value={duration}
+                      onChange={(e) => handleInputChange(e.target.value, setDuration, setDurationError, true)}
+                      onBlur={() => handleInputBlur(duration, setDurationError)}
+                      className={`w-full px-2 py-2 bg-white rounded-lg duration-150 ${durationError ? 'shadow-input-error': 'hover:shadow-input'}`}
+                    >
+                      <option value="">Select Duration</option>
+                      {durationOptions.map((option, index) => (
+                        <option key={index} value={option}>{option}</option>
+                      ))}
+                    </select>
                     
                     <input 
-                      type="text" 
+                      type="number" 
+                      value={servings}
+                      onChange={(e) => handleInputChange(e.target.value, setServings, setServingsError)}
+                      onBlur={() => handleInputBlur(servings, setServingsError)}
                       placeholder="Servings" 
-                      className="w-full px-2 py-2 rounded-lg hover:shadow-input placeholder:italic duration-150" 
+                      className={`w-full px-2 py-2 rounded-lg placeholder:italic duration-150 ${servingsError ? 'shadow-input-error' : 'hover:shadow-input'}`}
                     />
                   </div>
 
                   <h1 className="font-semibold text-lg">Cooking Steps</h1>
                   {cookingSteps.map((step, index) => (
-                    <div key={index} className="relative flex flex-col items-center bg-ff-bg rounded-lg shadow-md px-4 py-6 sm:py-4">
+                    <div key={index} className={`relative flex flex-col items-center bg-ff-bg rounded-lg px-4 py-6 sm:py-4
+                    ${step.error ? 'shadow-input-error' : 'shadow-md'}`}
+                    >
                       <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
                         <textarea
                           value={step.description}
                           onChange={(e) => handleCookingStepChange(index, 'description', e.target.value)}
+                          onBlur={() => handleCookingStepBlur(index)}
                           placeholder="Step description"
                           className="w-full sm:w-60 px-2 py-2 rounded-lg hover:shadow-input placeholder:italic duration-150"
                         />
 
-                        <div className="w-full flex justify-center">
+                        <div className="relative w-full flex justify-center">
+                          {step.imageUrl ? (
+                            <>
+                              <img src={step.imageUrl} 
+                              alt="demonstration" 
+                              className="h-20 w-32 rounded-lg" 
+                              />
+
+                              <div className="absolute bg-black bg-opacity-20 opacity-0 
+                              hover:opacity-100 flex items-center rounded-lg justify-center 
+                              transition-opacity h-20 w-32 duration-150"
+                              >
+                                <label htmlFor={`step-image-upload-${index}`} 
+                                  className="cursor-pointer hover:scale-125 duration-100">
+                                     <FontAwesomeIcon icon={faArrowUpFromBracket} 
+                                     className="text-white text-2xl" 
+                                     />
+                                </label>
+                              </div>
+                            </>
+                          ) : (
+                            <label htmlFor={`step-image-upload-${index}`} 
+                              className="cursor-pointer flex flex-col gap-2 transition duration-150 ease-in-out hover:scale-110"
+                            >
+                              <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-2xl" />
+                              <span className="text-sm italic">Upload Image</span>
+                            </label>
+                          )}
                           <input
                             type="file"
                             onChange={(e) => handleCookingStepChange(index, 'image', e.target.files[0])}
                             className="hidden"
                             id={`step-image-upload-${index}`}
                           />
-                          <label htmlFor={`step-image-upload-${index}`} 
-                            className="cursor-pointer flex flex-col gap-2 transition duration-150 ease-in-out hover:scale-110"
-                          >
-                            <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-2xl" />
-                            <span className="text-sm italic">Upload Image</span>
-                          </label>
                         </div>
                       </div>
 
@@ -328,7 +433,8 @@ export default function PostForm({ handleClose }) {
               </div>
 
               <button 
-                className="bg-ff-btn px-3 py-2 rounded-xl font-semibold transition duration-150 ease-in-out hover:scale-110"
+                className="bg-ff-btn px-6 py-2 rounded-xl uppercase font-semibold 
+                transition duration-150 ease-in-out hover:scale-110"
               >
                   Submit
               </button>

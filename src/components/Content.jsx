@@ -2,6 +2,7 @@
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
+import RecipeCard from "./RecipeCard";
 
 export default function Content({ handlePostClick }) {
     const [showFilter, setShowFilter] = useState(false)
@@ -54,6 +55,10 @@ export default function Content({ handlePostClick }) {
             >
                 Post
             </button>
+        </div>
+
+        <div className="flex m-4">
+            <RecipeCard />
         </div>
     </div>
   )
