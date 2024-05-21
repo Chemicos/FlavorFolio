@@ -9,7 +9,7 @@ import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 import Content from "./Content"
 import PostForm from "./PostForm"
 
-
+// TODO: FIX navigation bar
 export default function Home() {
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
 
@@ -22,7 +22,7 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden">
+    <div className="h-screen w-screen overflow-x-hidden">
       <Navigation />
 
       <div className="flex flex-col items-center justify-center gap-8">

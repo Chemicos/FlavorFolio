@@ -91,21 +91,21 @@ export default function Register() {
   const passwordCriteria = [
     { 
       id: 'minLength', 
-      text: 'At least 6 characters', 
+      text: 'Cel puțin 6 caractere', 
       isValid: password.length >= 6 
     },
     { 
       id: 'specialChar', 
-      text: 'At least one special character (!@#$%^&*().)', 
+      text: 'Cel puțin 1 caracter special (!@#$%^&*().)', 
       isValid: /[!@#$%^&*(),.?":{}|<>]/.test(password) 
     },
     { 
       id: 'upperCase',
-      text: 'At least one uppercase character',
+      text: 'Cel puțin o majusculă',
       isValid: /[A-Z]/.test(password) },
       { 
         id: 'number', 
-        text: 'At least one number', 
+        text: 'Cel puțin un număr', 
         isValid: /[0-9]/.test(password) 
       }
     ]
@@ -187,14 +187,14 @@ export default function Register() {
   return (
     <div className="flex flex-col items-center gap-5">
       <h1 className="font-medium text-4xl mb-6">
-        Join 
+        Alătură-te 
         <span className="text-ff-flavor"> Flavor</span>
         <span className="text-ff-folio">Folio</span>
       </h1>
 
       <form className="flex flex-col w-80">
         <div className="flex flex-col mb-6">
-            <label className="mb-2 font-semibold">Username</label>
+            <label className="mb-2 font-semibold">Nume Utilizator</label>
 
             <div className="flex flex-col relative">
               <input 
@@ -246,7 +246,7 @@ export default function Register() {
         </div>
 
         <div className={`${password ? 'mb-0' : 'mb-6'} flex flex-col`}>
-            <label className="mb-2 font-semibold" >Password</label>
+            <label className="mb-2 font-semibold" >Parolă</label>
 
             <div className="flex flex-col gap-2">
               <div className="relative">
@@ -256,7 +256,7 @@ export default function Register() {
                   onBlur={() => 
                     setPasswordError(!passwordCriteria.every(criteria => criteria.isValid)
                   )}
-                  placeholder="6+ characters" 
+                  placeholder="6+ caractere" 
                   className={`bg-transparent w-80 border border-zinc-800 rounded-lg pr-10 pl-4 py-3 
                   placeholder:text-ff-googlebtn placeholder:opacity-50
                   hover:shadow-input duration-150 ${passwordError ? 'shadow-input-error' : 'focus:shadow-input'}
@@ -299,7 +299,7 @@ export default function Register() {
         </div>
 
         <div className="flex flex-col">
-          <label className="mb-2 font-semibold" >Confirm Password</label>
+          <label className="mb-2 font-semibold" >Confirmare Parolă</label>
 
             <div className="flex flex-col gap-2">
               <div className="relative">
@@ -327,7 +327,7 @@ export default function Register() {
               </div>
               
               {confirmPassword && password != confirmPassword && (
-                <p className="text-red-500 text-sm animate-dropdown">Password does not match</p>
+                <p className="text-red-500 text-sm animate-dropdown">Parola nu se potrivește</p>
               )}
             </div>
 
@@ -343,13 +343,13 @@ export default function Register() {
           disabled={!isFormValid}
           onClick={handleRegister}
         >
-          Register
+          Înregistrare
         </button>
       </form>
 
       <div className="flex items-center gap-2">
           <span className="w-140 bg-ff-googlebtn h-1px"></span>
-            OR 
+            SAU
           <span className="w-140 bg-ff-googlebtn h-1px"></span>
       </div>
 
@@ -360,9 +360,9 @@ export default function Register() {
          hover:bg-ff-bg hover:text-ff-googlebtn duration-300" 
       >
         <img className="w-5 h-5" src={googleIcon} alt="google-icon" />
-          Continue with Google
+          Continuă cu Google
       </button>
-      <p>Already have an account? <Link to="/" className="text-ff-blue underline">Login</Link></p>
+      <p>Ai cont? <Link to="/" className="text-ff-blue underline">Loghează-te</Link></p>
     </div>
   )
 }

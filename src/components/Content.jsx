@@ -1,14 +1,35 @@
 /* eslint-disable react/prop-types */
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
-import RecipeCard from "./RecipeCard";
+import { ref, listAll, getDownloadURL } from "firebase/storage";
+import { storage } from "../firebase-config";
+import { useEffect, useState } from "react";
+// import RecipeCard from "./RecipeCard";
 
 export default function Content({ handlePostClick }) {
     const [showFilter, setShowFilter] = useState(false)
 
+    // const [imageUrls, setImageUrls] = useState([]);
+
+    // useEffect(() => {
+    //     const loadImages = async () => {
+    //         const urls = await fetchRecipeImages();
+    //         setImageUrls(urls);
+    //     };
+    //     loadImages();
+    // }, []);
+
+    // const fetchRecipeImages = async () => {
+    //     const imagesRef = ref(storage, "recipe_images")
+    //     const imageFiles = await listAll(imagesRef)
+    //     const imageUrls = await Promise.all(
+    //         imageFiles.items.map((itemRef) => getDownloadURL(itemRef))
+    //     )
+    //     return imageUrls
+    // }
+    // TODO: ADD PAGINATION SYSTEM AND SOME MORE PICTURES
   return (
-    <div className="bg-ff-content flex flex-col w-4/5 h-auto rounded-3xl shadow-md">
+    <div className="bg-ff-content flex flex-col w-4/5 h-[720px] rounded-3xl shadow-md mb-6">
         <div className="flex flex-row justify-between gap-2 px-10 py-4">
             <button 
                 className="bg-ff-btn px-3 py-2 rounded-lg shadow flex items-center gap-3 border border-ff-btn
@@ -57,9 +78,11 @@ export default function Content({ handlePostClick }) {
             </button>
         </div>
 
-        <div className="flex m-4">
-            <RecipeCard />
-        </div>
+        {/* <div className="flex flex-wrap gap-4 justify-center overflow-y-auto">
+            {imageUrls.map((url, index) => (
+                    <RecipeCard key={index} imageUrl={url} />
+                ))}
+        </div> */}
     </div>
   )
 }

@@ -1,9 +1,9 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import RecipeImg from '../assets/reteta_5.jpg'
+// import RecipeImg from '../assets/reteta_5.jpg'
 import { faHeart, faStar } from '@fortawesome/free-solid-svg-icons'
 import { useState } from 'react'
 
-export default function RecipeCard() {
+export default function RecipeCard({ imageUrl }) {
     const [difficulty, setDifficulty] = useState(0)
 
     const handleDifficultyClick = (level) => {
@@ -15,11 +15,10 @@ export default function RecipeCard() {
     const toggleFavorite = () => {
         setIsFavorite(!isFavorite)
     }
-
   return (
     <div className="relative rounded-xl overflow-hidden shadow-md">
-        <img className='w-72 h-48 object-cover' 
-            src={RecipeImg} 
+        <img className=' w-64 h-44 object-cover' 
+            src={imageUrl} 
             alt="reteta" 
         />
         

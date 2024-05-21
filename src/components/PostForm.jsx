@@ -2,63 +2,78 @@
 /* eslint-disable react/prop-types */
 import { faArrowUpFromBracket, faClose, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { update } from "firebase/database";
+import { db, storage } from "../firebase-config";
+import { collection, addDoc } from "@firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useState } from "react";
 
 export default function PostForm({ handleClose }) {
   // Upload Image functions <<
   const [uploadedImage, setUploadedImage] = useState(null)
-
-  const handleImageUpload = (e) => {
+  const [imageFile, setImageFile] = useState(null)
+  
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0]
     if (file) {
+      setImageFile(file)
       const imageUrl = URL.createObjectURL(file)
       setUploadedImage(imageUrl)
     }
   }
   // >>
 
+  // Save recipe Firestore <<
+  const saveRecipe = async (recipe) => {
+    try {
+      const docRef = await addDoc(collection(db, "recipes"), recipe)
+      console.log("Document scris cu ID-ul: ", docRef.id)
+    } catch (e) {
+      console.error("Eroare la adaugarea documentului: ", e)
+    }
+  }
+  // >>
+  
   // Title functions <<
   const [title, setTitle] = useState('')
   const [titleError, setTitleError] = useState(false)
-
+  
   const handleTitleChange = (e) => {
     const value = e.target.value
     setTitle(value)
-
+    
     const hasInvalidChars = /[\d!@#\$%\^\&*\)\(+=._-]+/.test(value)
     setTitleError(hasInvalidChars || value.trim() === '')
   }
-
+  
   const handleTitleBlur = () => {
     if (title.trim() === '') {
       setTitleError(true)
     }
   }
   // >>
-
+  
   // Description functions <<
   const [description, setDescription] = useState('')
   const [descriptionError, setDescriptionError] = useState(false)
-
+  
   const handleDescriptionChange = (e) => {
     setDescription(e.target.value)
     if (e.target.value.trim() !== '') {
       setDescriptionError(false)
     }
   }
-
+  
   const handleDescriptionBlur = () => {
     if (description.trim() === '') {
       setDescriptionError(true)
     }
   }
   // >>
-
+  
   // Ingredient functions <<
   const [ingredients, setIngredients] = useState([])
-  const unitOptions = ["cup", "tablespoon", "teaspoon", "g", "kg", "l", "ml"]
-
+  const unitOptions = ["cana", "lingura", "lingurita", "buc", "g", "kg", "l", "ml"]
+  
   const addIngredient = (e) => {
     setIngredients([...ingredients, { 
       quantity: '',
@@ -75,22 +90,22 @@ export default function PostForm({ handleClose }) {
     const newIngredients = ingredients.map((ingredient, i) => {
       if (i === index) {
         let isError = false
-
+        
         if (field === 'quantity') {
           const isValidNumber = /^[0-9]*$/.test(value)
           isError = !isValidNumber || value.trim() === ''
         }
         if (field === 'unit') {
-            isError = value.trim() === ''
+          isError = value.trim() === ''
         }
         if (field === 'ingredient') {
-            isError = /[\d!@#\$%\^\&*\)\(+=._-]+/.test(value)
+          isError = /[\d!@#\$%\^\&*\)\(+=._-]+/.test(value)
         }
-
+        
         return {
-            ...ingredient,
-            [field]: value,
-            [`${field}Error`]: isError
+          ...ingredient,
+          [field]: value,
+          [`${field}Error`]: isError
         }
       }
       return ingredient
@@ -102,18 +117,18 @@ export default function PostForm({ handleClose }) {
     const newIngredients = ingredients.map((ingredient, i) => {
       if (i === index) {
         const isError = field === 'unit' ? ingredient[field].trim() === '' : ingredient[field].trim() === ''
-            return { ...ingredient, [`${field}Error`]: isError }
+        return { ...ingredient, [`${field}Error`]: isError }
       }
       return ingredient
     })
     setIngredients(newIngredients)
   }
-
+  
   const removeIngredient = (index) => {
     setIngredients(ingredients.filter((_, i) => i !== index))
   }
   // >>
-
+  
   // Filter functions <<
   const [meal, setMeal] = useState('')
   const [mealError, setMealError] = useState(false)
@@ -126,25 +141,25 @@ export default function PostForm({ handleClose }) {
   
   const mealOptions = ["breakfast", "lunch", "dinner", "snack"]
   const durationOptions = ["5-30 minutes", "30-50 minutes", "1+ hour", "2+ hours"]
-
+  
   const handleInputChange = (value, setter, setError, isSelect = false, isCuisine = false) => {
-      setter(value)
-
-      let isError
-      if (isSelect) {
-        isError = value.trim() === ''
-      } else if (isCuisine) {
-        const hasInvalidChars = /[^a-zA-Z\s]/.test(value)
-        isError = hasInvalidChars || value.trim() === ''
-      } else {
-        const isNumber = /^[0-9]+$/.test(value)
-        isError = !isNumber || value.trim() === ''
-      }
-      setError(isError)
+    setter(value)
+    
+    let isError
+    if (isSelect) {
+      isError = value.trim() === ''
+    } else if (isCuisine) {
+      const hasInvalidChars = /[^a-zA-Z\s]/.test(value)
+      isError = hasInvalidChars || value.trim() === ''
+    } else {
+      const isNumber = /^[0-9]+$/.test(value)
+      isError = !isNumber || value.trim() === ''
+    }
+    setError(isError)
   }
-
+  
   const handleInputBlur = (value, setError) => {
-      setError(value.trim() === '')
+    setError(value.trim() === '')
   }
   // >>
   
@@ -153,16 +168,16 @@ export default function PostForm({ handleClose }) {
   const addCookingStep = () => {
     setCookingSteps([...cookingSteps, { description: '', image: null, error: false  }])
   }
-
+  
   const removeCookingStep = index => {
     setCookingSteps(cookingSteps.filter((_, i) => i !== index))
   }
-
+  
   const handleCookingStepChange = (index, field, value) => {
     const newSteps = cookingSteps.map((step, i) => {
       if (i === index) {
         const updatedStep = { ...step, [field]: value }
-
+        
         if(field === 'image') {
           updatedStep.imageUrl = value ? URL.createObjectURL(value) : null
         }
@@ -172,7 +187,7 @@ export default function PostForm({ handleClose }) {
     })
     setCookingSteps(newSteps)
   }
-
+  
   const handleCookingStepBlur = (index) => {
     const newSteps = cookingSteps.map((step, i) => {
       if (i === index) {
@@ -184,9 +199,73 @@ export default function PostForm({ handleClose }) {
   }
   // >>
 
+  // TODO: cooking_step_image trebuie sa fie optional,
+  // dezactiveaza butonul submit pana cand toate cerintele sunt completate
+
+  // Submit Form Function <<
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if(!imageFile || title.trim() === "" || description.trim() === "") {
+      return
+    }
+    try {
+      const storageRef = ref(storage, `recipe_images/${imageFile.name}`)
+      await uploadBytes(storageRef, imageFile)
+      const imageUrl = await getDownloadURL(storageRef)
+
+      const cookingStepsWithUrls = await Promise.all(
+        cookingSteps.map(async (step) => {
+          if (step.image) {
+            const stepImageRef = ref(storage, `cooking_steps_images/${step.image.name}`)
+            await uploadBytes(stepImageRef, step.image)
+            const stepImageUrl = await getDownloadURL(stepImageRef)
+            return { ...step, imageUrl: stepImageUrl }
+          }
+          return step
+        })
+      )
+
+      const sanitizedCookingSteps = cookingStepsWithUrls.map(({ ...rest }) => rest)
+
+      const recipe = {
+        image: imageUrl,
+        title: title,
+        description: description,
+        ingredients: ingredients.map((ingredient) => ({
+          quantity: ingredient.quantity,
+          unit: ingredient.unit,
+          ingredient: ingredient.ingredient,
+        })),
+        meal: meal,
+        cuisine: cuisine,
+        duration: duration,
+        servings: servings,
+        cookingSteps: sanitizedCookingSteps,
+        createdAt: new Date()
+      }
+
+      await saveRecipe(recipe)
+
+      setUploadedImage(null)
+      setTitle("")
+      setDescription("")
+      setImageFile(null)
+      setIngredients([])
+      setMeal('')
+      setCuisine('')
+      setDuration('')
+      setServings('')
+      setCookingSteps([])
+    } catch (error) {
+      console.error("Eroare la incarcarea retetei: ", error)
+    }
+  }
+  // >>
+
   return (
     <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center 
-        justify-center z-10 overflow-hidden">
+    justify-center z-10 overflow-hidden">
       <div className="relative bg-ff-form rounded-lg h-5/6 sm:h-post-form w-5/6 
          sm:w-responsive-sm">
             <button 
@@ -435,6 +514,7 @@ export default function PostForm({ handleClose }) {
               <button 
                 className="bg-ff-btn px-6 py-2 rounded-xl uppercase font-semibold 
                 transition duration-150 ease-in-out hover:scale-110"
+                onClick={handleSubmit}
               >
                   Submit
               </button>
