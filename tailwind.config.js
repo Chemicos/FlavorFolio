@@ -20,7 +20,8 @@ export default {
         'ff-folio': '#943500',
         'ff-googlebtn': '#0E0C22',
         'ff-blue': '#036CB8',
-        'ff-placeholder': '#8F8A81'
+        'ff-placeholder': '#8F8A81',
+        'ff-btn': '#FEAA2B'
       },
       width: {
         '420': '420px',

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import FlavorFolioLogo from '../assets/FlavorFolio_logo1.png'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
-import { doc, getDoc } from '@firebase/firestore'
+import { collection, doc, getDoc, getDocs } from '@firebase/firestore'
 import { db } from "../firebase-config"
 
 export default function Navigation() {
@@ -11,25 +11,38 @@ export default function Navigation() {
     const [isOpen, setIsOpen] = useState(false)
     const [username, setUsername] = useState('')
     const [userPhoto, setUserPhoto] = useState('')
+    const [isAdmin, setIsAdmin] = useState(false)
     const dropdownRef = useRef(null)
+    const [pendingCount, setPendingCount] = useState(0)
+
+    useEffect(() => {
+      const fetchPendingCount = async () => {
+        const pendingCollection = collection(db, 'pendingRecipes')
+        const pendingSnapshot = await getDocs(pendingCollection)
+        setPendingCount(pendingSnapshot.size)
+      }
+
+      if (isAdmin) {
+        fetchPendingCount()
+      }
+    }, [isAdmin])
     
   // Retrieving username & avatar from users or google and remaining connected >>
     useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
-          setUserPhoto(user.photoURL || '')
-          if (user.displayName) {
-            setUsername(user.displayName)
+          setUserPhoto(user.photoURL || '');
+          const uid = user.uid;
+          const userRef = doc(db, 'users', uid);
+          const docSnap = await getDoc(userRef);
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            setUsername(userData.username || user.displayName);
+            setIsAdmin(userData.admin);
           } else {
-            const uid = user.uid
-            const userRef = doc(db, "users", uid)
-            const docSnap = await getDoc(userRef)
-            if (docSnap.exists()) {
-              setUsername(docSnap.data().username)
-            } else {
-              console.log("No such document!")
-            }
-          }
+            setUsername(user.displayName)
+            console.log('No such document!');
+          } 
         } else {
           setUsername('')
           setUserPhoto('')
@@ -59,13 +72,13 @@ export default function Navigation() {
     <nav className="bg-transparent">
       <div className="px-4 lg:px-10">
         <div className="flex justify-between h-16">
-            <div className="flex items-center gap-4">
+            <Link to="/home" className="flex items-center gap-4 duration-150 hover:scale-110">
               <img className="block h-12 w-10" src={FlavorFolioLogo} alt="FlavorFolioLogo" />
               <p className='text-ff-flavor font-semibold italic text-xl'>
                 Flavor
                 <span className='text-ff-folio'>Folio</span>
               </p>
-            </div>
+            </Link>
             
           <div className="flex items-center">
             <div className="ml-3 relative">
@@ -77,7 +90,7 @@ export default function Navigation() {
                   aria-haspopup="true" 
                   onClick={() => setIsOpen(!isOpen)}
                   >
-                  <span className='text-base '>
+                  <span className='text-base duration-150 hover:font-semibold hover:scale-110'>
                     {username}
                   </span>
 
@@ -95,14 +108,32 @@ export default function Navigation() {
                   role="menu" 
                   aria-labelledby="user-menu-button"
                 >
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700" 
+                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
                     role="menuitem">My Profile
                   </a>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700" 
+
+                  {isAdmin && (
+                    <a
+                      href="#"
+                      className="flex flex-row gap-4 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      role="menuitem"
+                      onClick={() => navigate('/pending')}
+                    >
+                      Pending
+                      {pendingCount > 0 && (
+                        <span className='bg-red-600 text-white rounded-full font-semibold px-2 py-1 my-auto text-xs'>
+                          {pendingCount}
+                        </span>  
+                      )}
+                    </a>
+                  )}
+
+                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
                     role="menuitem">Settings
                   </a>
+                  
                   <a href="#" 
-                    className="block px-4 py-2 text-sm text-gray-700" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
                     role="menuitem" 
                     onClick={handleSignOut}>
                       Sign Out

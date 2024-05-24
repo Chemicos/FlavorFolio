@@ -1,35 +1,30 @@
 /* eslint-disable react/prop-types */
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ref, listAll, getDownloadURL } from "firebase/storage";
-import { storage } from "../firebase-config";
+// import { ref, listAll, getDownloadURL } from "firebase/storage";
+import { db } from "../firebase-config";
 import { useEffect, useState } from "react";
-// import RecipeCard from "./RecipeCard";
+import RecipeCard from "./RecipeCard";
+import { collection, getDocs } from "@firebase/firestore";
 
 export default function Content({ handlePostClick }) {
     const [showFilter, setShowFilter] = useState(false)
+    const [recipes, setRecipes] = useState([])
 
-    // const [imageUrls, setImageUrls] = useState([]);
 
-    // useEffect(() => {
-    //     const loadImages = async () => {
-    //         const urls = await fetchRecipeImages();
-    //         setImageUrls(urls);
-    //     };
-    //     loadImages();
-    // }, []);
+    useEffect(() => {
+        const loadRecipes = async () => {
+            const recipeCollection = collection(db, "recipes")
+            const recipeSnapshot = await getDocs(recipeCollection)
+            const recipeList = recipeSnapshot.docs.map(doc => doc.data())
+            setRecipes(recipeList)
+        }
+        loadRecipes()
+    }, [])
 
-    // const fetchRecipeImages = async () => {
-    //     const imagesRef = ref(storage, "recipe_images")
-    //     const imageFiles = await listAll(imagesRef)
-    //     const imageUrls = await Promise.all(
-    //         imageFiles.items.map((itemRef) => getDownloadURL(itemRef))
-    //     )
-    //     return imageUrls
-    // }
-    // TODO: ADD PAGINATION SYSTEM AND SOME MORE PICTURES
+    // TODO: ADD ViewRecipe component
   return (
-    <div className="bg-ff-content flex flex-col w-4/5 h-[720px] rounded-3xl shadow-md mb-6">
+    <div className="bg-ff-content flex flex-col w-full sm:w-4/5 h-[755px] sm:h-[720px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
         <div className="flex flex-row justify-between gap-2 px-10 py-4">
             <button 
                 className="bg-ff-btn px-3 py-2 rounded-lg shadow flex items-center gap-3 border border-ff-btn
@@ -78,11 +73,18 @@ export default function Content({ handlePostClick }) {
             </button>
         </div>
 
-        {/* <div className="flex flex-wrap gap-4 justify-center overflow-y-auto">
-            {imageUrls.map((url, index) => (
-                    <RecipeCard key={index} imageUrl={url} />
-                ))}
-        </div> */}
+        {/* <div className="h-[600px]">
+            <div className="flex flex-wrap gap-4 justify-center overflow-y-auto">
+                {recipes.map((recipe, index) => (
+                        <RecipeCard 
+                            key={index} 
+                            imageUrl={recipe.image}
+                            title={recipe.title}
+                            user={recipe.user} 
+                        />
+                    ))}
+            </div>    
+        </div>  */}
     </div>
   )
 }

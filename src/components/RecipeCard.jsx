@@ -1,20 +1,22 @@
+/* eslint-disable react/prop-types */
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-// import RecipeImg from '../assets/reteta_5.jpg'
 import { faHeart, faStar } from '@fortawesome/free-solid-svg-icons'
 import { useState } from 'react'
 
-export default function RecipeCard({ imageUrl }) {
+export default function RecipeCard({ imageUrl, title, user }) {
     const [difficulty, setDifficulty] = useState(0)
 
     const handleDifficultyClick = (level) => {
         setDifficulty(level)
     }
 
+    // Favorite function <<
     const [isFavorite, setIsFavorite] = useState(false)
 
     const toggleFavorite = () => {
         setIsFavorite(!isFavorite)
     }
+    // >>
   return (
     <div className="relative rounded-xl overflow-hidden shadow-md">
         <img className=' w-64 h-44 object-cover' 
@@ -37,8 +39,8 @@ export default function RecipeCard({ imageUrl }) {
 
         <div className='absolute bottom-0 left-0 right-0 flex items-end justify-between px-4 pb-2'>
             <div className='flex flex-col'>
-                <h1 className='text-white italic text-lg font-semibold'>Titlu</h1>
-                <span className='text-white italic text-sm'>utilizator</span>
+                <h1 className='text-white italic text-lg font-semibold'>{title}</h1>
+                <span className='text-white italic text-sm'>{user}</span>
             </div>
 
             <div className='flex gap-1'>

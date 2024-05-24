@@ -3,9 +3,10 @@
 import { faArrowUpFromBracket, faClose, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { db, storage } from "../firebase-config";
-import { collection, addDoc } from "@firebase/firestore";
+import { collection, addDoc, getDoc, doc } from "@firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAuth } from "firebase/auth";
 
 export default function PostForm({ handleClose }) {
   // Upload Image functions <<
@@ -25,7 +26,7 @@ export default function PostForm({ handleClose }) {
   // Save recipe Firestore <<
   const saveRecipe = async (recipe) => {
     try {
-      const docRef = await addDoc(collection(db, "recipes"), recipe)
+      const docRef = await addDoc(collection(db, "pendingRecipes"), recipe)
       console.log("Document scris cu ID-ul: ", docRef.id)
     } catch (e) {
       console.error("Eroare la adaugarea documentului: ", e)
@@ -72,7 +73,7 @@ export default function PostForm({ handleClose }) {
   
   // Ingredient functions <<
   const [ingredients, setIngredients] = useState([])
-  const unitOptions = ["cana", "lingura", "lingurita", "buc", "g", "kg", "l", "ml"]
+  const unitOptions = ["cup", "tablespoon", "teaspoon", "piece", "slice", "g", "kg", "l", "ml"]
   
   const addIngredient = (e) => {
     setIngredients([...ingredients, { 
@@ -132,6 +133,8 @@ export default function PostForm({ handleClose }) {
   // Filter functions <<
   const [meal, setMeal] = useState('')
   const [mealError, setMealError] = useState(false)
+  const [difficulty, setDifficulty] = useState('')
+  const [difficultyError, setDifficultyError] = useState(false)
   const [cuisine, setCuisine] = useState('');
   const [cuisineError, setCuisineError] = useState(false);
   const [duration, setDuration] = useState('');
@@ -140,7 +143,8 @@ export default function PostForm({ handleClose }) {
   const [servingsError, setServingsError] = useState(false);
   
   const mealOptions = ["breakfast", "lunch", "dinner", "snack"]
-  const durationOptions = ["5-30 minutes", "30-50 minutes", "1+ hour", "2+ hours"]
+  const difficultyOptions = ["easy", "medium", "hard"]
+  const durationOptions = ["10 min", "20 min", "30 min", "40 min", "50 min", "1 hour"]
   
   const handleInputChange = (value, setter, setError, isSelect = false, isCuisine = false) => {
     setter(value)
@@ -199,64 +203,119 @@ export default function PostForm({ handleClose }) {
   }
   // >>
 
-  // TODO: cooking_step_image trebuie sa fie optional,
-  // dezactiveaza butonul submit pana cand toate cerintele sunt completate
+  // Get Username <<
+  const getUsername = async (uid) => {
+    const userDoc = await getDoc(doc(db, "users", uid))
+    if (userDoc.exists()) {
+      return userDoc.data().username
+    } else {
+      throw new Error("User not found")
+    }
+  }
+  // >>
+
+  // TODO: cooking_step_image trebuie sa fie optional, iar isFormValid (sau useEffect) sa verifice
+  //crieriile de verificare ale fiecarui input
 
   // Submit Form Function <<
+  const [isFormValid, setIsFormValid] = useState(false)
+  
+  useEffect(() => {
+    const checkFormValidity = () => {
+      const isValid = imageFile && 
+      title.trim() !== '' && 
+      description.trim() !== '' && 
+      ingredients.length > 0 && 
+      ingredients.every(ingredient => 
+        ingredient.quantity.trim() !== '' &&
+        ingredient.unit.trim() !== '' &&
+        ingredient.ingredient.trim() !== ''
+      ) && 
+      meal.trim() !== '' && 
+      difficulty.trim() !== '' &&
+      duration.trim() !== '' && 
+      servings.trim() !== '' &&
+      cookingSteps.length > 0 && 
+      cookingSteps.every(step => step.description.trim() !== '')
+      setIsFormValid(isValid)
+    }
+    checkFormValidity()
+  }, [imageFile, title, description, ingredients, meal, difficulty, cuisine, duration, servings, cookingSteps])
+  
+  const removeFileFields = (obj) => {
+    const newObj = { ...obj };
+    for (let key in newObj) {
+        if (newObj[key] instanceof File) {
+            delete newObj[key];
+        }
+    }
+    return newObj;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    if(!imageFile || title.trim() === "" || description.trim() === "") {
+    
+    if(!isFormValid) {
       return
     }
+    
     try {
+      const auth = getAuth()
+      const user = auth.currentUser
+      if (!user) {
+        throw new Error("No user logged in")
+      }
+
+      const username = await getUsername(user.uid)
+
       const storageRef = ref(storage, `recipe_images/${imageFile.name}`)
-      await uploadBytes(storageRef, imageFile)
+      await uploadBytes(storageRef, imageFile);
       const imageUrl = await getDownloadURL(storageRef)
 
       const cookingStepsWithUrls = await Promise.all(
-        cookingSteps.map(async (step) => {
-          if (step.image) {
-            const stepImageRef = ref(storage, `cooking_steps_images/${step.image.name}`)
-            await uploadBytes(stepImageRef, step.image)
-            const stepImageUrl = await getDownloadURL(stepImageRef)
-            return { ...step, imageUrl: stepImageUrl }
-          }
-          return step
-        })
+          cookingSteps.map(async (step) => {
+              if (step.image) {
+                  const stepImageRef = ref(storage, `cooking_steps_images/${step.image.name}`)
+                  await uploadBytes(stepImageRef, step.image)
+                  const stepImageUrl = await getDownloadURL(stepImageRef)
+                  return removeFileFields({ ...step, imageUrl: stepImageUrl })
+              }
+              return removeFileFields({ ...step })
+          })
       )
-
-      const sanitizedCookingSteps = cookingStepsWithUrls.map(({ ...rest }) => rest)
 
       const recipe = {
         image: imageUrl,
         title: title,
         description: description,
         ingredients: ingredients.map((ingredient) => ({
-          quantity: ingredient.quantity,
-          unit: ingredient.unit,
-          ingredient: ingredient.ingredient,
+            quantity: ingredient.quantity,
+            unit: ingredient.unit,
+            ingredient: ingredient.ingredient,
         })),
         meal: meal,
+        difficulty: difficulty,
         cuisine: cuisine,
         duration: duration,
         servings: servings,
-        cookingSteps: sanitizedCookingSteps,
-        createdAt: new Date()
+        cookingSteps: cookingStepsWithUrls,
+        createdAt: new Date(),
+        user: username
       }
 
       await saveRecipe(recipe)
 
       setUploadedImage(null)
-      setTitle("")
-      setDescription("")
-      setImageFile(null)
-      setIngredients([])
-      setMeal('')
-      setCuisine('')
-      setDuration('')
-      setServings('')
-      setCookingSteps([])
+        setTitle("")
+        setDescription("")
+        setImageFile(null)
+        setIngredients([])
+        setMeal('')
+        setDifficulty('')
+        setCuisine('')
+        setDuration('')
+        setServings('')
+        setCookingSteps([])
     } catch (error) {
       console.error("Eroare la incarcarea retetei: ", error)
     }
@@ -266,12 +325,12 @@ export default function PostForm({ handleClose }) {
   return (
     <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center 
     justify-center z-10 overflow-hidden">
-      <div className="relative bg-ff-form rounded-lg h-5/6 sm:h-post-form w-5/6 
+      <div className="relative bg-ff-form rounded-lg h-full sm:h-post-form w-full 
          sm:w-responsive-sm">
             <button 
               onClick={handleClose}
-              className="absolute -top-2 -right-2 text-2xl bg-ff-close rounded-full h-10 w-10 
-              transition duration-150 ease-in-out hover:scale-110 z-10">
+              className="absolute top-3 right-3 sm:-top-2 opacity-70 sm:opacity-100 sm:-right-2 text-2xl bg-ff-close rounded-full h-10 w-10 
+              transition duration-150 ease-in-out hover:scale-110 hover:bg-red-700 hover:text-white z-10">
                 <FontAwesomeIcon icon={faClose} /> 
             </button>
             
@@ -398,24 +457,38 @@ export default function PostForm({ handleClose }) {
                 
                   <h1 className="font-semibold text-lg">Filter</h1>                  
                   <div className="flex flex-col gap-4">
-                    <select value={meal}
-                      onChange={(e) => handleInputChange(e.target.value, setMeal, setMealError, true)}
-                      onBlur={() => handleInputBlur(meal, setMealError)}
-                      className={`px-2 py-2 bg-white rounded-lg w-full sm:w-auto 
-                      ${mealError ? 'shadow-input-error' : 'hover:shadow-input duration-150'}`}
-                    >
-                      <option value="">Select Meal Type</option>
-                      {mealOptions.map((option, index) => (
-                        <option key={index} value={option}>{option}</option>
-                      ))}
-                    </select>
+                    <div className="flex flex-row gap-2">
+                      <select value={meal}
+                        onChange={(e) => handleInputChange(e.target.value, setMeal, setMealError, true)}
+                        onBlur={() => handleInputBlur(meal, setMealError)}
+                        className={`px-2 py-2 bg-white rounded-lg w-full
+                        ${mealError ? 'shadow-input-error' : 'hover:shadow-input duration-150'}`}
+                      >
+                        <option value="">Select Meal Type</option>
+                        {mealOptions.map((option, index) => (
+                          <option key={index} value={option}>{option}</option>
+                        ))}
+                      </select>
+
+                      <select value={difficulty}
+                        onChange={(e) => handleInputChange(e.target.value, setDifficulty, setDifficultyError, true)}
+                        onBlur={() => handleInputBlur(difficulty, setDifficultyError)}
+                        className={`px-2 py-2 bg-white rounded-lg w-full
+                        ${difficultyError ? 'shadow-input-error' : 'hover:shadow-input duration-150'}`}
+                      >
+                        <option value="">Select Meal Type</option>
+                        {difficultyOptions.map((option, index) => (
+                          <option key={index} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    </div>
 
                     <input 
                       type="text" 
                       value={cuisine}
                       onChange={(e) => handleInputChange(e.target.value, setCuisine, setCuisineError, false, true)}
                       onBlur={() => handleInputBlur(cuisine, setCuisineError)}
-                      placeholder="Cuisine" 
+                      placeholder="Cuisine (optional)" 
                       className={`w-full px-2 py-2 rounded-lg placeholder:italic duration-150 ${cuisineError ? 'shadow-input-error' : 'hover:shadow-input'}`}
                     />
 
@@ -479,7 +552,10 @@ export default function PostForm({ handleClose }) {
                               className="cursor-pointer flex flex-col gap-2 transition duration-150 ease-in-out hover:scale-110"
                             >
                               <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-2xl" />
-                              <span className="text-sm italic">Upload Image</span>
+                              <div className="flex flex-col items-center">
+                                <span className="text-sm italic">Upload Image</span>
+                                <span className="text-xs opacity-50">(optional)</span>
+                              </div>
                             </label>
                           )}
                           <input
@@ -512,9 +588,10 @@ export default function PostForm({ handleClose }) {
               </div>
 
               <button 
-                className="bg-ff-btn px-6 py-2 rounded-xl uppercase font-semibold 
-                transition duration-150 ease-in-out hover:scale-110"
+                className={`bg-ff-btn px-6 py-2 rounded-xl uppercase font-semibold 
+                transition duration-150 ease-in-out ${isFormValid ? 'hover:scale-110' : 'opacity-50 cursor-not-allowed'}`}
                 onClick={handleSubmit}
+                disabled={!isFormValid}
               >
                   Submit
               </button>

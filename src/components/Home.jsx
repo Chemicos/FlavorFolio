@@ -42,13 +42,13 @@ export default function Home() {
           </div>
         </div>
       
-      <Content handlePostClick={handlePostClick} />
+        <Content handlePostClick={handlePostClick} />
 
-      {isPostFormVisible && 
-        <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 z-10 flex items-center justify-center">
-          <PostForm handleClose={handleClose} />
-        </div>
-      }
+        {isPostFormVisible && 
+          <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 z-10 flex items-center justify-center">
+            <PostForm handleClose={handleClose} />
+          </div>
+        }
       </div>
     </div>
   )
