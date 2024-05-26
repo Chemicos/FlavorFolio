@@ -1,18 +1,13 @@
 /* eslint-disable react/prop-types */
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import { faUser } from "@fortawesome/free-regular-svg-icons/faUser";
-import { faClose, faHeart} from "@fortawesome/free-solid-svg-icons";
+import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { faBasketShopping } from "@fortawesome/free-solid-svg-icons/faBasketShopping";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
 
 export default function ViewPendingRecipe({ recipe, onClose }) {
 // Favorite function <<
-const [isFavorite, setIsFavorite] = useState(false)
 
-const toggleFavorite = () => {
-    setIsFavorite(!isFavorite)
-}
 // >>
 
   return (
@@ -29,16 +24,6 @@ const toggleFavorite = () => {
 
             <div className="overflow-y-auto overflow-x-hidden">
                 <div className="relative">
-                        <div className='absolute top-3 left-5 flex items-start z-10 justify-end'>
-                            <FontAwesomeIcon 
-                                icon={faHeart} 
-                                onClick={toggleFavorite}
-                                className={`cursor-pointer text-2xl hover:text-red-600 duration-100
-                                ${isFavorite ? 'text-red-600' : 'text-white' } ease-in-out hover:scale-125
-                                `}
-                            />
-                        </div>
-
                         <div>
                             <img 
                                 className="w-full sm:h-[310px] sm:rounded-t-lg" 

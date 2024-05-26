@@ -1,10 +1,11 @@
 import { collection, deleteDoc, doc, getDocs, setDoc } from "@firebase/firestore"
 import { useEffect, useState } from "react"
-import { db } from "../firebase-config"
+import { db, storage } from "../firebase-config"
 import Navigation from "./Navigation"
 import ViewPendingRecipe from "./ViewPendingRecipe"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck, faTrash } from "@fortawesome/free-solid-svg-icons"
+import { deleteObject, ref } from "firebase/storage"
 
 
 export default function PendingRecipes() {
@@ -36,10 +37,27 @@ export default function PendingRecipes() {
     }
 
     const handleDelete = async () => {
-      await deleteDoc(doc(db, 'pendingRecipes', recipeToDelete.id))
-      setPendingRecipes(pendingRecipes.filter(recipe => recipe.id !== recipeToDelete.id))
-      setShowDeleteConfirm(false)
-      setRecipeToDelete(null)
+      try {
+        await deleteDoc(doc(db, 'pendingRecipes', recipeToDelete.id))
+        
+        const mainImageRef = ref(storage, `recipe_images/${recipeToDelete.imageFileName}`)
+        await deleteObject(mainImageRef)
+
+        if (recipeToDelete.cookingSteps) {
+          const deleteStepsImages = recipeToDelete.cookingSteps.map(async step => {
+            if (step.stepImageFileName) {
+              const stepImageRef = ref(storage, `cooking_steps_images/${step.stepImageFileName}`)
+              await deleteObject(stepImageRef)
+            }
+          })
+          await Promise.all(deleteStepsImages)
+        }
+        setPendingRecipes(pendingRecipes.filter(recipe => recipe.id !== recipeToDelete.id))
+        setShowDeleteConfirm(false)
+        setRecipeToDelete(null)
+      } catch (error) {
+        console.error("Error deleting recipe: ", error)
+      }
     }
 
     const handleApprove = async (recipe) => {

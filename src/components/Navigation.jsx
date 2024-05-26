@@ -41,7 +41,6 @@ export default function Navigation() {
             setIsAdmin(userData.admin);
           } else {
             setUsername(user.displayName)
-            console.log('No such document!');
           } 
         } else {
           setUsername('')

@@ -22,7 +22,6 @@ export default function PostForm({ handleClose }) {
     }
   }
   // >>
-// TODO: VEZI DE CE NU poti incarca imagine de pe un cont google
  
   // Save recipe Firestore <<
   const saveRecipe = async (recipe) => {
@@ -74,7 +73,7 @@ export default function PostForm({ handleClose }) {
   
   // Ingredient functions <<
   const [ingredients, setIngredients] = useState([])
-  const unitOptions = ["cup", "tbsp", "tsp", "piece", "slice", "g", "kg", "l", "ml"]
+  const unitOptions = ["cup", "tbsp", "tsp", "piece", "cloves", "slice", "g", "kg", "l", "ml"]
   
   const addIngredient = (e) => {
     setIngredients([...ingredients, { 
@@ -205,17 +204,27 @@ export default function PostForm({ handleClose }) {
   // >>
 
   // Get Username <<
-  const getUsername = async (uid) => {
-    const userDoc = await getDoc(doc(db, "users", uid))
+  const getUsername = async (user) => {
+    if (user.displayName) {
+      return user.displayName
+    }
+    const userDoc = await getDoc(doc(db, "users", user.uid))
     if (userDoc.exists()) {
       return userDoc.data().username
     } else {
       throw new Error("User not found")
     }
+
+    // const userDoc = await getDoc(doc(db, "users", uid))
+    // if (userDoc.exists()) {
+    //   return userDoc.data().username
+    // } else {
+    //   throw new Error("User not found")
+    // }
   }
   // >>
 
-  // TODO: cooking_step_image trebuie sa fie optional, iar isFormValid (sau useEffect) sa verifice
+  // TODO: isFormValid (sau useEffect) sa verifice
   //crieriile de verificare ale fiecarui input
 
   // Submit Form Function <<
@@ -267,19 +276,21 @@ export default function PostForm({ handleClose }) {
         throw new Error("No user logged in")
       }
 
-      const username = await getUsername(user.uid)
+      const username = await getUsername(user)
 
-      const storageRef = ref(storage, `recipe_images/${imageFile.name}`)
+      const imageFileName = `${Date.now()}_${imageFile.name}`
+      const storageRef = ref(storage, `recipe_images/${imageFileName}`)
       await uploadBytes(storageRef, imageFile);
       const imageUrl = await getDownloadURL(storageRef)
 
       const cookingStepsWithUrls = await Promise.all(
           cookingSteps.map(async (step) => {
               if (step.image) {
-                  const stepImageRef = ref(storage, `cooking_steps_images/${step.image.name}`)
+                  const stepImageFileName = `${Date.now()}_${step.image.name}`
+                  const stepImageRef = ref(storage, `cooking_steps_images/${stepImageFileName}`)
                   await uploadBytes(stepImageRef, step.image)
                   const stepImageUrl = await getDownloadURL(stepImageRef)
-                  return removeFileFields({ ...step, imageUrl: stepImageUrl })
+                  return removeFileFields({ ...step, imageUrl: stepImageUrl, stepImageFileName: stepImageFileName })
               }
               return removeFileFields({ ...step })
           })
@@ -287,6 +298,7 @@ export default function PostForm({ handleClose }) {
 
       const recipe = {
         image: imageUrl,
+        imageFileName: imageFileName,
         title: title,
         description: description,
         ingredients: ingredients.map((ingredient) => ({
@@ -317,6 +329,7 @@ export default function PostForm({ handleClose }) {
         setDuration('')
         setServings('')
         setCookingSteps([])
+        handleClose()
     } catch (error) {
       console.error("Eroare la incarcarea retetei: ", error)
     }
