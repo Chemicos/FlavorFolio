@@ -32,7 +32,7 @@ export default function Home() {
             <input type="search" 
               placeholder="Search..."
               className="rounded-2xl w-80 bg-ff-search py-2 pl-10 pr-4
-              placeholder:text-ff-placeholder shadow-md duration-150 opacity-70 hover:opacity-100 focus:opacity-100"
+              placeholder:text-ff-placeholder shadow-md duration-200 opacity-50 hover:opacity-100 focus:opacity-100"
             />
 
             <FontAwesomeIcon 

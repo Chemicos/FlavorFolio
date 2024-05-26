@@ -22,7 +22,8 @@ export default function PostForm({ handleClose }) {
     }
   }
   // >>
-
+// TODO: VEZI DE CE NU poti incarca imagine de pe un cont google
+ 
   // Save recipe Firestore <<
   const saveRecipe = async (recipe) => {
     try {
@@ -73,7 +74,7 @@ export default function PostForm({ handleClose }) {
   
   // Ingredient functions <<
   const [ingredients, setIngredients] = useState([])
-  const unitOptions = ["cup", "tablespoon", "teaspoon", "piece", "slice", "g", "kg", "l", "ml"]
+  const unitOptions = ["cup", "tbsp", "tsp", "piece", "slice", "g", "kg", "l", "ml"]
   
   const addIngredient = (e) => {
     setIngredients([...ingredients, { 

@@ -70,7 +70,7 @@ export default function Navigation() {
     }
   return (
     <nav className="bg-transparent">
-      <div className="px-4 lg:px-10">
+      <div className="px-4 lg:px-10 shadow-sm">
         <div className="flex justify-between h-16">
             <Link to="/home" className="flex items-center gap-4 duration-150 hover:scale-110">
               <img className="block h-12 w-10" src={FlavorFolioLogo} alt="FlavorFolioLogo" />

@@ -6,21 +6,30 @@ import { db } from "../firebase-config";
 import { useEffect, useState } from "react";
 import RecipeCard from "./RecipeCard";
 import { collection, getDocs } from "@firebase/firestore";
+import ViewRecipe from "./ViewRecipe";
 
 export default function Content({ handlePostClick }) {
     const [showFilter, setShowFilter] = useState(false)
     const [recipes, setRecipes] = useState([])
+    const [selectedRecipe, setSelectedRecipe] = useState(null)
 
+    const handleClose = () => {
+        setSelectedRecipe(null)
+    }
 
     useEffect(() => {
         const loadRecipes = async () => {
             const recipeCollection = collection(db, "recipes")
             const recipeSnapshot = await getDocs(recipeCollection)
-            const recipeList = recipeSnapshot.docs.map(doc => doc.data())
+            const recipeList = recipeSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
             setRecipes(recipeList)
         }
         loadRecipes()
     }, [])
+
+    const handleRecipeClick = (recipe) => {
+        setSelectedRecipe(recipe)
+    }
 
     // TODO: ADD ViewRecipe component
   return (
@@ -28,10 +37,9 @@ export default function Content({ handlePostClick }) {
         <div className="flex flex-row justify-between gap-2 px-10 py-4">
             <button 
                 className="bg-ff-btn px-3 py-2 rounded-lg shadow flex items-center gap-3 border border-ff-btn
-                duration-300 transition-all ease-in-out transform hover:scale-105"
+                duration-200 transition-all ease-in-out transform hover:scale-125"
                 onClick={() => setShowFilter(!showFilter)}
             >
-                Filter
                 <FontAwesomeIcon icon={faBars} /> 
             </button>
 
@@ -66,25 +74,29 @@ export default function Content({ handlePostClick }) {
                 
             <button 
                 className="bg-ff-btn px-4 py-2 rounded-lg shadow border border-ff-btn
-                transition duration-300 ease-in-out hover:scale-125"
+                transition duration-200 ease-in-out hover:scale-125"
                 onClick={handlePostClick}
             >
                 Post
             </button>
         </div>
 
-        {/* <div className="h-[600px]">
-            <div className="flex flex-wrap gap-4 justify-center overflow-y-auto">
-                {recipes.map((recipe, index) => (
-                        <RecipeCard 
-                            key={index} 
-                            imageUrl={recipe.image}
-                            title={recipe.title}
-                            user={recipe.user} 
-                        />
-                    ))}
-            </div>    
-        </div>  */}
+        <div className="flex flex-wrap gap-4 justify-center overflow-y-auto py-4">
+            {recipes.map((recipe, index) => (
+                    <RecipeCard 
+                        key={index} 
+                        recipe={recipe}
+                        onClick={() => handleRecipeClick(recipe)}
+                    />
+                ))}
+        </div>    
+        
+        {selectedRecipe && (
+            <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 
+            z-10 flex items-center justify-center">
+                <ViewRecipe recipe={selectedRecipe} onClose={handleClose}/>
+            </div>
+        )}
     </div>
   )
 }

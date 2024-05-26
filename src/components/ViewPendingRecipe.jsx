@@ -6,7 +6,6 @@ import { faBasketShopping } from "@fortawesome/free-solid-svg-icons/faBasketShop
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 
-
 export default function ViewPendingRecipe({ recipe, onClose }) {
 // Favorite function <<
 const [isFavorite, setIsFavorite] = useState(false)
@@ -24,9 +23,10 @@ const toggleFavorite = () => {
              <button 
               onClick={onClose}
               className="absolute top-3 right-3 opacity-70 sm:opacity-100 sm:-top-2 sm:-right-2 text-2xl bg-ff-close rounded-full h-10 w-10 
-              transition duration-150 ease-in-out hover:scale-110 hover:bg-red-700 hover:text-white z-10">
+              transition duration-150 ease-in-out hover:scale-110 hover:bg-red-700 hover:text-white z-30">
                 <FontAwesomeIcon icon={faClose} />
             </button>
+
             <div className="overflow-y-auto overflow-x-hidden">
                 <div className="relative">
                         <div className='absolute top-3 left-5 flex items-start z-10 justify-end'>
@@ -46,7 +46,7 @@ const toggleFavorite = () => {
                                 alt={recipe.title} 
                                 />
 
-                            <div className="absolute bottom-14 sm:bottom-6 left-6 z-20">
+                            <div className="absolute bottom-14 sm:bottom-12 left-6 z-20">
                                 <h1 className="italic font-semibold text-lg sm:text-2xl text-white">
                                     {recipe.title}
                                 </h1>
@@ -106,7 +106,7 @@ const toggleFavorite = () => {
                             ">
                                 {recipe.ingredients.map((ingredient, index) => (
                                     <li key={index} className="italic bg-ff-bg p-2 rounded-xl">
-                                        {ingredient.quantity}x {ingredient.unit} {ingredient.ingredient}
+                                        {ingredient.quantity} {ingredient.unit} of {ingredient.ingredient}
                                     </li>
                                 ))}
                             </ul>
@@ -116,7 +116,7 @@ const toggleFavorite = () => {
 
                     <div className="flex flex-col sm:w-[520px] sm:mx-auto">   
                         {recipe.cookingSteps.map((step, index) => (
-                            <div key={index} className="flex flex-col mb-8 px-4 pt-2 pb-4 sm:py-2 bg-ff-form
+                            <div key={index} className="flex flex-col mb-8 px-4 pt-2 pb-4 sm:pt-2 sm:pb-6 bg-ff-form
                             shadow-md sm:rounded-xl">
                                 <h3 className="text-lg italic font-semibold">
                                     Step {index + 1}

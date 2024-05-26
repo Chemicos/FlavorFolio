@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHeart, faStar } from '@fortawesome/free-solid-svg-icons'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { deleteDoc, doc, getDoc, setDoc } from '@firebase/firestore'
+import { db } from '../firebase-config'
 
-export default function RecipeCard({ imageUrl, title, user }) {
+export default function RecipeCard({ recipe, onClick }) {
     const [difficulty, setDifficulty] = useState(0)
 
     const handleDifficultyClick = (level) => {
@@ -13,14 +15,34 @@ export default function RecipeCard({ imageUrl, title, user }) {
     // Favorite function <<
     const [isFavorite, setIsFavorite] = useState(false)
 
-    const toggleFavorite = () => {
+    useEffect(() => {
+        const checkIfFavorite = async () => {
+            const recipeRef = doc(db, "savedRecipes", recipe.id)
+            const recipeSnap = await getDoc(recipeRef)
+
+            if (recipeSnap.exists()) {
+                setIsFavorite(true)
+            }
+        }
+        checkIfFavorite()
+    }, [recipe.id])
+
+    const toggleFavorite = async () => {
+        const recipeRef = doc(db, "savedRecipes", recipe.id)
+
+        if (isFavorite) {
+            await deleteDoc(recipeRef)
+        } else {
+            await setDoc(recipeRef, recipe)
+        }
         setIsFavorite(!isFavorite)
     }
     // >>
   return (
-    <div className="relative rounded-xl overflow-hidden shadow-md">
-        <img className=' w-64 h-44 object-cover' 
-            src={imageUrl} 
+    <div className="relative rounded-xl overflow-hidden shadow-md cursor-pointer">
+        <img className='w-64 h-44 object-cover duration-300 hover:scale-125' 
+            onClick={onClick}
+            src={recipe.image} 
             alt="reteta" 
         />
         
@@ -31,7 +53,7 @@ export default function RecipeCard({ imageUrl, title, user }) {
             <FontAwesomeIcon 
                 icon={faHeart} 
                 onClick={toggleFavorite}
-                className={`cursor-pointer text-xl 
+                className={`cursor-pointer text-xl hover:text-red-600 duration-100 ease-in-out hover:scale-125
                 ${isFavorite ? 'text-red-600' : 'text-white'}
                 `}
             />
@@ -39,8 +61,8 @@ export default function RecipeCard({ imageUrl, title, user }) {
 
         <div className='absolute bottom-0 left-0 right-0 flex items-end justify-between px-4 pb-2'>
             <div className='flex flex-col'>
-                <h1 className='text-white italic text-lg font-semibold'>{title}</h1>
-                <span className='text-white italic text-sm'>{user}</span>
+                <h1 className='text-white italic text-lg font-semibold'>{recipe.title}</h1>
+                <span className='text-white italic text-sm'>{recipe.user}</span>
             </div>
 
             <div className='flex gap-1'>
