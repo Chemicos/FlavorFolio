@@ -214,13 +214,6 @@ export default function PostForm({ handleClose }) {
     } else {
       throw new Error("User not found")
     }
-
-    // const userDoc = await getDoc(doc(db, "users", uid))
-    // if (userDoc.exists()) {
-    //   return userDoc.data().username
-    // } else {
-    //   throw new Error("User not found")
-    // }
   }
   // >>
 

@@ -89,7 +89,7 @@ export default function Navigation() {
                   aria-haspopup="true" 
                   onClick={() => setIsOpen(!isOpen)}
                   >
-                  <span className='text-base duration-150 hover:font-semibold hover:scale-110'>
+                  <span className='text-base duration-150 hover:scale-110'>
                     {username}
                   </span>
 

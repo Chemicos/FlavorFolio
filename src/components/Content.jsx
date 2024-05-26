@@ -8,24 +8,24 @@ import RecipeCard from "./RecipeCard";
 import { collection, getDocs } from "@firebase/firestore";
 import ViewRecipe from "./ViewRecipe";
 
-export default function Content({ handlePostClick }) {
+export default function Content({ handlePostClick, recipes }) {
     const [showFilter, setShowFilter] = useState(false)
-    const [recipes, setRecipes] = useState([])
+    // const [recipes, setRecipes] = useState([])
     const [selectedRecipe, setSelectedRecipe] = useState(null)
 
     const handleClose = () => {
         setSelectedRecipe(null)
     }
 
-    useEffect(() => {
-        const loadRecipes = async () => {
-            const recipeCollection = collection(db, "recipes")
-            const recipeSnapshot = await getDocs(recipeCollection)
-            const recipeList = recipeSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
-            setRecipes(recipeList)
-        }
-        loadRecipes()
-    }, [])
+    // useEffect(() => {
+    //     const loadRecipes = async () => {
+    //         const recipeCollection = collection(db, "recipes")
+    //         const recipeSnapshot = await getDocs(recipeCollection)
+    //         const recipeList = recipeSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
+    //         setRecipes(recipeList)
+    //     }
+    //     loadRecipes()
+    // }, [])
 
     const handleRecipeClick = (recipe) => {
         setSelectedRecipe(recipe)
