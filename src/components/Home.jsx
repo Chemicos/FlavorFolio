@@ -8,10 +8,9 @@ import Navigation from "./Navigation"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 import Content from "./Content"
 import PostForm from "./PostForm"
-import { collection, getDocs, query, where } from "@firebase/firestore"
+import { collection, getDocs } from "@firebase/firestore"
 import { db } from "../firebase-config"
 
-// TODO: FIX navigation bar
 export default function Home() {
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
   const [recipes, setRecipes] = useState([])

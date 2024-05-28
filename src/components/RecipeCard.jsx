@@ -40,7 +40,7 @@ export default function RecipeCard({ recipe, onClick }) {
     // >>
   return (
     <div className="relative rounded-xl overflow-hidden shadow-md cursor-pointer">
-        <img className='w-64 h-44 object-cover duration-300 hover:scale-125' 
+        <img className='h-[180px] w-[280px] sm:w-[340px] sm:h-[240px] object-cover duration-300 hover:scale-125' 
             onClick={onClick}
             src={recipe.image} 
             alt="reteta" 
