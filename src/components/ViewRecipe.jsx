@@ -59,11 +59,11 @@ export default function ViewRecipe({ recipe, onClose }) {
                 </div>
 
                 <div>
-                  <img 
-                      className="w-full sm:h-[310px] sm:rounded-t-lg" 
+                    <img 
+                      className="w-full sm:h-[400px] sm:rounded-t-lg" 
                       src={recipe.image} 
                       alt={recipe.title} 
-                      />
+                    />
 
                   <div className="absolute bottom-14 sm:bottom-12 left-6 z-20">
                       <h1 className="italic font-semibold text-lg sm:text-2xl text-white">

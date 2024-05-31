@@ -1,13 +1,12 @@
 /* eslint-disable react/prop-types */
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { ref, listAll, getDownloadURL } from "firebase/storage";
-import { db } from "../firebase-config";
+import { db } from "../../firebase-config";
 import { useEffect, useState } from "react";
-import RecipeCard from "./RecipeCard";
+import RecipeCard from "../RecipeCard";
 import { collection, getDocs } from "@firebase/firestore";
-import ViewRecipe from "./ViewRecipe";
-import Pagination from "./content/Pagination";
+import ViewRecipe from "../ViewRecipe";
+import Pagination from "./Pagination";
 
 export default function Content({ handlePostClick, recipes }) {
     const [showFilter, setShowFilter] = useState(false)
@@ -27,8 +26,6 @@ export default function Content({ handlePostClick, recipes }) {
     const handleClose = () => {
         setSelectedRecipe(null)
     }
-
-    // TODO: FUNCTIONALITATILE DE FILTRARE RETETE
     
     // useEffect(() => {
     //     const loadRecipes = async () => {
@@ -102,7 +99,7 @@ export default function Content({ handlePostClick, recipes }) {
     // >>
 
   return (
-    <div className="bg-ff-content flex flex-col justify-between w-full sm:w-[70%] h-[755px] sm:h-[720px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
+    <div className="bg-ff-content flex flex-col justify-between w-full sm:w-[80%] 2xl:w-[1200px] h-[755px] sm:h-[720px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
         <div className="flex flex-row justify-between gap-2 px-10 py-4">
             <button 
                 className="bg-ff-btn px-3 py-2 rounded-lg shadow flex items-center gap-3 border border-ff-btn

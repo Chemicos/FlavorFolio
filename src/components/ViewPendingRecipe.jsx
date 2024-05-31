@@ -26,7 +26,7 @@ export default function ViewPendingRecipe({ recipe, onClose }) {
                 <div className="relative">
                         <div>
                             <img 
-                                className="w-full sm:h-[310px] sm:rounded-t-lg" 
+                                className="w-full sm:h-[400px] sm:rounded-t-lg" 
                                 src={recipe.image} 
                                 alt={recipe.title} 
                                 />

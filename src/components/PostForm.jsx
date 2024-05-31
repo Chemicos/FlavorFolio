@@ -483,7 +483,7 @@ export default function PostForm({ handleClose }) {
                         className={`px-2 py-2 bg-white rounded-lg w-full
                         ${difficultyError ? 'shadow-input-error' : 'hover:shadow-input duration-150'}`}
                       >
-                        <option value="">Select Meal Type</option>
+                        <option value="">Select Difficulty</option>
                         {difficultyOptions.map((option, index) => (
                           <option key={index} value={option}>{option}</option>
                         ))}

@@ -6,7 +6,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Navigation from "./Navigation"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
-import Content from "./Content"
+import Content from "./content/Content"
 import PostForm from "./PostForm"
 import { collection, getDocs } from "@firebase/firestore"
 import { db } from "../firebase-config"
