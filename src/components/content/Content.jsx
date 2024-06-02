@@ -64,6 +64,7 @@ export default function Content({ handlePostClick, recipes }) {
             setFavoritesFilter(!favoritesFilter)
         }
 
+        // Fetch savedRecipes <<
         useEffect(() => {
             const fetchSavedRecipes = async () => {
               const savedRecipesCollection = collection(db, "savedRecipes")
@@ -74,12 +75,10 @@ export default function Content({ handlePostClick, recipes }) {
               }))
               setSavedRecipes(savedRecipesList)
             }
-          
-            if (favoritesFilter) {
               fetchSavedRecipes()
-            }
-          }, [favoritesFilter])
+          }, [])
 
+        //   >>
         const filteredRecipes = recipes.filter((recipe) => {
             const matchesMeal = mealFilter.length ? mealFilter.includes(recipe.meal) : true
             const matchesDifficulty = difficultyFilter.length ? difficultyFilter.includes(recipe.difficulty) : true
@@ -127,7 +126,7 @@ export default function Content({ handlePostClick, recipes }) {
                             Meal
                         </button>
                         <div className={`ml-4 w-full transition-all duration-500 overflow-hidden ${mealOptionsVisible ? 'max-h-screen' : 'max-h-0'}`}>
-                        {["breakfast", "lunch", "dinner", "snack"].map((meal) => (
+                        {["breakfast", "lunch", "dinner", "snack", "dessert"].map((meal) => (
                             <label key={meal} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
                             <input
                               type="checkbox"
@@ -213,7 +212,7 @@ export default function Content({ handlePostClick, recipes }) {
                             Meal
                         </button>
                         <div className="absolute left-full top-0 mt-1 w-48 bg-white shadow-lg rounded-lg py-1 hidden group-hover:block">
-                            {["breakfast", "lunch", "dinner", "snack"].map((meal) => (
+                            {["breakfast", "lunch", "dinner", "snack", "dessert"].map((meal) => (
                             <label key={meal} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
                             <input
                               type="checkbox"
@@ -295,6 +294,7 @@ export default function Content({ handlePostClick, recipes }) {
                     <RecipeCard 
                         key={index} 
                         recipe={recipe}
+                        savedRecipes={savedRecipes}
                         onClick={() => handleRecipeClick(recipe)}
                     />
                 ))}

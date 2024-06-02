@@ -58,7 +58,7 @@ export default function Home() {
       <Navigation />
 
       <div className="flex flex-col items-center justify-center gap-8">
-        <div className="flex flex-col items-center gap-6 mt-4">
+        <div className="flex flex-col items-center gap-4 mt-4">
           <h1 className="font-base italic text-2xl">Search and cook</h1> 
           <div className="relative">
             <input type="search" 

@@ -142,7 +142,7 @@ export default function PostForm({ handleClose }) {
   const [servings, setServings] = useState('');
   const [servingsError, setServingsError] = useState(false);
   
-  const mealOptions = ["breakfast", "lunch", "dinner", "snack"]
+  const mealOptions = ["breakfast", "lunch", "dinner", "snack", "dessert"]
   const difficultyOptions = ["easy", "medium", "hard"]
   const durationOptions = ["10 min", "20 min", "30 min", "40 min", "50 min", "1 hour"]
   
@@ -495,7 +495,7 @@ export default function PostForm({ handleClose }) {
                       value={cuisine}
                       onChange={(e) => handleInputChange(e.target.value, setCuisine, setCuisineError, false, true)}
                       onBlur={() => handleInputBlur(cuisine, setCuisineError)}
-                      placeholder="Cuisine (optional)" 
+                      placeholder="Cuisine" 
                       className={`w-full px-2 py-2 rounded-lg placeholder:italic duration-150 ${cuisineError ? 'shadow-input-error' : 'hover:shadow-input'}`}
                     />
 

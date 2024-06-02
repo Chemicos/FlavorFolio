@@ -112,16 +112,16 @@ export default function ViewRecipe({ recipe, onClose }) {
                     </div>
 
                     <div className="flex flex-col items-center gap-6">
-                        <div className="sm:bg-ff-form w-auto sm:w-[580px] px-4 py-2 rounded-xl sm:shadow-md">
+                        <div className="sm:bg-ff-form w-auto sm:w-[580px] px-4 py-2 rounded-xl sm:shadow-md sm:border sm:border-black">
                             <h2 className="text-lg italic font-semibold">Description</h2>
                             
                             <p className="">{recipe.description}</p>
                         </div>
                             
-                        <div className="flex flex-col gap-2 bg-ff-form w-[280px] p-4 rounded-xl shadow-md">
+                        <div className="flex flex-col gap-2 bg-ff-form w-[280px] p-4 rounded-xl shadow-md sm:border sm:border-black">
                             <h2 className="text-lg italic font-semibold">Ingredients</h2>
 
-                            <ul className="flex flex-col gap-2 shadow-sm
+                            <ul className="flex flex-col gap-2 shadow-sm 
                             ">
                                 {recipe.ingredients.map((ingredient, index) => (
                                     <li key={index} className="italic bg-ff-bg p-2 rounded-xl">
@@ -136,18 +136,18 @@ export default function ViewRecipe({ recipe, onClose }) {
                     <div className="flex flex-col sm:w-[520px] sm:mx-auto">   
                         {recipe.cookingSteps.map((step, index) => (
                             <div key={index} className="flex flex-col mb-8 px-4 pt-2 pb-4 sm:pb-6 sm:pt-2 bg-ff-form
-                            shadow-md sm:rounded-xl">
+                            shadow-md sm:rounded-xl sm:border sm:border-black">
                                 <h3 className="text-lg italic font-semibold">
                                     Step {index + 1}
                                 </h3>
 
-                                <div className="flex flex-col gap-4 items-center">
+                                <div className="flex flex-col sm:flex-row gap-4 items-center">
                                     <p className="">{step.description}</p>
                                     {step.imageUrl && (
                                         <img 
                                             src={step.imageUrl} 
                                             alt={`Step ${index + 1}`}
-                                            className="w-[400px] h-[240px] rounded-lg border border-black" 
+                                            className="w-[400px] h-[240px] sm:w-[200px] sm:h-[200px] rounded-lg" 
                                         />
                                     )}
                                 </div>

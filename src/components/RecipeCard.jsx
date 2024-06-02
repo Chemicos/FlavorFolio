@@ -2,30 +2,48 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHeart, faStar } from '@fortawesome/free-solid-svg-icons'
 import { useEffect, useState } from 'react'
-import { deleteDoc, doc, getDoc, setDoc } from '@firebase/firestore'
+import { deleteDoc, doc, getDoc, setDoc, updateDoc, arrayUnion } from '@firebase/firestore'
 import { db } from '../firebase-config'
 
-export default function RecipeCard({ recipe, onClick }) {
-    const [difficulty, setDifficulty] = useState(0)
+export default function RecipeCard({ recipe, onClick, savedRecipes }) {
+    const [rating, setRating] = useState(0)
 
-    const handleDifficultyClick = (level) => {
-        setDifficulty(level)
+    // Rating Functionality <<
+    const handleRatingClick = async (level) => {
+        const recipeRef = doc(db, "recipes", recipe.id)
+
+        await updateDoc(recipeRef, {
+            rating: arrayUnion(level)
+        })
+
+        const updatedRecipe = await getDoc(recipeRef)
+        const updatedRating = updatedRecipe.data().rating
+        const totalRating = updatedRating.reduce((acc, val) => acc + val, 0)
+        const avgRating = totalRating / updatedRating.length
+        setRating(Math.round(avgRating))
     }
+
+    useEffect(() => {
+        if (recipe.rating && recipe.rating.length > 0) {
+            const totalRating = recipe.rating.reduce((acc, val) => acc + val, 0)
+            const avgRating = totalRating / recipe.rating.length
+            setRating(Math.round(avgRating))
+        } else {
+            setRating(0)
+        }
+    }, [recipe.rating])
+    // >>
 
     // Favorite function <<
     const [isFavorite, setIsFavorite] = useState(false)
 
     useEffect(() => {
-        const checkIfFavorite = async () => {
-            const recipeRef = doc(db, "savedRecipes", recipe.id)
-            const recipeSnap = await getDoc(recipeRef)
-
-            if (recipeSnap.exists()) {
-                setIsFavorite(true)
-            }
+        const checkIfFavorite = () => {
+            const isFav = savedRecipes.some(savedRecipe => savedRecipe.id === recipe.id)
+            setIsFavorite(isFav)
         }
         checkIfFavorite()
-    }, [recipe.id])
+    }, [recipe.id, savedRecipes])
 
     const toggleFavorite = async () => {
         const recipeRef = doc(db, "savedRecipes", recipe.id)
@@ -70,8 +88,8 @@ export default function RecipeCard({ recipe, onClick }) {
                     <FontAwesomeIcon 
                         key={index} 
                         icon={faStar} 
-                        onClick={() => handleDifficultyClick(index)} 
-                        className={`cursor-pointer hover:text-yellow-300 text-lg ${index <= difficulty ? 'text-yellow-300' : 'text-white'}`}
+                        onClick={() => handleRatingClick(index)} 
+                        className={`cursor-pointer hover:text-yellow-300 text-lg ${index <= rating ? 'text-yellow-300' : 'text-white'}`}
                     />
                 ))}
             </div>
