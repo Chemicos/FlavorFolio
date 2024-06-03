@@ -144,7 +144,7 @@ export default function PostForm({ handleClose }) {
   
   const mealOptions = ["breakfast", "lunch", "dinner", "snack", "dessert"]
   const difficultyOptions = ["easy", "medium", "hard"]
-  const durationOptions = ["10 min", "20 min", "30 min", "40 min", "50 min", "1 hour"]
+  const durationOptions = ["10 min", "20 min", "30 min", "40 min", "50 min", "1 hour", "1+ hour"]
   
   const handleInputChange = (value, setter, setError, isSelect = false, isCuisine = false) => {
     setter(value)

@@ -1,37 +1,38 @@
 /* eslint-disable react/prop-types */
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHeart, faStar } from '@fortawesome/free-solid-svg-icons'
+import { faHeart } from '@fortawesome/free-solid-svg-icons'
 import { useEffect, useState } from 'react'
-import { deleteDoc, doc, getDoc, setDoc, updateDoc, arrayUnion } from '@firebase/firestore'
+import { deleteDoc, doc, setDoc } from '@firebase/firestore'
 import { db } from '../firebase-config'
+import Rating from './Rating'
 
 export default function RecipeCard({ recipe, onClick, savedRecipes }) {
-    const [rating, setRating] = useState(0)
+    // const [rating, setRating] = useState(0)
 
     // Rating Functionality <<
-    const handleRatingClick = async (level) => {
-        const recipeRef = doc(db, "recipes", recipe.id)
+    // const handleRatingClick = async (level) => {
+    //     const recipeRef = doc(db, "recipes", recipe.id)
 
-        await updateDoc(recipeRef, {
-            rating: arrayUnion(level)
-        })
+    //     await updateDoc(recipeRef, {
+    //         rating: arrayUnion(level)
+    //     })
 
-        const updatedRecipe = await getDoc(recipeRef)
-        const updatedRating = updatedRecipe.data().rating
-        const totalRating = updatedRating.reduce((acc, val) => acc + val, 0)
-        const avgRating = totalRating / updatedRating.length
-        setRating(Math.round(avgRating))
-    }
+    //     const updatedRecipe = await getDoc(recipeRef)
+    //     const updatedRating = updatedRecipe.data().rating
+    //     const totalRating = updatedRating.reduce((acc, val) => acc + val, 0)
+    //     const avgRating = totalRating / updatedRating.length
+    //     setRating(Math.round(avgRating))
+    // }
 
-    useEffect(() => {
-        if (recipe.rating && recipe.rating.length > 0) {
-            const totalRating = recipe.rating.reduce((acc, val) => acc + val, 0)
-            const avgRating = totalRating / recipe.rating.length
-            setRating(Math.round(avgRating))
-        } else {
-            setRating(0)
-        }
-    }, [recipe.rating])
+    // useEffect(() => {
+    //     if (recipe.rating && recipe.rating.length > 0) {
+    //         const totalRating = recipe.rating.reduce((acc, val) => acc + val, 0)
+    //         const avgRating = totalRating / recipe.rating.length
+    //         setRating(Math.round(avgRating))
+    //     } else {
+    //         setRating(0)
+    //     }
+    // }, [recipe.rating])
     // >>
 
     // Favorite function <<
@@ -83,16 +84,7 @@ export default function RecipeCard({ recipe, onClick, savedRecipes }) {
                 <span className='text-white italic text-sm'>{recipe.user}</span>
             </div>
 
-            <div className='flex gap-1'>
-                {[1,2,3].map((index) => (
-                    <FontAwesomeIcon 
-                        key={index} 
-                        icon={faStar} 
-                        onClick={() => handleRatingClick(index)} 
-                        className={`cursor-pointer hover:text-yellow-300 text-lg ${index <= rating ? 'text-yellow-300' : 'text-white'}`}
-                    />
-                ))}
-            </div>
+            <Rating recipeId={recipe.id} initialRating={recipe.rating} />
         </div>
      
     </div>

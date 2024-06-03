@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { deleteDoc, doc, getDoc, setDoc } from "@firebase/firestore";
+import Rating from "./Rating";
 
 export default function ViewRecipe({ recipe, onClose }) {
   const [isFavorite, setIsFavorite] = useState(false)
@@ -70,6 +71,10 @@ export default function ViewRecipe({ recipe, onClose }) {
                           {recipe.title}
                       </h1>
                       <p className="italic text-sm sm:text-base text-white">By {recipe.user}</p>
+                  </div>
+
+                  <div className="absolute bottom-14 sm:bottom-12 right-6 z-20">
+                    <Rating recipeId={recipe.id} initialRating={recipe.rating} />
                   </div>
                 </div>
 

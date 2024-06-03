@@ -10,7 +10,6 @@ import Pagination from "./Pagination";
 
 export default function Content({ handlePostClick, recipes }) {
     const [showFilter, setShowFilter] = useState(false)
-    // const [recipes, setRecipes] = useState([])
     const [selectedRecipe, setSelectedRecipe] = useState(null)
     const [mealFilter, setMealFilter] = useState([])
     const [mealOptionsVisible, setMealOptionsVisible] = useState(false)
@@ -26,16 +25,6 @@ export default function Content({ handlePostClick, recipes }) {
     const handleClose = () => {
         setSelectedRecipe(null)
     }
-    
-    // useEffect(() => {
-    //     const loadRecipes = async () => {
-    //         const recipeCollection = collection(db, "recipes")
-    //         const recipeSnapshot = await getDocs(recipeCollection)
-    //         const recipeList = recipeSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
-    //         setRecipes(recipeList)
-    //     }
-    //     loadRecipes()
-    // }, [])
 
     const handleRecipeClick = (recipe) => {
         setSelectedRecipe(recipe)
@@ -58,10 +47,12 @@ export default function Content({ handlePostClick, recipes }) {
             } else {
                 setFilter([...filter, value])
             }
+            setCurrentPage(1)
         }
 
         const handleFavoritesChange = () => {
             setFavoritesFilter(!favoritesFilter)
+            setCurrentPage(1)
         }
 
         // Fetch savedRecipes <<
