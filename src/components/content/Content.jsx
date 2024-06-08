@@ -280,7 +280,7 @@ export default function Content({ handlePostClick, recipes }) {
             </button>
         </div>
 
-        <div className="flex flex-wrap gap-8  justify-center overflow-y-auto py-4">
+        <div className="flex flex-wrap gap-8 justify-center overflow-y-auto py-4">
             {currentRecipes.map((recipe, index) => (
                     <RecipeCard 
                         key={index} 

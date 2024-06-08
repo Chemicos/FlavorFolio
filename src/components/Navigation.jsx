@@ -31,16 +31,17 @@ export default function Navigation() {
     useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
-          setUserPhoto(user.photoURL || '');
-          const uid = user.uid;
-          const userRef = doc(db, 'users', uid);
-          const docSnap = await getDoc(userRef);
+          const uid = user.uid
+          const userRef = doc(db, 'users', uid)
+          const docSnap = await getDoc(userRef)
           if (docSnap.exists()) {
-            const userData = docSnap.data();
-            setUsername(userData.username || user.displayName);
-            setIsAdmin(userData.admin);
+            const userData = docSnap.data()
+            setUsername(userData.username || user.displayName)
+            setIsAdmin(userData.admin)
+            setUserPhoto(userData.profileImage || user.photoURL || '')
           } else {
             setUsername(user.displayName)
+            setUserPhoto(user.photoURL || '')
           } 
         } else {
           setUsername('')
@@ -49,7 +50,7 @@ export default function Navigation() {
         }
       })
       return () => unsubscribe()
-  }, [navigate])
+  }, [navigate, auth])
   // <<
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function Navigation() {
                   aria-haspopup="true" 
                   onClick={() => setIsOpen(!isOpen)}
                   >
-                  <span className='text-base duration-150 hover:scale-110'>
+                  <span className='text-base duration-150 hidden sm:flex hover:scale-110'>
                     {username}
                   </span>
 
@@ -107,8 +108,11 @@ export default function Navigation() {
                   role="menu" 
                   aria-labelledby="user-menu-button"
                 >
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                    role="menuitem">My Profile
+                  <a href="#" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                    role="menuitem"
+                    onClick={() => navigate('/profile')}>
+                      My Profile
                   </a>
 
                   {isAdmin && (

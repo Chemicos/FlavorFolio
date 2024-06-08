@@ -39,7 +39,7 @@ export default function ViewRecipe({ recipe, onClose }) {
     <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center 
     justify-center z-10 overflow-hidden">
         <div className="relative flex flex-col bg-ff-bg sm:rounded-lg h-full sm:h-[95%] w-full
-         sm:w-[620px]">
+         md:w-[720px]">
            <button 
               onClick={onClose}
               className="absolute top-3 right-3 opacity-70 sm:opacity-100 sm:-top-2 sm:-right-2 text-2xl bg-ff-close rounded-full h-10 w-10 
@@ -61,7 +61,7 @@ export default function ViewRecipe({ recipe, onClose }) {
 
                 <div>
                     <img 
-                      className="w-full sm:h-[400px] sm:rounded-t-lg" 
+                      className="w-full md:h-[500px] sm:rounded-t-lg" 
                       src={recipe.image} 
                       alt={recipe.title} 
                     />
@@ -123,7 +123,7 @@ export default function ViewRecipe({ recipe, onClose }) {
                             <p className="">{recipe.description}</p>
                         </div>
                             
-                        <div className="flex flex-col gap-2 bg-ff-form w-[280px] p-4 rounded-xl shadow-md sm:border sm:border-black">
+                        <div className="flex flex-col gap-2 bg-ff-form w-[280px] p-4 rounded-xl shadow-md border border-black">
                             <h2 className="text-lg italic font-semibold">Ingredients</h2>
 
                             <ul className="flex flex-col gap-2 shadow-sm 
@@ -138,7 +138,7 @@ export default function ViewRecipe({ recipe, onClose }) {
 
                     </div>
 
-                    <div className="flex flex-col sm:w-[520px] sm:mx-auto">   
+                    <div className="flex flex-col sm:w-[580px] sm:mx-auto">   
                         {recipe.cookingSteps.map((step, index) => (
                             <div key={index} className="flex flex-col mb-8 px-4 pt-2 pb-4 sm:pb-6 sm:pt-2 bg-ff-form
                             shadow-md sm:rounded-xl sm:border sm:border-black">

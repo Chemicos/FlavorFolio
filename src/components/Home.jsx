@@ -22,7 +22,7 @@ export default function Home() {
   const handleClose = () => {
     setIsPostFormVisible(false)
   }
-
+  // TODO: Reset pagination to 1 when searching recipes
   // Search Functionality <<
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredRecipes, setFilteredRecipes] = useState([])
