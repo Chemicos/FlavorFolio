@@ -5,11 +5,13 @@ import { db } from "../../firebase-config"
 import Rating from "../Rating"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import ViewRecipe from "../ViewRecipe"
 
 
-export default function SavedRecipe({ username, onRecipeClick }) {
+export default function SavedRecipe({ username, currentUserId }) {
     const [savedRecipes, setSavedRecipes] = useState([])
     const [ currentPage, setCurrentPage] = useState(1)
+    const [selectedRecipe, setSelectedRecipe] = useState(null)
     const recipesPerPage = 8
 
     useEffect(() => {
@@ -37,6 +39,14 @@ export default function SavedRecipe({ username, onRecipeClick }) {
     for (let i = 1; i <= totalPages; i++) {
         pages.push(i)
     }
+
+    const handleRecipeClick = (recipe) => {
+        setSelectedRecipe(recipe)
+    }
+
+    const handleClose = () => {
+        setSelectedRecipe(null)
+    }
   return (
     <div className="flex flex-col items-center">
         <div className="flex flex-wrap gap-4 justify-center">
@@ -44,7 +54,7 @@ export default function SavedRecipe({ username, onRecipeClick }) {
                 <div 
                 key={recipe.id}
                 className="relative rounded-xl overflow-hidden shadow-md cursor-pointer"
-                onClick={() => onRecipeClick(recipe)}
+                onClick={() => handleRecipeClick(recipe)}
                 >
                     <img className='h-[180px] w-[280px] sm:w-[340px] sm:h-[240px] object-cover duration-300 hover:scale-125'
                             src={recipe.image}
@@ -94,6 +104,14 @@ export default function SavedRecipe({ username, onRecipeClick }) {
                 <FontAwesomeIcon icon={faArrowRight} />
             </button>
         </div>
+
+        {selectedRecipe && (
+                <div
+                    className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 z-10 flex items-center justify-center"
+                >
+                    <ViewRecipe recipe={selectedRecipe} onClose={handleClose} currentUserId={currentUserId} />
+                </div>
+            )}
     </div>
   )
 }

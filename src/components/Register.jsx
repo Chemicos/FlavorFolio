@@ -169,8 +169,10 @@ export default function Register() {
          const user = userCredential.user
 
          await setDoc(doc(db, "users", user.uid), {
+          userId: user.uid,
           username: username,
-          email:email
+          email:email,
+          admin: false,
          })
 
          setUsername('')

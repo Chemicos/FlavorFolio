@@ -6,33 +6,36 @@ import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { deleteDoc, doc, getDoc, setDoc } from "@firebase/firestore";
 import Rating from "./Rating";
+import FollowBtn from "./content/FollowBtn";
 
-export default function ViewRecipe({ recipe, onClose }) {
+export default function ViewRecipe({ recipe, onClose, currentUserId }) {
   const [isFavorite, setIsFavorite] = useState(false)
 
     // Adding to favorites <<
-  const toggleFavorite = async () => {
-    const recipeRef = doc(db, "savedRecipes", recipe.id)
-
-    if (isFavorite) {
-        await deleteDoc(recipeRef)
-    } else {
-        await setDoc(recipeRef, recipe)
-    }
-    setIsFavorite(!isFavorite)
-  }
-
-  useEffect(() => {
-    const checkIfFavorite = async () => {
-        const recipeRef = doc(db, "savedRecipes", recipe.id)
-        const recipeSnap = await getDoc(recipeRef)
-
-        if(recipeSnap.exists()) {
-            setIsFavorite(true)
+    const toggleFavorite = async () => {
+        if (currentUserId) {
+            const recipeRef = doc(db, "savedRecipes", recipe.id)
+            if (isFavorite) {
+                await deleteDoc(recipeRef)
+            } else {
+                await setDoc(recipeRef, { ...recipe, userId: currentUserId })
+            }
+            setIsFavorite(!isFavorite)
         }
-    }
-    checkIfFavorite()
-  }, [recipe.id])
+      }
+    
+      useEffect(() => {
+        const checkIfFavorite = async () => {
+            if (currentUserId) {
+                const recipeRef = doc(db, "savedRecipes", recipe.id)
+                const recipeSnap = await getDoc(recipeRef)
+                if (recipeSnap.exists()) {
+                    setIsFavorite(true)
+                }
+            }
+        }
+        checkIfFavorite()
+      }, [recipe.id, currentUserId])
     // >>
 
   return (
@@ -70,7 +73,11 @@ export default function ViewRecipe({ recipe, onClose }) {
                       <h1 className="italic font-semibold text-lg sm:text-2xl text-white">
                           {recipe.title}
                       </h1>
-                      <p className="italic text-sm sm:text-base text-white">By {recipe.user}</p>
+
+                      <div className="flex flex-col items-start gap-2">
+                        <p className="italic text-sm sm:text-base text-white">By {recipe.user}</p>
+                        {currentUserId !== recipe.userId && <FollowBtn recipeUser={recipe.userId} />}
+                      </div>
                   </div>
 
                   <div className="absolute bottom-14 sm:bottom-12 right-6 z-20">

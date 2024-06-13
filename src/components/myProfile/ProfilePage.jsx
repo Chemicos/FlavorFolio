@@ -23,17 +23,17 @@ export default function ProfilePage() {
 
 // Fetching profileImage and username functions
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                setUser(user)
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            if (currentUser) {
+                setUser(currentUser)
+                const userDoc = await getDoc(doc(db, 'users', currentUser.uid))
                 if (userDoc.exists()) {
                     const userData = userDoc.data()
-                    setProfileImage(userData.profileImage || user.photoURL || '')
-                    setUsername(userData.username || user.displayName || '')
+                    setProfileImage(userData.profileImage || currentUser.photoURL || '')
+                    setUsername(userData.username || currentUser.displayName || '')
                 } else {
-                    setProfileImage(user.photoURL || '')
-                    setUsername(user.displayName || '')
+                    setProfileImage(currentUser.photoURL || '')
+                    setUsername(currentUser.displayName || '')
                 }
             }
         })
@@ -99,7 +99,7 @@ export default function ProfilePage() {
                         </button>
                     </div>
                     
-                ): (
+                ) : (
                     <label className="relative flex flex-col justify-center cursor-pointer w-32 h-32 rounded-full border 
                     border-black hover:bg-ff-btn hover:border-ff-btn duration-300">
                         <FontAwesomeIcon icon={faUser} className="text-4xl" />
@@ -112,9 +112,9 @@ export default function ProfilePage() {
                     </label>
                 )}
 
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 items-center sm:items-start">
                     <p className="text-xl font-semibold italic">{username}</p>
-                    <UserDetails username={username} />
+                    {user && <UserDetails username={username} userId={user.uid.trim()} />}
                 </div>
             </div>
 
@@ -144,7 +144,7 @@ export default function ProfilePage() {
                 {view === 'postari' ? (
                     <UserRecipe username={username} onRecipeClick={handleRecipeClick} />
                 ) : (
-                    <SavedRecipe username={username} onRecipeClick={handleRecipeClick} />
+                    <SavedRecipe username={username} currentUserId={user ? user.uid.trim() : null} />
                 )}
             </div>
         </div>
@@ -153,7 +153,7 @@ export default function ProfilePage() {
             <div
             className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 z-10 flex items-center justify-center"
             >
-                <ViewRecipe recipe={selectedRecipe} onClose={handleClose} />
+                <ViewRecipe recipe={selectedRecipe} onClose={handleClose} currentUserId={user ? user.uid.trim() : null} />
             </div>
         )}
     </div>

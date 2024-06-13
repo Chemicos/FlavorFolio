@@ -7,6 +7,7 @@ import RecipeCard from "../RecipeCard";
 import { collection, getDocs } from "@firebase/firestore";
 import ViewRecipe from "../ViewRecipe";
 import Pagination from "./Pagination";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default function Content({ handlePostClick, recipes }) {
     const [showFilter, setShowFilter] = useState(false)
@@ -21,7 +22,22 @@ export default function Content({ handlePostClick, recipes }) {
     const [savedRecipes, setSavedRecipes] = useState([])
     const [currentPage, setCurrentPage] = useState(1)
     const [recipesPerPage] = useState(6)
+    const [currentUserId, setCurrentUserId] = useState(null)
 
+    // Fetch currentUserId <<
+    useEffect(() => {
+        const auth = getAuth()
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setCurrentUserId(user.uid)
+            } else {
+                setCurrentUserId(null)
+            }
+        })
+        return () => unsubscribe()
+    }, [])
+    // >>
+    
     const handleClose = () => {
         setSelectedRecipe(null)
     }
@@ -74,7 +90,7 @@ export default function Content({ handlePostClick, recipes }) {
             const matchesMeal = mealFilter.length ? mealFilter.includes(recipe.meal) : true
             const matchesDifficulty = difficultyFilter.length ? difficultyFilter.includes(recipe.difficulty) : true
             const matchesDuration = durationFilter.length ? durationFilter.includes(recipe.duration) : true
-            const matchesFavorites = favoritesFilter ? savedRecipes.some((fav) => fav.id === recipe.id) : true
+            const matchesFavorites = favoritesFilter ? savedRecipes.some((fav) => fav.id === recipe.id && fav.userId === currentUserId) : true
 
             return matchesMeal && matchesDifficulty && matchesDuration && matchesFavorites
         })
@@ -300,7 +316,7 @@ export default function Content({ handlePostClick, recipes }) {
         {selectedRecipe && (
             <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 
             z-10 flex items-center justify-center">
-                <ViewRecipe recipe={selectedRecipe} onClose={handleClose}/>
+                <ViewRecipe recipe={selectedRecipe} onClose={handleClose} currentUserId={currentUserId} />
             </div>
         )}
     </div>

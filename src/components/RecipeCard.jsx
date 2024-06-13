@@ -7,33 +7,6 @@ import { db } from '../firebase-config'
 import Rating from './Rating'
 
 export default function RecipeCard({ recipe, onClick, savedRecipes }) {
-    // const [rating, setRating] = useState(0)
-
-    // Rating Functionality <<
-    // const handleRatingClick = async (level) => {
-    //     const recipeRef = doc(db, "recipes", recipe.id)
-
-    //     await updateDoc(recipeRef, {
-    //         rating: arrayUnion(level)
-    //     })
-
-    //     const updatedRecipe = await getDoc(recipeRef)
-    //     const updatedRating = updatedRecipe.data().rating
-    //     const totalRating = updatedRating.reduce((acc, val) => acc + val, 0)
-    //     const avgRating = totalRating / updatedRating.length
-    //     setRating(Math.round(avgRating))
-    // }
-
-    // useEffect(() => {
-    //     if (recipe.rating && recipe.rating.length > 0) {
-    //         const totalRating = recipe.rating.reduce((acc, val) => acc + val, 0)
-    //         const avgRating = totalRating / recipe.rating.length
-    //         setRating(Math.round(avgRating))
-    //     } else {
-    //         setRating(0)
-    //     }
-    // }, [recipe.rating])
-    // >>
 
     // Favorite function <<
     const [isFavorite, setIsFavorite] = useState(false)

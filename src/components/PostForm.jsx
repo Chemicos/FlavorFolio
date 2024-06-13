@@ -22,17 +22,6 @@ export default function PostForm({ handleClose }) {
     }
   }
   // >>
- 
-  // Save recipe Firestore <<
-  const saveRecipe = async (recipe) => {
-    try {
-      const docRef = await addDoc(collection(db, "pendingRecipes"), recipe)
-      console.log("Document scris cu ID-ul: ", docRef.id)
-    } catch (e) {
-      console.error("Eroare la adaugarea documentului: ", e)
-    }
-  }
-  // >>
   
   // Title functions <<
   const [title, setTitle] = useState('')
@@ -216,9 +205,18 @@ export default function PostForm({ handleClose }) {
     }
   }
   // >>
+  // TODO: SETDOC SA SALVEZE SI userId ca atribut in colectia pendingRecipes si din pendingRecipes in recipes 
 
-  // TODO: isFormValid (sau useEffect) sa verifice
-  //crieriile de verificare ale fiecarui input
+  // Save recipe Firestore <<
+  const saveRecipe = async (recipe) => {
+    try {
+      const docRef = await addDoc(collection(db, "pendingRecipes"), recipe)
+      console.log("Document scris cu ID-ul: ", docRef.id)
+    } catch (e) {
+      console.error("Eroare la adaugarea documentului: ", e)
+    }
+  }
+  // >>
 
   // Submit Form Function <<
   const [isFormValid, setIsFormValid] = useState(false)
@@ -306,7 +304,8 @@ export default function PostForm({ handleClose }) {
         servings: servings,
         cookingSteps: cookingStepsWithUrls,
         createdAt: new Date(),
-        user: username
+        user: username,
+        userId: user.uid
       }
 
       await saveRecipe(recipe)
