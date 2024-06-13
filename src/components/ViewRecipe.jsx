@@ -10,7 +10,7 @@ import FollowBtn from "./content/FollowBtn";
 
 export default function ViewRecipe({ recipe, onClose, currentUserId }) {
   const [isFavorite, setIsFavorite] = useState(false)
-
+// TODO: ADAUGA componenta si functia de comentarii
     // Adding to favorites <<
     const toggleFavorite = async () => {
         if (currentUserId) {
@@ -80,7 +80,7 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
                       </div>
                   </div>
 
-                  <div className="absolute bottom-14 sm:bottom-12 right-6 z-20">
+                  <div className="absolute bottom-14 right-6 z-20">
                     <Rating recipeId={recipe.id} initialRating={recipe.rating} />
                   </div>
                 </div>

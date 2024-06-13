@@ -33,10 +33,10 @@ export default function FollowBtn({ recipeUser }) {
     } else {
       setIsFollowing(false)
     }
-  };
+  }
 
   const toggleFollow = async () => {
-    if (!recipeUser || !user) return;
+    if (!recipeUser || !user) return
     const followRef = doc(db, 'followers', recipeUser.trim())
 
     try {
@@ -44,6 +44,7 @@ export default function FollowBtn({ recipeUser }) {
         await updateDoc(followRef, {
           followers: arrayRemove(user.uid)
         })
+        await updateFollowingCollection(user.uid, recipeUser, false)
       } else {
         const followSnap = await getDoc(followRef)
         if (followSnap.exists()) {
@@ -55,10 +56,37 @@ export default function FollowBtn({ recipeUser }) {
             followers: [user.uid]
           })
         }
+        await updateFollowingCollection(user.uid, recipeUser, true)
       }
       setIsFollowing(!isFollowing);
     } catch (error) {
       console.error("Error updating followers: ", error)
+    }
+  }
+
+  const updateFollowingCollection = async (currentUserId, recipeUserId, isAdding) => {
+    const followingRef = doc(db, 'following', currentUserId.trim())
+    try {
+        const followingSnap = await getDoc(followingRef);
+        if (isAdding) {
+            if (followingSnap.exists()) {
+                await updateDoc(followingRef, {
+                    followedUsers: arrayUnion(recipeUserId)
+                })
+            } else {
+                await setDoc(followingRef, {
+                    followedUsers: [recipeUserId]
+                })
+            }
+        } else {
+            if (followingSnap.exists()) {
+                await updateDoc(followingRef, {
+                    followedUsers: arrayRemove(recipeUserId)
+                })
+            }
+        }
+    } catch (error) {
+        console.error("Error updating following collection: ", error)
     }
   }
 
@@ -69,9 +97,10 @@ export default function FollowBtn({ recipeUser }) {
   return (
        <button
             onClick={toggleFollow}
-            className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-700 transition duration-150"
+            className={`px-4 py-2 bg-ff-btn border border-ff-btn font-semibold rounded-xl hover:bg-transparent hover:text-white 
+              ${isFollowing ? 'bg-transparent border-white text-white' : 'text-black'} transition duration-150`}
         >
-            {isFollowing ? 'Nu mai urmari' : 'Urmareste'}
+            {isFollowing ? 'Urmaresti' : 'Urmareste'}
         </button>
   )
 }

@@ -7,6 +7,7 @@ import { db } from "../../firebase-config"
 export default function UserDetails({ username, userId }) {
     const [recipeCount, setRecipeCount] = useState(0)
     const [followersCount, setFollowersCount] = useState(0)
+    const [followingCount, setFollowingCount] = useState(0)
 
     useEffect(() => {
       const fetchUserRecipes = async () => {
@@ -33,23 +34,48 @@ export default function UserDetails({ username, userId }) {
           console.log("UserId is not defined.")
         }
       }
-  
+      
+      const fetchUserFollowing = async () => {
+        if (userId) {
+          const followingRef = doc(db, 'following', userId.trim())
+          const followingSnap = await getDoc(followingRef)
+          if (followingSnap.exists()) {
+            const followingData = followingSnap.data()
+            const followedUsersList = followingData.followedUsers || []
+            setFollowingCount(followedUsersList.length)
+          } else {
+            setFollowingCount(0)
+          }
+        } else {
+          console.log("UserId is not defined.")
+        }
+      }
+
       fetchUserRecipes()
       fetchUserFollowers()
+      fetchUserFollowing()
     }, [username, userId])
 
+
   return (
-    <div className="flex flex-row gap-6 items-center bg-ff-form rounded-2xl p-4 shadow-md">
+    <div className="flex flex-row w-[290px] justify-between items-center bg-ff-form rounded-2xl p-4 shadow-md">
         <p className="flex flex-col font-semibold italic items-center">
             {recipeCount}
             <span>Rețete</span>
         </p>
 
-        <span className="bg-black w-[1px] h-8 rounded"></span>
+        <span className="bg-black w-[1px] h-8 opacity-20 rounded"></span>
 
         <p className="flex flex-col items-center font-semibold italic">
             {followersCount}
             <span> Urmăritori</span>
+        </p>
+
+        <span className="bg-black w-[1px] h-8 opacity-20 rounded"></span>
+
+        <p className="flex flex-col items-center font-semibold italic">
+            {followingCount}
+            <span>Urmăriți</span>
         </p>
     </div>
   )

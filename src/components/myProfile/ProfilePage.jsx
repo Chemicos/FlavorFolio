@@ -5,8 +5,8 @@ import { doc, getDoc, updateDoc } from "@firebase/firestore";
 import { db, storage } from "../../firebase-config";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser } from "@fortawesome/free-regular-svg-icons";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faBookmark, faUser } from "@fortawesome/free-regular-svg-icons";
+import { faBasketShopping, faTrash } from "@fortawesome/free-solid-svg-icons";
 import UserDetails from "./UserDetails";
 import UserRecipe from "./UserRecipe";
 import SavedRecipe from "./SavedRecipe";
@@ -113,7 +113,7 @@ export default function ProfilePage() {
                 )}
 
                 <div className="flex flex-col gap-4 items-center sm:items-start">
-                    <p className="text-xl font-semibold italic">{username}</p>
+                    <p className="text-2xl sm:text-xl font-semibold italic">{username}</p>
                     {user && <UserDetails username={username} userId={user.uid.trim()} />}
                 </div>
             </div>
@@ -128,6 +128,7 @@ export default function ProfilePage() {
                         : ''}`}
                         onClick={() => setView('postari')} 
                     >
+                        <FontAwesomeIcon icon={faBasketShopping} className="mr-2" />
                         Postari
                     </button>
 
@@ -135,6 +136,7 @@ export default function ProfilePage() {
                         ${view === 'salvari' ? 'opacity-100 before:content-[""] before:absolute before:top-0 before:left-0 before:right-0 before:h-[2px] before:bg-black' : ''}`}
                         onClick={() => setView('salvari')} 
                     >
+                        <FontAwesomeIcon icon={faBookmark} className="mr-2" />
                         Salvari
                     </button>
                 </div>

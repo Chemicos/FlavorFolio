@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { db } from "../../firebase-config";
 import { useEffect, useState } from "react";
@@ -105,8 +105,8 @@ export default function Content({ handlePostClick, recipes }) {
     // >>
 
   return (
-    <div className="bg-ff-content flex flex-col justify-between w-full sm:w-[80%] 2xl:w-[1200px] h-[755px] sm:h-[720px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
-        <div className="flex flex-row justify-between gap-2 px-10 py-4">
+    <div className="bg-transparent sm:bg-ff-content flex flex-col justify-between w-full sm:w-[80%] 2xl:w-[1200px] h-[755px] sm:h-[720px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
+        <div className="flex flex-row justify-between px-10 py-4">
             <button 
                 className="bg-ff-btn px-3 py-2 rounded-lg shadow flex items-center gap-3 border border-ff-btn
                 duration-200 transition-all ease-in-out transform hover:scale-125"
@@ -288,11 +288,11 @@ export default function Content({ handlePostClick, recipes }) {
                 )}
                 
             <button 
-                className="bg-ff-btn px-4 py-2 rounded-lg shadow border border-ff-btn
+                className="flex items-center bg-ff-btn px-3 py-2 rounded-lg shadow border border-ff-btn
                 transition duration-200 ease-in-out hover:scale-125"
                 onClick={handlePostClick}
             >
-                Post
+                <FontAwesomeIcon icon={faPlus} /> 
             </button>
         </div>
 

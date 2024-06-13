@@ -131,8 +131,12 @@ export default function Navigation() {
                     </a>
                   )}
 
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                    role="menuitem">Settings
+                  <a href="#" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                    role="menuitem"
+                    onClick={() => navigate('/settings')}
+                  >
+                    Settings
                   </a>
                   
                   <a href="#" 

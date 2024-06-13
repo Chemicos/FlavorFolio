@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Register from './components/Register'
 import PendingRecipes from './components/PendingRecipes'
 import ProfilePage from './components/myProfile/ProfilePage'
+import AccountSettings from './components/AccountSettings/AccountSettings'
 
 const cookies = new Cookies()
 
@@ -23,6 +24,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path='/pending' element={<PendingRecipes />} />
           <Route path='/profile' element={<ProfilePage />} />
+          <Route path='/settings' element={<AccountSettings />} />
         </Routes>
       </div>
     </Router>
