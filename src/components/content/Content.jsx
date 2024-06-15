@@ -288,7 +288,7 @@ export default function Content({ handlePostClick, recipes }) {
                 )}
                 
             <button 
-                className="flex items-center bg-ff-btn px-3 py-2 rounded-lg shadow border border-ff-btn
+                className="flex items-center bg-ff-btn p-3 rounded-lg shadow border border-ff-btn
                 transition duration-200 ease-in-out hover:scale-125"
                 onClick={handlePostClick}
             >

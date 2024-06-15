@@ -3,7 +3,7 @@ import Navigation from "../Navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "@firebase/firestore";
 import { db, storage } from "../../firebase-config";
-import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, ref } from "firebase/storage";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookmark, faUser } from "@fortawesome/free-regular-svg-icons";
 import { faBasketShopping, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -15,8 +15,8 @@ import ViewRecipe from "../ViewRecipe";
 export default function ProfilePage() {
     const [ user, setUser ] = useState(null)
     const [username, setUsername] = useState('')
+    const [userDescription, setUserDescription] = useState('')
     const [ profileImage, setProfileImage ] = useState('')
-    const [ imageFile, setImageFile ] = useState(null)
     const [view, setView] = useState('postari')
     const [selectedRecipe, setSelectedRecipe] = useState(null)
     const auth = getAuth() 
@@ -31,6 +31,7 @@ export default function ProfilePage() {
                     const userData = userDoc.data()
                     setProfileImage(userData.profileImage || currentUser.photoURL || '')
                     setUsername(userData.username || currentUser.displayName || '')
+                    setUserDescription(userData.userDescription || '')
                 } else {
                     setProfileImage(currentUser.photoURL || '')
                     setUsername(currentUser.displayName || '')
@@ -39,23 +40,6 @@ export default function ProfilePage() {
         })
         return () => unsubscribe()
     }, [auth])
-
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0]
-        if (file) {
-            setImageFile(file)
-            const imageUrl = URL.createObjectURL(file)
-            setProfileImage(imageUrl)
-
-            const storageRef = ref(storage, `user_images/${auth.currentUser.uid}`)
-            await uploadBytes(storageRef, file)
-            const downloadURL = await getDownloadURL(storageRef)
-
-            await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-                profileImage: downloadURL,
-            })
-        }
-    }
 
     const handleImageDelete = async () => {
         if (profileImage) {
@@ -100,20 +84,17 @@ export default function ProfilePage() {
                     </div>
                     
                 ) : (
-                    <label className="relative flex flex-col justify-center cursor-pointer w-32 h-32 rounded-full border 
-                    border-black hover:bg-ff-btn hover:border-ff-btn duration-300">
+                    <label className="relative flex flex-col justify-center w-32 h-32 rounded-full border 
+                    border-black">
                         <FontAwesomeIcon icon={faUser} className="text-4xl" />
-                        
-                        <input 
-                        type="file" 
-                        onChange={handleImageUpload} 
-                        className="hidden"
-                        />
                     </label>
                 )}
 
                 <div className="flex flex-col gap-4 items-center sm:items-start">
                     <p className="text-2xl sm:text-xl font-semibold italic">{username}</p>
+                    
+                    <p className="italic opacity-70 text-sm w-[300px]">{userDescription}</p>
+
                     {user && <UserDetails username={username} userId={user.uid.trim()} />}
                 </div>
             </div>
