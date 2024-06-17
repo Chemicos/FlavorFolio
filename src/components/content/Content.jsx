@@ -105,7 +105,8 @@ export default function Content({ handlePostClick, recipes }) {
     // >>
 
   return (
-    <div className="bg-transparent sm:bg-ff-content flex flex-col justify-between w-full sm:w-[80%] 2xl:w-[1200px] h-[755px] sm:h-[720px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
+    <div className="bg-transparent sm:bg-ff-content dark:sm:bg-dark-bg dark:sm:border dark:sm:border-dark-border dark:sm:border-opacity-60
+    flex flex-col justify-between w-full sm:w-[80%] 2xl:w-[1200px] h-[755px] sm:h-[720px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
         <div className="flex flex-row justify-between px-10 py-4">
             <button 
                 className="bg-ff-btn px-3 py-2 rounded-lg shadow flex items-center gap-3 border border-ff-btn
@@ -117,24 +118,24 @@ export default function Content({ handlePostClick, recipes }) {
 
             {showFilter && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-20 sm:hidden">
-                    <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-30 p-4 overflow-y-auto">
+                    <div className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-dark-bg dark:border-r-[1px] dark:border-dark-border shadow-lg z-30 p-4 overflow-y-auto">
                     <button
-                        className="mb-4 text-left px-4 py-2 hover:bg-gray-100"
+                        className="flex flex-row gap-2  items-center mb-4 text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100"
                         onClick={() => setShowFilter(false)}
                     >
-                        <FontAwesomeIcon icon={faTimes} /> Close
+                        <FontAwesomeIcon icon={faTimes} /> Închide
                     </button>
 
                     <div className="relative group">
                         <button 
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100"
                             onClick={toggleMealOptions}
                         >
-                            Meal
+                            Masă
                         </button>
                         <div className={`ml-4 w-full transition-all duration-500 overflow-hidden ${mealOptionsVisible ? 'max-h-screen' : 'max-h-0'}`}>
-                        {["breakfast", "lunch", "dinner", "snack", "dessert"].map((meal) => (
-                            <label key={meal} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                        {["mic dejun", "pranz", "cină", "gustare", "desert"].map((meal) => (
+                            <label key={meal} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:text-dark-border flex items-center">
                             <input
                               type="checkbox"
                               className="mr-2"
@@ -148,14 +149,14 @@ export default function Content({ handlePostClick, recipes }) {
                     </div>
 
                     <div className="relative group mt-4">
-                        <button className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        <button className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100"
                             onClick={toggleDifficultyOptions}
                         >
-                        Difficulty
+                        Dificultate
                         </button>
                         <div className={`ml-4 w-full transition-all duration-500 overflow-hidden ${difficultyOptionsVisible ? 'max-h-screen' : 'max-h-0'}`}>
-                        {["easy", "medium", "hard"].map((difficulty) => (
-                            <label key={difficulty} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                        {["ușor", "mediu", "greu"].map((difficulty) => (
+                            <label key={difficulty} className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 flex items-center">
                              <input 
                                  type="checkbox"
                                  className="mr-2"
@@ -169,10 +170,10 @@ export default function Content({ handlePostClick, recipes }) {
                     </div>
 
                     <div className="relative group mt-4">
-                        <button className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        <button className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100"
                             onClick={toggleDurationOptions}
                         >
-                        Duration
+                        Durată
                         </button>
                         <div className={`ml-4 w-full transition-all duration-500 overflow-hidden ${durationOptionsVisible ? 'max-h-screen' : 'max-h-0'}`}>
                         {[
@@ -181,9 +182,9 @@ export default function Content({ handlePostClick, recipes }) {
                             "30 min",
                             "40 min",
                             "50 min",
-                            "1 hour",
+                            "1 oră",
                         ].map((duration) => (
-                            <label key={duration} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                            <label key={duration} className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 flex items-center">
                                 <input 
                                     type="checkbox" 
                                     className="mr-2"
@@ -196,7 +197,7 @@ export default function Content({ handlePostClick, recipes }) {
                         </div>
                     </div>
 
-                    <label className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                    <label className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 flex items-center">
                         <input 
                             type="checkbox" 
                             className="mr-2"
@@ -211,16 +212,21 @@ export default function Content({ handlePostClick, recipes }) {
             
             {/* min-width:640px  */}
                 {showFilter && (
-                    <div className="absolute z-10 mt-12 w-48 bg-white shadow-lg rounded-lg py-1">
+                    <div className="absolute z-10 mt-12 w-48 bg-white dark:bg-dark-bg dark:shadow-none dark:border dark:border-dark-border 
+                    shadow-lg rounded-lg py-1">
                         <div className="relative group">
                         <button
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements duration-150"
                         >
-                            Meal
+                            Masă
                         </button>
-                        <div className="absolute left-full top-0 mt-1 w-48 bg-white shadow-lg rounded-lg py-1 hidden group-hover:block">
-                            {["breakfast", "lunch", "dinner", "snack", "dessert"].map((meal) => (
-                            <label key={meal} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                        <div className="absolute left-full top-0 mt-1 w-48 bg-white dark:bg-dark-bg shadow-lg dark:shadow-none dark:border dark:border-dark-border
+                        rounded-lg py-1 hidden group-hover:block">
+                            {["mic dejun", "pranz", "cină", "gustare", "desert"].map((meal) => (
+                            <label key={meal} 
+                                className="w-full text-left px-4 py-2 dark:text-dark-border 
+                                    hover:bg-gray-100 dark:hover:bg-dark-elements flex items-center duration-150"
+                            >
                             <input
                               type="checkbox"
                               className="mr-2"
@@ -235,13 +241,14 @@ export default function Content({ handlePostClick, recipes }) {
         
                         <div className="relative group">
                         <button
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements duration-150"
                         >
-                            Difficulty
+                            Dificultate
                         </button>
-                        <div className="absolute left-full top-0 mt-1 w-48 bg-white shadow-lg rounded-lg py-1 hidden group-hover:block">
-                            {["easy", "medium", "hard"].map((difficulty) => (
-                            <label key={difficulty} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                        <div className="absolute left-full top-0 mt-1 w-48 bg-white dark:bg-dark-bg shadow-lg dark:shadow-none dark:border dark:border-dark-border
+                            rounded-lg py-1 hidden group-hover:block">
+                            {["ușor", "mediu", "greu"].map((difficulty) => (
+                            <label key={difficulty} className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements flex items-center duration-150">
                                 <input 
                                     type="checkbox"
                                     className="mr-2"
@@ -256,13 +263,14 @@ export default function Content({ handlePostClick, recipes }) {
         
                         <div className="relative group">
                         <button
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements duration-150"
                         >
-                            Duration
+                            Durată
                         </button>
-                        <div className="absolute left-full top-0 mt-1 w-48 bg-white shadow-lg rounded-lg py-1 hidden group-hover:block">
-                            {["10 min", "20 min", "30 min", "40 min", "50 min", "1 hour"].map((duration) => (
-                            <label key={duration} className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                        <div className="absolute left-full top-0 mt-1 w-48 bg-white dark:bg-dark-bg shadow-lg dark:shadow-none dark:border dark:border-dark-border rounded-lg py-1 hidden group-hover:block">
+                            {["10 min", "20 min", "30 min", "40 min", "50 min", "1 oră"].map((duration) => (
+                            <label key={duration} className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements duration-150
+                                flex items-center">
                                 <input 
                                     type="checkbox" 
                                     className="mr-2"
@@ -275,14 +283,15 @@ export default function Content({ handlePostClick, recipes }) {
                         </div>
                     </div>
         
-                    <label className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                    <label className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements duration-150
+                    flex items-center">
                         <input 
                             type="checkbox" 
                             className="mr-2"
                             checked={favoritesFilter}
                             onChange={handleFavoritesChange}
                         />
-                        Favorites
+                        Favorite
                     </label>
                   </div>
                 )}

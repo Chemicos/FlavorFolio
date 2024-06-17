@@ -187,7 +187,7 @@ export default function Register() {
   // <<
 
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div className="flex flex-col items-center justify-center bg-ff-bg w-screen h-screen gap-5">
       <h1 className="font-medium text-4xl mb-6">
         Join 
         <span className="text-ff-flavor"> Flavor</span>

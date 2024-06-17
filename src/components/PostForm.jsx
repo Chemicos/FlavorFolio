@@ -62,7 +62,7 @@ export default function PostForm({ handleClose }) {
   
   // Ingredient functions <<
   const [ingredients, setIngredients] = useState([])
-  const unitOptions = ["cup", "tbsp", "tsp", "piece", "cloves", "slice", "g", "kg", "l", "ml"]
+  const unitOptions = ["ceașcă", "lingură", "linguriță", "buc", "cățel", "felie", "g", "kg", "l", "ml"]
   
   const addIngredient = (e) => {
     setIngredients([...ingredients, { 
@@ -131,9 +131,9 @@ export default function PostForm({ handleClose }) {
   const [servings, setServings] = useState('');
   const [servingsError, setServingsError] = useState(false);
   
-  const mealOptions = ["breakfast", "lunch", "dinner", "snack", "dessert"]
-  const difficultyOptions = ["easy", "medium", "hard"]
-  const durationOptions = ["10 min", "20 min", "30 min", "40 min", "50 min", "1 hour", "1+ hour"]
+  const mealOptions = ["mic dejun", "pranz", "cină", "gustare", "desert"]
+  const difficultyOptions = ["ușor", "mediu", "greu"]
+  const durationOptions = ["10 min", "20 min", "30 min", "40 min", "50 min", "1 oră", "1+ ore"]
   
   const handleInputChange = (value, setter, setError, isSelect = false, isCuisine = false) => {
     setter(value)
@@ -331,7 +331,7 @@ export default function PostForm({ handleClose }) {
   return (
     <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center 
     justify-center z-10 overflow-hidden">
-      <div className="relative bg-ff-form rounded-lg h-full sm:h-post-form w-full 
+      <div className="relative bg-ff-form dark:bg-dark-bg rounded-lg h-full sm:h-post-form w-full 
          sm:w-responsive-sm">
             <button 
               onClick={handleClose}
@@ -341,7 +341,7 @@ export default function PostForm({ handleClose }) {
             </button>
             
             <form className="lg:w-full mx-auto flex flex-col gap-4 items-center h-full py-4 overflow-y-auto">
-              <h1 className="text-xl font-semibold">Post Your Recipe</h1>
+              <h1 className="text-xl font-semibold dark:text-dark-border">Postează-ți Rețeta</h1>
 
               <div className="relative flex flex-col items-center gap-2">
                 {uploadedImage ? (
@@ -375,41 +375,43 @@ export default function PostForm({ handleClose }) {
                       onChange={handleImageUpload} 
                     />
                     <label htmlFor="file-upload" 
-                      className="flex flex-col justify-center cursor-pointer rounded-full w-24 h-24 border border-black
-                      hover:bg-ff-btn hover:border-ff-btn duration-300"
+                      className="flex flex-col justify-center cursor-pointer rounded-full w-24 h-24 border border-black dark:border-dark-border
+                      hover:bg-ff-btn dark:hover:bg-dark-elements hover:border-ff-btn duration-300"
                       >
-                      <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-3xl" />
+                      <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-3xl dark:text-dark-border" />
                     </label>
-                    <span className="font-semibold">Upload Image</span>
+                    <span className="font-semibold dark:text-dark-border">Încarcă Imagine</span>
                   </>
                 )}
               </div>
 
               <div className="flex flex-col gap-4 w-full px-4 sm:px-8">
-                <h1 className="font-semibold text-lg">General Info</h1>
+                <h1 className="font-semibold text-lg dark:text-dark-border">Informații Generale</h1>
 
                 <input type="text"
                   value={title}
                   onChange={handleTitleChange} 
                   onBlur={handleTitleBlur}
-                  placeholder="Title" 
-                  className={`w-full px-2 py-2 rounded-lg hover:shadow-input placeholder:italic 
+                  placeholder="Titlu" 
+                  className={`w-full px-2 py-2 rounded-lg hover:shadow-input dark:hover:shadow-none dark:bg-transparent dark:text-dark-border
+                    dark:border dark:border-dark-border placeholder:italic dark:placeholder:text-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:focus:border-opacity-100
                   duration-150 ${titleError ? 'shadow-input-error' : ''}`} 
                 />
 
-                <textarea placeholder="Description" 
+                <textarea placeholder="Descriere" 
                   value={description}
                   onChange={handleDescriptionChange}
                   onBlur={handleDescriptionBlur}
-                  className={`w-full px-2 py-2 rounded-lg hover:shadow-input 
+                  className={`w-full px-2 py-2 rounded-lg hover:shadow-input dark:hover:shadow-none dark:bg-transparent dark:text-dark-border dark:border dark:border-dark-border 
+                  dark:placeholder:text-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:focus:border-opacity-100
                   placeholder:italic duration-150 ${descriptionError ? 'shadow-input-error' : ''}`}
                   cols="20" 
                   rows="1" 
                 />
 
-                <h1 className="font-semibold text-lg">Ingredients</h1>
+                <h1 className="font-semibold text-lg dark:text-dark-border">Ingrediente</h1>
                 {ingredients.map((ingredient, index) => (
-                  <div key={index} className={`relative flex flex-row justify-between gap-4 bg-ff-bg rounded-lg p-4 
+                  <div key={index} className={`relative flex flex-row justify-between gap-4 bg-ff-bg dark:bg-transparent rounded-lg p-4 dark:border dark:border-dark-border
                   ${ingredient.quantityError || ingredient.unitError || ingredient.ingredientError ? 'shadow-input-error' : 'shadow-md'}`}
                   >
                     <div className="flex flex-col sm:flex-row mx-auto sm:px-4 gap-4">
@@ -418,16 +420,19 @@ export default function PostForm({ handleClose }) {
                         value={ingredient.quantity}
                         onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
                         onBlur={() => handleIngredientBlur(index, 'quantity')}
-                        placeholder="Quantity"
-                        className="w-full px-2 py-2 rounded-lg placeholder:italic hover:shadow-input duration-150"
+                        placeholder="Cantitate"
+                        className="w-full px-2 py-2 rounded-lg placeholder:italic hover:shadow-input duration-150
+                        dark:bg-transparent dark:border dark:hover:shadow-none dark:border-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:placeholder:text-dark-border dark:text-dark-border
+                        dark:focus:border-opacity-100"
                       />
 
                       <select value={ingredient.unit}
                         onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
                         onBlur={() => handleIngredientBlur(index, 'unit')}
-                        className="w-full px-2 py-2 bg-white rounded-lg placeholder:italic hover:shadow-input duration-150"
+                        className="w-full px-2 py-2 bg-white rounded-lg placeholder:italic hover:shadow-input duration-150
+                        dark:bg-dark-bg dark:border dark:border-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:text-dark-border dark:hover:shadow-none"
                       >
-                        <option value="">Select unit</option>
+                        <option value="">U.M.</option>
                         {unitOptions.map((unit, i) => (
                           <option key={i} value={unit}>{unit}</option>
                         ))}
@@ -439,14 +444,15 @@ export default function PostForm({ handleClose }) {
                         onChange={(e) => handleIngredientChange(index, 'ingredient', e.target.value)}
                         onBlur={() => handleIngredientBlur(index, 'ingredient')}
                         placeholder="Ingredient"
-                        className="w-full px-2 py-2 rounded-lg placeholder:italic hover:shadow-input duration-150"
+                        className="w-full px-2 py-2 rounded-lg placeholder:italic dark:placeholder:text-dark-border hover:shadow-input dark:hover:shadow-none dark:text-dark-border
+                        dark:bg-transparent dark:border dark:border-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:focus:border-opacity-100 duration-150"
                       />
                     </div>
 
                     <button 
                       type="button"
-                      className="text-red-500 hover:text-red-700 absolute -top-3 -right-3 text-xl bg-white 
-                      bg-opacity-50 hover:bg-opacity-100 duration-150 rounded-full w-9 h-9"
+                      className="text-red-500 dark:text-black hover:text-red-700 absolute -top-3 -right-3 text-xl bg-white dark:bg-ff-btn 
+                      bg-opacity-50 dark:bg-opacity-50 hover:bg-opacity-100 dark:hover:bg-opacity-100 duration-150 rounded-full w-9 h-9"
                       onClick={() => removeIngredient(index)}
                       >
                       <FontAwesomeIcon icon={faTrash} />
@@ -461,16 +467,17 @@ export default function PostForm({ handleClose }) {
                   </button>
 
                 
-                  <h1 className="font-semibold text-lg">Filter</h1>                  
+                  <h1 className="font-semibold text-lg dark:text-dark-border">Filter</h1>                  
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-row gap-2">
                       <select value={meal}
                         onChange={(e) => handleInputChange(e.target.value, setMeal, setMealError, true)}
                         onBlur={() => handleInputBlur(meal, setMealError)}
                         className={`px-2 py-2 bg-white rounded-lg w-full
+                        dark:bg-dark-bg dark:border dark:border-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:text-dark-border dark:hover:shadow-none
                         ${mealError ? 'shadow-input-error' : 'hover:shadow-input duration-150'}`}
                       >
-                        <option value="">Select Meal Type</option>
+                        <option value="">Tipul de Masă</option>
                         {mealOptions.map((option, index) => (
                           <option key={index} value={option}>{option}</option>
                         ))}
@@ -480,9 +487,10 @@ export default function PostForm({ handleClose }) {
                         onChange={(e) => handleInputChange(e.target.value, setDifficulty, setDifficultyError, true)}
                         onBlur={() => handleInputBlur(difficulty, setDifficultyError)}
                         className={`px-2 py-2 bg-white rounded-lg w-full
+                        dark:bg-dark-bg dark:border dark:border-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:text-dark-border dark:hover:shadow-none
                         ${difficultyError ? 'shadow-input-error' : 'hover:shadow-input duration-150'}`}
                       >
-                        <option value="">Select Difficulty</option>
+                        <option value="">Dificultate</option>
                         {difficultyOptions.map((option, index) => (
                           <option key={index} value={option}>{option}</option>
                         ))}
@@ -494,16 +502,19 @@ export default function PostForm({ handleClose }) {
                       value={cuisine}
                       onChange={(e) => handleInputChange(e.target.value, setCuisine, setCuisineError, false, true)}
                       onBlur={() => handleInputBlur(cuisine, setCuisineError)}
-                      placeholder="Cuisine" 
-                      className={`w-full px-2 py-2 rounded-lg placeholder:italic duration-150 ${cuisineError ? 'shadow-input-error' : 'hover:shadow-input'}`}
+                      placeholder="Bucătărie" 
+                      className={`w-full px-2 py-2 rounded-lg placeholder:italic dark:bg-transparent dark:border dark:border-dark-border dark:border-opacity-40 
+                        dark:hover:border-opacity-100 dark:focus:border-opacity-100 dark:text-dark-border
+                        duration-150 ${cuisineError ? 'shadow-input-error' : 'hover:shadow-input dark:shadow-none'}`}
                     />
 
                     <select value={duration}
                       onChange={(e) => handleInputChange(e.target.value, setDuration, setDurationError, true)}
                       onBlur={() => handleInputBlur(duration, setDurationError)}
-                      className={`w-full px-2 py-2 bg-white rounded-lg duration-150 ${durationError ? 'shadow-input-error': 'hover:shadow-input'}`}
+                      className={`w-full px-2 py-2 bg-white rounded-lg duration-150 ${durationError ? 'shadow-input-error': 'hover:shadow-input'}
+                      dark:bg-dark-bg dark:border dark:border-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:text-dark-border dark:hover:shadow-none`}
                     >
-                      <option value="">Select Duration</option>
+                      <option value="">Durată</option>
                       {durationOptions.map((option, index) => (
                         <option key={index} value={option}>{option}</option>
                       ))}
@@ -514,14 +525,16 @@ export default function PostForm({ handleClose }) {
                       value={servings}
                       onChange={(e) => handleInputChange(e.target.value, setServings, setServingsError)}
                       onBlur={() => handleInputBlur(servings, setServingsError)}
-                      placeholder="Servings" 
-                      className={`w-full px-2 py-2 rounded-lg placeholder:italic duration-150 ${servingsError ? 'shadow-input-error' : 'hover:shadow-input'}`}
+                      placeholder="Porții" 
+                      className={`w-full px-2 py-2 rounded-lg placeholder:italic duration-150 ${servingsError ? 'shadow-input-error' : 'hover:shadow-input'}
+                      dark:bg-dark-bg dark:border dark:border-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:text-dark-border dark:hover:shadow-none
+                      dark:focus:border-opacity-100`}
                     />
                   </div>
 
-                  <h1 className="font-semibold text-lg">Cooking Steps</h1>
+                  <h1 className="font-semibold text-lg dark:text-dark-border">Pași de Gătit</h1>
                   {cookingSteps.map((step, index) => (
-                    <div key={index} className={`relative flex flex-col items-center bg-ff-bg rounded-lg px-4 py-6 sm:py-4
+                    <div key={index} className={`relative flex flex-col items-center bg-ff-bg dark:bg-transparent dark:border dark:border-dark-border rounded-lg px-4 py-6 sm:py-4
                     ${step.error ? 'shadow-input-error' : 'shadow-md'}`}
                     >
                       <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
@@ -529,8 +542,9 @@ export default function PostForm({ handleClose }) {
                           value={step.description}
                           onChange={(e) => handleCookingStepChange(index, 'description', e.target.value)}
                           onBlur={() => handleCookingStepBlur(index)}
-                          placeholder="Step description"
-                          className="w-full sm:w-60 px-2 py-2 rounded-lg hover:shadow-input placeholder:italic duration-150"
+                          placeholder="Descriere Pas"
+                          className="w-full sm:w-60 px-2 py-2 rounded-lg hover:shadow-input dark:shadow-none dark:border-opacity-40 dark:hover:border-opacity-100 dark:focus:border-opacity-100 
+                          dark:bg-transparent dark:text-dark-border dark:border dark:border-dark-border placeholder:italic duration-150"
                         />
 
                         <div className="relative w-full flex justify-center">
@@ -557,10 +571,10 @@ export default function PostForm({ handleClose }) {
                             <label htmlFor={`step-image-upload-${index}`} 
                               className="cursor-pointer flex flex-col gap-2 transition duration-150 ease-in-out hover:scale-110"
                             >
-                              <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-2xl" />
+                              <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-2xl dark:text-dark-border" />
                               <div className="flex flex-col items-center">
-                                <span className="text-sm italic">Upload Image</span>
-                                <span className="text-xs opacity-50">(optional)</span>
+                                <span className="text-sm italic dark:text-dark-border">Incarcă Imagine</span>
+                                <span className="text-xs opacity-50 dark:text-dark-border">(opțional)</span>
                               </div>
                             </label>
                           )}
@@ -575,8 +589,8 @@ export default function PostForm({ handleClose }) {
 
                       <button
                         type="button"
-                        className="text-red-500 hover:text-red-700 absolute -top-3 -right-3 text-xl bg-white 
-                          bg-opacity-50 hover:bg-opacity-100 duration-150 rounded-full w-9 h-9"
+                        className="text-red-500 dark:text-black hover:text-red-700 absolute -top-3 -right-3 text-xl bg-white dark:bg-ff-btn
+                          bg-opacity-50 dark:bg-opacity-50 hover:bg-opacity-100 dark:hover:bg-opacity-100 duration-150 rounded-full w-9 h-9"
                         onClick={() => removeCookingStep(index)}
                       >
                         <FontAwesomeIcon icon={faTrash} />

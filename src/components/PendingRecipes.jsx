@@ -68,26 +68,27 @@ export default function PendingRecipes() {
     // >>
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-x-hidden">
+    <div className="flex flex-col h-screen w-screen bg-ff-bg dark:bg-dark-bg overflow-x-hidden">
       <Navigation />
 
       <div className="flex flex-grow items-center justify-center">
-        <div className="bg-ff-content flex flex-col w-full sm:w-4/5 h-[720px] rounded-3xl
-        shadow-md items-center gap-4">
-          <h1 className="text-2xl  mt-2">Pending Recipes</h1>
+        <div className="md:bg-ff-content flex flex-col w-full sm:w-4/5 h-[720px] rounded-3xl
+        md:shadow-md items-center gap-4 dark:md:bg-transparent dark:md:border dark:border-dark-border ">
+          <h1 className="text-2xl mt-2 dark:text-dark-border">Rețete în Așteptare</h1>
 
           <div className="w-4/5 overflow-y-auto">
             <ul className="flex flex-col gap-4 h-[600px]">
             {pendingRecipes.map((recipe, index) => (
                 <li className="flex flex-col sm:flex-row justify-between items-center 
                 bg-ff-bg gap-4 rounded-2xl py-4 px-6 active:bg-red-700 hover:bg-opacity-40 
-                duration-150 cursor-pointer shadow-md sm:shadow-none hover:shadow-md" 
+                duration-150 cursor-pointer shadow-md sm:shadow-none hover:shadow-md
+                dark:bg-dark-elements dark:shadow-none dark:hover:bg-dark-highlight" 
                   key={index}
                 >
                   <div onClick={() => setSelectedRecipe(recipe)} className="flex-1">
-                    <p>{recipe.title}</p>
-                    <p>{recipe.user}</p>
-                    <p className="text-sm opacity-80">Created at {new Date(recipe.createdAt.seconds * 1000).toLocaleString()}</p>
+                    <p className="dark:text-dark-border">{recipe.title}</p>
+                    <p className="dark:text-dark-border">{recipe.user}</p>
+                    <p className="text-sm opacity-80 dark:text-dark-border">Created at {new Date(recipe.createdAt.seconds * 1000).toLocaleString()}</p>
                   </div>
 
                   <div className="flex flex-row sm:flex-col items-center gap-8 sm:gap-4">

@@ -54,24 +54,26 @@ export default function Home() {
 // >>
 
   return (
-    <div className="h-screen w-screen overflow-x-hidden">
+    <div className="h-screen w-screen overflow-x-hidden bg-ff-bg dark:bg-dark-bg">
       <Navigation />
 
       <div className="flex flex-col items-center justify-center gap-8">
         <div className="flex flex-col items-center gap-4 mt-4">
-          <h1 className="font-base italic text-2xl">Search and cook</h1> 
+          <h1 className="font-base italic text-2xl dark:text-dark-border">Caută și gătește</h1> 
           <div className="relative">
             <input type="search" 
-              placeholder="Search..."
+              placeholder="Caută..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="rounded-2xl w-80 bg-ff-search py-2 pl-10 pr-4
-              placeholder:text-ff-placeholder shadow-md duration-200 opacity-50 hover:opacity-100 focus:opacity-100"
+              className="rounded-2xl w-80 bg-ff-search dark:bg-dark-elements py-2 pl-10 pr-4
+              placeholder:text-ff-placeholder dark:placeholder:text-dark-border dark:border dark:text-dark-border
+              dark:border-dark-border dark:border-opacity-20 dark:sm:hover:border-opacity-60 dark:focus:border-opacity-60
+              shadow-md duration-200 opacity-50 dark:opacity-100 hover:opacity-100 focus:opacity-100"
             />
 
             <FontAwesomeIcon 
               icon={faMagnifyingGlass} 
-              className="absolute inset-y-0 left-0 my-auto ml-2 opacity-80" 
+              className="absolute inset-y-0 left-0 my-auto ml-2 opacity-80 dark:text-dark-btn" 
             />
           </div>
         </div>

@@ -58,22 +58,23 @@ export default function UserDetails({ username, userId }) {
 
 
   return (
-    <div className="flex flex-row w-[290px] justify-between items-center bg-ff-form rounded-2xl p-4 shadow-md">
-        <p className="flex flex-col font-semibold italic items-center">
+    <div className="flex flex-row w-[290px] justify-between items-center bg-ff-form rounded-2xl p-4 shadow-md
+    dark:bg-dark-elements dark:shadow-none">
+        <p className="flex flex-col font-semibold italic items-center dark:text-dark-border">
             {recipeCount}
             <span>Rețete</span>
         </p>
 
-        <span className="bg-black w-[1px] h-8 opacity-20 rounded"></span>
+        <span className="bg-black w-[1px] h-8 opacity-20 rounded dark:bg-dark-border dark:opacity-40"></span>
 
-        <p className="flex flex-col items-center font-semibold italic">
+        <p className="flex flex-col items-center font-semibold italic dark:text-dark-border">
             {followersCount}
             <span> Urmăritori</span>
         </p>
 
-        <span className="bg-black w-[1px] h-8 opacity-20 rounded"></span>
+        <span className="bg-black w-[1px] h-8 opacity-20 rounded dark:bg-dark-border dark:opacity-40"></span>
 
-        <p className="flex flex-col items-center font-semibold italic">
+        <p className="flex flex-col items-center font-semibold italic dark:text-dark-border">
             {followingCount}
             <span>Urmăriți</span>
         </p>

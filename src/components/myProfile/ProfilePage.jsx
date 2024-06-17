@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import Navigation from "../Navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "@firebase/firestore";
-import { db, storage } from "../../firebase-config";
-import { deleteObject, ref } from "firebase/storage";
+import { doc, getDoc } from "@firebase/firestore";
+import { db } from "../../firebase-config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookmark, faUser } from "@fortawesome/free-regular-svg-icons";
-import { faBasketShopping, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faBasketShopping, faPencil } from "@fortawesome/free-solid-svg-icons";
 import UserDetails from "./UserDetails";
 import UserRecipe from "./UserRecipe";
 import SavedRecipe from "./SavedRecipe";
 import ViewRecipe from "../ViewRecipe";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
     const [ user, setUser ] = useState(null)
@@ -20,6 +20,7 @@ export default function ProfilePage() {
     const [view, setView] = useState('postari')
     const [selectedRecipe, setSelectedRecipe] = useState(null)
     const auth = getAuth() 
+    const navigate = useNavigate()
 
 // Fetching profileImage and username functions
     useEffect(() => {
@@ -40,18 +41,6 @@ export default function ProfilePage() {
         })
         return () => unsubscribe()
     }, [auth])
-
-    const handleImageDelete = async () => {
-        if (profileImage) {
-            const storageRef = ref(storage, `user_images/${auth.currentUser.uid}`)
-            await deleteObject(storageRef)
-    
-            await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-                profileImage: ''
-            })
-            setProfileImage('')
-        }
-    }
 // >>
 
     const handleRecipeClick = (recipe) => {
@@ -62,8 +51,12 @@ export default function ProfilePage() {
         setSelectedRecipe(null)
     }
 
+    const handleEditProfile = () => {
+        navigate('/settings')
+    }
+
   return (
-    <div className="flex flex-col h-screen w-screen overflow-x-hidden">
+    <div className="flex flex-col bg-ff-bg dark:bg-dark-bg h-screen w-screen overflow-x-hidden">
         <Navigation />
 
         <div className="flex flex-col items-center justify-between gap-4 sm:gap-8 mt-4">
@@ -76,10 +69,10 @@ export default function ProfilePage() {
                             className="w-32 h-32 rounded-full shadow-md object-cover"
                         />
 
-                        <button className="absolute inset-0 top-0 right-0 shadow-md duration-150 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8"
-                            onClick={handleImageDelete}
+                        <button className="absolute inset-0 top-0 right-0 shadow-md duration-150 bg-ff-btn hover:bg-ff-form text-black rounded-full w-8 h-8"
+                            onClick={handleEditProfile}
                         >
-                            <FontAwesomeIcon icon={faTrash} />
+                            <FontAwesomeIcon icon={faPencil} />
                         </button>
                     </div>
                     
@@ -91,34 +84,36 @@ export default function ProfilePage() {
                 )}
 
                 <div className="flex flex-col gap-4 items-center sm:items-start">
-                    <p className="text-2xl sm:text-xl font-semibold italic">{username}</p>
+                    <p className="text-2xl sm:text-xl dark:text-dark-border font-semibold italic">{username}</p>
                     
-                    <p className="italic opacity-70 text-sm w-[300px]">{userDescription}</p>
+                    <p className="italic opacity-70 text-sm dark:text-dark-border dark:opacity-100 w-[300px]">{userDescription}</p>
 
                     {user && <UserDetails username={username} userId={user.uid.trim()} />}
                 </div>
             </div>
 
             <div className="flex flex-col items-center w-full">
-                <div className="h-[1px] bg-black w-full opacity-10 sm:w-[600px]"></div>
+                <div className="h-[1px] bg-black dark:bg-dark-border dark:opacity-30 w-full opacity-10 sm:w-[600px]"></div>
 
                 <div className="flex justify-between w-[240px] sm:w-[300px]">
-                    <button className={`uppercase font-semibold pt-2 italic opacity-70 hover:opacity-100 duration-150 relative 
+                    <button className={`uppercase font-semibold pt-2 italic opacity-70 hover:opacity-100 duration-150 relative dark:text-dark-border 
                     ${view === 'postari' ? 
-                        'opacity-100 before:content-[""] before:absolute before:top-0 before:left-0 before:right-0 before:h-[2px] before:bg-black' 
+                        'opacity-100 before:content-[""] before:absolute before:top-0 before:left-0 before:right-0 before:h-[2px] before:bg-black dark:before:bg-dark-border' 
                         : ''}`}
                         onClick={() => setView('postari')} 
                     >
                         <FontAwesomeIcon icon={faBasketShopping} className="mr-2" />
-                        Postari
+                        Postări
                     </button>
 
-                    <button className={`uppercase font-semibold py-2 italic opacity-70 hover:opacity-100 duration-150 relative 
-                        ${view === 'salvari' ? 'opacity-100 before:content-[""] before:absolute before:top-0 before:left-0 before:right-0 before:h-[2px] before:bg-black' : ''}`}
+                    <button className={`uppercase font-semibold py-2 italic opacity-70 hover:opacity-100 duration-150 relative dark:text-dark-border
+                        ${view === 'salvari' ? 
+                            'opacity-100 before:content-[""] before:absolute before:top-0 before:left-0 before:right-0 before:h-[2px] before:bg-black dark:before:bg-dark-border' 
+                            : ''}`}
                         onClick={() => setView('salvari')} 
                     >
                         <FontAwesomeIcon icon={faBookmark} className="mr-2" />
-                        Salvari
+                        Salvări
                     </button>
                 </div>
             </div>

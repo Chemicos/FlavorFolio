@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs } from '@firebase/firestore'
 import { db } from "../firebase-config"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowRightFromBracket, faGear, faHourglassStart, faMoon, faSun, faUser } from '@fortawesome/free-solid-svg-icons'
 
 export default function Navigation() {
     const navigate = useNavigate()
@@ -14,6 +16,7 @@ export default function Navigation() {
     const [isAdmin, setIsAdmin] = useState(false)
     const dropdownRef = useRef(null)
     const [pendingCount, setPendingCount] = useState(0)
+    const [isDarkMode, setIsDarkMode] = useState(false)
 
     useEffect(() => {
       const fetchPendingCount = async () => {
@@ -62,6 +65,27 @@ export default function Navigation() {
     document.addEventListener('mousedown', closeDropdown);
       return () => document.removeEventListener('mousedown', closeDropdown);
   }, [isOpen])
+
+  useEffect(() => {
+    const darkMode = localStorage.getItem('darkMode') === 'true'
+    setIsDarkMode(darkMode)
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [])
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !isDarkMode
+    setIsDarkMode(newDarkMode)
+        localStorage.setItem('darkMode', newDarkMode)
+        if (newDarkMode) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+  }
     
     const handleSignOut = () => {
         signOut(auth).then(() => 
@@ -70,7 +94,7 @@ export default function Navigation() {
     }
   return (
     <nav className="bg-transparent">
-      <div className="px-4 lg:px-10 shadow-sm">
+      <div className="px-4 lg:px-10 shadow-sm dark:shadow-none dark:border-b-[1px] dark:border-dark-border dark:border-opacity-20">
         <div className="flex justify-between h-16">
             <Link to="/home" className="flex items-center gap-4 duration-150 hover:scale-110">
               <img className="block h-12 w-10" src={FlavorFolioLogo} alt="FlavorFolioLogo" />
@@ -81,8 +105,14 @@ export default function Navigation() {
             </Link>
             
           <div className="flex items-center">
+            <button className=''
+              onClick={toggleDarkMode}
+            >
+              <FontAwesomeIcon className='dark:text-dark-border' icon={isDarkMode ? faSun : faMoon} />
+            </button>
+
             <div className="ml-3 relative">
-              <div>
+              <div className='md:px-4 md:py-1 md:rounded-lg md:bg-ff-content dark:md:bg-dark-elements'>
                 <button type="button" 
                   className="max-w-xs flex gap-4 items-center text-sm focus:outline-none" 
                   id="user-menu-button" 
@@ -90,7 +120,7 @@ export default function Navigation() {
                   aria-haspopup="true" 
                   onClick={() => setIsOpen(!isOpen)}
                   >
-                  <span className='text-base duration-150 hidden sm:flex hover:scale-110'>
+                  <span className='text-base duration-150 hidden sm:flex hover:scale-110 dark:text-dark-btn'>
                     {username}
                   </span>
 
@@ -103,26 +133,31 @@ export default function Navigation() {
               {isOpen && (
                 <div ref={dropdownRef} 
                   className="origin-top-right absolute right-0 mt-2 w-48 rounded-md z-10
-                  shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none
+                  shadow-lg py-1 bg-white dark:bg-dark-bg dark:border-dark-border dark:border 
+                  ring-1 ring-black ring-opacity-5 focus:outline-none
                   " 
                   role="menu" 
                   aria-labelledby="user-menu-button"
                 >
                   <a href="#" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                    className="flex flex-row gap-3 px-4 py-2 items-center text-sm text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements 
+                    duration-150" 
                     role="menuitem"
                     onClick={() => navigate('/profile')}>
-                      My Profile
+                      <FontAwesomeIcon icon={faUser} />
+                      Profilul Meu
                   </a>
 
                   {isAdmin && (
                     <a
                       href="#"
-                      className="flex flex-row gap-4 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex flex-row gap-3 px-4 py-2 text-sm items-center text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements 
+                      duration-150"
                       role="menuitem"
                       onClick={() => navigate('/pending')}
                     >
-                      Pending
+                      <FontAwesomeIcon icon={faHourglassStart} />
+                      În Așteptare
                       {pendingCount > 0 && (
                         <span className='bg-red-600 text-white rounded-full font-semibold px-2 py-1 my-auto text-xs'>
                           {pendingCount}
@@ -132,17 +167,21 @@ export default function Navigation() {
                   )}
 
                   <a href="#" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                    className="flex flex-row gap-3 px-4 py-2 items-center text-sm text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements 
+                    duration-150" 
                     role="menuitem"
                     onClick={() => navigate('/settings')}
                   >
-                    Settings
+                    <FontAwesomeIcon icon={faGear} />
+                    Setări
                   </a>
                   
                   <a href="#" 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                    className="flex flex-row gap-3 px-4 py-2 items-center text-sm text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements 
+                    duration-150" 
                     role="menuitem" 
                     onClick={handleSignOut}>
+                      <FontAwesomeIcon icon={faArrowRightFromBracket} />
                       Sign Out
                   </a>
                 </div>

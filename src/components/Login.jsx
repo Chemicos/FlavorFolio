@@ -57,7 +57,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div className="flex bg-ff-bg flex-col items-center justify-center h-screen w-screen gap-5">
       <h1 className="font-medium text-4xl mb-6">
         Join 
         <span className="text-ff-flavor"> Flavor</span>
