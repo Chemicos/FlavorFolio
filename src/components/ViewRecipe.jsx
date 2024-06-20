@@ -4,35 +4,103 @@ import { faBasketShopping, faClose, faHeart } from "@fortawesome/free-solid-svg-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
-import { deleteDoc, doc, getDoc, setDoc } from "@firebase/firestore";
+import { arrayUnion, deleteDoc, doc, getDoc, setDoc, updateDoc } from "@firebase/firestore";
 import Rating from "./Rating";
 import FollowBtn from "./content/FollowBtn";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import Comment from "./recipeContent/Comment";
+import CommentPost from "./recipeContent/CommentPost";
 
 export default function ViewRecipe({ recipe, onClose, currentUserId }) {
   const [isFavorite, setIsFavorite] = useState(false)
-// TODO: ADAUGA componenta si functia de comentarii
+  const [profileImage, setProfileImage] = useState('')
+  const [showComment, setShowComment] = useState(false)
+  const [comments, setComments] = useState([])
+  const [username, setUsername] = useState('')
+  const auth = getAuth()
+
+  useEffect (() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const userRef = doc(db, 'users', user.uid)
+            const docSnap = await getDoc(userRef)
+            if (docSnap.exists()) {
+                const userData = docSnap.data()
+                setProfileImage(userData.profileImage || user.photoURL  || '')
+                setUsername(userData.username || user.displayName || '')
+            } else {
+                setProfileImage(user.photoURL || '')
+                setUsername(user.displayName || '')
+            }
+        }
+    })
+    return () => unsubscribe()
+  }, [auth])
+
+    // Comment Functionality <<
+    useEffect(() => {
+        const fetchComments = async () => {
+          const recipeRef = doc(db, 'recipes', recipe.id)
+          const recipeSnap = await getDoc(recipeRef)
+          if (recipeSnap.exists()) {
+            const recipeData = recipeSnap.data()
+            setComments(recipeData.comments || [])
+          }
+        }
+        fetchComments()
+      }, [recipe.id])
+    
+      const addComment = async (comment) => {
+        const recipeRef = doc(db, 'recipes', recipe.id);
+        await updateDoc(recipeRef, {
+          comments: arrayUnion(comment)
+        })
+        setComments((prevComments) => [...prevComments, comment])
+      }
+    
+    //   >>
+
     // Adding to favorites <<
     const toggleFavorite = async () => {
         if (currentUserId) {
             const recipeRef = doc(db, "savedRecipes", recipe.id)
-            if (isFavorite) {
-                await deleteDoc(recipeRef)
+            const recipeSnap = await getDoc(recipeRef)
+            if (recipeSnap.exists()) {
+              const recipeData = recipeSnap.data()
+              const userIds = recipeData.userIds || []
+              if (isFavorite) {
+                // Remove userId from userIds
+                await updateDoc(recipeRef, {
+                  userIds: userIds.filter(id => id !== currentUserId)
+                })
+              } else {
+                // Add userId to userIds
+                await updateDoc(recipeRef, {
+                  userIds: arrayUnion(currentUserId)
+                })
+              }
             } else {
-                await setDoc(recipeRef, { ...recipe, userId: currentUserId })
+              // Create new document with userId
+              await setDoc(recipeRef, { 
+                ...recipe, 
+                userIds: [currentUserId] 
+              })
             }
             setIsFavorite(!isFavorite)
-        }
+          }
       }
     
       useEffect(() => {
         const checkIfFavorite = async () => {
-            if (currentUserId) {
-                const recipeRef = doc(db, "savedRecipes", recipe.id)
-                const recipeSnap = await getDoc(recipeRef)
-                if (recipeSnap.exists()) {
-                    setIsFavorite(true)
-                }
+          if (currentUserId) {
+            const recipeRef = doc(db, "savedRecipes", recipe.id)
+            const recipeSnap = await getDoc(recipeRef)
+            if (recipeSnap.exists()) {
+              const recipeData = recipeSnap.data()
+              const userIds = recipeData.userIds || []
+              setIsFavorite(userIds.includes(currentUserId))
             }
+          }
         }
         checkIfFavorite()
       }, [recipe.id, currentUserId])
@@ -110,7 +178,7 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
                 <div className="absolute inset-0 bg-black opacity-50 sm:rounded-t-lg"></div>
               </div>
 
-              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4">
                     <div className="flex gap-4 mt-12 justify-center">
                         <p className="italic border border-black dark:border-dark-border dark:text-dark-border py-2 px-3 rounded-xl">
                             {recipe.meal}
@@ -165,6 +233,46 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
                                 </div>
                             </div>
                         ))}
+                    </div>
+
+                    {showComment ? (
+                      <Comment 
+                          profileImage={profileImage} 
+                          onClose={() => setShowComment(false)} 
+                          recipeId={recipe.id}
+                          userId={currentUserId}
+                          username={username}
+                          addComment={addComment}
+                      />
+                  ) : (
+                  <button className="flex w-full md:w-[580px] flex-row items-center gap-4 md:rounded-xl p-3 mx-auto
+                  dark:md:border border-black md:bg-ff-form hover:bg-ff-content
+                dark:border-dark-border dark:border-opacity-40 dark:bg-dark-elements dark:hover:border-opacity-100 dark:hover:bg-dark-highlight"
+                      type="button"
+                      onClick={() => setShowComment(true)}
+                  >
+                      <img src={profileImage} className="object-cover w-10 h-10 rounded-xl" alt="Profile" />
+
+                      <span className="dark:text-dark-border">Spune-ți părerea</span>
+
+                      <a className="p-2 rounded-xl ml-auto border-ff-btn bg-ff-btn
+                      dark:text-dark-btn border dark:border-dark-border dark:bg-transparent dark:border-opacity-40 font-semibold" 
+                      disabled="">
+                          Comenteaza
+                      </a>
+                  </button>
+                  )}
+                  
+                  <div className="flex flex-col gap-4 mb-4">
+                      {comments.map((comment, index) => (
+                          <CommentPost 
+                              key={index}
+                              profileImage={comment.profileImage} 
+                              username={comment.username}
+                              timestamp={comment.timestamp}
+                              comment={comment.comment}
+                          />
+                      ))}
                     </div>
                 </div>
             </div>

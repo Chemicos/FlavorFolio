@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { db } from "../../firebase-config";
 import { useEffect, useState } from "react";
 import RecipeCard from "../RecipeCard";
-import { collection, getDocs } from "@firebase/firestore";
+import { collection, getDocs, query, where } from "@firebase/firestore";
 import ViewRecipe from "../ViewRecipe";
 import Pagination from "./Pagination";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -74,23 +74,26 @@ export default function Content({ handlePostClick, recipes }) {
         // Fetch savedRecipes <<
         useEffect(() => {
             const fetchSavedRecipes = async () => {
-              const savedRecipesCollection = collection(db, "savedRecipes")
-              const savedRecipesSnapshot = await getDocs(savedRecipesCollection)
-              const savedRecipesList = savedRecipesSnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-              }))
-              setSavedRecipes(savedRecipesList)
+                if (currentUserId) {
+                    const savedRecipesCollection = collection(db, "savedRecipes")
+                    const q = query(savedRecipesCollection, where("userIds", "array-contains", currentUserId))
+                    const savedRecipesSnapshot = await getDocs(q)
+                    const savedRecipesList = savedRecipesSnapshot.docs.map((doc) => ({
+                      id: doc.id,
+                      ...doc.data(),
+                    }))
+                    setSavedRecipes(savedRecipesList)
+                }
             }
               fetchSavedRecipes()
-          }, [])
+          }, [currentUserId])
 
         //   >>
         const filteredRecipes = recipes.filter((recipe) => {
             const matchesMeal = mealFilter.length ? mealFilter.includes(recipe.meal) : true
             const matchesDifficulty = difficultyFilter.length ? difficultyFilter.includes(recipe.difficulty) : true
             const matchesDuration = durationFilter.length ? durationFilter.includes(recipe.duration) : true
-            const matchesFavorites = favoritesFilter ? savedRecipes.some((fav) => fav.id === recipe.id && fav.userId === currentUserId) : true
+            const matchesFavorites = favoritesFilter ? savedRecipes.some((fav) => fav.id === recipe.id) : true
 
             return matchesMeal && matchesDifficulty && matchesDuration && matchesFavorites
         })
@@ -310,8 +313,9 @@ export default function Content({ handlePostClick, recipes }) {
                     <RecipeCard 
                         key={index} 
                         recipe={recipe}
-                        savedRecipes={savedRecipes}
                         onClick={() => handleRecipeClick(recipe)}
+                        currentUserId={currentUserId}
+                        savedRecipes={savedRecipes}
                     />
                 ))}
         </div> 

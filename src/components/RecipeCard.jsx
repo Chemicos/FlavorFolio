@@ -2,33 +2,53 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHeart } from '@fortawesome/free-solid-svg-icons'
 import { useEffect, useState } from 'react'
-import { deleteDoc, doc, setDoc } from '@firebase/firestore'
+import { arrayUnion, deleteDoc, doc, getDoc, setDoc, updateDoc } from '@firebase/firestore'
 import { db } from '../firebase-config'
 import Rating from './Rating'
 
-export default function RecipeCard({ recipe, onClick, savedRecipes }) {
+export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipes }) {
 
     // Favorite function <<
     const [isFavorite, setIsFavorite] = useState(false)
 
     useEffect(() => {
-        const checkIfFavorite = () => {
-            const isFav = savedRecipes.some(savedRecipe => savedRecipe.id === recipe.id)
-            setIsFavorite(isFav)
-        }
-        checkIfFavorite()
-    }, [recipe.id, savedRecipes])
+      const checkIfFavorite = () => {
+          if (currentUserId) {
+              const isFav = savedRecipes.some(savedRecipe => savedRecipe.id === recipe.id && savedRecipe.userIds.includes(currentUserId))
+              setIsFavorite(isFav)
+          }
+      }
+      checkIfFavorite()
+  }, [recipe.id, currentUserId, savedRecipes])
 
-    const toggleFavorite = async () => {
-        const recipeRef = doc(db, "savedRecipes", recipe.id)
-
-        if (isFavorite) {
-            await deleteDoc(recipeRef)
-        } else {
-            await setDoc(recipeRef, recipe)
+      const toggleFavorite = async () => {
+        if (currentUserId) {
+          const recipeRef = doc(db, "savedRecipes", recipe.id)
+          const recipeSnap = await getDoc(recipeRef)
+          if (recipeSnap.exists()) {
+            const recipeData = recipeSnap.data()
+            const userIds = recipeData.userIds || []
+            if (isFavorite) {
+              // Remove userId from userIds
+              await updateDoc(recipeRef, {
+                userIds: userIds.filter(id => id !== currentUserId)
+              })
+            } else {
+              // Add userId to userIds
+              await updateDoc(recipeRef, {
+                userIds: arrayUnion(currentUserId)
+              })
+            }
+          } else {
+            // Create new document with userId
+            await setDoc(recipeRef, { 
+              ...recipe, 
+              userIds: [currentUserId] 
+            })
+          }
+          setIsFavorite(!isFavorite)
         }
-        setIsFavorite(!isFavorite)
-    }
+      }
     // >>
   return (
     <div className="relative rounded-xl overflow-hidden shadow-md cursor-pointer">

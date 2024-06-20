@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import ViewRecipe from "../ViewRecipe"
 
 
-export default function SavedRecipe({ username, currentUserId }) {
+export default function SavedRecipe({ currentUserId }) {
     const [savedRecipes, setSavedRecipes] = useState([])
     const [ currentPage, setCurrentPage] = useState(1)
     const [selectedRecipe, setSelectedRecipe] = useState(null)
@@ -16,16 +16,18 @@ export default function SavedRecipe({ username, currentUserId }) {
 
     useEffect(() => {
         const fetchSavedRecipes = async () => {
-            if (username) {
-                const savedRecipesRef = collection(db, 'savedRecipes')
-                const q = query(savedRecipesRef, where('user', '==', username))
-                const querySnapshot = await getDocs(q)
-                const recipes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                setSavedRecipes(recipes)
+            if (currentUserId) {
+              const q = query(collection(db, "savedRecipes"), where("userIds", "array-contains", currentUserId))
+              const querySnapshot = await getDocs(q)
+              const recipesList = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+              }))
+              setSavedRecipes(recipesList)
             }
-        }
-        fetchSavedRecipes()
-    }, [username])
+          }
+          fetchSavedRecipes()
+        }, [currentUserId])
 
     const indexOfLastRecipe = currentPage * recipesPerPage
     const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage
