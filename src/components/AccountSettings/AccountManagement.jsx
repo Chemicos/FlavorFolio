@@ -145,19 +145,20 @@ export default function AccountManagement() {
 
         <form className="flex flex-col">
           <div className="flex flex-col mb-6">
-            <label className="mb-2 font-semibold">Parola Curentă</label>
+            <label className="mb-2 font-semibold dark:text-dark-border">Parola Curentă</label>
             <div className="relative">
               <input
                 value={currentPassword}
                 onChange={handleCurrentPasswordChange}
                 placeholder="Parola curentă"
                 className={`bg-transparent w-full border border-zinc-800 rounded-lg pr-10 pl-4 py-3 
-                placeholder:text-ff-googlebtn placeholder:opacity-50 duration-150 focus:shadow-input hover:shadow-input`}
+                placeholder:text-ff-googlebtn dark:placeholder:text-dark-border placeholder:opacity-50 duration-150 focus:shadow-input dark:shadow-none 
+                dark:hover:border-opacity-100 dark:border-dark-border dark:border-opacity-40 dark:focus:border-opacity-100 dark:text-white hover:shadow-input`}
                 type={showCurrentPassword ? 'text' : 'password'}
               />
               <FontAwesomeIcon
                 className={
-                  `absolute inset-y-0 right-0 my-auto mr-3
+                  `absolute inset-y-0 right-0 my-auto mr-3 dark:text-dark-border
                   ${currentPassword ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`
                 }
                 icon={showCurrentPassword ? faEyeSlash : faEye}
@@ -167,7 +168,7 @@ export default function AccountManagement() {
           </div>
 
           <div className={`${password ? 'mb-0' : 'mb-6'} flex flex-col`}>
-            <label className="mb-2 font-semibold">Parola Nouă</label>
+            <label className="mb-2 font-semibold dark:text-dark-border">Parola Nouă</label>
 
             <div className="flex flex-col gap-2">
               <div className="relative">
@@ -178,16 +179,17 @@ export default function AccountManagement() {
                     setPasswordError(!passwordCriteria.every(criteria => criteria.isValid)
                   )}
                   placeholder="6+ caractere" 
-                  className={`bg-transparent border border-zinc-800 rounded-lg pr-10 pl-4 py-3 
-                  placeholder:text-ff-googlebtn placeholder:opacity-50 w-full 
-                  duration-150 ${passwordError ? 'shadow-input-error' : 'focus:shadow-input hover:shadow-input'}
+                  className={`bg-transparent w-full border border-zinc-800 rounded-lg pr-10 pl-4 py-3 
+                placeholder:text-ff-googlebtn dark:placeholder:text-dark-border placeholder:opacity-50 duration-150 focus:shadow-input dark:shadow-none 
+                dark:hover:border-opacity-100 dark:border-dark-border dark:border-opacity-40 dark:focus:border-opacity-100 dark:text-white hover:shadow-input
+                ${passwordError ? 'shadow-input-error' : 'focus:shadow-input hover:shadow-input'}
                   `} 
                   type={showPassword ? 'text' : 'password'} 
                 />
 
                 <FontAwesomeIcon
                   className={
-                    `absolute inset-y-0 right-0 my-auto mr-3
+                    `absolute inset-y-0 right-0 my-auto mr-3 dark:text-dark-border
                     ${password ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`
                   } 
                   icon={showPassword ? faEyeSlash : faEye} 
@@ -208,7 +210,7 @@ export default function AccountManagement() {
                     <li 
                       className="flex flex-row items-center gap-2 mb-2 text-sm" 
                       key={criteria.id} 
-                      style={{color: criteria.isValid ? 'green' : 'red',}}
+                      style={{color: criteria.isValid ? 'rgb(74 222 128)' : 'rgb(239 68 68)',}}
                     >
                       <FontAwesomeIcon icon={faCheck} /> 
                       {criteria.text}
@@ -220,7 +222,7 @@ export default function AccountManagement() {
           </div>
 
           <div className="flex flex-col">
-            <label className="mb-2 font-semibold">Confirmă Parola</label>
+            <label className="mb-2 font-semibold dark:text-dark-border">Confirmă Parola</label>
 
               <div className="flex flex-col gap-2">
                 <div className="relative">
@@ -231,16 +233,16 @@ export default function AccountManagement() {
                       setConfirmPasswordError(password !== confirmPassword || confirmPassword === "")
                     }
                     className={
-                    `bg-transparent w-full border border-zinc-800 rounded-lg pl-4 pr-10 py-3
-                    placeholder:text-ff-googlebtn placeholder:opacity-50
-                    duration-150 
+                    `bg-transparent w-full border border-zinc-800 rounded-lg pr-10 pl-4 py-3 
+                  placeholder:text-ff-googlebtn dark:placeholder:text-dark-border placeholder:opacity-50 duration-150 focus:shadow-input dark:shadow-none 
+                    dark:hover:border-opacity-100 dark:border-dark-border dark:border-opacity-40 dark:focus:border-opacity-100 dark:text-white hover:shadow-input
                     ${confirmPasswordError ? 'shadow-input-error' : 'focus:shadow-input hover:shadow-input'}`} 
                     type={showConfirmPassword ? 'text' : 'password'} 
                   />
                   
                   <FontAwesomeIcon 
                     className={
-                      `absolute inset-y-0 right-0 my-auto mr-3 
+                      `absolute inset-y-0 right-0 my-auto mr-3 dark:text-dark-border 
                       ${confirmPassword ? 'cursor-pointer': 'cursor-not-allowed opacity-50'}`}
                       icon={showConfirmPassword ? faEyeSlash : faEye} 
                       onClick={toggleConfirmPasswordVisibility}
