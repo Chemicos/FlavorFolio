@@ -97,7 +97,7 @@ export default function FollowBtn({ recipeUser }) {
   return (
        <button
             onClick={toggleFollow}
-            className={`px-4 py-2 bg-ff-btn border border-ff-btn font-semibold rounded-xl hover:bg-transparent hover:text-white 
+            className={`px-4 py-2 bg-ff-btn border  border-ff-btn font-semibold rounded-xl hover:bg-transparent dark:hover:text-white
               ${isFollowing ? 'bg-transparent border-white text-white' : 'text-black'} transition duration-150`}
         >
             {isFollowing ? 'Urmaresti' : 'Urmareste'}

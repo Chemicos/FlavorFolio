@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 
-export default function UserRecipe({ username, onRecipeClick }) {
+export default function UserRecipe({ userId ,username, onRecipeClick }) {
     const [userRecipes, setUserRecipes] = useState([])
     const [currentPage, setCurrentPage] = useState(1)
     const recipesPerPage = 8
@@ -24,6 +24,22 @@ export default function UserRecipe({ username, onRecipeClick }) {
         }
         fetchUserRecipes()
     }, [username])
+
+    useEffect(() => {
+        const fetchUserRecipes = async () => {
+          const q = query(collection(db, "recipes"), where("userId", "==", userId));
+          const querySnapshot = await getDocs(q);
+          const userRecipes = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setUserRecipes(userRecipes);
+        };
+    
+        if (userId) {
+          fetchUserRecipes();
+        }
+      }, [userId]);
 
     // Pagination functions <<
     const indexOfLastRecipe = currentPage * recipesPerPage

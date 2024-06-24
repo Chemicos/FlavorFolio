@@ -108,7 +108,7 @@ export default function Content({ handlePostClick, recipes }) {
     // >>
 
   return (
-    <div className="bg-transparent sm:bg-ff-content dark:sm:bg-dark-bg dark:sm:border dark:sm:border-dark-border dark:sm:border-opacity-60
+    <div className="bg-transparent sm:bg-ff-content dark:sm:bg-dark-bg dark:sm:border dark:sm:border-dark-border dark:sm:border-opacity-40
     flex flex-col justify-between w-full sm:w-[80%] 2xl:w-[1200px] h-[755px] sm:h-[720px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
         <div className="flex flex-row justify-between px-10 py-4">
             <button 

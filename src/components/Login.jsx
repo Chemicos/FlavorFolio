@@ -59,7 +59,7 @@ export default function Login() {
   return (
     <div className="flex bg-ff-bg flex-col items-center justify-center h-screen w-screen gap-5">
       <h1 className="font-medium text-4xl mb-6">
-        Join 
+        Alătură-te 
         <span className="text-ff-flavor"> Flavor</span>
         <span className="text-ff-folio">Folio</span>
       </h1>
@@ -87,7 +87,7 @@ export default function Login() {
           </div>
 
           <div className="flex flex-col">
-            <label className="mb-2 font-semibold" >Password</label>
+            <label className="mb-2 font-semibold" >Parolă</label>
             <div className="relative">
               <input
                 value={password} 
@@ -95,7 +95,7 @@ export default function Login() {
                   setPassword(e.target.value)
                   setError("")
                 }} 
-                placeholder="6+ characters" 
+                placeholder="6+ caractere" 
                 className="bg-transparent w-80 border border-zinc-800 rounded-lg pl-4 pr-10 py-3
                 placeholder:text-ff-googlebtn placeholder:opacity-50
                 hover:shadow-input duration-150 focus:shadow-input" 
@@ -118,13 +118,13 @@ export default function Login() {
         className="
           rounded-lg border border-ff-btn px-2 py-3 font-medium bg-ff-btn mt-8 
           hover:bg-ff-bg hover:border-ff-googlebtn duration-300">
-          Login
+          Loghează-te
         </button>
       </form>
 
       <div className="flex items-center gap-2">
           <span className="w-140 bg-ff-googlebtn h-1px"></span>
-            OR 
+            SAU 
           <span className="w-140 bg-ff-googlebtn h-1px"></span>
       </div>
 
@@ -135,9 +135,9 @@ export default function Login() {
          hover:bg-ff-bg hover:text-ff-googlebtn duration-300" 
       >
         <img className="w-5 h-5" src={googleIcon} alt="google-icon" />
-          Continue with Google
+          Continuă cu Google
       </button>
-      <p>No account? <Link to="/register" className="text-ff-blue underline">Register</Link></p>
+      <p>Nu ai cont? <Link to="/register" className="text-ff-blue underline">Înregistrare</Link></p>
     </div>
   )
 }

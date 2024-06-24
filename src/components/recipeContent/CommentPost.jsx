@@ -1,4 +1,6 @@
+import { getAuth, onAuthStateChanged } from "firebase/auth"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 /* eslint-disable react/prop-types */
 function timeAgo(timestamp) {
@@ -33,8 +35,20 @@ function timeAgo(timestamp) {
   return `acum ${years} ani`
 }
 
-export default function CommentPost({ profileImage, username, timestamp, comment }) {
+export default function CommentPost({ profileImage, username, timestamp, comment, userId }) {
   const [timeAgoString, setTimeAgoString] = useState('')
+  const navigate = useNavigate()
+  const auth = getAuth()
+  const [currentUserId, setCurrentUserId] = useState(null)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUserId(user.uid)
+      }
+    })
+    return () => unsubscribe()
+  }, [auth])
 
   useEffect(() => {
     setTimeAgoString(timeAgo(timestamp))
@@ -45,12 +59,20 @@ export default function CommentPost({ profileImage, username, timestamp, comment
 
     return () => clearInterval(interval)
   }, [timestamp])
+
+  const handleProfileClick = () => {
+    if (currentUserId === userId) {
+      navigate('/profile')
+    } else {
+      navigate(`/userProfile/${userId}`)
+    }
+  }
   
   return (
     <article className="flex flex-col w-full md:w-[580px] mx-auto p-3 gap-2 md:border border-black border-opacity-20
     dark:border-opacity-40 rounded-xl dark:border-dark-border dark:bg-transparent">
       <header className="flex flex-row gap-3">
-        <a href="">
+        <a className="cursor-pointer" onClick={handleProfileClick}>
           <img 
           src={profileImage} 
           className="object-cover w-10 h-10 rounded-xl" 

@@ -91,21 +91,21 @@ export default function Register() {
   const passwordCriteria = [
     { 
       id: 'minLength', 
-      text: 'At least 6 characters', 
+      text: 'Minim 6 caractere', 
       isValid: password.length >= 6 
     },
     { 
       id: 'specialChar', 
-      text: 'At least one special character (!@#$%^&*().)', 
+      text: 'Minim un caracter special (!@#$%^&*().)', 
       isValid: /[!@#$%^&*(),.?":{}|<>]/.test(password) 
     },
     { 
       id: 'upperCase',
-      text: 'At least one uppercase character',
+      text: 'Minim o majuscula',
       isValid: /[A-Z]/.test(password) },
       { 
         id: 'number', 
-        text: 'At least one number', 
+        text: 'Minim un numar', 
         isValid: /[0-9]/.test(password) 
       }
     ]
@@ -189,14 +189,14 @@ export default function Register() {
   return (
     <div className="flex flex-col items-center justify-center bg-ff-bg w-screen h-screen gap-5">
       <h1 className="font-medium text-4xl mb-6">
-        Join 
+        Alătură-te 
         <span className="text-ff-flavor"> Flavor</span>
         <span className="text-ff-folio">Folio</span>
       </h1>
 
       <form className="flex flex-col w-80">
         <div className="flex flex-col mb-6">
-            <label className="mb-2 font-semibold">Username</label>
+            <label className="mb-2 font-semibold">Nume utilizator</label>
 
             <div className="flex flex-col relative">
               <input 
@@ -248,7 +248,7 @@ export default function Register() {
         </div>
 
         <div className={`${password ? 'mb-0' : 'mb-6'} flex flex-col`}>
-            <label className="mb-2 font-semibold" >Password</label>
+            <label className="mb-2 font-semibold" >Parolă</label>
 
             <div className="flex flex-col gap-2">
               <div className="relative">
@@ -258,7 +258,7 @@ export default function Register() {
                   onBlur={() => 
                     setPasswordError(!passwordCriteria.every(criteria => criteria.isValid)
                   )}
-                  placeholder="6+ characters" 
+                  placeholder="6+ caractere" 
                   className={`bg-transparent w-80 border border-zinc-800 rounded-lg pr-10 pl-4 py-3 
                   placeholder:text-ff-googlebtn placeholder:opacity-50
                   hover:shadow-input duration-150 ${passwordError ? 'shadow-input-error' : 'focus:shadow-input'}
@@ -301,7 +301,7 @@ export default function Register() {
         </div>
 
         <div className="flex flex-col">
-          <label className="mb-2 font-semibold" >Confirm Password</label>
+          <label className="mb-2 font-semibold" >Confirmă parola</label>
 
             <div className="flex flex-col gap-2">
               <div className="relative">

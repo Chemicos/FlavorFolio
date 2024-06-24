@@ -7,6 +7,7 @@ import Register from './components/Register'
 import PendingRecipes from './components/PendingRecipes'
 import ProfilePage from './components/myProfile/ProfilePage'
 import AccountSettings from './components/AccountSettings/AccountSettings'
+import ViewUserProfile from './components/UsersProfile/ViewUserProfile'
 
 const cookies = new Cookies()
 
@@ -25,6 +26,7 @@ function App() {
           <Route path='/pending' element={<PendingRecipes />} />
           <Route path='/profile' element={<ProfilePage />} />
           <Route path='/settings' element={<AccountSettings />} />
+          <Route path='/userProfile/:userId' element={<ViewUserProfile />} />
         </Routes>
       </div>
     </Router>

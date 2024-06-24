@@ -4,12 +4,13 @@ import { faBasketShopping, faClose, faHeart } from "@fortawesome/free-solid-svg-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
-import { arrayUnion, deleteDoc, doc, getDoc, setDoc, updateDoc } from "@firebase/firestore";
+import { arrayUnion, doc, getDoc, setDoc, updateDoc } from "@firebase/firestore";
 import Rating from "./Rating";
 import FollowBtn from "./content/FollowBtn";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Comment from "./recipeContent/Comment";
 import CommentPost from "./recipeContent/CommentPost";
+import { useNavigate } from "react-router-dom";
 
 export default function ViewRecipe({ recipe, onClose, currentUserId }) {
   const [isFavorite, setIsFavorite] = useState(false)
@@ -18,6 +19,7 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
   const [comments, setComments] = useState([])
   const [username, setUsername] = useState('')
   const auth = getAuth()
+  const navigate = useNavigate()
 
   useEffect (() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -106,6 +108,14 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
       }, [recipe.id, currentUserId])
     // >>
 
+    const handleUserClick = () => {
+      if (currentUserId === recipe.userId) {
+        navigate('/profile')
+      } else {
+        navigate(`/userProfile/${recipe.userId}`)
+      }
+    }
+
   return (
     <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center 
     justify-center z-10 overflow-hidden">
@@ -137,13 +147,17 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
                       alt={recipe.title} 
                     />
 
-                  <div className="absolute bottom-14 sm:bottom-12 left-6 z-20">
+                  <div className="md:flex md:flex-col gap-2 absolute bottom-14 sm:bottom-12 left-6 z-20">
                       <h1 className="italic font-semibold text-lg sm:text-2xl text-white">
                           {recipe.title}
                       </h1>
 
                       <div className="flex flex-col items-start gap-2">
-                        <p className="italic text-sm sm:text-base text-white">De {recipe.user}</p>
+                        <p className="italic text-sm sm:text-base text-white cursor-pointer hover:underline"
+                        onClick={handleUserClick}>
+                          De {recipe.user}
+                        </p>
+
                         {currentUserId !== recipe.userId && <FollowBtn recipeUser={recipe.userId} />}
                       </div>
                   </div>
@@ -271,6 +285,7 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
                               username={comment.username}
                               timestamp={comment.timestamp}
                               comment={comment.comment}
+                              userId={comment.userId}
                           />
                       ))}
                     </div>

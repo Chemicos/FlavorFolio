@@ -73,7 +73,7 @@ export default function PendingRecipes() {
 
       <div className="flex flex-grow items-center justify-center">
         <div className="md:bg-ff-content flex flex-col w-full sm:w-4/5 h-[720px] rounded-3xl
-        md:shadow-md items-center gap-4 dark:md:bg-transparent dark:md:border dark:border-dark-border ">
+        md:shadow-md items-center gap-4 dark:md:bg-transparent dark:md:border dark:md:border-opacity-40 dark:border-dark-border ">
           <h1 className="text-2xl mt-2 dark:text-dark-border">Rețete în Așteptare</h1>
 
           <div className="w-4/5 overflow-y-auto">
