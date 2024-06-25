@@ -8,6 +8,7 @@ import PendingRecipes from './components/PendingRecipes'
 import ProfilePage from './components/myProfile/ProfilePage'
 import AccountSettings from './components/AccountSettings/AccountSettings'
 import ViewUserProfile from './components/UsersProfile/ViewUserProfile'
+import Dashboard from './components/DashboardAdmin/Dashboard'
 
 const cookies = new Cookies()
 
@@ -27,6 +28,7 @@ function App() {
           <Route path='/profile' element={<ProfilePage />} />
           <Route path='/settings' element={<AccountSettings />} />
           <Route path='/userProfile/:userId' element={<ViewUserProfile />} />
+          <Route path='/dashboard' element={<Dashboard />} />
         </Routes>
       </div>
     </Router>

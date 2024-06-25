@@ -1,0 +1,122 @@
+import { collection, getDocs } from "@firebase/firestore"
+import jsPDF from "jspdf"
+import 'jspdf-autotable'
+import { useEffect, useState } from "react"
+import { db } from "../../../firebase-config"
+
+export default function MostActiveUsers() {
+  const [mostActiveUsers, setMostActiveUsers] = useState([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const usersSnapshot = await getDocs(collection(db, 'users'))
+        const recipesSnapshot = await getDocs(collection(db, 'recipes'))
+        const savedRecipesSnapshot = await getDocs(collection(db, 'savedRecipes'))
+
+        let userActivity = {}
+
+        usersSnapshot.forEach(doc => {
+          const data = doc.data()
+          userActivity[doc.id] = {
+            username: data.username,
+            recipesPosted: 0,
+            commentsMade: 0,
+            recipesSaved: 0
+          }
+        })
+
+        recipesSnapshot.forEach(doc => {
+          const data = doc.data();
+          if (userActivity[data.userId]) {
+            userActivity[data.userId].recipesPosted += 1;
+            userActivity[data.userId].likesReceived += data.likes ? data.likes.length : 0;
+          }
+        
+          if (data.comments) {
+            data.comments.forEach(comment => {
+              if (userActivity[comment.userId]) {
+                userActivity[comment.userId].commentsMade += 1;
+              }
+            });
+          }
+        });
+
+        savedRecipesSnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.userIds) {
+            data.userIds.forEach(userId => {
+              if (userActivity[userId]) {
+                userActivity[userId].recipesSaved += 1;
+              }
+            });
+          }
+        });
+
+        const sortedUsers = Object.values(userActivity).sort((a, b) => b.recipesPosted - a.recipesPosted).slice(0, 10);
+        setMostActiveUsers(sortedUsers);
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.text('Most Active Users Report', 14, 16);
+    const tableData = mostActiveUsers.map((user, index) => [
+      index + 1,
+      user.username,
+      user.recipesPosted,
+      user.commentsMade,
+      user.recipesSaved
+    ]);
+
+    doc.autoTable({
+      startY: 30,
+      head: [['#', 'Username', 'Recipes Posted', 'Comments Made', 'Recipes Saved']],
+      body: tableData,
+    });
+    doc.save('active_users_report.pdf');
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-row items-center">
+        <h2 className="font-semibold text-xl">Most Active Users</h2>
+        <button onClick={generatePDF} className="ml-auto font-semibold bg-ff-btn rounded-xl py-2 px-3 hover:bg-ff-content duration-100">PDF</button>
+      </div>
+
+      <div>
+        {mostActiveUsers.length > 0 ? (
+          <table className="min-w-full bg-ff-content rounded-t-lg">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b border-black border-opacity-20">#</th>
+                <th className="py-2 px-4 border-b border-l border-black border-opacity-20">Nume Utilizator</th>
+                <th className="py-2 px-4 border-b border-l border-black border-opacity-20">Retete Postate</th>
+                <th className="py-2 px-4 border-b border-l border-black border-opacity-20">Comentarii Facute</th>
+                <th className="py-2 px-4 border-b border-l border-black border-opacity-20">Retete Salvate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mostActiveUsers.map((user, index) => (
+                <tr key={index}>
+                  <td className="py-2 px-4 border-b text-center border-black border-opacity-20">{index + 1}</td>
+                  <td className="py-2 px-4 border-b border-l border-black border-opacity-20">{user.username}</td>
+                  <td className="py-2 px-4 border-b text-center border-l border-black border-opacity-20">{user.recipesPosted}</td>
+                  <td className="py-2 px-4 border-b text-center border-l border-black border-opacity-20">{user.commentsMade}</td>
+                  <td className="py-2 px-4 border-b text-center border-l border-black border-opacity-20">{user.recipesSaved}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>Loading...</p>
+        )}
+      </div>
+    </div>
+  )
+}

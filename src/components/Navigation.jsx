@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs } from '@firebase/firestore'
 import { db } from "../firebase-config"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowRightFromBracket, faGear, faHourglassStart, faMoon, faSun, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faArrowRightFromBracket, faChartPie, faGear, faHourglassStart, faMoon, faSun, faUser } from '@fortawesome/free-solid-svg-icons'
 
 export default function Navigation() {
     const navigate = useNavigate()
@@ -149,21 +149,34 @@ export default function Navigation() {
                   </a>
 
                   {isAdmin && (
-                    <a
-                      href="#"
-                      className="flex flex-row gap-3 px-4 py-2 text-sm items-center text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements 
-                      duration-150"
-                      role="menuitem"
-                      onClick={() => navigate('/pending')}
-                    >
-                      <FontAwesomeIcon icon={faHourglassStart} />
-                      În Așteptare
-                      {pendingCount > 0 && (
-                        <span className='bg-red-600 text-white rounded-full font-semibold px-2 py-1 my-auto text-xs'>
-                          {pendingCount}
-                        </span>  
-                      )}
-                    </a>
+                    <>
+                      <a
+                        href="#"
+                        className="flex flex-row gap-3 px-4 py-2 text-sm items-center text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements 
+                        duration-150"
+                        role="menuitem"
+                        onClick={() => navigate('/pending')}
+                      >
+                        <FontAwesomeIcon icon={faHourglassStart} />
+                        În Așteptare
+                        {pendingCount > 0 && (
+                          <span className='bg-red-600 text-white rounded-full font-semibold px-2 py-1 my-auto text-xs'>
+                            {pendingCount}
+                          </span>  
+                        )}
+                      </a>
+
+                      <a 
+                        href="#"
+                        className="flex flex-row gap-3 px-4 py-2 text-sm items-center text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements 
+                        duration-150"
+                        role="menuitem"
+                        onClick={() => navigate('/dashboard')}
+                      >
+                        <FontAwesomeIcon icon={faChartPie} />
+                        Date
+                      </a>
+                    </>
                   )}
 
                   <a href="#" 
