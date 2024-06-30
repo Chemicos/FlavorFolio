@@ -1,5 +1,5 @@
 import { arrayRemove, doc, getDoc, updateDoc } from "@firebase/firestore"
-import { faBell, faClose } from "@fortawesome/free-solid-svg-icons"
+import { faBell, faChevronLeft, faClose } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 import { useEffect, useRef, useState } from "react"
@@ -95,38 +95,61 @@ export default function Notifications() {
 
   return (
     <div className="relative">
-        <button 
-            className="text-xl dark:text-dark-border dark:hover:text-dark-btn relative"
-            onClick={toggleDropdown}
-        >
-            <FontAwesomeIcon icon={faBell} />
-            {notifications.length > 0 && (
-                <span
-                    className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center"
-                    style={{transform: "translate(50%, -50%)"}}
-                >
-                    {notifications.length}
-                </span>
-            )}
-      </button>
+    <button 
+        className="text-xl dark:text-dark-border dark:hover:text-dark-btn relative"
+        onClick={toggleDropdown}
+    >
+        <FontAwesomeIcon icon={faBell} />
+        {notifications.length > 0 && (
+            <span
+                className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center"
+                style={{transform: "translate(50%, -50%)"}}
+            >
+                {notifications.length}
+            </span>
+        )}
+  </button>
 
-      {isOpen && (
-        <div 
-            ref={dropdownRef} 
-            className="absolute right-0 mt-2 w-60 rounded-md shadow-lg py-1 bg-white 
-            dark:bg-dark-bg dark:border dark:border-dark-border ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
-        >
-            {notifications.length > 0 ? (
-                notifications.map((notification, index) => (
+  {isOpen && (
+    <div 
+        ref={dropdownRef} 
+        className="fixed inset-0 md:absolute md:inset-auto md:right-0 md:mt-2 md:w-80 md:rounded-md md:shadow-lg md:py-1 md:bg-white 
+        md:dark:bg-dark-bg md:dark:border md:dark:border-dark-border md:ring-1 md:ring-black md:ring-opacity-5 md:focus:outline-none z-20
+        bg-ff-bg dark:bg-dark-bg md:bg-opacity-100 bg-opacity-100"
+    >
+        <div className="flex flex-row items-center">
+            <button 
+                className="text-2xl p-4 md:hidden dark:text-dark-border"
+                onClick={toggleDropdown}
+            >
+                <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+
+            <h1 className="text-2xl md:hidden dark:text-dark-border">Notificari</h1>
+        </div>
+
+        {notifications.length > 0 ? (
+            <div className="overflow-y-auto max-h-[calc(100vh-3.5rem)] md:max-h-60 h-full md:h-auto">
+                {notifications.map((notification, index) => (
                     <div
                         key={index}
-                        className="flex justify-between items-center px-4 py-2 text-sm text-gray-700 dark:text-dark-border"
+                        className="flex justify-between items-center px-4 py-2 gap-2 text-sm text-gray-700 dark:text-dark-border 
+                        hover:bg-gray-100 dark:hover:bg-dark-highlight duration-150"
                     >
-                        <div className="flex flex-col">
-                            <span>{notification.message}</span>
-                            <time className="text-xs text-gray-500 dark:text-dark-border">
-                                {timeAgo(notification.timestamp)}
-                            </time>
+                        <div className="flex items-center gap-2">
+                            {notification.profileImage && (
+                                <img
+                                    src={notification.profileImage}
+                                    alt="Profile"
+                                    className="w-8 h-8 rounded-full"
+                                />
+                            )}
+                            <div className="flex flex-col">
+                                <span>{notification.message}</span>
+                                <time className="text-xs text-gray-500 dark:text-dark-border">
+                                    {timeAgo(notification.timestamp)}
+                                </time>
+                            </div>
                         </div>
 
                         <button
@@ -136,14 +159,15 @@ export default function Notifications() {
                             <FontAwesomeIcon icon={faClose} />
                         </button>
                     </div>
-                ))
-            ) : (
-                <p className="px-4 py-2 text-sm text-gray-700 dark:text-dark-border">
-                    Momentan, nu aveti notificari
-                </p>
-            )}
-        </div>
-      )}
+                ))}
+            </div>
+        ) : (
+            <p className="px-4 py-2 text-sm text-gray-700 dark:text-dark-border">
+                Momentan, nu aveti notificari
+            </p>
+        )}
     </div>
+  )}
+</div>
   )
 }

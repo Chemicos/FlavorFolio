@@ -63,6 +63,23 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
     //   >>
 
     // Adding to favorites <<
+    const addFavoriteNotification = async (message) => {
+      if (!recipe.userId) return
+      const userRef = doc(db, 'users', recipe.userId)
+      const notification = {
+          message,
+          profileImage,
+          timestamp: new Date()
+      }
+      try {
+          await updateDoc(userRef, {
+              notifications: arrayUnion(notification)
+          })
+      } catch (error) {
+          console.error("Error adding notification: ", error)
+      }
+  }
+
     const toggleFavorite = async () => {
         if (currentUserId) {
             const recipeRef = doc(db, "savedRecipes", recipe.id)
@@ -75,11 +92,13 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
                 await updateDoc(recipeRef, {
                   userIds: userIds.filter(id => id !== currentUserId)
                 })
+                await addFavoriteNotification(`Utilizatorul ${username} a scos reteta ${recipe.title} de la favorite.`)
               } else {
                 // Add userId to userIds
                 await updateDoc(recipeRef, {
                   userIds: arrayUnion(currentUserId)
                 })
+                await addFavoriteNotification(`Utilizatorul ${username} a adaugat reteta ${recipe.title} la favorite.`)
               }
             } else {
               // Create new document with userId
@@ -87,6 +106,7 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
                 ...recipe, 
                 userIds: [currentUserId] 
               })
+              await addFavoriteNotification(`Utilizatorul ${username} a adaugat reteta ${recipe.title} la favorite.`)
             }
             setIsFavorite(!isFavorite)
           }

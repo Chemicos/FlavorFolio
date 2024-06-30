@@ -17,6 +17,7 @@ export default function ProfilePage() {
     const [username, setUsername] = useState('')
     const [userDescription, setUserDescription] = useState('')
     const [ profileImage, setProfileImage ] = useState('')
+    const [socialProfiles, setSocialProfiles] = useState([])
     const [view, setView] = useState('postari')
     const [selectedRecipe, setSelectedRecipe] = useState(null)
     const auth = getAuth() 
@@ -33,6 +34,7 @@ export default function ProfilePage() {
                     setProfileImage(userData.profileImage || currentUser.photoURL || '')
                     setUsername(userData.username || currentUser.displayName || '')
                     setUserDescription(userData.userDescription || '')
+                    setSocialProfiles(userData.socialProfiles || [])
                 } else {
                     setProfileImage(currentUser.photoURL || '')
                     setUsername(currentUser.displayName || '')
@@ -87,6 +89,14 @@ export default function ProfilePage() {
                     <p className="text-2xl sm:text-xl dark:text-dark-border font-semibold italic">{username}</p>
                     
                     <p className="italic opacity-70 text-sm dark:text-dark-border dark:opacity-100 w-[300px]">{userDescription}</p>
+
+                    {socialProfiles && socialProfiles.length > 0 && (
+                        <div className="flex flex-col gap-2">
+                            {socialProfiles.map((profile, index) => (
+                                <a key={index} href={profile} className="dark:text-dark-border opacity-60">{profile}</a>
+                            ))}
+                        </div>
+                    )}
 
                     {user && <UserDetails username={username} userId={user.uid.trim()} />}
                 </div>

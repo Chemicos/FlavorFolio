@@ -159,7 +159,7 @@ export default function EditProfile() {
                 <div className="flex flex-col items-center sm:items-start gap-4">
                     <span className="font-semibold text-xl dark:text-dark-border">{username}</span>
 
-                    <p className="italic opacity-80 text-sm dark:text-dark-border dark:opacity-100">{userDescription}</p>
+                    <p className="italic opacity-80 text-sm dark:text-dark-border dark:opacity-100 w-[300px]">{userDescription}</p>
 
                     <button className="bg-ff-btn border border-ff-btn hover:border-black font-semibold rounded-lg py-2 px-3
                         hover:bg-black hover:text-white duration-200 dark:hover:bg-transparent dark:hover:border dark:hover:border-dark-border dark:hover:text-dark-border"

@@ -5,13 +5,15 @@ import { useEffect, useState } from 'react'
 import { arrayUnion, deleteDoc, doc, getDoc, setDoc, updateDoc } from '@firebase/firestore'
 import { db } from '../firebase-config'
 import Rating from './Rating'
+import { getAuth } from 'firebase/auth'
 
 export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipes }) {
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [username, setUsername] = useState('')
+  const [profileImage, setProfileImage] = useState('')
+  const auth = getAuth()
 
-    // Favorite function <<
-    const [isFavorite, setIsFavorite] = useState(false)
-
-    useEffect(() => {
+  useEffect(() => {
       const checkIfFavorite = () => {
           if (currentUserId) {
               const isFav = savedRecipes.some(savedRecipe => savedRecipe.id === recipe.id && savedRecipe.userIds.includes(currentUserId))
@@ -21,35 +23,70 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
       checkIfFavorite()
   }, [recipe.id, currentUserId, savedRecipes])
 
-      const toggleFavorite = async () => {
-        if (currentUserId) {
+  useEffect(() => {
+      const fetchUserData = async () => {
+          const user = auth.currentUser
+          if (user) {
+              const userRef = doc(db, 'users', user.uid)
+              const docSnap = await getDoc(userRef)
+              if (docSnap.exists()) {
+                  const userData = docSnap.data()
+                  setUsername(userData.username || user.displayName || user.email)
+                  setProfileImage(userData.profileImage || user.photoURL || '')
+              } else {
+                  setUsername(user.displayName || user.email)
+                  setProfileImage(user.photoURL || '')
+              }
+          }
+      }
+      fetchUserData()
+  }, [auth])
+
+  const addFavoriteNotification = async (message) => {
+      if (!recipe.userId) return
+      const userRef = doc(db, 'users', recipe.userId)
+      const notification = {
+          message,
+          profileImage,
+          timestamp: new Date()
+      }
+      try {
+          await updateDoc(userRef, {
+              notifications: arrayUnion(notification)
+          })
+      } catch (error) {
+          console.error("Error adding notification: ", error)
+      }
+  }
+
+  const toggleFavorite = async () => {
+      if (currentUserId) {
           const recipeRef = doc(db, "savedRecipes", recipe.id)
           const recipeSnap = await getDoc(recipeRef)
           if (recipeSnap.exists()) {
-            const recipeData = recipeSnap.data()
-            const userIds = recipeData.userIds || []
-            if (isFavorite) {
-              // Remove userId from userIds
-              await updateDoc(recipeRef, {
-                userIds: userIds.filter(id => id !== currentUserId)
-              })
-            } else {
-              // Add userId to userIds
-              await updateDoc(recipeRef, {
-                userIds: arrayUnion(currentUserId)
-              })
-            }
+              const recipeData = recipeSnap.data()
+              const userIds = recipeData.userIds || []
+              if (isFavorite) {
+                  await updateDoc(recipeRef, {
+                      userIds: userIds.filter(id => id !== currentUserId)
+                  })
+                  await addFavoriteNotification(`Utilizatorul ${username} a scos reteta ${recipe.title} de la favorite.`)
+              } else {
+                  await updateDoc(recipeRef, {
+                      userIds: arrayUnion(currentUserId)
+                  })
+                  await addFavoriteNotification(`Utilizatorul ${username} a adaugat reteta ${recipe.title} la favorite.`)
+              }
           } else {
-            // Create new document with userId
-            await setDoc(recipeRef, { 
-              ...recipe, 
-              userIds: [currentUserId] 
-            })
+              await setDoc(recipeRef, { 
+                  ...recipe, 
+                  userIds: [currentUserId] 
+              })
+              await addFavoriteNotification(`Utilizatorul ${username} a adaugat reteta ${recipe.title} la favorite.`)
           }
           setIsFavorite(!isFavorite)
-        }
       }
-    // >>
+  }
   return (
     <div className="relative rounded-xl overflow-hidden shadow-md cursor-pointer">
         <img className='h-[180px] w-[280px] sm:w-[340px] sm:h-[240px] object-cover duration-300 hover:scale-125' 
