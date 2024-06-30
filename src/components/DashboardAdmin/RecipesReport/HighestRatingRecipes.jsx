@@ -75,10 +75,10 @@ export default function HighestRatingRecipes() {
           <thead>
             <tr>
               <th className="py-2 px-4 border-b border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">#</th>
-              <th className="py-2 px-4 border-b text-center border-l border-black dark:border-dark-border dark:border-opacity-40 border-opacity-20 dark:text-dark-border">Title</th>
-              <th className="py-2 px-4 border-b text-center border-l border-black dark:border-dark-border dark:border-opacity-40 border-opacity-20 dark:text-dark-border">User</th>
-              <th className="py-2 px-4 border-b text-center border-l border-black dark:border-dark-border dark:border-opacity-40 border-opacity-20 dark:text-dark-border">Average Rating</th>
-              <th className="py-2 px-4 border-b text-center border-l border-black dark:border-dark-border dark:border-opacity-40 border-opacity-20 dark:text-dark-border">Total Ratings</th>
+              <th className="py-2 px-4 border-b text-center border-l border-black dark:border-dark-border dark:border-opacity-40 border-opacity-20 dark:text-dark-border">Titlu</th>
+              <th className="py-2 px-4 border-b text-center border-l border-black dark:border-dark-border dark:border-opacity-40 border-opacity-20 dark:text-dark-border">Utilizator</th>
+              <th className="py-2 px-4 border-b text-center border-l border-black dark:border-dark-border dark:border-opacity-40 border-opacity-20 dark:text-dark-border">Rating</th>
+              <th className="py-2 px-4 border-b text-center border-l border-black dark:border-dark-border dark:border-opacity-40 border-opacity-20 dark:text-dark-border">Total Rating-uri</th>
             </tr>
           </thead>
           <tbody>

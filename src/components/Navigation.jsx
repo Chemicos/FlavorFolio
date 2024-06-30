@@ -6,6 +6,7 @@ import { collection, doc, getDoc, getDocs } from '@firebase/firestore'
 import { db } from "../firebase-config"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowRightFromBracket, faChartPie, faGear, faHourglassStart, faMoon, faSun, faUser } from '@fortawesome/free-solid-svg-icons'
+import Notifications from './Notifications'
 
 export default function Navigation() {
     const navigate = useNavigate()
@@ -112,7 +113,9 @@ export default function Navigation() {
             </button>
 
             <div className="ml-3 relative">
-              <div className='md:px-4 md:py-1 md:rounded-lg md:bg-ff-content dark:md:bg-dark-elements'>
+              <div className='flex flex-row items-center gap-3 md:px-4 md:py-1 md:rounded-lg md:bg-ff-content dark:md:bg-dark-elements'>
+                <Notifications />
+
                 <button type="button" 
                   className="max-w-xs flex gap-4 items-center text-sm focus:outline-none" 
                   id="user-menu-button" 
@@ -120,7 +123,7 @@ export default function Navigation() {
                   aria-haspopup="true" 
                   onClick={() => setIsOpen(!isOpen)}
                   >
-                  <span className='text-base duration-150 hidden sm:flex hover:scale-110 dark:text-dark-btn'>
+                  <span className='text-base duration-150 hidden md:flex hover:scale-110 dark:text-dark-btn'>
                     {username}
                   </span>
 

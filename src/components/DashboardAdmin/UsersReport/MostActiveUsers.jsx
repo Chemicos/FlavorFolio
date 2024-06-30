@@ -10,29 +10,29 @@ export default function MostActiveUsers() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersSnapshot = await getDocs(collection(db, 'users'))
-        const recipesSnapshot = await getDocs(collection(db, 'recipes'))
-        const savedRecipesSnapshot = await getDocs(collection(db, 'savedRecipes'))
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const recipesSnapshot = await getDocs(collection(db, 'recipes'));
+        const savedRecipesSnapshot = await getDocs(collection(db, 'savedRecipes'));
 
-        let userActivity = {}
+        let userActivity = {};
 
         usersSnapshot.forEach(doc => {
-          const data = doc.data()
+          const data = doc.data();
           userActivity[doc.id] = {
+            userId: doc.id,
             username: data.username,
             recipesPosted: 0,
             commentsMade: 0,
             recipesSaved: 0
-          }
-        })
+          };
+        });
 
         recipesSnapshot.forEach(doc => {
           const data = doc.data();
           if (userActivity[data.userId]) {
             userActivity[data.userId].recipesPosted += 1;
-            userActivity[data.userId].likesReceived += data.likes ? data.likes.length : 0;
           }
-        
+
           if (data.comments) {
             data.comments.forEach(comment => {
               if (userActivity[comment.userId]) {
@@ -65,9 +65,10 @@ export default function MostActiveUsers() {
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    doc.text('Most Active Users Report', 14, 16);
+    doc.text('Activitate Utilizatori', 14, 16);
     const tableData = mostActiveUsers.map((user, index) => [
       index + 1,
+      user.userId,
       user.username,
       user.recipesPosted,
       user.commentsMade,
@@ -76,39 +77,58 @@ export default function MostActiveUsers() {
 
     doc.autoTable({
       startY: 30,
-      head: [['#', 'Username', 'Recipes Posted', 'Comments Made', 'Recipes Saved']],
+      head: [['#', 'ID', 'Nume utilizator', 'Retete postate', 'Comentarii facute', 'Retete salvate']],
       body: tableData,
     });
-    doc.save('active_users_report.pdf');
+    doc.save('most_active_users_report.pdf');
   };
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-row items-center">
-        <h2 className="font-semibold text-xl">Most Active Users</h2>
-        <button onClick={generatePDF} className="ml-auto font-semibold bg-ff-btn rounded-xl py-2 px-3 hover:bg-ff-content duration-100">PDF</button>
+        <h2 className="font-semibold text-xl dark:text-dark-border">Activitate Utilizatori</h2>
+        <button 
+          onClick={generatePDF} 
+          className="ml-auto font-semibold bg-ff-btn rounded-xl py-2 px-3 hover:bg-ff-content duration-100"
+        >
+          PDF
+        </button>
       </div>
 
       <div>
         {mostActiveUsers.length > 0 ? (
-          <table className="min-w-full bg-ff-content rounded-t-lg">
+          <table className="min-w-full bg-ff-content dark:bg-dark-elements rounded-t-lg">
             <thead>
               <tr>
-                <th className="py-2 px-4 border-b border-black border-opacity-20">#</th>
-                <th className="py-2 px-4 border-b border-l border-black border-opacity-20">Nume Utilizator</th>
-                <th className="py-2 px-4 border-b border-l border-black border-opacity-20">Retete Postate</th>
-                <th className="py-2 px-4 border-b border-l border-black border-opacity-20">Comentarii Facute</th>
-                <th className="py-2 px-4 border-b border-l border-black border-opacity-20">Retete Salvate</th>
+                <th className="py-2 px-4 border-b border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">#</th>
+                <th className="py-2 px-4 border-b border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">ID</th>
+                <th className="py-2 px-4 border-b border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">Nume Utilizator</th>
+                <th className="py-2 px-4 border-b border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">Retete Postate</th>
+                <th className="py-2 px-4 border-b border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">Comentarii Facute</th>
+                <th className="py-2 px-4 border-b border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">Retete Salvate</th>
               </tr>
             </thead>
             <tbody>
               {mostActiveUsers.map((user, index) => (
                 <tr key={index}>
-                  <td className="py-2 px-4 border-b text-center border-black border-opacity-20">{index + 1}</td>
-                  <td className="py-2 px-4 border-b border-l border-black border-opacity-20">{user.username}</td>
-                  <td className="py-2 px-4 border-b text-center border-l border-black border-opacity-20">{user.recipesPosted}</td>
-                  <td className="py-2 px-4 border-b text-center border-l border-black border-opacity-20">{user.commentsMade}</td>
-                  <td className="py-2 px-4 border-b text-center border-l border-black border-opacity-20">{user.recipesSaved}</td>
+                  <td className="py-2 px-4 border-b text-center border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">
+                    {index + 1}
+                  </td>
+                  <td className="py-2 px-4 border-b border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">
+                    {user.userId}
+                  </td>
+                  <td className="py-2 px-4 border-b border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">
+                    {user.username}
+                  </td>
+                  <td className="py-2 px-4 border-b text-center border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">
+                    {user.recipesPosted}
+                  </td>
+                  <td className="py-2 px-4 border-b text-center border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">
+                    {user.commentsMade}
+                  </td>
+                  <td className="py-2 px-4 border-b text-center border-l border-black border-opacity-20 dark:border-dark-border dark:border-opacity-40 dark:text-dark-border">
+                    {user.recipesSaved}
+                  </td>
                 </tr>
               ))}
             </tbody>

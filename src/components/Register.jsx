@@ -364,7 +364,7 @@ export default function Register() {
         <img className="w-5 h-5" src={googleIcon} alt="google-icon" />
           Continuă cu Google
       </button>
-      <p>Ai cont? <Link to="/" className="text-ff-blue underline">Loghează-te</Link></p>
+      <p>Ai deja un cont? <Link to="/" className="text-ff-blue underline">Loghează-te</Link></p>
     </div>
   )
 }

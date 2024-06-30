@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDocs, setDoc } from "@firebase/firestore"
+import { Timestamp, arrayUnion, collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from "@firebase/firestore"
 import { useEffect, useState } from "react"
 import { db, storage } from "../firebase-config"
 import Navigation from "./Navigation"
@@ -52,6 +52,9 @@ export default function PendingRecipes() {
           })
           await Promise.all(deleteStepsImages)
         }
+
+        await addNotification(recipeToDelete.userId, `Reteta ${recipeToDelete.title} a fost refuzata`)
+
         setPendingRecipes(pendingRecipes.filter(recipe => recipe.id !== recipeToDelete.id))
         setShowDeleteConfirm(false)
         setRecipeToDelete(null)
@@ -61,11 +64,33 @@ export default function PendingRecipes() {
     }
 
     const handleApprove = async (recipe) => {
-      await setDoc(doc(db, 'recipes', recipe.id), recipe)
-      await deleteDoc(doc(db, 'pendingRecipes', recipe.id))
-      setPendingRecipes(pendingRecipes.filter(r => r.id !== recipe.id))
+      try {
+        await setDoc(doc(db, 'recipes', recipe.id), recipe)
+        await deleteDoc(doc(db, 'pendingRecipes', recipe.id))
+        await addNotification(recipe.userId, `Reteta ${recipe.title} a fost aprobata si postata!`)
+  
+        setPendingRecipes(pendingRecipes.filter(r => r.id !== recipe.id))
+      } catch (error) {
+        console.error("Error approving recipe: ", error)
+      }
     }
     // >>
+
+    const addNotification = async (userId, message) => {
+      const userRef = doc(db, 'users', userId)
+      const notification = {
+        message,
+        timestamp: Timestamp.now(),
+      }
+  
+      try {
+        await updateDoc(userRef, {
+          notifications: arrayUnion(notification),
+        })
+      } catch (error) {
+        console.error("Error adding notification: ", error)
+      }
+    }
 
   return (
     <div className="flex flex-col h-screen w-screen bg-ff-bg dark:bg-dark-bg overflow-x-hidden">
@@ -80,7 +105,7 @@ export default function PendingRecipes() {
             <ul className="flex flex-col gap-4 h-[600px]">
             {pendingRecipes.map((recipe, index) => (
                 <li className="flex flex-col sm:flex-row justify-between items-center 
-                bg-ff-bg gap-4 rounded-2xl py-4 px-6 active:bg-red-700 hover:bg-opacity-40 
+                bg-ff-content md:bg-ff-bg gap-4 rounded-2xl py-4 px-6 active:bg-red-700 hover:bg-opacity-40 
                 duration-150 cursor-pointer shadow-md sm:shadow-none hover:shadow-md
                 dark:bg-dark-elements dark:shadow-none dark:hover:bg-dark-highlight" 
                   key={index}
@@ -88,7 +113,7 @@ export default function PendingRecipes() {
                   <div onClick={() => setSelectedRecipe(recipe)} className="flex-1">
                     <p className="dark:text-dark-border">{recipe.title}</p>
                     <p className="dark:text-dark-border">{recipe.user}</p>
-                    <p className="text-sm opacity-80 dark:text-dark-border">Created at {new Date(recipe.createdAt.seconds * 1000).toLocaleString()}</p>
+                    <p className="text-sm opacity-80 dark:text-dark-border">Creata pe {new Date(recipe.createdAt.seconds * 1000).toLocaleString()}</p>
                   </div>
 
                   <div className="flex flex-row sm:flex-col items-center gap-8 sm:gap-4">
@@ -116,16 +141,16 @@ export default function PendingRecipes() {
       {showDeleteConfirm && (
         <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 z-10 flex items-center justify-center">
             <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-              <p>Are you sure you want to delete this recipe?</p>
+              <p>Doriti sa stergeti reteta?</p>
               <div className="flex justify-center gap-4 mt-4">
                 <button className="duration-150 bg-gray-300 hover:bg-gray-500 px-4 py-2 rounded" 
                   onClick={() => setShowDeleteConfirm(false)}>
-                  No
+                  Nu
                 </button>
 
                 <button className="duration-150 bg-red-600 hover:bg-red-800 text-white px-4 py-2 rounded" 
                   onClick={handleDelete}>
-                    Yes
+                    Da
                 </button>
               </div>
             </div>

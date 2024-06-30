@@ -1,26 +1,40 @@
 import { useState } from "react"
 import Navigation from "../Navigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBasketShopping, faChevronDown, faChevronUp, faComment, faEye, faHeart, faHeartCrack, faThumbsDown, faThumbsUp, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faBasketShopping, faChevronDown, faChevronUp, faComment, faEye, faHeart, faHeartCrack, faThumbsDown, faThumbsUp, faUser } from "@fortawesome/free-solid-svg-icons";
 import MostSavedRecipes from "./RecipesReport/MostSavedRecipes";
 import LeastSavedRecipes from "./RecipesReport/LeastSavedRecipes";
 import HighestRatingRecipes from "./RecipesReport/HighestRatingRecipes";
 import LowestRatingRecipes from "./RecipesReport/LowestRatingRecipes";
 import MostCommentedRecipes from "./RecipesReport/MostCommentedRecipes";
 import MostActiveUsers from "./UsersReport/MostActiveUsers";
+import FollowersReport from "./UsersReport/FollowersReport";
 
 export default function Dashboard() {
     const [activeComponent, setActiveComponent] = useState(null)
     const [showRecipeDropdown, setShowRecipeDropdown] = useState(false)
     const [showUserDropdown, setShowUserDropdown] = useState(false)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+    const toggleSidebar = () => {
+      setIsSidebarOpen(!isSidebarOpen)
+    }
 
   return (
     <div className="flex flex-col bg-ff-bg dark:bg-dark-bg h-screen w-screen overflow-x-hidden">
       <Navigation />
-
       
       <div className="flex h-full">
-        <div className="w-[300px] bg-ff-sidebar dark:bg-dark-sidebar p-4 border-r border-black border-opacity-20">
+        <button 
+          className="md:hidden fixed top-4 right-32 z-20 text-2xl dark:text-dark-border"
+          onClick={toggleSidebar}
+        >
+          <FontAwesomeIcon icon={faBars} />
+        </button>
+
+        <div className={`fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden ${isSidebarOpen ? "block" : "hidden"}`} onClick={toggleSidebar}></div>
+
+        <div className={`fixed top-0 left-0 h-full w-[300px] bg-ff-bg dark:bg-dark-bg p-4 border-r border-black dark:border-dark-border dark:border-opacity-20 border-opacity-20 z-20 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform md:relative md:translate-x-0`}>
           <h2 className="text-xl font-bold mb-4 dark:text-dark-border">Meniu Raport</h2>
 
           <div className="relative">
@@ -40,7 +54,8 @@ export default function Dashboard() {
                   className="flex items-center gap-2 w-full py-2 px-4 text-sm hover:bg-ff-content rounded-lg text-black 
                   dark:text-dark-border dark:hover:bg-dark-highlight"
                   onClick={() => {
-                    setActiveComponent(<MostSavedRecipes />)
+                    setActiveComponent(<MostSavedRecipes />);
+                    setIsSidebarOpen(false);
                   }}
                 >
                   <FontAwesomeIcon icon={faHeart} />
@@ -50,7 +65,8 @@ export default function Dashboard() {
                   className="flex items-center gap-2 w-full py-2 px-4 text-sm hover:bg-ff-content rounded-lg text-black 
                   dark:text-dark-border dark:hover:bg-dark-highlight"
                   onClick={() => {
-                    setActiveComponent(<LeastSavedRecipes />)
+                    setActiveComponent(<LeastSavedRecipes />);
+                    setIsSidebarOpen(false);
                   }}
                 >
                   <FontAwesomeIcon icon={faHeartCrack} />
@@ -60,7 +76,8 @@ export default function Dashboard() {
                   className="flex items-center gap-2 w-full py-2 px-4 text-sm hover:bg-ff-content rounded-lg text-black 
                   dark:text-dark-border dark:hover:bg-dark-highlight"
                   onClick={() => {
-                    setActiveComponent(<HighestRatingRecipes />)
+                    setActiveComponent(<HighestRatingRecipes />);
+                    setIsSidebarOpen(false);
                   }}
                 >
                   <FontAwesomeIcon icon={faThumbsUp} />
@@ -70,7 +87,8 @@ export default function Dashboard() {
                   className="flex items-center gap-2 w-full py-2 px-4 text-sm hover:bg-ff-content rounded-lg text-black 
                   dark:text-dark-border dark:hover:bg-dark-highlight"
                   onClick={() => {
-                    setActiveComponent(<LowestRatingRecipes />)
+                    setActiveComponent(<LowestRatingRecipes />);
+                    setIsSidebarOpen(false);
                   }}
                 >
                   <FontAwesomeIcon icon={faThumbsDown} />
@@ -80,7 +98,8 @@ export default function Dashboard() {
                   className="flex items-center gap-2 w-full py-2 px-4 text-sm hover:bg-ff-content rounded-lg text-black 
                   dark:text-dark-border dark:hover:bg-dark-highlight"
                   onClick={() => {
-                    setActiveComponent(<MostCommentedRecipes />)
+                    setActiveComponent(<MostCommentedRecipes />);
+                    setIsSidebarOpen(false);
                   }}
                 >
                   <FontAwesomeIcon icon={faComment} />
@@ -117,9 +136,9 @@ export default function Dashboard() {
                   <button
                     className="flex items-center gap-2 w-full py-2 px-4 text-sm hover:bg-ff-content rounded-lg text-black 
                     dark:text-dark-border dark:hover:bg-dark-highlight"
-                    // onClick={() => {
-                    //   setActiveComponent(<MostActiveUsers />)
-                    // }}
+                    onClick={() => {
+                      setActiveComponent(<FollowersReport />)
+                    }}
                   >
                     <FontAwesomeIcon icon={faEye} />
                     Urmaritori
@@ -133,7 +152,7 @@ export default function Dashboard() {
           {activeComponent ? (
             activeComponent
           ) : (
-            <p className="dark:text-dark-border">Alege o optiune din meniu.</p>
+            <p className="dark:text-dark-border">Alege o optiune din meniu <FontAwesomeIcon className="md:hidden" icon={faBars} /></p>
           )}
         </div>
       </div>

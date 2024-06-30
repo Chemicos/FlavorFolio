@@ -613,7 +613,7 @@ export default function PostForm({ handleClose }) {
                 onClick={handleSubmit}
                 disabled={!isFormValid}
               >
-                  Submit
+                  Trimite
               </button>
             </form>
       </div>
