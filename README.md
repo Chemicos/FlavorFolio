@@ -43,3 +43,6 @@ npm i --save @fortawesome/react-fontawesome@latest
 
 # Step 5: React-Router
 npm install react-router-dom
+
+# Step 6: jsPDF
+npm install jspdf jspdf-autotable
