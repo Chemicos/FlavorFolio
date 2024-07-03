@@ -109,7 +109,7 @@ export default function Navigation() {
             <button className=''
               onClick={toggleDarkMode}
             >
-              <FontAwesomeIcon className='dark:text-dark-border' icon={isDarkMode ? faSun : faMoon} />
+              <FontAwesomeIcon className='dark:text-dark-border dark:hover:text-dark-btn' icon={isDarkMode ? faSun : faMoon} />
             </button>
 
             <div className="ml-3 relative">

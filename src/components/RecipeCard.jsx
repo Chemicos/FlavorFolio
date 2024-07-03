@@ -2,7 +2,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHeart } from '@fortawesome/free-solid-svg-icons'
 import { useEffect, useState } from 'react'
-import { arrayUnion, deleteDoc, doc, getDoc, setDoc, updateDoc } from '@firebase/firestore'
+import { arrayUnion, doc, getDoc, setDoc, updateDoc } from '@firebase/firestore'
 import { db } from '../firebase-config'
 import Rating from './Rating'
 import { getAuth } from 'firebase/auth'

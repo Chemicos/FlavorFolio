@@ -9,6 +9,7 @@ import LowestRatingRecipes from "./RecipesReport/LowestRatingRecipes";
 import MostCommentedRecipes from "./RecipesReport/MostCommentedRecipes";
 import MostActiveUsers from "./UsersReport/MostActiveUsers";
 import FollowersReport from "./UsersReport/FollowersReport";
+import TotalRecipes from "./RecipesReport/TotalRecipes";
 
 export default function Dashboard() {
     const [activeComponent, setActiveComponent] = useState(null)
@@ -21,12 +22,12 @@ export default function Dashboard() {
     }
 
   return (
-    <div className="flex flex-col bg-ff-bg dark:bg-dark-bg h-screen w-screen overflow-x-hidden">
+    <div className="flex flex-col relative bg-ff-bg dark:bg-dark-bg h-screen w-screen overflow-x-hidden">
       <Navigation />
       
       <div className="flex h-full">
         <button 
-          className="md:hidden fixed top-4 right-32 z-20 text-2xl dark:text-dark-border"
+          className="md:hidden absolute top-4 right-32 z-10 text-2xl dark:text-dark-border"
           onClick={toggleSidebar}
         >
           <FontAwesomeIcon icon={faBars} />
@@ -54,19 +55,31 @@ export default function Dashboard() {
                   className="flex items-center gap-2 w-full py-2 px-4 text-sm hover:bg-ff-content rounded-lg text-black 
                   dark:text-dark-border dark:hover:bg-dark-highlight"
                   onClick={() => {
-                    setActiveComponent(<MostSavedRecipes />);
-                    setIsSidebarOpen(false);
+                    setActiveComponent(<MostSavedRecipes />)
+                    setIsSidebarOpen(false)
                   }}
                 >
                   <FontAwesomeIcon icon={faHeart} />
                   Cele mai Salvate 
                 </button>
+
                 <button
                   className="flex items-center gap-2 w-full py-2 px-4 text-sm hover:bg-ff-content rounded-lg text-black 
                   dark:text-dark-border dark:hover:bg-dark-highlight"
                   onClick={() => {
-                    setActiveComponent(<LeastSavedRecipes />);
-                    setIsSidebarOpen(false);
+                    setActiveComponent(<TotalRecipes />)
+                    setIsSidebarOpen(false)
+                  }}
+                >
+                  Toate Retetele
+                </button>
+
+                <button
+                  className="flex items-center gap-2 w-full py-2 px-4 text-sm hover:bg-ff-content rounded-lg text-black 
+                  dark:text-dark-border dark:hover:bg-dark-highlight"
+                  onClick={() => {
+                    setActiveComponent(<LeastSavedRecipes />)
+                    setIsSidebarOpen(false)
                   }}
                 >
                   <FontAwesomeIcon icon={faHeartCrack} />
@@ -77,7 +90,7 @@ export default function Dashboard() {
                   dark:text-dark-border dark:hover:bg-dark-highlight"
                   onClick={() => {
                     setActiveComponent(<HighestRatingRecipes />);
-                    setIsSidebarOpen(false);
+                    setIsSidebarOpen(false)
                   }}
                 >
                   <FontAwesomeIcon icon={faThumbsUp} />
@@ -148,7 +161,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="flex-grow p-4">
+        <div className="flex-grow overflow-x-auto p-4">
           {activeComponent ? (
             activeComponent
           ) : (

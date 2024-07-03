@@ -84,7 +84,7 @@ export default function MostCommentedRecipes() {
             </tbody>
           </table>
         ) : (
-          <p>Loading...</p>
+          <p className="dark:text-dark-border">Loading...</p>
         )}
       </div>
     </div>

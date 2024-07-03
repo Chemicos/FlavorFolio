@@ -23,7 +23,7 @@ export default function SettingsMenu({ onProfileEdit, onAccountManagement, onBac
             <div className={`fixed inset-0 bg-black z-10 transition-transform transform 
                 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
                 md:relative md:translate-x-0 flex flex-col items-start gap-2 w-[300px] bg-ff-bg md:bg-transparent md:border-none p-4 md:p-0
-                ${isMenuOpen ? 'dark:bg-dark-bg dark:border-r-[1px] dark:border-dark-border' : ''}`}
+                ${isMenuOpen ? 'dark:bg-dark-bg dark:border-r-[1px] dark:border-dark-border dark:border-opacity-20' : ''}`}
             >
                 <button className="md:hidden mb-4 text-left px-4 py-2 hover:bg-gray-100 rounded-full" onClick={toggleMenu}>
                     <FontAwesomeIcon icon={faChevronLeft} className="text-xl dark:text-dark-border" />

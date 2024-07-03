@@ -1,9 +1,39 @@
-import { Timestamp } from "@firebase/firestore"
-import { useState } from "react"
+import { Timestamp, arrayUnion, doc, updateDoc } from "@firebase/firestore"
+import { getAuth, onAuthStateChanged } from "firebase/auth"
+import { useEffect, useState } from "react"
+import { db } from "../../firebase-config"
 
 /* eslint-disable react/prop-types */
-export default function Comment({ profileImage, userId, username, onClose, addComment }) {
+export default function Comment({ profileImage, userId, username, onClose, addComment, recipe }) {
   const [comment, setComment] = useState("")
+  const auth = getAuth()
+  const [currentUser, setCurrentUser] = useState(null)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user)
+      }
+    });
+    return () => unsubscribe()
+  }, [auth])
+
+  const addCommentNotification = async (message, recipeUserId) => {
+    if (!recipeUserId) return;
+    const userRef = doc(db, 'users', recipeUserId);
+    const notification = {
+      message,
+      profileImage,
+      timestamp: new Date(),
+    }
+    try {
+      await updateDoc(userRef, {
+        notifications: arrayUnion(notification),
+      })
+    } catch (error) {
+      console.error("Error adding notification: ", error)
+    }
+  }
 
   const handleSaveComment = async () => {
      if (comment.trim()) {
@@ -16,6 +46,7 @@ export default function Comment({ profileImage, userId, username, onClose, addCo
       }
 
       await addComment(newComment)
+      await addCommentNotification(`${username} a comentat la reteta ${recipe.title}`, recipe.userId)
       setComment("")
       onClose()
     }

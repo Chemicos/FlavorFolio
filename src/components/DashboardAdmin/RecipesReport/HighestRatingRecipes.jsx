@@ -69,7 +69,7 @@ export default function HighestRatingRecipes() {
       <button onClick={generatePDF} className="ml-auto font-semibold bg-ff-btn rounded-xl py-2 px-3 hover:bg-ff-content duration-100">PDF</button>
     </div>
 
-    <div>
+    <div className="overflow-x-auto">
       {highestRatingRecipes.length > 0 ? (
         <table className="min-w-full bg-ff-content dark:bg-dark-elements rounded-t-lg">
           <thead>
@@ -94,7 +94,7 @@ export default function HighestRatingRecipes() {
           </tbody>
         </table>
       ) : (
-        <p>Loading...</p>
+        <p className="dark:text-dark-border">Loading...</p>
       )}
     </div>
   </div>

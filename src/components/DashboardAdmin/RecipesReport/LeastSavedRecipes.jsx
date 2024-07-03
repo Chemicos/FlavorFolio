@@ -79,7 +79,7 @@ export default function LeastSavedRecipes() {
             </tbody>
           </table>
         ) : (
-          <p>Loading...</p>
+          <p className="dark:text-dark-border">Loading...</p>
         )}
       </div>
     </div>

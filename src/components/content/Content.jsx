@@ -121,9 +121,9 @@ export default function Content({ handlePostClick, recipes }) {
 
             {showFilter && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-20 sm:hidden">
-                    <div className="fixed inset-y-0 left-0 w-64 bg-ff-bg dark:bg-dark-bg dark:border-r-[1px] dark:border-dark-border shadow-lg z-30 p-4 overflow-y-auto">
+                    <div className="fixed inset-y-0 left-0 w-64 bg-ff-bg dark:bg-dark-bg dark:border-r-[1px] dark:border-dark-border dark:border-opacity-20 shadow-lg z-30 p-4 overflow-y-auto">
                     <button
-                        className="flex flex-row gap-2  items-center mb-4 text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100"
+                        className="flex flex-row gap-2  items-center mb-4 text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-transparent"
                         onClick={() => setShowFilter(false)}
                     >
                         <FontAwesomeIcon icon={faTimes} /> Închide
@@ -131,7 +131,7 @@ export default function Content({ handlePostClick, recipes }) {
 
                     <div className="relative group">
                         <button 
-                            className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100"
+                            className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-transparent"
                             onClick={toggleMealOptions}
                         >
                             Masă
@@ -152,7 +152,7 @@ export default function Content({ handlePostClick, recipes }) {
                     </div>
 
                     <div className="relative group mt-4">
-                        <button className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100"
+                        <button className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-transparent"
                             onClick={toggleDifficultyOptions}
                         >
                         Dificultate
@@ -173,7 +173,7 @@ export default function Content({ handlePostClick, recipes }) {
                     </div>
 
                     <div className="relative group mt-4">
-                        <button className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100"
+                        <button className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-transparent"
                             onClick={toggleDurationOptions}
                         >
                         Durată
@@ -200,7 +200,7 @@ export default function Content({ handlePostClick, recipes }) {
                         </div>
                     </div>
 
-                    <label className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 flex items-center">
+                    <label className="w-full text-left px-4 py-2 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-transparent flex items-center">
                         <input 
                             type="checkbox" 
                             className="mr-2"

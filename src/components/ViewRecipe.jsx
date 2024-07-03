@@ -277,6 +277,7 @@ export default function ViewRecipe({ recipe, onClose, currentUserId }) {
                           userId={currentUserId}
                           username={username}
                           addComment={addComment}
+                          recipe={recipe}
                       />
                   ) : (
                   <button className="flex w-full md:w-[580px] flex-row items-center gap-4 md:rounded-xl p-3 mx-auto

@@ -95,7 +95,7 @@ export default function MostActiveUsers() {
         </button>
       </div>
 
-      <div>
+      <div className="overflow-x-auto">
         {mostActiveUsers.length > 0 ? (
           <table className="min-w-full bg-ff-content dark:bg-dark-elements rounded-t-lg">
             <thead>
@@ -134,7 +134,7 @@ export default function MostActiveUsers() {
             </tbody>
           </table>
         ) : (
-          <p>Loading...</p>
+          <p className="dark:text-dark-border">Loading...</p>
         )}
       </div>
     </div>
