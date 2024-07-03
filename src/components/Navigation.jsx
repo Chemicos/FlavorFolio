@@ -5,10 +5,10 @@ import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs } from '@firebase/firestore'
 import { db } from "../firebase-config"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowRightFromBracket, faChartPie, faGear, faHourglassStart, faMoon, faSun, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faArrowRightFromBracket, faChartPie, faEnvelope, faGear, faHourglassStart, faMoon, faSun, faUser } from '@fortawesome/free-solid-svg-icons'
 import Notifications from './Notifications'
 
-export default function Navigation() {
+export default function Navigation({ onFeedbackClick }) {
     const navigate = useNavigate()
     const auth = getAuth()
     const [isOpen, setIsOpen] = useState(false)
@@ -190,6 +190,16 @@ export default function Navigation() {
                   >
                     <FontAwesomeIcon icon={faGear} />
                     Setări
+                  </a>
+
+                  <a href="#"
+                    className='flex flex-row gap-3 px-4 py-2 items-center text-sm text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements
+                    duration-150'
+                    role="menuitem"
+                    onClick={() => onFeedbackClick()}
+                  >
+                    <FontAwesomeIcon icon={faEnvelope} />
+                    Feedback
                   </a>
                   
                   <a href="#" 

@@ -10,19 +10,25 @@ import Content from "./content/Content"
 import PostForm from "./PostForm"
 import { collection, getDocs } from "@firebase/firestore"
 import { db } from "../firebase-config"
+import Feedback from "./Feedback/Feedback"
 
 export default function Home() {
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
   const [recipes, setRecipes] = useState([])
+  const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
 
   const handlePostClick = () => {
     setIsPostFormVisible(true)
   }
 
+  const handleFeedbackClick = () => {
+    setIsFeedbackVisible(true)
+  }
+
   const handleClose = () => {
     setIsPostFormVisible(false)
+    setIsFeedbackVisible(false)
   }
-  // TODO: Reset pagination to 1 when searching recipes
   // Search Functionality <<
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredRecipes, setFilteredRecipes] = useState([])
@@ -55,7 +61,7 @@ export default function Home() {
 
   return (
     <div className="h-screen w-screen overflow-x-hidden bg-ff-bg dark:bg-dark-bg">
-      <Navigation />
+      <Navigation onFeedbackClick={handleFeedbackClick} />
 
       <div className="flex flex-col items-center justify-center gap-8">
         <div className="flex flex-col items-center gap-4 mt-4">
@@ -85,6 +91,10 @@ export default function Home() {
             <PostForm handleClose={handleClose} />
           </div>
         }
+
+        {isFeedbackVisible && (
+          <Feedback onClose={handleClose} />
+        )}
       </div>
     </div>
   )
