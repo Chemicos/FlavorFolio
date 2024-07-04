@@ -11,6 +11,7 @@ import UserRecipe from "./UserRecipe";
 import SavedRecipe from "./SavedRecipe";
 import ViewRecipe from "../ViewRecipe";
 import { useNavigate } from "react-router-dom";
+import Feedback from "../Feedback/Feedback";
 
 export default function ProfilePage() {
     const [ user, setUser ] = useState(null)
@@ -22,6 +23,15 @@ export default function ProfilePage() {
     const [selectedRecipe, setSelectedRecipe] = useState(null)
     const auth = getAuth() 
     const navigate = useNavigate()
+    const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
+
+    const handleFeedbackClick = () => {
+        setIsFeedbackVisible(true)
+    }
+
+    const handleFeedbackClose = () => {
+        setIsFeedbackVisible(false)
+    }
 
 // Fetching profileImage and username functions
     useEffect(() => {
@@ -59,7 +69,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col bg-ff-bg dark:bg-dark-bg h-screen w-screen overflow-x-hidden">
-        <Navigation />
+        <Navigation onFeedbackClick={handleFeedbackClick} />
 
         <div className="flex flex-col items-center justify-between gap-4 sm:gap-8 mt-4">
             <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-10 items-center">
@@ -143,6 +153,10 @@ export default function ProfilePage() {
             >
                 <ViewRecipe recipe={selectedRecipe} onClose={handleClose} currentUserId={user ? user.uid.trim() : null} />
             </div>
+        )}
+
+        {isFeedbackVisible && (
+            <Feedback onClose={handleFeedbackClose} />
         )}
     </div>
   )

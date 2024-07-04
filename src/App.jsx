@@ -9,6 +9,7 @@ import ProfilePage from './components/myProfile/ProfilePage'
 import AccountSettings from './components/AccountSettings/AccountSettings'
 import ViewUserProfile from './components/UsersProfile/ViewUserProfile'
 import Dashboard from './components/DashboardAdmin/Dashboard'
+import ManageFeedback from './components/Feedback/ManageFeedback'
 
 const cookies = new Cookies()
 
@@ -29,6 +30,7 @@ function App() {
           <Route path='/settings' element={<AccountSettings />} />
           <Route path='/userProfile/:userId' element={<ViewUserProfile />} />
           <Route path='/dashboard' element={<Dashboard />} />
+          <Route path='/manage-feedback' element={<ManageFeedback />} />
         </Routes>
       </div>
     </Router>

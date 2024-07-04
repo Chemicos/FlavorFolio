@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from 'react'
 import FlavorFolioLogo from '../assets/FlavorFolio_logo1.png'
 import { Link, useNavigate } from 'react-router-dom'
@@ -17,6 +18,7 @@ export default function Navigation({ onFeedbackClick }) {
     const [isAdmin, setIsAdmin] = useState(false)
     const dropdownRef = useRef(null)
     const [pendingCount, setPendingCount] = useState(0)
+    const [feedbackCount, setFeedbackCount] = useState(0)
     const [isDarkMode, setIsDarkMode] = useState(false)
 
     useEffect(() => {
@@ -26,8 +28,15 @@ export default function Navigation({ onFeedbackClick }) {
         setPendingCount(pendingSnapshot.size)
       }
 
+      const fetchFeedbackCount = async () => {
+        const feedbackCollection = collection(db, 'feedbacks')
+        const feedbackSnapshot = await getDocs(feedbackCollection)
+        setFeedbackCount(feedbackSnapshot.size)
+      }
+
       if (isAdmin) {
         fetchPendingCount()
+        fetchFeedbackCount()
       }
     }, [isAdmin])
     
@@ -179,6 +188,22 @@ export default function Navigation({ onFeedbackClick }) {
                         <FontAwesomeIcon icon={faChartPie} />
                         Date
                       </a>
+
+                      <a
+                        href="#"
+                        className="flex flex-row gap-3 px-4 py-2 text-sm items-center text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements 
+                        duration-150"
+                        role="menuitem"
+                        onClick={() => navigate('/manage-feedback')}
+                      >
+                        <FontAwesomeIcon icon={faEnvelope} />
+                          Feedbacks
+                        {feedbackCount > 0 && (
+                          <span className='bg-red-600 text-white rounded-full font-semibold px-2 py-1 my-auto text-xs'>
+                            {feedbackCount}
+                          </span>  
+                        )}
+                      </a>
                     </>
                   )}
 
@@ -192,15 +217,17 @@ export default function Navigation({ onFeedbackClick }) {
                     Setări
                   </a>
 
-                  <a href="#"
-                    className='flex flex-row gap-3 px-4 py-2 items-center text-sm text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements
-                    duration-150'
-                    role="menuitem"
-                    onClick={() => onFeedbackClick()}
-                  >
-                    <FontAwesomeIcon icon={faEnvelope} />
-                    Feedback
-                  </a>
+                  {!isAdmin && (
+                    <a href="#"
+                      className='flex flex-row gap-3 px-4 py-2 items-center text-sm text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements
+                      duration-150'
+                      role="menuitem"
+                      onClick={() => onFeedbackClick()}
+                    >
+                      <FontAwesomeIcon icon={faEnvelope} />
+                      Feedback
+                    </a>
+                  )}
                   
                   <a href="#" 
                     className="flex flex-row gap-3 px-4 py-2 items-center text-sm text-gray-700 dark:text-dark-border hover:bg-gray-100 dark:hover:bg-dark-elements 

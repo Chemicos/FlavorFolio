@@ -10,12 +10,22 @@ import MostCommentedRecipes from "./RecipesReport/MostCommentedRecipes";
 import MostActiveUsers from "./UsersReport/MostActiveUsers";
 import FollowersReport from "./UsersReport/FollowersReport";
 import TotalRecipes from "./RecipesReport/TotalRecipes";
+import Feedback from "../Feedback/Feedback";
 
 export default function Dashboard() {
     const [activeComponent, setActiveComponent] = useState(null)
     const [showRecipeDropdown, setShowRecipeDropdown] = useState(false)
     const [showUserDropdown, setShowUserDropdown] = useState(false)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+    const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
+
+    const handleFeedbackClick = () => {
+      setIsFeedbackVisible(true)
+    }
+
+    const handleFeedbackClose = () => {
+        setIsFeedbackVisible(false)
+    }
 
     const toggleSidebar = () => {
       setIsSidebarOpen(!isSidebarOpen)
@@ -23,7 +33,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col relative bg-ff-bg dark:bg-dark-bg h-screen w-screen overflow-x-hidden">
-      <Navigation />
+      <Navigation onFeedbackClick={handleFeedbackClick} />
       
       <div className="flex h-full">
         <button 
@@ -169,7 +179,10 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-
+      
+      {isFeedbackVisible && (
+        <Feedback onClose={handleFeedbackClose} />
+      )}
     </div>
   )
 }

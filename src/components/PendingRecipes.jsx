@@ -6,6 +6,7 @@ import ViewPendingRecipe from "./ViewPendingRecipe"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { deleteObject, ref } from "firebase/storage"
+import Feedback from "./Feedback/Feedback"
 
 
 export default function PendingRecipes() {
@@ -13,6 +14,14 @@ export default function PendingRecipes() {
     const [selectedRecipe, setSelectedRecipe] = useState(null)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [recipeToDelete, setRecipeToDelete] = useState(null)
+    const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
+    
+    const handleFeedbackClick = () => {
+      setIsFeedbackVisible(true)
+  }
+  const handleFeedbackClose = () => {
+      setIsFeedbackVisible(false)
+  }
 
     const handleClose = () => {
       setSelectedRecipe(null)
@@ -94,7 +103,7 @@ export default function PendingRecipes() {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-ff-bg dark:bg-dark-bg overflow-x-hidden">
-      <Navigation />
+      <Navigation onFeedbackClick={handleFeedbackClick} />
 
       <div className="flex flex-grow items-center justify-center">
         <div className="md:bg-ff-content flex flex-col w-full sm:w-4/5 h-[720px] rounded-3xl
@@ -155,6 +164,10 @@ export default function PendingRecipes() {
               </div>
             </div>
         </div>
+      )}
+
+      {isFeedbackVisible && (
+        <Feedback onClose={handleFeedbackClose} />
       )}
     </div>
   )
