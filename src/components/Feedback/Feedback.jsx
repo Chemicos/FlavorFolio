@@ -13,6 +13,7 @@ export default function Feedback({ onClose }) {
     const [hoverRating, setHoverRating] = useState(0)
     const [userId, setUserId] = useState(null)
     const [username, setUsername] = useState('')
+    const [profileImage, setProfileImage] = useState('')
 
     useEffect(() => {
       const fetchUserData = async (user) => {
@@ -21,12 +22,15 @@ export default function Feedback({ onClose }) {
           if (userDoc.exists()) {
             const userData = userDoc.data()
             setUsername(userData.username)
+            setProfileImage(userData.profileImage || user.photoURL || '')
           } else {
             setUsername(user.displayName || user.email)
+            setProfileImage(user.photoURL || '')
           }
         } catch (error) {
           console.error("Error fetching user data: ", error)
           setUsername(user.displayName || user.email)
+          setProfileImage(user.photoURL || '')
         }
       }
   
@@ -46,12 +50,12 @@ export default function Feedback({ onClose }) {
           await addDoc(collection(db, 'feedbacks'), {
             userId,
             username,
+            profileImage,
             rating,
             subject,
             feedback,
             timestamp: new Date()
           })
-          console.log('Feedback trimis:', { userId, username, rating, subject, feedback})
           onClose()
         } catch (error) {
           console.error('Eroare la trimiterea feedback-ului: ', error)

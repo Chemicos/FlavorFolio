@@ -32,9 +32,11 @@ export default function Home() {
   // Search Functionality <<
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredRecipes, setFilteredRecipes] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value)
+    setCurrentPage(1)
   }
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export default function Home() {
           </div>
         </div>
       
-        <Content handlePostClick={handlePostClick} recipes={filteredRecipes} />
+        <Content handlePostClick={handlePostClick} recipes={filteredRecipes} currentPage={currentPage} setCurrentPage={setCurrentPage} />
 
         {isPostFormVisible && 
           <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 z-10 flex items-center justify-center">

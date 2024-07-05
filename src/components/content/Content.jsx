@@ -9,7 +9,7 @@ import ViewRecipe from "../ViewRecipe";
 import Pagination from "./Pagination";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-export default function Content({ handlePostClick, recipes }) {
+export default function Content({ handlePostClick, recipes, currentPage, setCurrentPage }) {
     const [showFilter, setShowFilter] = useState(false)
     const [selectedRecipe, setSelectedRecipe] = useState(null)
     const [mealFilter, setMealFilter] = useState([])
@@ -20,7 +20,6 @@ export default function Content({ handlePostClick, recipes }) {
     const [durationOptionsVisible, setDurationOptionsVisible] = useState(false)
     const [favoritesFilter, setFavoritesFilter] = useState(false)
     const [savedRecipes, setSavedRecipes] = useState([])
-    const [currentPage, setCurrentPage] = useState(1)
     const [recipesPerPage] = useState(6)
     const [currentUserId, setCurrentUserId] = useState(null)
 
