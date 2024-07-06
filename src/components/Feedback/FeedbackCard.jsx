@@ -1,24 +1,43 @@
 /* eslint-disable react/prop-types */
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faThumbTack, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState } from "react";
 
-export default function FeedbackCard({ feedback, onDelete }) {
+export default function FeedbackCard({ feedback, onDelete, onClick, onTogglePin }) {
+  const [isPinned, setIsPinned] = useState(feedback.isPinned || false)
+
     const getFormattedDate = (timestamp) => {
         const date = timestamp.toDate()
         const options = {weekday: 'long', hour: '2-digit', minute: '2-digit'}
         return date.toLocaleDateString('ro-RO', options)
     }
 
+    const handlePinClick = (e) => {
+      e.stopPropagation()
+      setIsPinned(!isPinned)
+      onTogglePin(feedback.id, !isPinned)
+    }
+
   return (
     <div className="flex flex-col gap-2 bg-ff-content dark:bg-dark-elements p-4 rounded-lg hover:shadow-md dark:shadow-none
     dark:hover:bg-dark-highlight relative cursor-pointer group"
+      onClick={onClick}
     >
-      <button className="absolute top-2 right-4 text-gray-500 hover:text-red-500
-      dark:text-dark-border dark:hover:text-dark-btn transition duration-150 hidden group-hover:block"
-        onClick={onDelete}
-      >
-        <FontAwesomeIcon icon={faTimes} />
-      </button>
+      <div className="absolute top-2 right-4 flex-row gap-2 text-gray-500 dark:text-dark-border transition duration-150 hidden group-hover:flex">
+                <button 
+                  className={`hover:text-green-500 dark:text-dark-border dark:hover:text-dark-btn ${isPinned ? 'text-green-500 dark:text-dark-btn' : ''}`} 
+                  onClick={handlePinClick}
+                >
+                    <FontAwesomeIcon icon={faThumbTack} />
+                </button>
+
+                <button 
+                  className="hover:text-red-500 dark:text-dark-border dark:hover:text-dark-btn" 
+                  onClick={onDelete}
+                >
+                    <FontAwesomeIcon icon={faTimes} />
+                </button>
+            </div>
 
       <div className="flex flex-row gap-2 items-center">
         <img 
