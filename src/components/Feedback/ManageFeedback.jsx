@@ -9,6 +9,7 @@ import ViewFeedback from "./ViewFeedback";
 export default function ManageFeedback() {
   const [feedbacks, setFeedbacks] = useState([])
   const [selectedFeedback, setSelectedFeedback] = useState(null)
+  const [initialOrder, setInitialOrder] = useState([])
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -19,12 +20,9 @@ export default function ManageFeedback() {
           id: doc.id,
           ...doc.data(),
         }))
-        
-        const pinnedFeedbacks = feedbackList.filter(feedback => feedback.isPinned)
-        const unpinnedFeedbacks = feedbackList.filter(feedback => !feedback.isPinned)
 
-        const sortedFeedbacks = [...pinnedFeedbacks, ...unpinnedFeedbacks]
-        setFeedbacks(sortedFeedbacks)
+        setInitialOrder(feedbackList.map(feedback => feedback.id))
+        sortAndSetFeedbacks(feedbackList)
       } catch (error) {
         console.error("Eroare la recuperarea datelor: ", error)
       }
@@ -32,6 +30,16 @@ export default function ManageFeedback() {
 
     fetchFeedbacks()
   }, [])
+
+  // Pinning and deleting functions for feedback <<
+  const sortAndSetFeedbacks = (feedbackList) => {
+    const pinnedFeedbacks = feedbackList.filter(feedback => feedback.isPinned)
+    const unpinnedFeedbacks = feedbackList.filter(feedback => !feedback.isPinned)
+    
+    unpinnedFeedbacks.sort((a, b) => initialOrder.indexOf(a.id) - initialOrder.indexOf(b.id))
+
+    setFeedbacks([...pinnedFeedbacks, ...unpinnedFeedbacks])
+  }
 
   const handleDelete = async (id) => {
     if (window.confirm("Doriti sa stergeti acest feedback?")) {
@@ -44,12 +52,13 @@ export default function ManageFeedback() {
         alert("A aparut o eroare la stergerea feedback-ului.")
       }
     }
-  };
+  }
 
   const handleTogglePin = async (id, isPinned) => {
     try {
       const feedbackDoc = doc(db, "feedbacks", id)
       await updateDoc(feedbackDoc, { isPinned })
+
       setFeedbacks((prevFeedbacks) => {
         const updatedFeedbacks = prevFeedbacks.map((feedback) => {
           if (feedback.id === id) {
@@ -57,21 +66,26 @@ export default function ManageFeedback() {
           }
           return feedback
         })
+
         const pinnedFeedbacks = updatedFeedbacks.filter(feedback => feedback.isPinned)
         const unpinnedFeedbacks = updatedFeedbacks.filter(feedback => !feedback.isPinned)
+        
+        unpinnedFeedbacks.sort((a, b) => initialOrder.indexOf(a.id) - initialOrder.indexOf(b.id))
+        
         return [...pinnedFeedbacks, ...unpinnedFeedbacks]
       })
     } catch (error) {
       alert("A apărut o eroare la actualizarea feedback-ului.")
     }
-  };
+  }
+  // >>
 
   return (
     <div className="flex flex-col relative bg-ff-bg dark:bg-dark-bg h-screen w-screen overflow-x-hidden">
       <Navigation />
 
       <div className="flex flex-grow overflow-hidden">
-        <div className="top-0 left-0 h-full w-[400px] bg-ff-bg dark:bg-dark-bg p-4 border-r border-black dark:border-dark-border dark:border-opacity-20 border-opacity-20 z-20 transform transition-transform md:relative md:translate-x-0 overflow-y-auto">
+        <div className="top-0 left-0 h-full w-[400px] flex-shrink-0 bg-ff-bg dark:bg-dark-bg p-4 border-r border-black dark:border-dark-border dark:border-opacity-20 border-opacity-20 z-20 transform transition-transform md:relative md:translate-x-0 overflow-y-auto">
           <h2 className="text-xl font-bold mb-4 dark:text-dark-border">Feedback Inbox</h2>
 
           <div className="flex flex-col h-auto gap-4">
