@@ -3,6 +3,7 @@ import jsPDF from "jspdf";
 import 'jspdf-autotable';
 import { useEffect, useState } from "react";
 import { db } from "../../../firebase-config";
+import FlavorFolioLogo from '../../../assets/FlavorFolio_logo1.png';
 
 export default function HighestRatingRecipes() {
   const [highestRatingRecipes, setHighestRatingRecipes] = useState([]);
@@ -10,54 +11,66 @@ export default function HighestRatingRecipes() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const recipesSnapshot = await getDocs(collection(db, 'recipes'));
-        let maxAverageRating = 0;
-        let topRecipes = [];
+        const recipesSnapshot = await getDocs(collection(db, 'recipes'))
+        let maxAverageRating = 0
+        let topRecipes = []
 
         recipesSnapshot.forEach(doc => {
-          const data = doc.data();
+          const data = doc.data()
           if (data.rating && data.rating.length > 0) {
-            const averageRating = data.rating.reduce((acc, val) => acc + val, 0) / data.rating.length;
+            const averageRating = data.rating.reduce((acc, val) => acc + val, 0) / data.rating.length
             if (averageRating > maxAverageRating) {
-              maxAverageRating = averageRating;
-              topRecipes = [data];
+              maxAverageRating = averageRating
+              topRecipes = [data]
             } else if (averageRating === maxAverageRating) {
-              topRecipes.push(data);
+              topRecipes.push(data)
             }
           }
-        });
+        })
 
         setHighestRatingRecipes(topRecipes.map(recipe => ({
           ...recipe,
           averageRating: recipe.rating.reduce((acc, val) => acc + val, 0) / recipe.rating.length,
           ratingCount: recipe.rating.length
-        })));
+        })))
       } catch (error) {
         console.error("Error fetching data: ", error);
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.text('Highest Rating Recipes Report', 14, 16);
+    const doc = new jsPDF()
+    const currentDate = new Date().toLocaleDateString()
+
+    doc.addImage(FlavorFolioLogo, 'PNG', 14, 5, 15, 15)
+    doc.setFontSize(15)
+    doc.text('FlavorFolio', 30, 15)
+    doc.setFontSize(12)
+    doc.text('Raport Cele Mai Apreciate Retete', 130, 15)
+
     const tableData = highestRatingRecipes.map((recipe, index) => [
       index + 1,
       recipe.title,
       recipe.user,
       recipe.averageRating.toFixed(2),
       recipe.ratingCount
-    ]);
+    ])
 
     doc.autoTable({
       startY: 30,
       head: [['#', 'Title', 'User', 'Average Rating', 'Total Ratings']],
       body: tableData,
-    });
-    doc.save('highest_rating_recipes_report.pdf');
-  };
+    })
+
+    const pageHeight = doc.internal.pageSize.height
+    doc.setFontSize(12)
+    doc.text(`Data: ${currentDate}`, 14, pageHeight - 10)
+
+    doc.save('highest_rating_recipes_report.pdf')
+  }
 
   return (
     <div className="flex flex-col gap-4">

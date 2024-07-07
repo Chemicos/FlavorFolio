@@ -3,57 +3,70 @@ import jsPDF from "jspdf"
 import 'jspdf-autotable'
 import { useEffect, useState } from "react"
 import { db } from "../../../firebase-config"
+import FlavorFolioLogo from '../../../assets/FlavorFolio_logo1.png'
 
 export default function MostCommentedRecipes() {
-  const [mostCommentedRecipes, setMostCommentedRecipes] = useState([]);
+  const [mostCommentedRecipes, setMostCommentedRecipes] = useState([])
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const recipesSnapshot = await getDocs(collection(db, 'recipes'));
-        let maxComments = 0;
-        let topRecipes = [];
+        const recipesSnapshot = await getDocs(collection(db, 'recipes'))
+        let maxComments = 0
+        let topRecipes = []
 
         recipesSnapshot.forEach(doc => {
-          const data = doc.data();
-          const commentsCount = data.comments ? data.comments.length : 0;
+          const data = doc.data()
+          const commentsCount = data.comments ? data.comments.length : 0
           if (commentsCount > maxComments) {
-            maxComments = commentsCount;
-            topRecipes = [data];
+            maxComments = commentsCount
+            topRecipes = [data]
           } else if (commentsCount === maxComments) {
-            topRecipes.push(data);
+            topRecipes.push(data)
           }
-        });
+        })
 
         setMostCommentedRecipes(topRecipes.map(recipe => ({
           ...recipe,
           commentsCount: recipe.comments ? recipe.comments.length : 0
-        })));
+        })))
       } catch (error) {
-        console.error("Error fetching data: ", error);
+        console.error("Error fetching data: ", error)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.text('Most Commented Recipes Report', 14, 16);
+    const doc = new jsPDF()
+    const currentDate = new Date().toLocaleDateString()
+
+    doc.addImage(FlavorFolioLogo, 'PNG', 14, 5, 15, 15)
+    doc.setFontSize(15)
+    doc.text('FlavorFolio', 30, 15)
+    doc.setFontSize(12)
+    doc.text('Raport Cele Mai Comentate Retete', 130, 15)
+
     const tableData = mostCommentedRecipes.map((recipe, index) => [
       index + 1,
       recipe.title,
       recipe.user,
       recipe.commentsCount
-    ]);
+    ])
 
     doc.autoTable({
       startY: 30,
       head: [['#', 'Title', 'User', 'Total Comments']],
       body: tableData,
-    });
-    doc.save('most_commented_recipes_report.pdf');
-  };
+    })
+
+    const pageHeight = doc.internal.pageSize.height
+    doc.setFontSize(12)
+    doc.text(`Data: ${currentDate}`, 14, pageHeight - 10)
+
+    doc.save('most_commented_recipes_report.pdf')
+  }
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-row items-center">

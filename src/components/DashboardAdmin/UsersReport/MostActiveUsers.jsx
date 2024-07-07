@@ -3,6 +3,7 @@ import jsPDF from "jspdf"
 import 'jspdf-autotable'
 import { useEffect, useState } from "react"
 import { db } from "../../../firebase-config"
+import FlavorFolioLogo from '../../../assets/FlavorFolio_logo1.png'
 
 export default function MostActiveUsers() {
   const [mostActiveUsers, setMostActiveUsers] = useState([])
@@ -53,19 +54,26 @@ export default function MostActiveUsers() {
           }
         });
 
-        const sortedUsers = Object.values(userActivity).sort((a, b) => b.recipesPosted - a.recipesPosted).slice(0, 10);
-        setMostActiveUsers(sortedUsers);
+        const sortedUsers = Object.values(userActivity).sort((a, b) => b.recipesPosted - a.recipesPosted).slice(0, 10)
+        setMostActiveUsers(sortedUsers)
       } catch (error) {
-        console.error("Error fetching data: ", error);
+        console.error("Error fetching data: ", error)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.text('Activitate Utilizatori', 14, 16);
+    const doc = new jsPDF()
+    const currentDate = new Date().toLocaleDateString()
+
+    doc.addImage(FlavorFolioLogo, 'PNG', 14, 5, 15, 15)
+    doc.setFontSize(15)
+    doc.text('FlavorFolio', 30, 15)
+    doc.setFontSize(12)
+    doc.text('Activitate Utilizatori', 150, 15)
+
     const tableData = mostActiveUsers.map((user, index) => [
       index + 1,
       user.userId,
@@ -73,15 +81,20 @@ export default function MostActiveUsers() {
       user.recipesPosted,
       user.commentsMade,
       user.recipesSaved
-    ]);
+    ])
 
     doc.autoTable({
       startY: 30,
       head: [['#', 'ID', 'Nume utilizator', 'Retete postate', 'Comentarii facute', 'Retete salvate']],
       body: tableData,
-    });
-    doc.save('most_active_users_report.pdf');
-  };
+    })
+
+    const pageHeight = doc.internal.pageSize.height
+    doc.setFontSize(12)
+    doc.text(`Data: ${currentDate}`, 14, pageHeight - 10)
+
+    doc.save('most_active_users_report.pdf')
+  }
 
   return (
     <div className="flex flex-col gap-4">

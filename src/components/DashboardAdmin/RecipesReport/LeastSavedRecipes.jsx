@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { db } from "../../../firebase-config"
 import jsPDF from "jspdf"
 import 'jspdf-autotable'
+import FlavorFolioLogo from '../../../assets/FlavorFolio_logo1.png'
 
 export default function LeastSavedRecipes() {
   const [leastSavedRecipes, setLeastSavedRecipes] = useState([])
@@ -12,43 +13,55 @@ export default function LeastSavedRecipes() {
       try {
         const savedRecipesSnapshot = await getDocs(collection(db, 'savedRecipes'))
         let maxSaves = 0;
-        let allRecipes = [];
+        let allRecipes = []
 
         savedRecipesSnapshot.forEach(doc => {
-          const data = doc.data();
+          const data = doc.data()
           if (data.userIds && data.userIds.length > maxSaves) {
-            maxSaves = data.userIds.length;
+            maxSaves = data.userIds.length
           }
-          allRecipes.push(data);
-        });
+          allRecipes.push(data)
+        })
 
-        const leastSavedRecipes = allRecipes.filter(recipe => recipe.userIds.length < maxSaves);
-        setLeastSavedRecipes(leastSavedRecipes);
+        const leastSavedRecipes = allRecipes.filter(recipe => recipe.userIds.length < maxSaves)
+        setLeastSavedRecipes(leastSavedRecipes)
       } catch (error) {
-        console.error("Error fetching data: ", error);
+        console.error("Error fetching data: ", error)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.text('Least Saved Recipes Report', 14, 16);
+    const doc = new jsPDF()
+    const currentDate = new Date().toLocaleDateString()
+
+    doc.addImage(FlavorFolioLogo, 'PNG', 14, 5, 15, 15)
+    doc.setFontSize(15)
+    doc.text('FlavorFolio', 30, 15)
+    doc.setFontSize(12)
+    doc.text('Raport Cele Mai Putin Salvate Retete', 130, 15)
+    
     const tableData = leastSavedRecipes.map((recipe, index) => [
       index + 1,
       recipe.title,
       recipe.user,
       recipe.userIds.length
-    ]);
+    ])
 
     doc.autoTable({
       startY: 30,
       head: [['#', 'Title', 'User', 'Number of Saves']],
       body: tableData,
-    });
-    doc.save('least_saved_recipes_report.pdf');
-  };
+    })
+
+    const pageHeight = doc.internal.pageSize.height
+    doc.setFontSize(12)
+    doc.text(`Data: ${currentDate}`, 14, pageHeight - 10)
+
+    doc.save('least_saved_recipes_report.pdf')
+  }
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-row items-center">

@@ -3,53 +3,66 @@ import { useEffect, useState } from "react";
 import { db } from "../../../firebase-config";
 import jsPDF from "jspdf";
 import 'jspdf-autotable'
+import FlavorFolioLogo from '../../../assets/FlavorFolio_logo1.png'
 
 export default function MostSavedRecipes() {
-    const [mostSavedRecipes, setMostSavedRecipes] = useState([]);
+    const [mostSavedRecipes, setMostSavedRecipes] = useState([])
 
     useEffect(() => {
       const fetchData = async () => {
         try {
-          const savedRecipesSnapshot = await getDocs(collection(db, 'savedRecipes'));
-          let maxSaves = 0;
-          let topRecipes = [];
+          const savedRecipesSnapshot = await getDocs(collection(db, 'savedRecipes'))
+          let maxSaves = 0
+          let topRecipes = []
   
           savedRecipesSnapshot.forEach(doc => {
-            const data = doc.data();
+            const data = doc.data()
             if (data.userIds && data.userIds.length > maxSaves) {
-              maxSaves = data.userIds.length;
-              topRecipes = [data];
+              maxSaves = data.userIds.length
+              topRecipes = [data]
             } else if (data.userIds && data.userIds.length === maxSaves) {
-              topRecipes.push(data);
+              topRecipes.push(data)
             }
-          });
+          })
   
-          setMostSavedRecipes(topRecipes);
+          setMostSavedRecipes(topRecipes)
         } catch (error) {
-          console.error("Error fetching data: ", error);
+          console.error("Error fetching data: ", error)
         }
-      };
+      }
   
-      fetchData();
-    }, []);
+      fetchData()
+    }, [])
   
     const generatePDF = () => {
-      const doc = new jsPDF();
-      doc.text('Most Saved Recipes Report', 14, 16);
+      const doc = new jsPDF()
+      const currentDate = new Date().toLocaleDateString()
+
+      doc.addImage(FlavorFolioLogo, 'PNG', 14, 5, 15, 15)
+      doc.setFontSize(15)
+      doc.text('FlavorFolio', 30, 15)
+      doc.setFontSize(12)
+      doc.text('Raport Cele Mai Salvate Retete', 130, 15)
+
       const tableData = mostSavedRecipes.map((recipe, index) => [
         index + 1,
         recipe.title,
         recipe.user,
         recipe.userIds.length
-      ]);
+      ])
   
       doc.autoTable({
         startY: 30,
         head: [['#', 'Title', 'User', 'Number of Saves']],
         body: tableData,
-      });
-      doc.save('most_saved_recipes_report.pdf');
-    };
+      })
+
+      const pageHeight = doc.internal.pageSize.height
+      doc.setFontSize(12)
+      doc.text(`Data: ${currentDate}`, 14, pageHeight - 10)
+
+      doc.save('most_saved_recipes_report.pdf')
+    }
   
     return (
       <div className="flex flex-col gap-4">
