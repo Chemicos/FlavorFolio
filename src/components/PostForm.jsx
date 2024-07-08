@@ -406,7 +406,7 @@ export default function PostForm({ handleClose }) {
                   dark:placeholder:text-dark-border dark:border-opacity-40 dark:hover:border-opacity-100 dark:focus:border-opacity-100
                   placeholder:italic duration-150 ${descriptionError ? 'shadow-input-error' : ''}`}
                   cols="20" 
-                  rows="1" 
+                  rows="4" 
                 />
 
                 <h1 className="font-semibold text-lg dark:text-dark-border">Ingrediente</h1>
