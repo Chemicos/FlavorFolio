@@ -44,7 +44,7 @@ export default function Notifications() {
     const auth = getAuth()
 
     const fetchNotifications = async (userId) => {
-        if (!userId) return;
+        if (!userId) return
         const userRef = doc(db, 'users', userId)
         const userDoc = await getDoc(userRef)
         if (userDoc.exists()) {

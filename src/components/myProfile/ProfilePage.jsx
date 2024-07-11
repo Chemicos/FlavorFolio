@@ -140,7 +140,7 @@ export default function ProfilePage() {
             
             <div className="flex flex-wrap justify-center sm:w-[80%] 2xl:w-[1600px] mb-8">
                 {view === 'postari' ? (
-                    <UserRecipe username={username} onRecipeClick={handleRecipeClick} />
+                    <UserRecipe userId={user ? user.uid.trim() : null} username={username} onRecipeClick={handleRecipeClick} />
                 ) : (
                     <SavedRecipe username={username} currentUserId={user ? user.uid.trim() : null} />
                 )}

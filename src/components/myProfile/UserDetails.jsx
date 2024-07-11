@@ -2,7 +2,6 @@
 import { collection, doc, getDoc, getDocs, query, where } from "@firebase/firestore"
 import { useEffect, useState } from "react"
 import { db } from "../../firebase-config"
-// TODO: AFISEAZA SI NUMARUL TOTAL DE UTILIZATORI URMARITI DE CONTUL CONECTAT
 
 export default function UserDetails({ username, userId }) {
     const [recipeCount, setRecipeCount] = useState(0)
@@ -11,9 +10,9 @@ export default function UserDetails({ username, userId }) {
 
     useEffect(() => {
       const fetchUserRecipes = async () => {
-        if (username) {
+        if (userId) {
           const recipesRef = collection(db, 'recipes')
-          const q = query(recipesRef, where('user', '==', username))
+          const q = query(recipesRef, where('userId', '==', userId))
           const querySnapshot = await getDocs(q)
           setRecipeCount(querySnapshot.size)
         }

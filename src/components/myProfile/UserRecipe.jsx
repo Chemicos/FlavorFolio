@@ -14,16 +14,16 @@ export default function UserRecipe({ userId ,username, onRecipeClick }) {
 
     useEffect(() => {
         const fetchUserRecipes = async () => {
-            if (username) {
+            if (userId) {
                 const recipesRef = collection(db, 'recipes')
-                const q = query(recipesRef, where('user', '==', username))
+                const q = query(recipesRef, where('userId', '==', userId))
                 const querySnapshot = await getDocs(q)
                 const recipes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
                 setUserRecipes(recipes)
             }
         }
         fetchUserRecipes()
-    }, [username])
+    }, [userId])
 
     useEffect(() => {
         const fetchUserRecipes = async () => {
