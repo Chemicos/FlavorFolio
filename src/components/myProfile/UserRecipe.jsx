@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 
-export default function UserRecipe({ userId ,username, onRecipeClick }) {
+export default function UserRecipe({ userId , onRecipeClick }) {
     const [userRecipes, setUserRecipes] = useState([])
     const [currentPage, setCurrentPage] = useState(1)
     const recipesPerPage = 8
