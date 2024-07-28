@@ -1,48 +1,19 @@
-# React + Vite
-SETUP: 
+# Overview
+FlavorFolio is a recipe web portfolio application that contains some social media aspects. Users can post, view, and save their favorite recipes, follow other users, and explore a variety of dishes from different cuisines. The application utilizes React and Vite for a fast development experience, Firebase for authentication and database management, and Tailwind CSS for a modern, responsive design.
 
-# Step 1: 
-npm create vite@latest project_name -- --template react
+#Key Features:
+* Recipe posting and saving
+* User profiles with follow functionality
+* Recipe search and filtering
+* Responsive design with Tailwind CSS
+* Authentication and real-time database using Firebase
+
+# SETUP: 
+# Step 1: Clone the Repository
 cd .
+
+# Step 2: Install Dependencies
 npm install
 
-# Step 2: Firebase
-npm install firebase
-npm install firebase universal-cookie
-npm install @firebase/firestore
-
-
-# Step3: Tailwind CSS
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
-
-//Configure your template paths. Add the paths to all of your template files in your tailwind.config.js file:
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-
-//Add the Tailwind directives to your CSS. Add the @tailwind directives for each of Tailwind’s layers to your ./src/index.css file:
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-# Step 4: FontAwsome
-npm i --save @fortawesome/fontawesome-svg-core
-npm i --save @fortawesome/free-solid-svg-icons
-npm i --save @fortawesome/free-regular-svg-icons
-npm i --save @fortawesome/free-brands-svg-icons
-npm i --save @fortawesome/react-fontawesome@latest
-
-# Step 5: React-Router
-npm install react-router-dom
-
-# Step 6: jsPDF
-npm install jspdf jspdf-autotable
+#Step 3: Start the Development Server
+npm run dev
