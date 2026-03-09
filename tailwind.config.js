@@ -23,6 +23,7 @@ export default {
         "dark-highlight": '#20262D'
       },
       textColor: {
+        'ff-white': "#fff",
         'ff-flavor': '#02650C',
         'ff-folio': '#943500',
         'ff-googlebtn': '#0E0C22',

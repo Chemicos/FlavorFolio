@@ -17,7 +17,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
             {pages.map(page => (
                 <button
                     key={page}
-                    className={`mx-1 px-3 py-1 rounded-xl font-bold hover:scale-110 duration-150 ${currentPage === page ? 'bg-ff-btn-dark text-white' : 'bg-ff-btn hover:bg-ff-btn-dark'}`}
+                    className={`mx-1 px-3 py-1 rounded-xl font-bold hover:scale-110 duration-150 ${currentPage === page ? 'bg-ff-btn-dark dark:text-ff-white' : 'bg-ff-btn hover:bg-ff-btn-dark'}`}
                     onClick={() => onPageChange(page)}
                 >
                     {page}

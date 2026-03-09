@@ -50,7 +50,7 @@ export default function Rating({ recipeId, initialRating }) {
         ))}
         </div>
 
-        <span className="text-white text-sm">
+        <span className="text-white text-sm font-bold">
             {averageRating}
         </span>
     </div>

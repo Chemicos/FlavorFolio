@@ -95,7 +95,7 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
             alt="reteta" 
         />
         
-        <div className="absolute inset-0 bg-black bg-opacity-25 flex flex-col
+        <div className="absolute inset-0 bg-black bg-opacity-50 h-20 top-40 flex flex-col
              justify-between p-4 pointer-events-none"></div>
 
         <div className='absolute top-0 right-0 flex items-start justify-end px-4 pt-2'>
