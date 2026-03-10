@@ -1,21 +1,24 @@
-// import { getAuth, onAuthStateChanged } from "firebase/auth"
- import { useEffect, useState } from "react"
-// import { useNavigate } from "react-router-dom"
-// import { db } from "../firebase-config"
-// import { doc, getDoc } from "@firebase/firestore"
+import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import Navigation from "./Navigation"
+import Navigation from "./Navigation.jsx"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
-import Content from "./content/Content"
-import PostForm from "./PostForm"
+import Content from "./content/Content.jsx"
+import PostForm from "./PostForm.jsx"
 import { collection, getDocs } from "@firebase/firestore"
-import { db } from "../firebase-config"
-import Feedback from "./Feedback/Feedback"
+import { db } from "../firebase-config.js"
+import Feedback from "./Feedback/Feedback.jsx"
+
+import Snackbar from "@mui/material/Snackbar"
+import Alert from "@mui/material/Alert"
 
 export default function Home() {
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
   const [recipes, setRecipes] = useState([])
   const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
+
+  // Auth Feedback
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMessage, setsnackbarMessage] = useState("")
 
   const handlePostClick = () => {
     setIsPostFormVisible(true)
@@ -29,6 +32,15 @@ export default function Home() {
     setIsPostFormVisible(false)
     setIsFeedbackVisible(false)
   }
+
+  const handleSnackbarClose = (
+    _event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") return
+    setSnackbarOpen(false)
+  }
+
   // Search Functionality <<
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredRecipes, setFilteredRecipes] = useState([])
@@ -60,6 +72,21 @@ export default function Home() {
     setFilteredRecipes(filtered)
   }, [searchQuery, recipes])
 // >>
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("authFeedback")
+    if (!raw) return 
+
+    try {
+      const parsed = JSON.parse(raw)
+      setsnackbarMessage(parsed.message || "Authentication successful.")
+      setSnackbarOpen(true)
+    } catch (err) {
+      console.error("Failed to parse auth feedback:", err)
+    } finally {
+      sessionStorage.removeItem("authFeedback")
+    }
+  }, [])
 
   return (
     <div className="h-screen w-screen overflow-x-hidden bg-ff-bg dark:bg-dark-bg">
@@ -103,6 +130,24 @@ export default function Home() {
           <Feedback onClose={handleClose} />
         )}
       </div>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3500}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          variant="filled"
+          sx={{
+            width: "100%",
+          }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   )
 }

@@ -10,7 +10,6 @@ import PasswordStrength from "./PasswordStrength.js"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { auth, db } from "../../../../firebase-config.js"
 import { doc, serverTimestamp, setDoc } from "@firebase/firestore"
-import { getAuthErrorMessage } from "../../utils/authErrorMessages.js"
 
 const muiFieldSx = {
   "& .MuiInputLabel-root": {
@@ -55,7 +54,6 @@ export default function SignUpForm() {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
 
-    const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
 
     const canTogglePassword = useMemo(() => password.length > 0, [password])
@@ -82,13 +80,6 @@ export default function SignUpForm() {
         e.preventDefault()
         if (loading) return
 
-        setError("")
-
-        if (!usernameOk) return setError("Username must be at least 3 characters.")
-        if (!emailOk) return setError("Please enter a valid email address.")
-        if (!passwordOk) return setError("Please meet all password requirements.")
-        if (!confirmOk) return setError("Passwords do not match.")
-
         setLoading(true)
         try {
             const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
@@ -104,12 +95,16 @@ export default function SignUpForm() {
                 createdAt: serverTimestamp(),
             })
 
+            sessionStorage.setItem("authFeedback", JSON.stringify({
+                type: "success",
+                message: "Your account has been created successfully."
+            }))
+
             setUsername("")
             setEmail("")
             setPassword("")
             setConfirm("")
         } catch (err) {
-            setError(getAuthErrorMessage(err))
             console.error(err)
         } finally {
             setLoading(false)
@@ -119,17 +114,11 @@ export default function SignUpForm() {
   return (
     <form onSubmit={handleSignUp} className="flex flex-col gap-4">
         <div className="flex flex-col gap-5 mt-12">
-            {error && (
-                <div className="w-full rounded-lg border text-sm border-red-500/25 bg-red-500/10 px-4 py-3 text-red-400">
-                    {error}
-                </div>
-            )}
 
             <TextField
                 value={username}
                 onChange={(e) => {
                     setUsername(e.target.value)
-                    if (error) setError("")
                 }}
                 label="Username"
                 fullWidth
@@ -141,7 +130,6 @@ export default function SignUpForm() {
                 value={email}
                 onChange={(e) => {
                     setEmail(e.target.value)
-                    if (error) setError("")
                 }}
                 label="Email address"
                 type="email"
@@ -156,7 +144,6 @@ export default function SignUpForm() {
                     value={password}
                     onChange={(e) => {
                     setPassword(e.target.value)
-                    if (error) setError("")
                     }}
                     label="Password"
                     type={showPassword ? "text" : "password"}
@@ -189,7 +176,6 @@ export default function SignUpForm() {
                     value={confirm}
                     onChange={(e) => {
                     setConfirm(e.target.value)
-                    if (error) setError("")
                     }}
                     label="Confirm password"
                     type={showConfirm ? "text" : "password"}

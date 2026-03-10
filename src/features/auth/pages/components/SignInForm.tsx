@@ -57,7 +57,7 @@ export default function SignInForm() {
         if (!password) setShowPassword(false)
     }, [password])
 
-    const handleSignIn = async (e: { preventDefault: () => void }) => {
+    const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (loading || googleLoading) return
 
@@ -65,7 +65,11 @@ export default function SignInForm() {
         setLoading(true)
         try {
             await signInWithEmailAndPassword(auth, email, password)
-            // navigate("/home")
+
+            sessionStorage.setItem("authFeedback", JSON.stringify({
+                type: "success",
+                message: "Welcome back! You have signed in successfully."
+            }))
         } catch (err) {
             setError(getAuthErrorMessage(err))
             console.error(err)
@@ -82,6 +86,14 @@ export default function SignInForm() {
         setGoogleLoading(true)
         try {
             await signInWithPopup(auth, provider)
+
+            sessionStorage.setItem(
+                "authFeedback",
+                JSON.stringify({
+                    type: "success",
+                    message: "Signed in with Google successfully."
+                })
+            )
         } catch (err) {
             setError(getAuthErrorMessage(err))
             console.error(err)
