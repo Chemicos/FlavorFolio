@@ -1,5 +1,5 @@
 # Overview
-FlavorFolio is a recipe web portfolio application that contains some social media aspects. Users can post, view, and save their favorite recipes, follow other users, and explore a variety of dishes from different cuisines. The application utilizes React and Vite for a fast development experience, Firebase for authentication and database management, and Tailwind CSS for a modern, responsive design.
+FlavorFolio is a recipe web portfolio application that contains some social media aspects. Users can post, view, and save their favorite recipes, follow other users, and explore a variety of dishes from different cuisines. The application utilizes React and Vite for a fast development experience, Firebase for authentication and database management, and Tailwind CSS for a modern, responsive design. (Under Redesign)
 
 # Key Features:
 * Recipe posting and saving
