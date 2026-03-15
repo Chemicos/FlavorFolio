@@ -8,11 +8,16 @@
     padding: 0;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
 body {
-    display: flex;
-    height: 100vh;
-    justify-content: center;
-    align-items: center;
+  overflow-x: hidden;
+  background: #0b0b0c;
 }
 
 input:focus{

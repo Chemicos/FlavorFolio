@@ -10,22 +10,19 @@ import AuthCard from "./components/AuthCard.js"
 import SignUpHeroRight from "./components/heroes/SignUpHeroRight.js"
 
 export default function Login() {
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
   const location = useLocation()
 
   const initialMode = location.pathname.includes("register") ? "signup" : "signin"
-
   const [mode, setMode] = useState(initialMode)
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) navigate("/home")
-    })
-    return () => unsubscribe()
-  }, [navigate])
-
-  // const handleModeChange = (next) => {
-  //   setMode(next)
-  // }
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
+  //     if (user && location.pathname === "/") {
+  //       navigate("/home")
+  //     }
+  //   })
+  //   return () => unsubscribe()
+  // }, [navigate, location.pathname])
 
   return (
     <div className="min-h-screen w-screen relative overflow-hidden">

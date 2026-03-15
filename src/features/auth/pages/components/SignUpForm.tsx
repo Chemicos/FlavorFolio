@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 import TextField from "@mui/material/TextField"
 import InputAdornment from "@mui/material/InputAdornment"
@@ -46,6 +47,7 @@ const passwordCriteria = (password: string) => [
 ]
 
 export default function SignUpForm() {
+    const navigate = useNavigate()
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -83,8 +85,8 @@ export default function SignUpForm() {
         setLoading(true)
         try {
             const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
-            const user = cred.user
 
+            const user = cred.user
             await updateProfile( user, {displayName: username.trim() })
 
             await setDoc(doc(db, "users", user.uid), {
@@ -104,6 +106,8 @@ export default function SignUpForm() {
             setEmail("")
             setPassword("")
             setConfirm("")
+
+            navigate("/home")
         } catch (err) {
             console.error(err)
         } finally {

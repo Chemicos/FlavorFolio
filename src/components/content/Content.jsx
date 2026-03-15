@@ -20,7 +20,7 @@ export default function Content({ handlePostClick, recipes, currentPage, setCurr
     const [durationOptionsVisible, setDurationOptionsVisible] = useState(false)
     const [favoritesFilter, setFavoritesFilter] = useState(false)
     const [savedRecipes, setSavedRecipes] = useState([])
-    const [recipesPerPage] = useState(6)
+    const [recipesPerPage] = useState(15)
     const [currentUserId, setCurrentUserId] = useState(null)
 
     // Fetch currentUserId <<
@@ -108,7 +108,7 @@ export default function Content({ handlePostClick, recipes, currentPage, setCurr
 
   return (
     <div className="bg-transparent sm:bg-ff-content dark:sm:bg-dark-bg dark:sm:border dark:sm:border-dark-border dark:sm:border-opacity-40
-    flex flex-col justify-between w-full sm:w-[80%] 2xl:w-[1200px] h-[755px] sm:h-[720px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
+    flex flex-col w-full sm:w-[80%] 2xl:w-[1200px] min-h-[755px] sm:min-h-[1000px] rounded-t-3xl sm:rounded-3xl shadow-md sm:mb-6">
         <div className="flex flex-row justify-between px-10 py-4">
             <button 
                 className="bg-ff-btn px-3 py-2 rounded-lg shadow flex items-center gap-3 border border-ff-btn
@@ -307,7 +307,7 @@ export default function Content({ handlePostClick, recipes, currentPage, setCurr
             </button>
         </div>
 
-        <div className="flex flex-wrap gap-8 justify-center overflow-y-auto py-4">
+        <div className="flex flex-wrap gap-8 justify-center py-4">
             {currentRecipes.map((recipe, index) => (
                     <RecipeCard 
                         key={index} 

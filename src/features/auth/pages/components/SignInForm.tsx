@@ -1,7 +1,8 @@
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
+import { useNavigate } from "react-router-dom"
+import { signInWithEmailAndPassword, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth"
 import { useEffect, useMemo, useState } from "react"
-import { auth, provider } from "../../../../firebase-config.js"
-import { getAuthErrorMessage } from "../../utils/authErrorMessages.js"
+import { auth, provider } from "../../../../firebase-config"
+import { getAuthErrorMessage } from "../../utils/authErrorMessages"
 
 import TextField from "@mui/material/TextField"
 import InputAdornment from "@mui/material/InputAdornment"
@@ -40,6 +41,7 @@ const muiFieldSx = {
 }
 
 export default function SignInForm() {
+    const navigate = useNavigate()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [rememberMe, setRememberMe] = useState(false)
@@ -51,6 +53,10 @@ export default function SignInForm() {
     const [googleLoading, setGoogleLoading] = useState(false)
 
     const canTogglePassword = useMemo(() => password.length > 0, [password])
+
+    const getSelectedPersistence = () => {
+        return rememberMe ? browserLocalPersistence : browserSessionPersistence
+    }
 
     // ascunde showPasswordIcon
     useEffect(() => {
@@ -64,12 +70,15 @@ export default function SignInForm() {
         setError("")
         setLoading(true)
         try {
+            await setPersistence(auth, getSelectedPersistence())
             await signInWithEmailAndPassword(auth, email, password)
 
             sessionStorage.setItem("authFeedback", JSON.stringify({
                 type: "success",
                 message: "Welcome back! You have signed in successfully."
             }))
+
+            navigate("/home")
         } catch (err) {
             setError(getAuthErrorMessage(err))
             console.error(err)
@@ -85,6 +94,7 @@ export default function SignInForm() {
         setError("")
         setGoogleLoading(true)
         try {
+            await setPersistence(auth, getSelectedPersistence())
             await signInWithPopup(auth, provider)
 
             sessionStorage.setItem(
@@ -94,6 +104,8 @@ export default function SignInForm() {
                     message: "Signed in with Google successfully."
                 })
             )
+
+            navigate("/home")
         } catch (err) {
             setError(getAuthErrorMessage(err))
             console.error(err)
