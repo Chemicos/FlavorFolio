@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { db } from "../../firebase-config";
+import { db } from "../../../firebase-config";
 import { Timestamp, arrayRemove, arrayUnion, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
 

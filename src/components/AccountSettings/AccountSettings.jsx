@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Navigation from "../Navigation";
+import Navigation from "../layout/Navigation";
 import SettingsMenu from "./SettingsMenu";
 import EditProfile from "./EditProfile";
 import AccountManagement from "./AccountManagement";

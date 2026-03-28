@@ -5,7 +5,7 @@ import { db } from "../../firebase-config"
 import Rating from "../Rating"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import ViewRecipe from "../ViewRecipe"
+import ViewRecipe from "../../features/home/components/ViewRecipe"
 
 
 export default function SavedRecipe({ currentUserId }) {

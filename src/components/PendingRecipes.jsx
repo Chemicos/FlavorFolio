@@ -1,7 +1,7 @@
 import { Timestamp, arrayUnion, collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from "@firebase/firestore"
 import { useEffect, useState } from "react"
 import { db, storage } from "../firebase-config"
-import Navigation from "./Navigation"
+import Navigation from "../components/layout/Navigation"
 import ViewPendingRecipe from "./ViewPendingRecipe"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck, faTrash } from "@fortawesome/free-solid-svg-icons"

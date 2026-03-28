@@ -1,13 +1,13 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Navigation from "../Navigation";
+import Navigation from "../layout/Navigation";
 import { faBasketShopping } from "@fortawesome/free-solid-svg-icons";
 import UserRecipe from "../myProfile/UserRecipe";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "@firebase/firestore";
 import { db } from "../../firebase-config";
-import FollowBtn from "../content/FollowBtn";
-import ViewRecipe from "../ViewRecipe";
+import FollowBtn from "../../features/home/components/FollowBtn";
+import ViewRecipe from "../../features/home/components/ViewRecipe";
 import UserDetails from "../myProfile/UserDetails";
 
 

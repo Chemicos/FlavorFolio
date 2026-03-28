@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Navigation from "../Navigation";
+import Navigation from "../layout/Navigation";
 import { collection, deleteDoc, doc, getDocs, updateDoc } from "@firebase/firestore";
 import { db } from "../../firebase-config";
 import FeedbackCard from "./FeedbackCard";

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import Navigation from "../Navigation"
+import Navigation from "../layout/Navigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faBasketShopping, faChevronDown, faChevronUp, faComment, faEye, faHeart, faHeartCrack, faThumbsDown, faThumbsUp, faUser } from "@fortawesome/free-solid-svg-icons";
 import MostSavedRecipes from "./RecipesReport/MostSavedRecipes";

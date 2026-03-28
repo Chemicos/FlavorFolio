@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Navigation from "../Navigation";
+import Navigation from "../layout/Navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "@firebase/firestore";
 import { db } from "../../firebase-config";
@@ -9,7 +9,7 @@ import { faBasketShopping, faPencil } from "@fortawesome/free-solid-svg-icons";
 import UserDetails from "./UserDetails";
 import UserRecipe from "./UserRecipe";
 import SavedRecipe from "./SavedRecipe";
-import ViewRecipe from "../ViewRecipe";
+import ViewRecipe from "../../features/home/components/ViewRecipe";
 import { useNavigate } from "react-router-dom";
 import Feedback from "../Feedback/Feedback";
 

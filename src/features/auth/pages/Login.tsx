@@ -3,7 +3,7 @@ import { auth } from "../../../firebase-config.js"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 
-import bg from "../../../assets/darkGradientBackground.jpg"
+import bg from "../../../assets/blurry-gradient-haikei.svg"
 
 import SignInHeroRight from "./components/heroes/SignInHeroRight.js"
 import AuthCard from "./components/AuthCard.js"

@@ -1,5 +1,5 @@
 // import { useEffect, useState } from 'react'
-import Home from './components/Home'
+import Home from './features/home/pages/Home'
 // import Cookies from 'universal-cookie'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import PendingRecipes from './components/PendingRecipes'
@@ -35,7 +35,7 @@ function App() {
       <div>
         <Routes>
           <Route path="/" element={user ? <Navigate replace to="/home" /> : <Login />} />
-          <Route path="/register" element={user ? <Navigate replace to="/home" /> : <Register />} />
+          {/* <Route path="/register" element={user ? <Navigate replace to="/home" /> : <Register />} /> */}
           <Route path="/home" element={user ? <Home /> : <Navigate replace to="/" />} />
           <Route path='/pending' element={user ? <PendingRecipes /> : <Navigate replace to="/" />} />
           <Route path='/profile' element={user ? <ProfilePage /> : <Navigate replace to="/" />} />

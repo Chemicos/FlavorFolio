@@ -3,13 +3,13 @@ import { faClock, faUser } from "@fortawesome/free-regular-svg-icons";
 import { faBasketShopping, faClose, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
-import { db } from "../firebase-config";
+import { db } from "../../../firebase-config";
 import { arrayUnion, doc, getDoc, setDoc, updateDoc } from "@firebase/firestore";
-import Rating from "./Rating";
-import FollowBtn from "./content/FollowBtn";
+import Rating from "../../../components/Rating";
+import FollowBtn from "./FollowBtn";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import Comment from "./recipeContent/Comment";
-import CommentPost from "./recipeContent/CommentPost";
+import Comment from "../../../components/recipeContent/Comment";
+import CommentPost from "../../../components/recipeContent/CommentPost";
 import { useNavigate } from "react-router-dom";
 
 export default function ViewRecipe({ recipe, onClose, currentUserId }) {

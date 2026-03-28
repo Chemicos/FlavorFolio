@@ -65,7 +65,7 @@ function MenuActionItem({
           color: danger ? "#f87171" : "#a8b3cf",
         },
         "&:hover": {
-          backgroundColor: "#0b0b0c",
+          backgroundColor: "#16181d",
         },
         "&.Mui-selected": {
           backgroundColor: "rgba(255,255,255,0.06)",
@@ -80,7 +80,7 @@ function MenuActionItem({
       <ListItemText
         primary={label}
         primaryTypographyProps={{
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: 500,
           color: danger ? "#f87171" : "#a8b3cf"
         }}
@@ -136,11 +136,11 @@ export default function UserDropdownMenu({
                 elevation: 0,
                 sx: {
                     mt: 1.5,
-                    width: 300,
+                    width: 280,
                     overflow: "hidden",
                     borderRadius: "10px",
                     border: "1px solid rgba(255,255,255,0.06)",
-                    backgroundColor: "#16181d",
+                    backgroundColor: "#0b0b0c",
                     boxShadow: "0 20px 50px rgba(0,0,0,0.45)",
                     py: 2,
                 }

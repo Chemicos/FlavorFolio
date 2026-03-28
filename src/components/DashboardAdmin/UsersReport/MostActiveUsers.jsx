@@ -3,7 +3,7 @@ import jsPDF from "jspdf"
 import 'jspdf-autotable'
 import { useEffect, useState } from "react"
 import { db } from "../../../firebase-config"
-import FlavorFolioLogo from '../../../assets/FlavorFolio_logo1.png'
+import FlavorFolioLogo from '../../../assets/FF_logo.png'
 
 export default function MostActiveUsers() {
   const [mostActiveUsers, setMostActiveUsers] = useState([])
