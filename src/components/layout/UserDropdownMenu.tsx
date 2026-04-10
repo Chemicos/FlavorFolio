@@ -57,7 +57,7 @@ function MenuActionItem({
         minHeight: 48,
         borderRadius: "10px",
         mx: 1,
-        py: 1.2,
+        py: 1,
         px: 1.5,
         color: danger ? "#f87171" : "#d7def0",
         "& .MuiListItemIcon-root": {
@@ -80,7 +80,7 @@ function MenuActionItem({
       <ListItemText
         primary={label}
         primaryTypographyProps={{
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: 500,
           color: danger ? "#f87171" : "#a8b3cf"
         }}
@@ -135,8 +135,8 @@ export default function UserDropdownMenu({
             paper: {
                 elevation: 0,
                 sx: {
-                    mt: 1.5,
-                    width: 280,
+                    mt: 2,
+                    width: 270,
                     overflow: "hidden",
                     borderRadius: "10px",
                     border: "1px solid rgba(255,255,255,0.06)",

@@ -171,17 +171,17 @@ export default function SignInForm() {
 
         <div className="flex items-center justify-between">
             <FormControlLabel
-            control={
-                <Checkbox
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                sx={{
-                    color: "rgba(168,179,207,0.50)",
-                    "&.Mui-checked": { color: "#f59e0b" },
-                }}
-                />
-            }
-            label={<span className="text-[#a8b3cf]/70 hover:text-white transition text-sm">Remember me</span>}
+                control={
+                    <Checkbox
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    sx={{
+                        color: "rgba(168,179,207,0.50)",
+                        "&.Mui-checked": { color: "#f59e0b" },
+                    }}
+                    />
+                }
+                label={<span className="text-[#a8b3cf]/70 hover:text-white transition text-sm">Remember me</span>}
             />
 
             <button

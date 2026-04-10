@@ -31,6 +31,9 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
 
     const [username, setUsername] = useState('')
     const [userPhoto, setUserPhoto] = useState('')
+    const avatarImageRef = useRef<HTMLImageElement | null>(null)
+    const [avatarLoaded, setAvatarLoaded] = useState(false)
+
     const [isAdmin, setIsAdmin] = useState(false)
     const [pendingCount, setPendingCount] = useState(0)
     const [feedbackCount, setFeedbackCount] = useState(0)
@@ -58,6 +61,12 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
         fetchFeedbackCount()
       }
     }, [isAdmin])
+
+    useEffect(() => {
+      if (avatarImageRef.current?.complete && avatarImageRef.current.naturalWidth > 0) {
+        setAvatarLoaded(true)
+      }
+    }, [userPhoto])
     
   // Retrieving username & avatar from users or google and remaining connected >>
     useEffect(() => {
@@ -140,9 +149,6 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
     } catch (error) {
       console.error("Sign out error", error)
     }
-      // signOut(auth).then(() => 
-      // navigate("/")).catch((error) => 
-      // console.error("Sign out error", error))
   }
 
   const handleFeedbackMenuClick = () => {
@@ -157,7 +163,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
   }
   return (
     <div className='fixed left-0 top-0 z-50 w-full'>
-      <div className='w-full px-0'>
+      {/* <div className='w-full px-0'> */}
         <motion.nav 
           initial={false}
           animate={
@@ -180,7 +186,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
             ease: [0.22, 1, 0.36, 1],
           }}
           className={[
-            "mx-auto flex h-20 items-center justify-between px-4 lg:px-8 transition-colors duration-300",
+            "mx-auto flex h-20 items-center justify-between px-6 transition-colors duration-300",
             isScrolled
               ? "bg-[#0b0b0c]/80 backdrop-blur-md"
               : "bg-[#0b0b0c]",
@@ -189,10 +195,10 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
           
             <Link
               to="/home"
-              className='flex items-center transition duration-200 hover:scale-[1.03]'
+              className='flex items-center transition duration-200 hover:scale-105'
             >
               <img 
-                className='h-10 w-auto object-contain'
+                className='h-9 w-auto object-contain'
                 src={FlavorFolioLogo}
                 alt='FlavorFolioLogo'
               />
@@ -204,7 +210,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
                 className='hidden sm:flex items-center gap-2 text-white/80  hover:text-white transition'
               >
                 {/* <PostAddIcon sx={{ fontSize: 20 }} /> */}
-                <span className='text-[15px] font-medium'>New post</span>
+                <span className='text-[14px] font-medium'>New post</span>
               </button>
 
               <button
@@ -223,8 +229,8 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
                 </span>
               </button>
 
-              <button>
-                <NotificationsIcon sx={{fontSize: 25, color: "#a8b3cf"}} />
+              <button className='text-[#a8b3cf] hover:text-white'>
+                <NotificationsIcon sx={{fontSize: 25}} />
               </button>
 
               <div className='relative'>
@@ -234,15 +240,29 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
                   aria-expanded={menuOpen}
                   aria-haspopup="true"
                   onClick={handleMenuOpen}
-                  className='flex items-center gap-3 rounded-2xl bg-[#16181d] px-3 py-2 pr-4 transition hover:bg-[#202429]'
+                  className='flex items-center gap-3 rounded-2xl px-3 py-2 pr-4 transition hover:bg-[#202429]/80'
                 >
-                  {userPhoto && (
-                    <img src={userPhoto} className='h-12 w-12 rounded-xl object-cover' alt="profile" />
-                  )}
+                  <div className='relative h-10 w-10 overflow-hidden rounded-lg bg-white/10'>
+                    {userPhoto ? (
+                      <img
+                        ref={avatarImageRef}
+                        src={userPhoto}
+                        alt="profile"
+                        onLoad={() => setAvatarLoaded(true)}
+                        onError={() => setAvatarLoaded(true)}
+                        className={[
+                          'rounded-lg object-cover transition-opacity duration-300',
+                          avatarLoaded ? 'opacity-100' : 'opacity-0',
+                        ].join(' ')}
+                      />
+                    ) : (
+                      <div className='absolute inset-0 animate-pulse bg-white/10' />
+                    )}
+                  </div>
 
-                  <div className='hidden min-w-[110px] text-left md:block'>
-                    <p className='truncate font-semibold text-white'>{username}</p>
-                    <p className='text-[12px] text-[#a8b3cf]/80'>
+                  <div className='hidden min-w-[110px] text-left md:flex flex-col gap-[2px]'>
+                    <p className='truncate text-sm font-semibold text-[#a8b3cf]'>{username}</p>
+                    <p className='text-[12px] text-[#a8b3cf]/50'>
                       {isAdmin ? "Admin" : "Member"}
                     </p>
                   </div>
@@ -250,7 +270,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
                   <motion.div
                     animate={{rotate: menuOpen ? 180 : 0}}
                     transition={{
-                      duration: 0.20,
+                      duration: 0.22,
                       ease: [0.22, 1, 0.36, 1]
                     }}
                     className='flex items-center justify-center'
@@ -278,7 +298,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
             </div>
           
         </motion.nav>
-      </div>
+      {/* </div> */}
     </div>
   )
 }

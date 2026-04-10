@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from "react"
 import type { Recipe, SavedRecipe } from "../types"
 import RecipeCard from "./RecipeCard"
 import CircularProgress from '@mui/material/CircularProgress'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { motion, useInView } from "motion/react"
+
+import TuneIcon from '@mui/icons-material/Tune'
 
 interface RecipeSectionProps {
   title: string
@@ -11,35 +14,32 @@ interface RecipeSectionProps {
   onShowMore: () => void
   currentUserId: string | null
   savedRecipes: SavedRecipe[]
+  followingUserIds: string[]
+  authorFollowersCountMap: Record<string, number>
+  onFollowStateChange: (authorId: string, isNowFollowing: boolean) => void
   onRecipeClick: (recipe: Recipe) => void
   isLoading: boolean
+  onOpenFilters: () => void
 }
 
-const containerVariants = {
-    hidden: {},
-    visible: {
-        transition: {
-            staggerChildren: 0.15,
-            delayChildren: 0.05
-        }
-    }
-}
+const initial_staggered_count = 20
 
 const cardVariants = {
-    hidden: {
-        opacity: 0,
-        y: 42,
-        filter: "blur(10px)"
+  hidden: {
+    opacity: 0,
+    y: 42,
+    filter: "blur(10px)",
+  },
+  visible: (index: number) => ({
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      duration: 0.8,
+      delay: index < initial_staggered_count ? index * 0.1 + 0.05 : 0,
+      ease: [0.22, 1, 0.36, 1] as const,
     },
-    visible: {
-        opacity: 1,
-        y: 0,
-        filter: "blur(0px)",
-        transition: {
-            duration: 1,
-            ease: [0.22, 1, 0.36, 1] as const
-        }
-    }
+  })
 }
 
 export default function RecipeSection({
@@ -49,8 +49,12 @@ export default function RecipeSection({
     onShowMore,
     currentUserId,
     savedRecipes,
+    followingUserIds,
+    authorFollowersCountMap,
+    onFollowStateChange,
     onRecipeClick,
-    isLoading
+    isLoading,
+    onOpenFilters
 }: RecipeSectionProps) {
     const sectionRef = useRef<HTMLElement | null>(null)
     const isInView = useInView(sectionRef, {
@@ -73,21 +77,21 @@ export default function RecipeSection({
 
 
   return (
-    <section ref={sectionRef} className="w-full">
-        <div className="mb-10 flex items-center justify-between">
-            <h2 className="text-[1.6rem] font-semibold text-white">
+    <section ref={sectionRef} className="w-full min-h-[calc(100vh-140px)]">
+        <div className="flex flex-wrap justify-between">
+            <h2 className="mb-12 text-[1.3rem] 2xl-plus:text-[1.6rem] text-white/50">
                 {title}
             </h2>
-
-            {hasMore && (
-                <button
-                    type="button"
-                    onClick={onShowMore}
-                    className="rounded-lg border border-white/10 px-5 py-2 text-sm font-medium text-[#a8b3cf] transition hover:border-white/20 hover:bg-white/5 hover:text-white"
-                >
-                    Show more
-                </button>
-            )}
+            <button
+                type='button'
+                onClick={onOpenFilters}
+                aria-label='Open filters'
+                className='ml-auto flex h-10 w-10 items-center justify-center rounded-lg
+                bg-[#0b0b0c]/40 text-[#a8b3cf] backdrop-blur-xl transition duration-200 hover:scale-105
+                hover:bg-[#0b0b0c] hover:text-white active:scale-100'
+            >
+                <TuneIcon sx={{ fontSize: 20 }} />
+          </button>
         </div>
 
         {isLoading ? (
@@ -103,26 +107,50 @@ export default function RecipeSection({
         ) : (
             <motion.div 
                 className="flex flex-wrap justify-center gap-[25px]"
-                variants={containerVariants}
-                initial="hidden"
-                animate={hasAnimated ? "visible" : "hidden"}
             >
-                {visibleRecipes.map(recipe => (
+                {visibleRecipes.map((recipe, index) => (
                     <motion.div
                         key={recipe.recipeId}
+                        custom={index}
                         variants={cardVariants}
+                        initial="hidden"
+                        animate={hasAnimated ? "visible" : "hidden"}
                         className="will-change-transform"
                     >
                         <RecipeCard
-                            key={recipe.recipeId}
                             recipe={recipe}
                             onClick={() => onRecipeClick(recipe)}
                             currentUserId={currentUserId}
+                            followingUserIds={followingUserIds}
+                            authorFollowersCount={authorFollowersCountMap[recipe.userId || ""] ?? Number(recipe?.author?.followersCount || 0)}
+                            onFollowStateChange={onFollowStateChange}
                             savedRecipes={savedRecipes}
                         />                    
                     </motion.div>
                 ))}
             </motion.div>
+        )}
+        
+        {hasMore && !isLoading && (
+            <div className="my-10 flex w-full justify-center">
+                <button 
+                    onClick={onShowMore}
+                    className="
+                    group relative flex items-center justify-center h-14 w-14 rounded-full bg-[#0b0b0c]/40 backdrop-blur-xl
+                    border border-[#a8b3cf]/10 transition duration-200 hover:bg-[#0b0b0c] hover:border-[#a8b3cf]/20 hover:scale-105
+                    active:scale-95 
+                    "
+                >
+                    <KeyboardArrowDownIcon
+                        className="
+                        text-[#a8b3cf]
+                        transition duration-300
+                        group-hover:text-white
+                        "
+                        sx={{ fontSize: 30 }}
+                    />
+                </button>
+            </div>
         )}
     </section>
   )

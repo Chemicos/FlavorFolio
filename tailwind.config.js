@@ -57,6 +57,9 @@ export default {
       boxShadow: {
         'input': '0 0 3px 3px #FEAA2B',
         'input-error': '0 0 3px 3px rgb(239 68 68)'
+      },
+      screens: {
+        '2xl-plus': '1930px'
       }
     },
   },

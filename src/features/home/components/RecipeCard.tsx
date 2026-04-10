@@ -6,6 +6,7 @@ import {
   deleteDoc, 
   doc, 
   getDoc, 
+  runTransaction, 
   serverTimestamp, 
   setDoc, 
   updateDoc 
@@ -17,21 +18,31 @@ import FavoriteIcon from '@mui/icons-material/Favorite'
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'
 import MuiRating from "@mui/material/Rating"
 
+import CircularProgress from "@mui/material/CircularProgress"
+
 interface RecipeCardProps {
   recipe: Recipe
   onClick: () => void
   currentUserId: string | null
   savedRecipes: SavedRecipe[]
+  followingUserIds: string[]
+  authorFollowersCount: number
+  onFollowStateChange: (authorId: string, isNowFollowing: boolean) => void
 }
 
-export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipes }: RecipeCardProps) {
+export default function RecipeCard({
+   recipe, onClick, currentUserId, savedRecipes, followingUserIds, authorFollowersCount, onFollowStateChange
+}: RecipeCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
   const [currentUsername, setCurrentUsername] = useState("")
   const [currentProfileImage, setCurrentProfileImage] = useState("")
 
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [isFollowLoading, setIsFollowLoading] = useState(false)
+
   const authorUsername = recipe?.author?.username
   const authorProfileImage = recipe?.author?.profileImage
-  const followersCount = recipe?.author?.followersCount ?? null
+  const followersCount = authorFollowersCount
 
   const recipeImageRef = useRef<HTMLImageElement | null>(null)
   const authorImageRef = useRef<HTMLImageElement | null>(null)
@@ -52,6 +63,15 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
       setAuthorImageLoaded(true)
     }
   }, [authorProfileImage])
+
+  useEffect(() => {
+    if (!currentUserId || !recipe?.userId || currentUserId === recipe.userId) {
+      setIsFollowing(false)
+      return
+    }
+
+    setIsFollowing(followingUserIds.includes(recipe.userId))
+  }, [currentUserId, followingUserIds, recipe?.userId])
 
   useEffect(() => {
     if (!currentUserId) {
@@ -109,6 +129,115 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
       })
     } catch (error) {
       console.error("Error adding notification:", error)
+    }
+  }
+
+  const toggleFollow = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+
+    const authorId = recipe.userId
+
+    if (!currentUserId || !authorId || currentUserId === authorId || isFollowLoading) return
+
+    setIsFollowLoading(true)
+
+    const currentUserRef = doc(db, "users", currentUserId)
+    const authorUserRef = doc(db, "users", authorId)
+
+    const followingRef = doc(db, "users", currentUserId, "following", authorId)
+    const followerRef = doc(db, "users", authorId, "followers", currentUserId)
+
+    try {
+      const didFollow = await runTransaction(db, async (transaction) => {
+        const followingSnap = await transaction.get(followingRef)
+        const authorSnap = await transaction.get(authorUserRef)
+        const currentUserSnap = await transaction.get(currentUserRef)
+
+        if (!authorSnap.exists() || !currentUserSnap.exists()) {
+          throw new Error("User documents missing.")
+        }
+
+        const authorData = authorSnap.data()
+        const currentData = currentUserSnap.data()
+
+        const currentFollowersCount = Number(authorData?.stats?.followersCount || 0)
+        const currentFollowingCount = Number(currentData?.stats?.followingCount || 0)
+
+        if (followingSnap.exists()) {
+          transaction.delete(followingRef)
+          transaction.delete(followerRef)
+
+          transaction.set(
+            authorUserRef,
+            {
+              stats: {
+                ...authorData?.stats,
+                followersCount: Math.max(0, currentFollowersCount - 1),
+              },
+            },
+            { merge: true }
+          )
+
+          transaction.set(
+            currentUserRef,
+            {
+              stats: {
+                ...currentData?.stats,
+                followingCount: Math.max(0, currentFollowingCount - 1),
+              },
+            },
+            { merge: true }
+          )
+
+          return false
+        }
+
+        transaction.set(followingRef, {
+          userId: authorId,
+          username: authorUsername || "",
+          profileImageUrl: authorProfileImage || "",
+          followedAt: serverTimestamp(),
+        })
+
+        transaction.set(followerRef, {
+          userId: currentUserId,
+          username: currentUsername || "",
+          profileImageUrl: currentProfileImage || "",
+          followedAt: serverTimestamp(),
+        })
+
+        transaction.set(
+          authorUserRef,
+          {
+            stats: {
+              ...authorData?.stats,
+              followersCount: currentFollowersCount + 1,
+            },
+          },
+          { merge: true }
+        )
+
+        transaction.set(
+          currentUserRef,
+          {
+            stats: {
+              ...currentData?.stats,
+              followingCount: currentFollowingCount + 1,
+            },
+          },
+          { merge: true }
+        )
+
+        return true
+      })
+
+      setIsFollowing(didFollow)
+      onFollowStateChange(authorId, didFollow)
+
+    } catch (error) {
+      console.error("Error toggling follow:", error)
+    } finally {
+      setIsFollowLoading(false)
     }
   }
 
@@ -182,10 +311,10 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
   return (
     <article
       onClick={onClick}
-      className='group relative w-[350px] cursor-pointer transition duration-300 hover:-translate-y-1'
+      className='group relative w-[300px] 2xl-plus:w-[350px] cursor-pointer transition duration-150 hover:-translate-y-2'
     >
       <div className='relative flex flex-col items-center'>
-        <div className='relative z-0 h-[250px] w-full overflow-hidden rounded-t-[3rem]'>
+        <div className='relative z-0 h-[200px] 2xl-plus:h-[250px] w-full overflow-hidden rounded-t-[2.3rem] 2xl-plus:rounded-t-[3rem]'>
           {!recipeImageLoaded && (
             <div className='absolute inset-0 animate-pulse bg-white/10'></div>
           )}
@@ -205,7 +334,7 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
           <button
             type='button'
             onClick={toggleFavorite}
-            className='absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/25 backdrop-blur-sm transition hover:bg-black/45'
+            className='absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/25 backdrop-blur-sm transition hover:bg-black/50'
           >
             <FavoriteIcon 
               sx={{
@@ -216,14 +345,14 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
           </button>
         </div>
 
-        <div className='relative z-10 -mt-10 w-full rounded-[2.5rem] bg-[linear-gradient(180deg,_rgba(11,11,12,1)_50%,_rgba(11,11,12,0.56)_72%,_rgba(20,24,34,0)_100%)] group-hover:bg-[#0b0b0c] px-7 pb-8 pt-6
-          transition duration-300 ease-in-out
+        <div className='relative z-10 -mt-10 w-full rounded-[2.3rem] 2xl-plus:rounded-[2.5rem] bg-[linear-gradient(180deg,_rgba(11,11,12,1)_50%,_rgba(11,11,12,0.56)_72%,_rgba(20,24,34,0)_100%)] 
+        group-hover:bg-[#0b0b0c] px-5 pb-7 pt-5 2xl-plus:px-7 2xl-plus:pb-8 2xl-plus:pt-6 transition duration-300 ease-in-out
         '>
-          <h2 className='line-clamp-2 text-lg font-bold leading-8 text-white'>
+          <h2 className='line-clamp-2 text-[1rem] 2xl-plus:text-lg font-bold leading-7 2xl-plus:leading-8 text-white'>
             {truncatedTitle}
           </h2>
 
-          <div className='mt-2 flex items-center gap-2 text-[#d9dde9]'>
+          <div className='mt-2 flex items-center gap-1.5 2xl-plus:gap-2 text-[#d9dde9]'>
             <MuiRating 
               value={averageRating}
               precision={0.5}
@@ -241,25 +370,25 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
             />
 
             <div className='flex items-center gap-1'>
-              <span className='text-sm font-semibold text-white'>
+              <span className='text-[0.80rem] 2xl-plus:text-sm font-semibold text-white'>
                 {averageRating.toFixed(1)}
               </span>
 
-              <span className='text-sm text-[#b5bdd2]'>{formattedRatingsCount}</span>
+              <span className='text-[0.80rem] 2xl-plus:text-sm text-[#b5bdd2]'>{formattedRatingsCount}</span>
             </div>
 
             <div className='flex items-center gap-1 text-white'>
               <ChatBubbleOutlineIcon sx={{fontSize: 15}} />
-              <span className='text-sm text-[#a8b3cf]'>{formattedCommentsCount}</span>
+              <span className='text-[0.80rem] 2xl-plus:text-sm text-[#a8b3cf]'>{formattedCommentsCount}</span>
             </div>
           </div>
           
           <div className='mt-5'>
-            <p className='text-sm font-medium text-[#a8b3cf]'>Recipe by</p>
+            <p className='text-[0.80rem] 2xl-plus:text-sm font-medium text-[#a8b3cf]'>Recipe by</p>
 
             <div className='mt-2 flex items-center justify-between gap-4'>
               <div className='flex min-w-0 items-center gap-4'>
-                <div className='h-10 w-10 overflow-hidden rounded-xl bg-white/10'>
+                <div className='h-9 w-9 2xl-plus:h-10 2xl-plus:w-10 overflow-hidden rounded-lg 2xl-plus:rounded-xl bg-white/10'>
                   {authorProfileImage ? (
                     <>
                       {!authorImageLoaded && (
@@ -288,10 +417,10 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
                 </div>
 
                 <div className='min-w-0'>
-                  <p className='truncate text-sm text-[#a8b3cf]'>
+                  <p className='truncate text-[0.80rem] 2xl-plus:text-sm text-[#a8b3cf]'>
                     {authorUsername}
                   </p>
-                  <p className='text-sm text-[#a8b3cf]/50'>
+                  <p className='text-[0.80rem] 2xl-plus:text-sm text-[#a8b3cf]/50'>
                     {formattedFollowers}
                   </p>
                 </div>
@@ -299,10 +428,29 @@ export default function RecipeCard({ recipe, onClick, currentUserId, savedRecipe
 
               <button
                 type='button'
-                onClick={e => e.stopPropagation()}
-                className='rounded-xl border border-white/10 px-8 py-2 text-sm font-medium text-[#c6cee0] transition hover:border-white/20 hover:bg-white/5 hover:text-white'
+                onClick={toggleFollow}
+                className={[
+                  'inline-flex min-w-[92px] items-center justify-center rounded-lg border px-5 py-1.5 2xl-plus:px-6 2xl-plus:py-2 text-[0.80rem] 2xl-plus:text-sm font-medium transition active:scale-90',
+                  isFollowing
+                  ? "border-[#a8b3cf]/20 bg-white/5 text-white hover:border-white/20 hover:bg-white/10"
+                  : "border-white/10 text-[#c6cee0] hover:border-white/20 hover:bg-white/5 hover:text-white",
+                  isFollowLoading || !currentUserId || currentUserId === recipe.userId
+                  ? "cursor-not-allowed opacity-60"
+                  : ""
+                ].join(" ")}
+
               >
-                Follow
+                {currentUserId === recipe.userId ? (
+                  "You"
+                ) : isFollowLoading ? (
+                  <CircularProgress 
+                    size={15}
+                    thickness={5}
+                    sx={{
+                      color: "rgba(255,255,255,0.8)"
+                    }}
+                  />
+                ) : isFollowing ? ("Following") : ("Follow")}
               </button>
             </div>
           </div>
