@@ -27,6 +27,11 @@ export interface Recipe {
     recipeId: string
     title?: string
     image?: string
+    durationMinutes?: number
+    difficulty?: string
+    meal?: string
+    servings?: number
+    cuisine?: string
     userId?: string
     status?: string
     visibility?: string

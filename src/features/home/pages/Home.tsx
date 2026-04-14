@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react"
-import type { Recipe, RecipeIngredient } from "../types"
+import { useEffect, useMemo, useState } from "react"
+import FilterDrawer, { defaultRecipeFilters, RecipeFilters } from "../components/FilterDrawer"
 import Navigation from "../../../components/layout/Navigation"
 import Content from "../components/Content.js"
 // import PostForm from "../../../components/PostForm.jsx"
-import { collection, getDocs } from "@firebase/firestore"
-import { db } from "../../../firebase-config.js"
 // import Feedback from "../../../components/Feedback/Feedback.jsx"
 
 import Snackbar from "@mui/material/Snackbar"
@@ -13,39 +11,30 @@ import bg from "../../../assets/blurry-gradient-haikei.svg"
 import ScrollToTopButton from "../components/ScrollToTopButton"
 import FilterBar from "../components/FilterBar"
 import FeedTabs from "../components/FeedTabs"
-import FilterDrawer, { defaultRecipeFilters, RecipeFilters } from "../components/FilterDrawer"
 import { AnimatePresence } from "motion/react"
+import { useHomeData } from "../hooks/useHomeData"
 
 export default function Home() {
-  const [isPostFormVisible, setIsPostFormVisible] = useState(false)
-  const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
-
   const [activeTab, setActiveTab] = useState("For You")
-
   //Filtering
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
   const [filters, setFilters] = useState<RecipeFilters>(defaultRecipeFilters)
-
   // Auth Feedback
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setsnackbarMessage] = useState("")
 
-  const [isLoading, setIsLoading] = useState(true)
+  const [isPostFormVisible, setIsPostFormVisible] = useState(false)
+  const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
 
-  const handlePostClick = () => {
-    setIsPostFormVisible(true)
-  }
-
-  const handleFeedbackClick = () => {
-    setIsFeedbackVisible(true)
-  }
-
-  const handleClose = () => {
-    setIsPostFormVisible(false)
-    setIsFeedbackVisible(false)
-  }
-
+  const {
+    activeRecipes,
+    availableCuisines,
+    currentUserId,
+    savedRecipes,
+    isLoading,
+    handleFavoriteStateChange
+  } = useHomeData({activeTab, filters})
+  
   const handleSnackbarClose = (
     _event?: React.SyntheticEvent | Event,
     reason?: string
@@ -53,33 +42,10 @@ export default function Home() {
     if (reason === "clickaway") return
     setSnackbarOpen(false)
   }
-
-  // Search Functionality <<
-  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([])
-
+  
   const handleResetFilters = () => {
     setFilters(defaultRecipeFilters)
   }
-
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      setIsLoading(true)
-
-      try {
-        const recipeCollection = collection(db, "recipes")
-        const recipeSnapshot = await getDocs(recipeCollection)
-        const recipes: Recipe[] = recipeSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Recipe[]
-        setRecipes(recipes)
-        setFilteredRecipes(recipes)
-      } catch (error) {
-        console.error("Failed to fetch recipes:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchRecipes()
-  }, [])
 
   useEffect(() => {
     const raw = sessionStorage.getItem("authFeedback")
@@ -95,13 +61,26 @@ export default function Home() {
       sessionStorage.removeItem("authFeedback")
     }
   }, [])
+  
+  const handlePostClick = () => {
+    setIsPostFormVisible(true)
+  }
 
+  const handleFeedbackClick = () => {
+    setIsFeedbackVisible(true)
+  }
+
+  const handleClose = () => {
+    setIsPostFormVisible(false)
+    setIsFeedbackVisible(false)
+  }
+  
   return (
     <div
       className="relative min-h-screen w-full overflow-x-hidden bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: `url(${bg})` }}
     >
-    <div className="absolute inset-0 z-0 bg-[#0b0b0c]/30" />
+    {/* <div className="absolute inset-0 z-0 bg-[#0b0b0c]/30" /> */}
 
     <div className="relative z-10">
       <Navigation onFeedbackClick={handleFeedbackClick} />
@@ -121,10 +100,13 @@ export default function Home() {
 
       <div className="mx-auto flex w-full max-w-[1400px] 2xl-plus:max-w-[1600px] flex-col items-center mt-8 gap-8 px-6 xl:px-10">        
         <Content
-          recipes={filteredRecipes}
+          recipes={activeRecipes}
           isLoading={isLoading}
-          activeTab={activeTab}
+          title={activeTab}
           onOpenFilters={() => setIsFilterDrawerOpen(true)}
+          currentUserId={currentUserId}
+          savedRecipes={savedRecipes}
+          onFavoriteStateChange={handleFavoriteStateChange}
         />
       </div>
 
@@ -166,7 +148,7 @@ export default function Home() {
           <FilterDrawer
             isOpen={isFilterDrawerOpen}
             filters={filters}
-            // availableCuisines={...}
+            availableCuisines={availableCuisines}
             onClose={() => setIsFilterDrawerOpen(false)}
             onChange={setFilters}
             onReset={() => setFilters(defaultRecipeFilters)}

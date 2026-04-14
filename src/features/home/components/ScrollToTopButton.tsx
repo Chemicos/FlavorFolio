@@ -17,29 +17,10 @@ export default function ScrollToTopButton() {
     }, [])
 
     const handleScrollToTop = () => {
-        const start = window.scrollY
-        const duration = 1000
-        const startTime = performance.now()
-
-        const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
-
-        const step = (currentTime: number) => {
-            const elapsed = currentTime - startTime
-            const progress = Math.min(elapsed / duration, 1)
-            const easedProgress = easeOutCubic(progress)
-
-            window.scrollTo(0, start * (1 - easedProgress))
-
-            if (progress < 1) {
-            requestAnimationFrame(step)
-            }
-        }
-
-        requestAnimationFrame(step)
-        // window.scrollTo({
-        //     top:0,
-        //     behavior: "smooth"
-        // })
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        })
     }
 
   return (

@@ -17,6 +17,7 @@ interface RecipeSectionProps {
   followingUserIds: string[]
   authorFollowersCountMap: Record<string, number>
   onFollowStateChange: (authorId: string, isNowFollowing: boolean) => void
+  onFavoriteStateChange: (recipeId: string, isNowSaved: boolean) => void
   onRecipeClick: (recipe: Recipe) => void
   isLoading: boolean
   onOpenFilters: () => void
@@ -52,6 +53,7 @@ export default function RecipeSection({
     followingUserIds,
     authorFollowersCountMap,
     onFollowStateChange,
+    onFavoriteStateChange,
     onRecipeClick,
     isLoading,
     onOpenFilters
@@ -78,20 +80,19 @@ export default function RecipeSection({
 
   return (
     <section ref={sectionRef} className="w-full min-h-[calc(100vh-140px)]">
-        <div className="flex flex-wrap justify-between">
-            <h2 className="mb-12 text-[1.3rem] 2xl-plus:text-[1.6rem] text-white/50">
+        <div className="mb-12 flex items-center justify-between gap-4">
+            <h2 className="text-[1.3rem] 2xl-plus:text-[1.6rem] text-white/50">
                 {title}
             </h2>
+
             <button
-                type='button'
+                type="button"
                 onClick={onOpenFilters}
-                aria-label='Open filters'
-                className='ml-auto flex h-10 w-10 items-center justify-center rounded-lg
-                bg-[#0b0b0c]/40 text-[#a8b3cf] backdrop-blur-xl transition duration-200 hover:scale-105
-                hover:bg-[#0b0b0c] hover:text-white active:scale-100'
+                aria-label="Open filters"
+                className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0b0b0c]/40 text-[#a8b3cf] backdrop-blur-xl transition duration-200 hover:scale-105 hover:bg-[#0b0b0c] hover:text-white active:scale-100"
             >
                 <TuneIcon sx={{ fontSize: 20 }} />
-          </button>
+            </button>
         </div>
 
         {isLoading ? (
@@ -124,6 +125,7 @@ export default function RecipeSection({
                             followingUserIds={followingUserIds}
                             authorFollowersCount={authorFollowersCountMap[recipe.userId || ""] ?? Number(recipe?.author?.followersCount || 0)}
                             onFollowStateChange={onFollowStateChange}
+                            onFavoriteStateChange={onFavoriteStateChange}
                             savedRecipes={savedRecipes}
                         />                    
                     </motion.div>

@@ -65,8 +65,11 @@ export const mealOptions = [
 ]
 
 export const ratingOptions = [
+  { value: 5, label: "5 stars"},
   { value: 4, label: "4 stars & up" },
   { value: 3, label: "3 stars & up" },
+  { value: 2, label: "2 stars & up"},
+  { value: 1, label: "1 star & up"}
 ]
 
 export const servingsOptions = [
@@ -250,10 +253,18 @@ export default function FilterDrawer({
     const [openSections, setOpenSections] = useState(() => getInitialOpenSections(filters))
     const activeSections = getSectionWithActiveFilters(filters)
 
+    const [cuisineSearch, setCuisineSearch] = useState("")
+
     const normalizedCuisines = useMemo(() => {
         return [...new Set(availableCuisines.map((item) => item.trim()).filter(Boolean))]
         .sort((a, b) => a.localeCompare(b))
     }, [availableCuisines])
+
+    const filteredCuisines = useMemo(() => {
+        return normalizedCuisines.filter(
+            (cuisine) => cuisine.toLowerCase().includes(cuisineSearch.toLowerCase())
+        ).filter((cuisine) => !filters.cuisines.includes(cuisine))
+    }, [normalizedCuisines, cuisineSearch, filters.cuisines])
 
     const toggleSection = (key: keyof typeof openSections) => {
         setOpenSections((prev) => ({
@@ -374,24 +385,33 @@ export default function FilterDrawer({
                             onToggle={() => toggleSection("cuisine")}
                             hasActiveFilters={activeSections.cuisine}
                         >
-                            <div className="flex flex-col">
-                            {normalizedCuisines.length ? (
-                                normalizedCuisines.map((cuisine) => (
-                                <CheckboxRow
-                                    key={cuisine}
-                                    label={cuisine}
-                                    checked={filters.cuisines.includes(cuisine)}
-                                    onChange={() =>
-                                    onChange({
-                                        ...filters,
-                                        cuisines: toggleStringValue(filters.cuisines, cuisine),
-                                    })
-                                    }
+                            <div className="flex flex-col gap-2">
+                                <input 
+                                    type="text" 
+                                    value={cuisineSearch}
+                                    onChange={(e) => setCuisineSearch(e.target.value)}
+                                    placeholder="Search cuisines..."
+                                    className="mb-2 ml-2 mr-4 w-full rounded-md border border-white/10 bg-[#101215] px-3 py-2 text-sm text-white
+                                    placeholder:text-[#6b7280] outline-none focus:border-white/20"
                                 />
-                                ))
-                            ) : (
-                                <p className="text-sm text-[#8f97b1]">No cuisines available yet.</p>
-                            )}
+
+                                {filteredCuisines.length ? (
+                                    filteredCuisines.map((cuisine) => (
+                                    <CheckboxRow
+                                        key={cuisine}
+                                        label={cuisine}
+                                        checked={filters.cuisines.includes(cuisine)}
+                                        onChange={() =>
+                                        onChange({
+                                            ...filters,
+                                            cuisines: toggleStringValue(filters.cuisines, cuisine),
+                                        })
+                                        }
+                                    />
+                                    ))
+                                ) : (
+                                    <p className="ml-2 text-sm text-[#8f97b1]">No cuisines available yet.</p>
+                                )}
                             </div>
                         </FilterSection>
 

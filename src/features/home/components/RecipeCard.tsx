@@ -28,17 +28,19 @@ interface RecipeCardProps {
   followingUserIds: string[]
   authorFollowersCount: number
   onFollowStateChange: (authorId: string, isNowFollowing: boolean) => void
+  onFavoriteStateChange: (recipeId: string, isNowSaved: boolean) => void
 }
 
 export default function RecipeCard({
-   recipe, onClick, currentUserId, savedRecipes, followingUserIds, authorFollowersCount, onFollowStateChange
+   recipe, onClick, currentUserId, savedRecipes, followingUserIds, authorFollowersCount, onFollowStateChange, onFavoriteStateChange
 }: RecipeCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false)
   const [currentUsername, setCurrentUsername] = useState("")
   const [currentProfileImage, setCurrentProfileImage] = useState("")
 
   const [isFollowing, setIsFollowing] = useState(false)
   const [isFollowLoading, setIsFollowLoading] = useState(false)
+
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
 
   const authorUsername = recipe?.author?.username
   const authorProfileImage = recipe?.author?.profileImage
@@ -73,20 +75,15 @@ export default function RecipeCard({
     setIsFollowing(followingUserIds.includes(recipe.userId))
   }, [currentUserId, followingUserIds, recipe?.userId])
 
-  useEffect(() => {
-    if (!currentUserId) {
-      setIsFavorite(false)
-      return
-    }
+  const isFavorite = useMemo(() => {
+    if (!currentUserId || !recipe.recipeId) return false
 
-    const isSaved = savedRecipes.some(savedRecipe => {
+    return savedRecipes.some((savedRecipe) => {
       if (typeof savedRecipe === "string") return savedRecipe === recipe.recipeId
       if (savedRecipe?.recipeId) return savedRecipe.recipeId === recipe.recipeId
       if (savedRecipe?.id) return savedRecipe.id === recipe.recipeId
       return false
     })
-    
-    setIsFavorite(isSaved)
   }, [currentUserId, recipe.recipeId, savedRecipes])
 
   useEffect(() => {
@@ -243,31 +240,110 @@ export default function RecipeCard({
 
   const toggleFavorite = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
+    if (!currentUserId || !recipe.recipeId || isFavoriteLoading) return
 
-    if (!currentUserId) return
+    setIsFavoriteLoading(true)
+
+    const savedRecipeRef = doc(db, "users", currentUserId, "savedRecipes", recipe.recipeId)
+    const recipeRef = doc(db, "recipes", recipe.recipeId)
+    const currentUserRef = doc(db, "users", currentUserId)
 
     try {
-      const savedRecipeRef = doc(db, "users", currentUserId, "savedRecipes", recipe.recipeId)
+      const didSave = await runTransaction(db, async (transaction) => {
+        const savedRecipeSnap = await transaction.get(savedRecipeRef)
+        const recipeSnap = await transaction.get(recipeRef)
+        const currentUserSnap = await transaction.get(currentUserRef)
 
-      if (isFavorite) {
-        await deleteDoc(savedRecipeRef)
-        await addFavoriteNotification(
-          `User ${currentUsername} removed ${recipe.title} from their favorite recipes.`
-        )
-      } else {
-        await setDoc(savedRecipeRef, {
+        if (!recipeSnap.exists()) {
+          throw new Error("Recipe document missing.")
+        }
+
+        if (!currentUserSnap.exists()) {
+          throw new Error("Current user document missing.")
+        }        
+
+        const recipeData = recipeSnap.data()
+        const currentUserData = currentUserSnap.data()
+
+        const currentSavesCount = Number(recipeData?.stats.savesCount || 0)
+        const currentSavedRecipesCount = Number(currentUserData?.stats?.savedRecipesCount || 0)
+
+        if (savedRecipeSnap.exists()) {
+          transaction.delete(savedRecipeRef)
+
+          transaction.set(
+            recipeRef,
+            {
+              stats: {
+                ...recipeData?.stats,
+                savesCount: Math.max(0, currentSavesCount - 1),
+              },
+            },
+            { merge: true }
+          )
+
+          transaction.set(
+            currentUserRef,
+            {
+              stats: {
+                ...currentUserData?.stats,
+                savedRecipesCount: Math.max(0, currentSavedRecipesCount - 1),
+              },
+            },
+            { merge: true }
+          )
+
+          return false
+        }
+
+        transaction.set(savedRecipeRef, {
           recipeId: recipe.recipeId,
           userId: currentUserId,
           savedAt: serverTimestamp()
         })
-        await addFavoriteNotification(
-          `User ${currentUsername} added ${recipe.title} to their favorite recipes.`
-        )
-      }
 
-      setIsFavorite(prev => !prev)
+        transaction.set(recipeRef, {
+            stats: {
+              ...recipeData?.stats,
+              savesCount: currentSavesCount + 1
+            }
+          },
+          {merge: true}
+        )
+
+        return true
+      })
+
+      await addFavoriteNotification(
+        didSave
+          ? `User ${currentUsername} added ${recipe.title} to their favorite recipes.`
+          : `User ${currentUsername} removed ${recipe.title} from their favorite recipes.`
+      )
+
+      onFavoriteStateChange(recipe.recipeId, didSave)
+
+      // const savedRecipeRef = doc(db, "users", currentUserId, "savedRecipes", recipe.recipeId)
+
+      // if (isFavorite) {
+      //   await deleteDoc(savedRecipeRef)
+      //   await addFavoriteNotification(
+      //     `User ${currentUsername} removed ${recipe.title} from their favorite recipes.`
+      //   )
+      // } else {
+      //   await setDoc(savedRecipeRef, {
+      //     recipeId: recipe.recipeId,
+      //     userId: currentUserId,
+      //     savedAt: serverTimestamp()
+      //   })
+      //   await addFavoriteNotification(
+      //     `User ${currentUsername} added ${recipe.title} to their favorite recipes.`
+      //   )
+      // }
+
     } catch (error) {
       console.error("Error toggling favorite", error)
+    } finally {
+      setIsFavoriteLoading(false)
     }
   }
 
@@ -334,7 +410,9 @@ export default function RecipeCard({
           <button
             type='button'
             onClick={toggleFavorite}
-            className='absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/25 backdrop-blur-sm transition hover:bg-black/50'
+            className='absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-[#0b0b0c]/40 backdrop-blur-md transition hover:bg-[#0b0b0c]/60
+            duration-150 active:scale-90 disabled:cursor-not-allowed disabled:opacity-60'
+            disabled={isFavoriteLoading}
           >
             <FavoriteIcon 
               sx={{
