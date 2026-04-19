@@ -13,6 +13,7 @@ import FilterBar from "../components/FilterBar"
 import FeedTabs from "../components/FeedTabs"
 import { AnimatePresence } from "motion/react"
 import { useHomeData } from "../hooks/useHomeData"
+import FloatingSpeedDial from "../../../components/layout/FloatingSpeedDial"
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("For You")
@@ -29,9 +30,11 @@ export default function Home() {
   const {
     activeRecipes,
     availableCuisines,
+    currentUser,
     currentUserId,
     savedRecipes,
     isLoading,
+    isFiltering,
     handleFavoriteStateChange
   } = useHomeData({activeTab, filters})
   
@@ -102,14 +105,19 @@ export default function Home() {
         <Content
           recipes={activeRecipes}
           isLoading={isLoading}
+          isFiltering={isFiltering}
           title={activeTab}
           onOpenFilters={() => setIsFilterDrawerOpen(true)}
+          currentUser={currentUser}
           currentUserId={currentUserId}
           savedRecipes={savedRecipes}
           onFavoriteStateChange={handleFavoriteStateChange}
+          activeTab={activeTab}
+          filters={filters}
         />
       </div>
 
+      <FloatingSpeedDial />
       <ScrollToTopButton />
 
       {/* {isPostFormVisible && (

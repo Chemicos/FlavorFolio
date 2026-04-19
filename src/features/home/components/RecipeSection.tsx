@@ -6,12 +6,14 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { motion, useInView } from "motion/react"
 
 import TuneIcon from '@mui/icons-material/Tune'
+import { CurrentUserCardData } from "../types/recipeCard.types"
 
 interface RecipeSectionProps {
   title: string
   recipes: Recipe[]
   visibleCount: number
   onShowMore: () => void
+  currentUser: CurrentUserCardData | null
   currentUserId: string | null
   savedRecipes: SavedRecipe[]
   followingUserIds: string[]
@@ -48,6 +50,7 @@ export default function RecipeSection({
     recipes,
     visibleCount,
     onShowMore,
+    currentUser,
     currentUserId,
     savedRecipes,
     followingUserIds,
@@ -121,7 +124,8 @@ export default function RecipeSection({
                         <RecipeCard
                             recipe={recipe}
                             onClick={() => onRecipeClick(recipe)}
-                            currentUserId={currentUserId}
+                            // currentUser={currentUserId}
+                            currentUser={currentUser}
                             followingUserIds={followingUserIds}
                             authorFollowersCount={authorFollowersCountMap[recipe.userId || ""] ?? Number(recipe?.author?.followersCount || 0)}
                             onFollowStateChange={onFollowStateChange}

@@ -5,24 +5,35 @@ import type { Recipe, SavedRecipe } from "../types"
 import { collection, doc, getDoc, getDocs} from "@firebase/firestore";
 import ViewRecipe from "./ViewRecipe";
 import RecipeSection from "./RecipeSection";
+import { RecipeFilters } from "./FilterDrawer";
+import { CurrentUserCardData } from "../types/recipeCard.types";
 
 interface ContentProps {
     recipes: Recipe[]
     isLoading: boolean
+    isFiltering: boolean
     title: string
     onOpenFilters: () => void
+    currentUser: CurrentUserCardData | null
     currentUserId: string | null
     savedRecipes: SavedRecipe[]
     onFavoriteStateChange: (recipeId: string, isNowSaved: boolean) => void
+    activeTab: string
+    filters: RecipeFilters
 }
 
-export default function Content({ recipes, isLoading, title, onOpenFilters, currentUserId, savedRecipes, onFavoriteStateChange }: ContentProps) {
+export default function Content({ 
+    recipes, isLoading, isFiltering, title, onOpenFilters, currentUser,
+    currentUserId, savedRecipes, onFavoriteStateChange,
+    activeTab, filters
+}: ContentProps) {
     const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
     
     const [authorFollowersCountMap, setAuthorFollowersCountMap] = useState<Record<string, number>>({})
     const [followingUserIds, setFollowingUserIds] = useState<string[]>([])
     
     const [visibleCount, setVisibleCount] = useState(20)
+    const showLoading = isLoading || isFiltering
 
     useEffect(() => {
         const fetchFollowing = async () => {
@@ -51,7 +62,7 @@ export default function Content({ recipes, isLoading, title, onOpenFilters, curr
 
     useEffect(() => {
         setVisibleCount(20)
-    }, [recipes])
+    }, [activeTab, filters])
 
     useEffect(() => {
         const fetchAuthorFollowerCounts = async () => {
@@ -117,6 +128,7 @@ export default function Content({ recipes, isLoading, title, onOpenFilters, curr
             recipes={recipes}
             visibleCount={visibleCount}
             onShowMore={() => setVisibleCount((prev) => prev + 4)}
+            currentUser={currentUser}
             currentUserId={currentUserId}
             savedRecipes={savedRecipes}
             followingUserIds={followingUserIds}
@@ -124,7 +136,7 @@ export default function Content({ recipes, isLoading, title, onOpenFilters, curr
             onFollowStateChange={handleFollowStateChange}
             onFavoriteStateChange={onFavoriteStateChange}
             onRecipeClick={handleRecipeClick}
-            isLoading={isLoading}
+            isLoading={showLoading}
             onOpenFilters={onOpenFilters}
         />
 
