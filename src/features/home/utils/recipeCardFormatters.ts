@@ -24,3 +24,16 @@ export function truncateText(text?: string, max = 25) {
   if (safeText.length <= max) return safeText
   return `${safeText.slice(0, max)}...`
 }
+
+export function formatDurationMinutes(value?: number | null) {
+  const minutes = Number(value || 0)
+
+  if (!minutes) return "info"
+  if (minutes < 60) return `${minutes} min`
+
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+
+  if (!remainingMinutes) return `${hours}h`
+  return `${hours}h ${remainingMinutes}m`
+}

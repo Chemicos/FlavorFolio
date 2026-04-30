@@ -14,6 +14,8 @@ import FeedTabs from "../components/FeedTabs"
 import { AnimatePresence } from "motion/react"
 import { useHomeData } from "../hooks/useHomeData"
 import FloatingSpeedDial from "../../../components/layout/FloatingSpeedDial"
+import { Recipe } from "../types"
+import ViewRecipeDrawer from "../components/recipe-view-drawer/ViewRecipeDrawer"
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("For You")
@@ -27,15 +29,22 @@ export default function Home() {
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
   const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
 
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
+
   const {
     activeRecipes,
     availableCuisines,
     currentUser,
     currentUserId,
     savedRecipes,
+    followingUserIds,
+    authorFollowersCountMap,
     isLoading,
     isFiltering,
-    handleFavoriteStateChange
+    handleFavoriteStateChange,
+    handleFollowStateChange,
+    handleRatingStateChange,
+    handleCommentStateChange
   } = useHomeData({activeTab, filters})
   
   const handleSnackbarClose = (
@@ -77,6 +86,14 @@ export default function Home() {
     setIsPostFormVisible(false)
     setIsFeedbackVisible(false)
   }
+
+  const handleRecipeClick = (recipe: Recipe) => {
+    setSelectedRecipe(recipe)
+  }
+
+  const handleCloseRecipeDrawer = () => {
+    setSelectedRecipe(null)
+  }
   
   return (
     <div
@@ -111,9 +128,13 @@ export default function Home() {
           currentUser={currentUser}
           currentUserId={currentUserId}
           savedRecipes={savedRecipes}
+          followingUserIds={followingUserIds}
+          authorFollowersCountMap={authorFollowersCountMap}
+          onFollowStateChange={handleFollowStateChange}
           onFavoriteStateChange={handleFavoriteStateChange}
           activeTab={activeTab}
           filters={filters}
+          onRecipeClick={handleRecipeClick}
         />
       </div>
 
@@ -160,6 +181,26 @@ export default function Home() {
             onClose={() => setIsFilterDrawerOpen(false)}
             onChange={setFilters}
             onReset={() => setFilters(defaultRecipeFilters)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedRecipe && (
+          <ViewRecipeDrawer 
+            recipe={selectedRecipe}
+            currentUser={currentUser}
+            savedRecipes={savedRecipes}
+            followingUserIds={followingUserIds}
+            authorFollowersCount={
+              authorFollowersCountMap[selectedRecipe.userId || ""] ??
+              Number(selectedRecipe?.author?.followersCount || 0)
+            }
+            onClose={handleCloseRecipeDrawer}
+            onFavoriteStateChange={handleFavoriteStateChange}
+            onFollowStateChange={handleFollowStateChange}
+            onRatingStateChange={handleRatingStateChange}
+            onCommentStateChange={handleCommentStateChange}
           />
         )}
       </AnimatePresence>

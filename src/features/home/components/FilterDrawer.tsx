@@ -8,7 +8,7 @@ import RestaurantIcon from "@mui/icons-material/Restaurant"
 import PublicIcon from "@mui/icons-material/Public"
 import Groups2Icon from "@mui/icons-material/Groups2"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { Checkbox, FormControlLabel } from "@mui/material"
 
@@ -272,6 +272,17 @@ export default function FilterDrawer({
         [key]: !prev[key],
         }))
     }
+
+    useEffect(() => {
+        if (!isOpen) return
+
+        const originalOverflow = document.body.style.overflow
+        document.body.style.overflow = "hidden"
+
+        return () => {
+            document.body.style.overflow = originalOverflow
+        }
+    }, [isOpen])
 
   return (
         <div className="fixed inset-0 z-[70]">

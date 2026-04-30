@@ -68,11 +68,23 @@ export default function RecipeCard({
 
   const followButtonDisabled = isFollowLoading || !currentUser?.uid || isOwner
 
+  const handleCardClick = (event: React.MouseEvent<HTMLElement>) => {
+    const target = event.target as HTMLElement
+
+    const clickedInteractiveElement = target.closest(
+      "button, a, input, textarea, select, [data-no-card-click]"
+    )
+
+    if (clickedInteractiveElement) return
+
+    onClick()
+  }
+
   const auth = getAuth()
   return (
     <article
-      onClick={onClick}
-      className='group relative w-[300px] 2xl-plus:w-[350px] cursor-pointer transition duration-150 hover:-translate-y-2 active:scale-90'
+      onClick={handleCardClick}
+      className='group relative w-[300px] 2xl-plus:w-[350px] cursor-pointer transition duration-150 hover:-translate-y-2'
     >
       <div className='relative flex flex-col items-center'>
         <div className='relative z-0 h-[200px] 2xl-plus:h-[250px] w-full overflow-hidden rounded-t-[2.3rem] 2xl-plus:rounded-t-[3rem]'>
@@ -94,6 +106,7 @@ export default function RecipeCard({
 
           <button
             type='button'
+            data-no-card-click
             onClick={handleToggleFavorite}
             className='absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-[#0b0b0c]/40 backdrop-blur-md transition hover:bg-[#0b0b0c]/60
             duration-150 active:scale-90 disabled:cursor-not-allowed disabled:opacity-60'
@@ -197,6 +210,7 @@ export default function RecipeCard({
               <button
                 type='button'
                 onClick={handleToggleFollow}
+                data-no-card-click
                 disabled={followButtonDisabled}
                 className={[
                   'inline-flex min-w-[92px] items-center justify-center rounded-lg border px-5 py-1.5 2xl-plus:px-6 2xl-plus:py-2 text-[0.80rem] 2xl-plus:text-sm font-medium transition active:scale-90',

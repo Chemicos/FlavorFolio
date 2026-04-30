@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { RecipeFilters } from "../components/FilterDrawer"
 import { Recipe, SavedRecipe } from "../types"
 import type { CurrentUserCardData } from "../types/recipeCard.types"
@@ -16,6 +16,8 @@ interface UseHomeDataParams {
 export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [authorFollowersCountMap, setAuthorFollowersCountMap] = useState<Record<string, number>>({})
+  const [followingUserIds, setFollowingUserIds] = useState<string[]>([])
   const [currentUserProfile, setCurrentUserProfile] = useState<{
     username: string
     profileImage: string
@@ -99,6 +101,65 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
 
     fetchRecipes()
   }, [])
+
+  useEffect(() => {
+    const fetchFollowing = async () => {
+      if (!currentUserId) {
+          setFollowingUserIds([])
+          return
+      }
+
+      try {
+          const followingCollection = collection(db, "users", currentUserId, "following")
+          const followingSnapshot = await getDocs(followingCollection)
+
+          const ids = followingSnapshot.docs.map((docSnap) => {
+              const data = docSnap.data()
+              return String(data.userId || docSnap.id)
+          })
+
+          setFollowingUserIds(ids)
+      } catch (error) {
+          console.error("Error fetching following users:", error)
+      }
+    }
+
+    fetchFollowing()
+  }, [currentUserId])
+
+  useEffect(() => {
+    const fetchAuthorFollowerCounts = async () => {
+      const authorIds = [
+          ...new Set(
+              recipes.map((recipe) => recipe.userId).filter((userId): userId is string => Boolean(userId))
+          )
+      ]
+
+      if (!authorIds.length) {
+          setAuthorFollowersCountMap({})
+          return
+      }
+
+      try {
+          const entries = await Promise.all(
+              authorIds.map(async (authorId) => {
+                  const userRef = doc(db, "users", authorId)
+                  const userSnap = await getDoc(userRef)
+
+                  const followersCount = userSnap.exists() ? Number(userSnap.data()?.stats?.followersCount || 0) : 0
+
+                  return [authorId, followersCount] as const
+              })
+          )
+
+          setAuthorFollowersCountMap(Object.fromEntries(entries))
+      } catch (error) {
+          console.error("Error fetching author follower counts:", error)
+      }
+    }
+
+    fetchAuthorFollowerCounts()
+  }, [recipes])
 
   useEffect(() => {
     if (!currentUserId) {
@@ -204,6 +265,21 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     }
   }, [activeTab, forYouRecipes, trendingRecipes, followingRecipes, newRecipes])
 
+  const handleFollowStateChange = (authorId: string, isNowFollowing: boolean) => {
+    setFollowingUserIds((prev) => {
+        if (isNowFollowing) {
+            return prev.includes(authorId) ? prev : [...prev, authorId]
+        }
+
+        return prev.filter((id) => id !== authorId)
+    })
+
+    setAuthorFollowersCountMap((prev) => ({
+        ...prev,
+        [authorId]: Math.max(0, Number(prev[authorId] || 0) + (isNowFollowing ? 1 : -1))
+    }))
+  }
+
   const handleFavoriteStateChange = (recipeId: string, isNowSaved: boolean) => {
     setRecipes((prev) =>
       prev.map((recipe) => {
@@ -222,14 +298,60 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     )
   }
 
+  const handleRatingStateChange = (
+    recipeId: string,
+    stats: {
+      averageRating: number,
+      ratingsCount: number,
+      ratingsSum?: number
+    }
+  ) => {
+    setRecipes((prev) =>
+      prev.map((recipe) => {
+        if (recipe.recipeId !== recipeId) return recipe
+
+        return {
+          ...recipe,
+          stats: {
+            ...recipe.stats,
+            averageRating: stats.averageRating,
+            ratingsCount: stats.ratingsCount,
+            ratingsSum: stats.ratingsSum ?? recipe.stats?.ratingsSum,
+          },
+        }
+      })
+    )
+  }
+
+  const handleCommentStateChange = useCallback((recipeId: string, commentsCount: number) => {
+    setRecipes((prev) =>
+      prev.map((recipe) => {
+        if (recipe.recipeId !== recipeId) return recipe
+
+        return {
+          ...recipe,
+          stats: {
+            ...recipe.stats,
+            commentsCount,
+          },
+        }
+      })
+    )
+  }, [])
+
   return {
     activeRecipes,
     availableCuisines,
     currentUser,
     currentUserId,
     savedRecipes,
+    followingUserIds,
+    authorFollowersCountMap,
     isLoading,
     isFiltering,
     handleFavoriteStateChange,
+    handleFollowStateChange,
+    handleRatingStateChange,
+    handleCommentStateChange
   }
 }

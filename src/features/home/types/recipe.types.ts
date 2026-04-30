@@ -18,6 +18,14 @@ export interface RecipeIngredient {
     unit?: string
 }
 
+export interface RecipeCookingSteps {
+    title?: string
+    description?: string
+    imageUrl?: string
+    image?: string | null
+    error?: boolean
+}
+
 export interface RecipePublishedAt {
     seconds?: number
 }
@@ -27,6 +35,7 @@ export interface Recipe {
     recipeId: string
     title?: string
     image?: string
+    description?: string
     durationMinutes?: number
     difficulty?: string
     meal?: string
@@ -36,6 +45,7 @@ export interface Recipe {
     status?: string
     visibility?: string
     ingredients?: RecipeIngredient[]
+    cookingSteps?: RecipeCookingSteps[]
     publishedAt?: RecipePublishedAt
     author?: RecipeAuthor
     stats?: RecipeStats
