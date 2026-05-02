@@ -21,7 +21,7 @@ import ViewRecipeCommentComposer from "./ViewRecipeCommentComposer"
 import { getUserRecipeRating, rateRecipe } from "../../services/ratings.service"
 import ViewRecipeCommentList, { ViewRecipeComment } from "./ViewRecipeCommentList"
 import { useRecipeComments } from "../../hooks/useRecipeComments"
-import { createRecipeComment, deleteRecipeComment } from "../../services/comments.service"
+import { createRecipeComment, createRecipeReply, deleteRecipeComment, updateRecipeComment } from "../../services/comments.service"
 import DeleteCommentWarningDialog from "./DeleteCommentWarningDialog"
 
 interface ViewRecipeDrawerProps {
@@ -149,8 +149,13 @@ export default function ViewRecipeDrawer({
 
     const [isSubmittingComment, setIsSubmittingComment] = useState(false)
     const displayedCommentsCount = comments.length || commentsCount
+    const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null)
+    const [isSubmittingReply, setIsSubmittingReply] = useState(false)
+
     const [commentToDelete, setCommentToDelete] = useState<ViewRecipeComment | null>(null)
     const [isDeletingComment, setIsDeletingComment] = useState(false)
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+    const [isUpdatingComment, setIsUpdatingComment] = useState(false)
 
     const handleRatingChange = async (_event: React.SyntheticEvent, value: number | null) => {
         if (!value || !currentUser?.uid || !recipe.recipeId || ratingLoading) return
@@ -200,6 +205,51 @@ export default function ViewRecipeDrawer({
             console.error("Failed to submit comment:", error)
         } finally {
             setIsSubmittingComment(false)
+        }
+    }
+
+    const handleSubmitReply = async (comment: ViewRecipeComment, value: string) => {
+        if (!currentUser?.uid || !recipe.recipeId || isSubmittingReply) return
+
+        try {
+            setIsSubmittingReply(true)
+
+            await createRecipeReply({
+            recipeId: recipe.recipeId,
+            parentCommentId: comment.parentCommentId || comment.id,
+            userId: currentUser.uid,
+            username: currentUser.username || "Unknown",
+            profileImage: currentUser.profileImage || "",
+            comment: value,
+            replyToUserId: comment.userId,
+            replyToUsername: comment.username,
+            })
+
+            setReplyingCommentId(null)
+        } catch (error) {
+            console.error("Failed to submit reply:", error)
+        } finally {
+            setIsSubmittingReply(false)
+        }
+    }
+
+    const handleUpdateComment = async (comment: ViewRecipeComment, value: string) => {
+        if (!recipe.recipeId || !currentUser?.uid || comment.userId !== currentUser.uid || isUpdatingComment) return
+
+        try {
+            setIsUpdatingComment(true)
+
+            await updateRecipeComment({
+                recipeId: recipe.recipeId,
+                commentId: comment.id,
+                comment: value
+            })
+
+            setEditingCommentId(null)
+        } catch (error) {
+            console.error("Failed to update comment:", error)
+        } finally {
+            setIsUpdatingComment(false)
         }
     }
 
@@ -644,7 +694,21 @@ export default function ViewRecipeDrawer({
                                 {isLoadingComments ? (
                                     <p className="text-sm text-[#7f89a6]">Loading comments...</p>
                                 ): (
-                                    <ViewRecipeCommentList comments={comments} onDeleteComment={setCommentToDelete} />
+                                    <ViewRecipeCommentList 
+                                        comments={comments} 
+                                        currentUserId={currentUser?.uid}
+                                        editingCommentId={editingCommentId}
+                                        isUpdatingComment={isUpdatingComment}
+                                        replyingCommentId={replyingCommentId}
+                                        isSubmittingReply={isSubmittingReply}
+                                        onStartReplyComment={(comment) => setReplyingCommentId(comment.id)}
+                                        onCancelReplyComment={() => setReplyingCommentId(null)}
+                                        onReplyComment={handleSubmitReply}
+                                        onStartEditComment={(comment) => setEditingCommentId(comment.id)}
+                                        onCancelEditComment={() => setEditingCommentId(null)}
+                                        onUpdateComment={handleUpdateComment}
+                                        onDeleteComment={setCommentToDelete} 
+                                    />
                                 )}
                             </div>
                         </div>

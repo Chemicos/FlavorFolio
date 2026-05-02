@@ -118,8 +118,8 @@ export default function ViewRecipeCommentComposer({
                                         type="button"
                                         onClick={handleSubmit}
                                         disabled={!commentText.trim() || isSubmiting}
-                                        className="flex h-10 w-10 items-center justify-center rounded-lg text-[#7f89a5] transition hover:bg-[#202429] 
-                                        hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#a8b3cf]/10 text-white transition hover:bg-[#a8b3cf]/20 
+                                        active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                                         aria-label="Submit comment"
                                     >
                                         {isSubmiting ? (

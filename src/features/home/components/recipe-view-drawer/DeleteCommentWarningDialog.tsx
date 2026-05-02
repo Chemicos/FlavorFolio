@@ -18,7 +18,7 @@ export default function DeleteCommentWarningDialog({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center px-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/15 px-4 backdrop-blur-[1px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -30,7 +30,7 @@ export default function DeleteCommentWarningDialog({
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-[#0b0b0c] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.45)]"
+            className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-[#0b0b0c] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.65)]"
           >
             <h3 className="text-lg font-bold text-white">Delete comment?</h3>
 
