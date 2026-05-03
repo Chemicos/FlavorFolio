@@ -26,6 +26,9 @@ export interface ViewRecipeComment {
   replyToUserId?: string
   replyToUsername?: string
   repliesCount?: number
+  likesCount?: number
+  dislikesCount?: number
+  currentUserReaction?: "like" | "dislike" | null
   replies?: ViewRecipeComment[]
 }
 
@@ -34,29 +37,29 @@ interface ViewRecipeCommentListProps {
   currentUserId?: string
   editingCommentId?: string | null
   isUpdatingComment?: boolean
-  onReplyComment?: (comment: ViewRecipeComment, value: string) => void
   isSubmittingReply?: boolean
   replyingCommentId?: string | null
   onStartReplyComment?: (comment: ViewRecipeComment) => void
   onCancelReplyComment?: () => void
+  onReplyComment?: (comment: ViewRecipeComment, value: string) => void
+  onToggleCommentReaction?: (comment: ViewRecipeComment, type: "like" | "dislike") => void
   onStartEditComment?: (comment: ViewRecipeComment) => void
   onCancelEditComment?: () => void
   onUpdateComment?: (comment: ViewRecipeComment, value: string) => void
   onDeleteComment?: (comment: ViewRecipeComment) => void
 }
 
-// TODO: afiseaza textarea-ul de reply la comment.
-
 export default function ViewRecipeCommentList({ 
     comments = [], 
     currentUserId, 
     editingCommentId,
     isUpdatingComment,
-    onReplyComment,
     isSubmittingReply,
     replyingCommentId,
     onStartReplyComment,
     onCancelReplyComment,
+    onReplyComment,
+    onToggleCommentReaction,
     onStartEditComment,
     onCancelEditComment,
     onUpdateComment,
@@ -84,6 +87,7 @@ export default function ViewRecipeCommentList({
                     onReplyComment={onReplyComment}
                     onStartReplyComment={onStartReplyComment}
                     onCancelReplyComment={onCancelReplyComment}
+                    onToggleCommentReaction={onToggleCommentReaction}
                     isEditing={editingCommentId === comment.id}
                     isUpdatingComment={isUpdatingComment}
                     onStartEditComment={onStartEditComment}
@@ -93,6 +97,23 @@ export default function ViewRecipeCommentList({
                 />
             ))}
         </div> 
+    )
+}
+
+function renderCommentText(comment: ViewRecipeComment) {
+    const mention = comment.replyToUsername ? `@${comment.replyToUsername}` : null
+
+    if (!mention || !comment.text.startsWith(mention)) {
+        return comment.text
+    }
+
+    const rest = comment.text.slice(mention.length)
+
+    return (
+        <>
+            <span className="font-semibold text-[#feaa2b]">{mention}</span>
+            <span>{rest}</span>
+        </>
     )
 }
 
@@ -107,6 +128,7 @@ function CommentItem({
     onReplyComment,
     onStartReplyComment,
     onCancelReplyComment,
+    onToggleCommentReaction,
     isEditing = false,
     isUpdatingComment = false,
     onStartEditComment,
@@ -121,9 +143,10 @@ function CommentItem({
     isReply?: boolean
     isReplying?: boolean
     isSubmittingReply?: boolean
-    onReplyComment?: (comment: ViewRecipeComment, value: string) => void
     onCancelReplyComment?: () => void
     onStartReplyComment?: (comment: ViewRecipeComment) => void
+    onReplyComment?: (comment: ViewRecipeComment, value: string) => void
+    onToggleCommentReaction?: (comment: ViewRecipeComment, type: "like" | "dislike") => void
     isEditing?: boolean
     isUpdatingComment?: boolean
     onStartEditComment?: (comment: ViewRecipeComment) => void
@@ -144,6 +167,7 @@ function CommentItem({
     const hasReplies = replies.length > 0
     const replyMention = `@${comment.username} `
     const hasReplyText = replyValue.trim() !== replyMention.trim()
+    const canReply = Boolean(currentUserId && comment.userId !== currentUserId)
 
     const [editValue, setEditValue] = useState(comment.text)
 
@@ -326,27 +350,47 @@ function CommentItem({
                         </div>
                     ) : (
                         <p className="leading-7 text-white text-sm">
-                            {comment.text}
+                            {renderCommentText(comment)}
                         </p>
                     )}
 
-                    {!isEditing && !isReplying && (
-                        <div className="flex items-center gap-3 text-[#a8b3cf]/50">
-                            <button type="button" className="transition hover:text-white active:scale-95">
-                            <ThumbUpRoundedIcon sx={{ fontSize: 18 }} />
-                            </button>
-
-                            <button type="button" className="transition hover:text-white active:scale-95">
-                            <ThumbDownRoundedIcon sx={{ fontSize: 18 }} />
+                    {!isEditing && (
+                        <div className="mt-1 flex items-center gap-3 text-[#a8b3cf]/50">
+                            <button 
+                                type="button" 
+                                onClick={() => onToggleCommentReaction?.(comment, "like")}
+                                disabled={!currentUserId}
+                                className="inline-flex items-center gap-1 transition hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                <ThumbUpRoundedIcon sx={{ fontSize: 18 }} />
+                                {Number(comment.likesCount || 0) > 0 && (
+                                    <span className="text-xs">{comment.likesCount}</span>
+                                )}
                             </button>
 
                             <button 
                                 type="button" 
-                                onClick={() => onStartReplyComment?.(comment)}
-                                className="transition hover:text-white active:scale-95"
+                                onClick={() => onToggleCommentReaction?.(comment, "dislike")}
+                                disabled={!currentUserId}
+                                className="inline-flex items-center gap-1 transition hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                                <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 18 }} />
+                                <ThumbDownRoundedIcon sx={{ fontSize: 18 }} />
+                                {Number(comment.dislikesCount || 0) > 0 && (
+                                    <span className="text-xs">{comment.dislikesCount}</span> 
+                                )}
+                                   
                             </button>
+
+
+                            {canReply && (
+                                <button 
+                                    type="button" 
+                                    onClick={() => onStartReplyComment?.(comment)}
+                                    className="transition hover:text-white active:scale-95"
+                                >
+                                    <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 18 }} />
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -433,9 +477,10 @@ function CommentItem({
                                     isReply
                                     isReplying={replyingCommentId === reply.id}
                                     isSubmittingReply={isSubmittingReply}
-                                    onReplyComment={onReplyComment}
                                     onStartReplyComment={onStartReplyComment}
                                     onCancelReplyComment={onCancelReplyComment}
+                                    onReplyComment={onReplyComment}
+                                    onToggleCommentReaction={onToggleCommentReaction}
                                     isEditing={editingCommentId === reply.id}
                                     isUpdatingComment={isUpdatingComment}
                                     onStartEditComment={onStartEditComment}

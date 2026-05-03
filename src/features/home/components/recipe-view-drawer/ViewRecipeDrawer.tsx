@@ -13,16 +13,16 @@ import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineR
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
 import SignalCellularAltRoundedIcon from "@mui/icons-material/SignalCellularAltRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
-import LunchDiningRoundedIcon from "@mui/icons-material/LunchDiningRounded";
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import { formatCompactCount, formatDurationMinutes, formatFollowersLabel } from "../../utils/recipeCardFormatters";
 import { CircularProgress } from "@mui/material"
-import ViewRecipeCommentComposer from "./ViewRecipeCommentComposer"
 import { getUserRecipeRating, rateRecipe } from "../../services/ratings.service"
-import ViewRecipeCommentList, { ViewRecipeComment } from "./ViewRecipeCommentList"
+import { ViewRecipeComment } from "./ViewRecipeCommentList"
 import { useRecipeComments } from "../../hooks/useRecipeComments"
-import { createRecipeComment, createRecipeReply, deleteRecipeComment, updateRecipeComment } from "../../services/comments.service"
+import { createRecipeComment, createRecipeReply, deleteRecipeComment, toggleRecipeCommentReaction, updateRecipeComment } from "../../services/comments.service"
 import DeleteCommentWarningDialog from "./DeleteCommentWarningDialog"
+import ViewRecipeIngredients from "./ViewRecipeIngredients"
+import ViewRecipeStepsSection from "./ViewRecipeStepsSection"
+import ViewRecipeCommentsSection from "./ViewRecipeCommentsSection"
 
 interface ViewRecipeDrawerProps {
     recipe: Recipe,
@@ -56,8 +56,11 @@ export default function ViewRecipeDrawer({
     onRatingStateChange,
     onCommentStateChange
 }: ViewRecipeDrawerProps) {
+    type ViewRecipeTab = "ingredients" | "steps" | "comments"
+
     const [userRating, setUserRating] = useState<number | null>(null)
     const [ratingLoading, setRatingLoading] = useState(false)
+    const [activeTab, setActiveTab] = useState<ViewRecipeTab>("ingredients")
 
     const [ratingStats, setRatingStats] = useState({
         averageRating: Number(recipe?.stats?.averageRating || 0),
@@ -136,7 +139,20 @@ export default function ViewRecipeDrawer({
 
         fetchUserRating()
     }, [currentUser?.uid, recipe.recipeId])
-    
+
+    const ingredients = useMemo(() => {
+        return Array.isArray(recipe?.ingredients) ? recipe.ingredients : []
+    }, [recipe?.ingredients])
+
+    const steps = useMemo(() => {
+        return Array.isArray(recipe?.cookingSteps) ? recipe.cookingSteps : []
+    }, [recipe?.cookingSteps])
+
+    const areAllStepsExpanded = useMemo(() => {
+        if (!steps.length) return false
+        return steps.every((_, index) => expandedSteps[index + 1])
+    }, [steps, expandedSteps])
+
     const authorUsername = recipe?.author?.username || "Unknown"
     const authorProfileImage = recipe?.author?.profileImage || ""
     const averageRating = ratingStats.averageRating
@@ -149,6 +165,11 @@ export default function ViewRecipeDrawer({
 
     const [isSubmittingComment, setIsSubmittingComment] = useState(false)
     const displayedCommentsCount = comments.length || commentsCount
+    const tabs: {id: ViewRecipeTab; label: string, count?: number}[] = [
+        {id: "ingredients", label: "Ingredients", count: ingredients.length},
+        {id: "steps", label: "Steps", count: steps.length},
+        {id: "comments", label: "Comments", count: displayedCommentsCount}
+    ]
     const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null)
     const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 
@@ -215,14 +236,15 @@ export default function ViewRecipeDrawer({
             setIsSubmittingReply(true)
 
             await createRecipeReply({
-            recipeId: recipe.recipeId,
-            parentCommentId: comment.parentCommentId || comment.id,
-            userId: currentUser.uid,
-            username: currentUser.username || "Unknown",
-            profileImage: currentUser.profileImage || "",
-            comment: value,
-            replyToUserId: comment.userId,
-            replyToUsername: comment.username,
+                recipeId: recipe.recipeId,
+                parentCommentId: comment.parentCommentId || comment.id,
+                replyToCommentId: comment.id,
+                userId: currentUser.uid,
+                username: currentUser.username || "Unknown",
+                profileImage: currentUser.profileImage || "",
+                comment: value,
+                replyToUserId: comment.userId,
+                replyToUsername: comment.username,
             })
 
             setReplyingCommentId(null)
@@ -272,14 +294,22 @@ export default function ViewRecipeDrawer({
         }
     }
 
-    const steps = useMemo(() => {
-        return Array.isArray(recipe?.cookingSteps) ? recipe.cookingSteps : []
-    }, [recipe?.cookingSteps])
-
-    const areAllStepsExpanded = useMemo(() => {
-        if (!steps.length) return false
-        return steps.every((_, index) => expandedSteps[index + 1])
-    }, [steps, expandedSteps])
+    const handleToggleCommentReaction = async (
+        comment: ViewRecipeComment,
+        type: "like" | "dislike"
+    ) => {
+        if (!currentUser?.uid || !recipe.recipeId) return
+        try {
+            await toggleRecipeCommentReaction({
+                recipeId: recipe.recipeId, 
+                commentId: comment.id,
+                userId: currentUser.uid,
+                type,
+            })
+        } catch (error) {
+            console.error("Failed to toggle comment reaction:", error)
+        }
+    }
     
     const toggleAllSteps = () => {
         if (areAllStepsExpanded) {
@@ -291,10 +321,6 @@ export default function ViewRecipeDrawer({
             Object.fromEntries(steps.map((_, index) => [index + 1, true]))
         )
     }
-
-    const ingredients = useMemo(() => {
-        return Array.isArray(recipe?.ingredients) ? recipe.ingredients : []
-    }, [recipe?.ingredients])
 
     const toggleStep = (index: number) => {
         setExpandedSteps((prev) => ({
@@ -325,7 +351,7 @@ export default function ViewRecipeDrawer({
                     mass: 1,
                 }}
                 className="absolute right-0 top-0 flex h-full w-full max-w-[540px] flex-col overflow-hidden 
-                    bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.38)]"
+                    bg-gradient-to-b from-[#16181d]/40 via-[#16181d]/80 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.38)]"
             >
                 <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
                     <div className="relative">
@@ -346,7 +372,7 @@ export default function ViewRecipeDrawer({
                                 ].join(" ")}
                                 />
 
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/10 to-black/40" />
+                            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#16181d] to-transparent" />
                         </div>
 
                         <button
@@ -557,160 +583,103 @@ export default function ViewRecipeDrawer({
                             </div>
                         </div>
 
-                        <div className="mt-10">
-                            <div className="flex items-center gap-3">
-                                <LunchDiningRoundedIcon sx={{ fontSize: 20, color: "#ffffff" }} />
-                                <h2 className="text-[1.2rem] font-bold text-white">
-                                    Ingredients ({ingredients.length})
-                                </h2>
-                            </div>
-
-                            <div className="mt-5 flex flex-col gap-2 border-l-[1px] border-white/20 pl-4">
-                                {ingredients.map((ingredient, index) => {
-                                    const quantity = ingredient?.quantity ? String(ingredient.quantity) : ""
-                                    const unit = ingredient?.unit || ""
-                                    const amountLabel = [quantity, unit].filter(Boolean).join(" ").trim()
+                        <div className="sticky top-0 z-20 mt-10 bg-[#16181d]/95 py-3 backdrop-blur-xl">
+                            <div className="grid grid-cols-3 gap-2 rounded-xl bg-[#0b0b0c] p-1">
+                                {tabs.map((tab) => {
+                                    const isActive = activeTab === tab.id
 
                                     return (
-                                        <div
-                                        key={`${ingredient?.ingredient || "ingredient"}-${index}`}
-                                        className="flex items-center gap-3"
+                                        <button
+                                            key={tab.id}
+                                            type="button"
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={[
+                                                "flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition active:scale-95",
+                                                isActive
+                                                    ? "bg-orange-600/80 text-white shadow-[0_8px_24px_rgba(255,140,0,0.35)]"
+                                                    : "text-[#7f89a6] hover:bg-white/[0.04] hover:text-white",
+                                            ].join(" ")}
                                         >
-                                        <div className="shrink-0 rounded-full bg-white/[0.06] px-3 py-1.5 text-sm font-semibold text-[#cbd3ea]">
-                                            {amountLabel || "-"}
-                                        </div>
+                                            <span>{tab.label}</span>
 
-                                        <div className="min-w-0">
-                                            <p className="truncate text-[0.98rem] font-medium text-white">
-                                            {ingredient?.ingredient || "Unknown ingredient"}
-                                            </p>
-                                        </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="mt-12">
-                            <div className="flex items-center justify-between gap-2">
-                                <h2 className="text-[1.2rem] font-bold text-white">Steps</h2>
-
-                                {steps.length > 1 && (
-                                    <button 
-                                        type="button" 
-                                        onClick={toggleAllSteps} 
-                                        className={[
-                                            "rounded-md px-4 py-2 text-sm text-[#a8b3cf]/60 transition hover:bg-[#0b0b0c] hover:text-white active:scale-95",
-                                            areAllStepsExpanded ? "bg-[#0b0b0c] text-white" : ""
-                                        ].join(" ")}
-                                    >
-                                        {areAllStepsExpanded ? "Collapse all" : "Expand all"}
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="mt-5 flex flex-col gap-3">
-                                {steps.map((step, index) => {
-                                    const stepNumber = index + 1
-                                    const isExpanded = Boolean(expandedSteps[stepNumber])
-
-                                    return (
-                                        <div key={stepNumber} className={[
-                                            "overflow-hidden rounded-lg hover:bg-[#0b0b0c] active:bg-white/[0.04] transition",
-                                            isExpanded ? "bg-[#0b0b0c] border border-[#a8b3cf]/20" : "bg-[#0b0b0c]/40"
-                                        ].join(" ")}>
-                                            <button
-                                                type="button"
-                                                onClick={() => toggleStep(stepNumber)}
-                                                className="flex w-full items-center justify-between px-5 py-4 text-left"
-                                            >
-                                                <span className="text-sm font-semibold text-white">
-                                                    Step {stepNumber}
-                                                </span>
-
-                                                <span className="ml-2 font-sm text-[#9ba6c6]">
-                                                    {step?.title?.trim() ? ` - ${step.title}` : ""}
-                                                </span>
-
-                                                <motion.span
-                                                    animate={{rotate: isExpanded ? 180 : 0}}
-                                                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1]}}
-                                                    className="text-[#b8c2df]"
+                                            {typeof tab.count === "number" && (
+                                                <span className={[
+                                                        "text-[0.68rem]",
+                                                        isActive ? "text-white/90" : "text-[#7f89a6]"
+                                                    ].join(" ")}
                                                 >
-                                                    <ExpandMoreRoundedIcon />
-                                                </motion.span>
-                                            </button>
-
-                                            <AnimatePresence initial={false}>
-                                                {isExpanded && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: "auto", opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-                                                        className="overflow-hidden"
-                                                    >
-                                                        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-                                                        <div className="px-5 pb-5">
-                                                        {step?.imageUrl && (
-                                                            <div className="mb-4 overflow-hidden rounded-2xl bg-white/10">
-                                                            <img
-                                                                src={step.imageUrl}
-                                                                alt={`Step ${stepNumber}`}
-                                                                className="h-[210px] w-full object-cover"
-                                                            />
-                                                            </div>
-                                                        )}
-
-                                                        <p className="text-[0.98rem] leading-7 text-white">
-                                                            {step?.description || "No description available."}
-                                                        </p>
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
+                                                    {formatCompactCount(tab.count, true)}
+                                                </span>
+                                            )}
+                                        </button>
                                     )
                                 })}
                             </div>
                         </div>
 
-                        <div className="mt-12">
-                            <div className="flex items-center gap-3">
-                                <ChatBubbleOutlineRoundedIcon sx={{fontSize: 20, color: "#ffffff"}} />
-                                <h2 className="text-[1.2rem] font-bold text-white">
-                                    Comments {formatCompactCount(commentsCount, true)}
-                                </h2>
-                            </div>
-
-                            <div className="mt-5 flex flex-col gap-10">
-                                <ViewRecipeCommentComposer 
-                                    currentUser={currentUser} 
-                                    isSubmiting={isSubmittingComment}
-                                    onSubmit={handleSubmitComment}
-                                />
-
-                                {isLoadingComments ? (
-                                    <p className="text-sm text-[#7f89a6]">Loading comments...</p>
-                                ): (
-                                    <ViewRecipeCommentList 
-                                        comments={comments} 
-                                        currentUserId={currentUser?.uid}
-                                        editingCommentId={editingCommentId}
-                                        isUpdatingComment={isUpdatingComment}
-                                        replyingCommentId={replyingCommentId}
-                                        isSubmittingReply={isSubmittingReply}
-                                        onStartReplyComment={(comment) => setReplyingCommentId(comment.id)}
-                                        onCancelReplyComment={() => setReplyingCommentId(null)}
-                                        onReplyComment={handleSubmitReply}
-                                        onStartEditComment={(comment) => setEditingCommentId(comment.id)}
-                                        onCancelEditComment={() => setEditingCommentId(null)}
-                                        onUpdateComment={handleUpdateComment}
-                                        onDeleteComment={setCommentToDelete} 
-                                    />
+                        <div className="pt-2">
+                            <AnimatePresence mode="wait" initial={false}>
+                                {activeTab === "ingredients" && (
+                                    <motion.div
+                                        key="ingredients"
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                                    >
+                                        <ViewRecipeIngredients ingredients={ingredients} />
+                                    </motion.div>
                                 )}
-                            </div>
+
+                                {activeTab === "steps" && (
+                                    <motion.div
+                                        key="steps"
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                                    >
+                                        <ViewRecipeStepsSection
+                                            steps={steps}
+                                            expandedSteps={expandedSteps}
+                                            areAllStepsExpanded={areAllStepsExpanded}
+                                            onToggleStep={toggleStep}
+                                            onToggleAllSteps={toggleAllSteps}
+                                        />
+                                    </motion.div>
+                                )}
+
+                                {activeTab === "comments" && (
+                                    <motion.div
+                                        key="comments"
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                                    >
+                                        <ViewRecipeCommentsSection
+                                            commentsCount={commentsCount}
+                                            comments={comments}
+                                            currentUser={currentUser}
+                                            isLoadingComments={isLoadingComments}
+                                            isSubmittingComment={isSubmittingComment}
+                                            editingCommentId={editingCommentId}
+                                            isUpdatingComment={isUpdatingComment}
+                                            replyingCommentId={replyingCommentId}
+                                            isSubmittingReply={isSubmittingReply}
+                                            onSubmitComment={handleSubmitComment}
+                                            onStartReplyComment={(comment) => setReplyingCommentId(comment.id)}
+                                            onCancelReplyComment={() => setReplyingCommentId(null)}
+                                            onReplyComment={handleSubmitReply}
+                                            onToggleCommentReaction={handleToggleCommentReaction}
+                                            onStartEditComment={(comment) => setEditingCommentId(comment.id)}
+                                            onCancelEditComment={() => setEditingCommentId(null)}
+                                            onUpdateComment={handleUpdateComment}
+                                            onDeleteComment={setCommentToDelete}
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
                 </div>

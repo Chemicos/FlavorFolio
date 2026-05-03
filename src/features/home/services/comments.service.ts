@@ -1,4 +1,4 @@
-import { collection, doc, onSnapshot, orderBy, query, runTransaction, serverTimestamp, Timestamp, updateDoc } from "@firebase/firestore"
+import { collection, doc, increment, onSnapshot, orderBy, query, runTransaction, serverTimestamp, Timestamp, updateDoc } from "@firebase/firestore"
 import { ViewRecipeComment } from "../components/recipe-view-drawer/ViewRecipeCommentList"
 import { db } from "../../../firebase-config"
 import { formatRelativeDate } from "../utils/dateFormatters"
@@ -14,6 +14,7 @@ interface CreateRecipeCommentInput {
 interface CreateRecipeReplyInput {
   recipeId: string
   parentCommentId: string
+  replyToCommentId?: string
   userId: string
   username: string
   profileImage?: string
@@ -43,6 +44,8 @@ export async function createRecipeComment(input: CreateRecipeCommentInput) {
             profileImage: input.profileImage || "",
             parentCommentId: null,
             repliesCount: 0,
+            likesCount: 0,
+            dislikesCount: 0,
             edited: false,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -92,7 +95,9 @@ export async function createRecipeReply(input: CreateRecipeReplyInput) {
             parentCommentId: input.parentCommentId,
             replyToUserId: input.replyToUserId || "",
             replyToUsername: input.replyToUsername || "",
-            repliesCount: 0,
+            replyToCommentId: input.replyToCommentId || input.parentCommentId,
+            likesCount: 0,
+            dislikesCount: 0,
             edited: false,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -120,6 +125,73 @@ export async function createRecipeReply(input: CreateRecipeReplyInput) {
     })
 }
 
+type CommentReactionType = "like" | "dislike"
+
+export async function toggleRecipeCommentReaction({
+    recipeId,
+    commentId,
+    userId,
+    type
+}: {
+    recipeId: string
+    commentId: string
+    userId: string
+    type: CommentReactionType
+}) {
+    const commentRef = doc(db, "recipes", recipeId, "comments", commentId)
+    const reactionRef = doc(db, "recipes", recipeId, "comments", commentId, "reactions", userId)
+
+    await runTransaction(db, async (transaction) => {
+        const commentSnap = await transaction.get(commentRef)
+        const reactionSnap = await transaction.get(reactionRef)
+
+        if (!commentSnap.exists()) {
+            throw new Error("Comment document does not exist.")
+        }
+
+        const previousType = reactionSnap.exists()
+            ? reactionSnap.data()?.type as CommentReactionType
+            : null
+
+        if (previousType === type) {
+            transaction.delete(reactionRef)
+
+            transaction.update(commentRef, {
+                [`${type}sCount`]: increment(-1),
+                updatedAt: serverTimestamp(),
+            })
+
+            return
+        }
+
+        if (previousType) {
+            transaction.update(commentRef, {
+                [`${previousType}sCount`]: increment(-1),
+                [`${type}sCount`]: increment(1),
+                updatedAt: serverTimestamp(),
+            })
+        } else {
+            transaction.update(commentRef, {
+                [`${type}sCount`]: increment(1),
+                updatedAt: serverTimestamp(),
+            })
+        }
+
+        transaction.set(
+            reactionRef,
+            {
+                type,
+                userId,
+                createdAt: reactionSnap.exists()
+                ? reactionSnap.data()?.createdAt
+                : serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+        )
+    })
+}
+
 export function listenToRecipeComments(
     recipeId: string,
     onChange: (comments: ViewRecipeComment[]) => void,
@@ -129,7 +201,7 @@ export function listenToRecipeComments(
     const commentsQuery = query(commentsRef, orderBy("createdAt", "desc"))
 
     return onSnapshot(commentsQuery, (snapshot) => {
-        const allComments = snapshot.docs.map((docSnap) => {
+        const allComments: ViewRecipeComment[] = snapshot.docs.map((docSnap) => {
             const data = docSnap.data()
 
             return {
@@ -144,6 +216,9 @@ export function listenToRecipeComments(
                 replyToUserId: data.replyToUserId || "",
                 replyToUsername: data.replyToUsername || "",
                 repliesCount: Number(data.repliesCount || 0),
+                likesCount: Number(data.likesCount || 0),
+                dislikesCount: Number(data.dislikesCount || 0),
+                currentUserReaction: null,
                 replies: [],
             } satisfies ViewRecipeComment
         })
