@@ -168,6 +168,8 @@ function CommentItem({
     const replyMention = `@${comment.username} `
     const hasReplyText = replyValue.trim() !== replyMention.trim()
     const canReply = Boolean(currentUserId && comment.userId !== currentUserId)
+    const isLiked = comment.currentUserReaction === "like"
+    const isDisliked = comment.currentUserReaction === "dislike"
 
     const [editValue, setEditValue] = useState(comment.text)
 
@@ -360,7 +362,10 @@ function CommentItem({
                                 type="button" 
                                 onClick={() => onToggleCommentReaction?.(comment, "like")}
                                 disabled={!currentUserId}
-                                className="inline-flex items-center gap-1 transition hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                                className={[
+                                    "inline-flex items-center gap-1 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40",
+                                    isLiked ? "text-white" : "text-[#a8b3cf]/50 hover:text-white",
+                                ].join(" ")}
                             >
                                 <ThumbUpRoundedIcon sx={{ fontSize: 18 }} />
                                 {Number(comment.likesCount || 0) > 0 && (
@@ -372,7 +377,10 @@ function CommentItem({
                                 type="button" 
                                 onClick={() => onToggleCommentReaction?.(comment, "dislike")}
                                 disabled={!currentUserId}
-                                className="inline-flex items-center gap-1 transition hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                                className={[
+                                    "inline-flex items-center gap-1 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40",
+                                    isDisliked ? "text-[#db7668]" : "text-[#a8b3cf]/50 hover:text-white",
+                                ].join(" ")}
                             >
                                 <ThumbDownRoundedIcon sx={{ fontSize: 18 }} />
                                 {Number(comment.dislikesCount || 0) > 0 && (

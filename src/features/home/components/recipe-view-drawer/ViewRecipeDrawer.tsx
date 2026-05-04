@@ -18,7 +18,7 @@ import { CircularProgress } from "@mui/material"
 import { getUserRecipeRating, rateRecipe } from "../../services/ratings.service"
 import { ViewRecipeComment } from "./ViewRecipeCommentList"
 import { useRecipeComments } from "../../hooks/useRecipeComments"
-import { createRecipeComment, createRecipeReply, deleteRecipeComment, toggleRecipeCommentReaction, updateRecipeComment } from "../../services/comments.service"
+import { createRecipeComment, createRecipeReply, deleteRecipeComment, listenToRecipeCommentReactions, toggleRecipeCommentReaction, updateRecipeComment } from "../../services/comments.service"
 import DeleteCommentWarningDialog from "./DeleteCommentWarningDialog"
 import ViewRecipeIngredients from "./ViewRecipeIngredients"
 import ViewRecipeStepsSection from "./ViewRecipeStepsSection"
@@ -170,6 +170,8 @@ export default function ViewRecipeDrawer({
         {id: "steps", label: "Steps", count: steps.length},
         {id: "comments", label: "Comments", count: displayedCommentsCount}
     ]
+
+    const [commentReactions, setCommentReactions] = useState<Record<string, "like" | "dislike">>({})
     const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null)
     const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 
@@ -177,6 +179,21 @@ export default function ViewRecipeDrawer({
     const [isDeletingComment, setIsDeletingComment] = useState(false)
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
     const [isUpdatingComment, setIsUpdatingComment] = useState(false)
+
+    useEffect(() => {
+        if (!recipe.recipeId || !currentUser?.uid) {
+            setCommentReactions({})
+            return
+        }
+
+        const unsubscribe = listenToRecipeCommentReactions(
+            recipe.recipeId,
+            currentUser.uid,
+            setCommentReactions
+        )
+
+        return () => unsubscribe()
+    }, [recipe.recipeId, currentUser?.uid])
 
     const handleRatingChange = async (_event: React.SyntheticEvent, value: number | null) => {
         if (!value || !currentUser?.uid || !recipe.recipeId || ratingLoading) return
@@ -310,6 +327,17 @@ export default function ViewRecipeDrawer({
             console.error("Failed to toggle comment reaction:", error)
         }
     }
+
+    const commentsWithReactions = useMemo(() => {
+        return comments.map((comment) => ({
+            ...comment,
+            currentUserReaction: commentReactions[comment.id] || null,
+            replies: comment.replies?.map((reply) => ({
+            ...reply,
+            currentUserReaction: commentReactions[reply.id] || null,
+            })),
+        }))
+    }, [comments, commentReactions])
     
     const toggleAllSteps = () => {
         if (areAllStepsExpanded) {
@@ -659,7 +687,7 @@ export default function ViewRecipeDrawer({
                                     >
                                         <ViewRecipeCommentsSection
                                             commentsCount={commentsCount}
-                                            comments={comments}
+                                            comments={commentsWithReactions}
                                             currentUser={currentUser}
                                             isLoadingComments={isLoadingComments}
                                             isSubmittingComment={isSubmittingComment}

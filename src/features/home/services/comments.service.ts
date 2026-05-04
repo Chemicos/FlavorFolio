@@ -1,4 +1,4 @@
-import { collection, doc, increment, onSnapshot, orderBy, query, runTransaction, serverTimestamp, Timestamp, updateDoc } from "@firebase/firestore"
+import { collection, doc, increment, onSnapshot, orderBy, query, runTransaction, serverTimestamp, Timestamp, updateDoc, where } from "@firebase/firestore"
 import { ViewRecipeComment } from "../components/recipe-view-drawer/ViewRecipeCommentList"
 import { db } from "../../../firebase-config"
 import { formatRelativeDate } from "../utils/dateFormatters"
@@ -139,7 +139,8 @@ export async function toggleRecipeCommentReaction({
     type: CommentReactionType
 }) {
     const commentRef = doc(db, "recipes", recipeId, "comments", commentId)
-    const reactionRef = doc(db, "recipes", recipeId, "comments", commentId, "reactions", userId)
+    const reactionId = `${recipeId}_${commentId}_${userId}`
+    const reactionRef = doc(db, "commentReactions", reactionId)
 
     await runTransaction(db, async (transaction) => {
         const commentSnap = await transaction.get(commentRef)
@@ -180,16 +181,49 @@ export async function toggleRecipeCommentReaction({
         transaction.set(
             reactionRef,
             {
-                type,
+                recipeId,
+                commentId,
                 userId,
+                type,
                 createdAt: reactionSnap.exists()
-                ? reactionSnap.data()?.createdAt
-                : serverTimestamp(),
-                updatedAt: serverTimestamp(),
+                    ? reactionSnap.data()?.createdAt
+                    : serverTimestamp(),
+                updatedAt: serverTimestamp(),  
             },
             { merge: true }
         )
     })
+}
+
+export function listenToRecipeCommentReactions(
+    recipeId: string,
+    userId: string,
+    onChange: (reactions: Record<string, CommentReactionType>) => void,
+    onError?: (error: unknown) => void
+) {
+    const reactionsQuery = query(
+        collection(db, "commentReactions"),
+        where("recipeId", "==", recipeId),
+        where("userId", "==", userId)
+    )
+
+    return onSnapshot(
+        reactionsQuery,
+        (snapshot) => {
+        const reactions: Record<string, CommentReactionType> = {}
+
+        snapshot.docs.forEach((docSnap) => {
+            const data = docSnap.data()
+            reactions[data.commentId] = data.type
+        })
+
+        onChange(reactions)
+        },
+        (error) => {
+            console.error("Error listening to comment reactions:", error)
+            onError?.(error)
+        }
+    )
 }
 
 export function listenToRecipeComments(
