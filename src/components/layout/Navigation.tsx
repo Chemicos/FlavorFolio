@@ -163,7 +163,6 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
   }
   return (
     <div className='fixed left-0 top-0 z-50 w-full'>
-      {/* <div className='w-full px-0'> */}
         <motion.nav 
           initial={false}
           animate={
@@ -298,7 +297,6 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
             </div>
           
         </motion.nav>
-      {/* </div> */}
     </div>
   )
 }

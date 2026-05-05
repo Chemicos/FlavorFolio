@@ -95,14 +95,18 @@ export default function ViewRecipeDrawer({
     } = useImageLoaded(recipe.image)
 
     const {comments, isLoadingComments} = useRecipeComments(recipe.recipeId)
-    const liveCommentsCount = comments.length || Number(recipe?.stats?.commentsCount || 0)
+    const totalLiveCommentsCount = useMemo(() => {
+        return comments.reduce((total, comment) => {
+            return total + 1 + (comment.replies?.length || 0)
+        }, 0)
+    }, [comments])
 
     useEffect(() => {
         if (!recipe.recipeId) return
         if (isLoadingComments) return
 
-        onCommentStateChange(recipe.recipeId, comments.length)
-    }, [recipe.recipeId, comments.length, isLoadingComments, onCommentStateChange])
+        onCommentStateChange(recipe.recipeId, totalLiveCommentsCount)
+    }, [recipe.recipeId, totalLiveCommentsCount, isLoadingComments, onCommentStateChange])
     
     useEffect(() => {
         const originalOverflow = document.body.style.overflow
@@ -157,14 +161,14 @@ export default function ViewRecipeDrawer({
     const authorProfileImage = recipe?.author?.profileImage || ""
     const averageRating = ratingStats.averageRating
     const ratingsCount = ratingStats.ratingsCount
-    const commentsCount = liveCommentsCount
+    const commentsCount = totalLiveCommentsCount
     const description = recipe?.description || ""
     
     const followButtonDisabled = isFollowLoading || !currentUser?.uid || isOwner
     const shouldCollapseDescription = description.trim().length > 100
 
     const [isSubmittingComment, setIsSubmittingComment] = useState(false)
-    const displayedCommentsCount = comments.length || commentsCount
+    const displayedCommentsCount = totalLiveCommentsCount || commentsCount
     const tabs: {id: ViewRecipeTab; label: string, count?: number}[] = [
         {id: "ingredients", label: "Ingredients", count: ingredients.length},
         {id: "steps", label: "Steps", count: steps.length},
