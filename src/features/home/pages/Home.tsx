@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import FilterDrawer, { defaultRecipeFilters, RecipeFilters } from "../components/FilterDrawer"
 import Navigation from "../../../components/layout/Navigation"
 import Content from "../components/Content.js"
-// import PostForm from "../../../components/PostForm.jsx"
-// import Feedback from "../../../components/Feedback/Feedback.jsx"
+import PostForm from "../../../components/PostForm.js"
 
 import Snackbar from "@mui/material/Snackbar"
 import Alert from "@mui/material/Alert"
@@ -16,6 +15,7 @@ import { useHomeData } from "../hooks/useHomeData"
 import FloatingSpeedDial from "../../../components/layout/FloatingSpeedDial"
 import { Recipe } from "../types"
 import ViewRecipeDrawer from "../components/recipe-view-drawer/ViewRecipeDrawer"
+import PostRecipeDrawer from "../components/post-recipe/PostRecipeDrawer"
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("For You")
@@ -82,11 +82,6 @@ export default function Home() {
     setIsFeedbackVisible(true)
   }
 
-  const handleClose = () => {
-    setIsPostFormVisible(false)
-    setIsFeedbackVisible(false)
-  }
-
   const handleRecipeClick = (recipe: Recipe) => {
     setSelectedRecipe(recipe)
   }
@@ -135,17 +130,18 @@ export default function Home() {
           activeTab={activeTab}
           filters={filters}
           onRecipeClick={handleRecipeClick}
+          onCreatePost={handlePostClick}
         />
       </div>
 
       <FloatingSpeedDial />
       <ScrollToTopButton />
 
-      {/* {isPostFormVisible && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <PostForm handleClose={handleClose} />
-        </div>
-      )} */}
+      <AnimatePresence>
+        {isPostFormVisible && (
+          <PostRecipeDrawer onClose={() => setIsPostFormVisible(false)} isOpen={isPostFormVisible} />
+        )}
+      </AnimatePresence>
 
       {/* {isFeedbackVisible && <Feedback onClose={handleClose} />} */}
 

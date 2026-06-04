@@ -439,6 +439,12 @@ export default function ViewRecipeDrawer({
                     </div>
 
                     <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-8 pt-10">
+                        {recipe.cuisine && (
+                            <div className="mb-3 inline-flex items-center rounded-full border border-orange-400/15 bg-orange-500/10 px-3 py-1 text-xs font-medium tracking-wide text-orange-200">
+                                {recipe.cuisine}
+                            </div>
+                        )}
+                        
                         <h1 className="max-w-[92%] text-[1.6rem] font-bold leading-[2.35rem] text-white">
                             {recipe.title}
                         </h1>
@@ -586,7 +592,7 @@ export default function ViewRecipeDrawer({
                                 <motion.div
                                 initial={false}
                                 animate={{
-                                    maxHeight: shouldCollapseDescription &&  !isDescriptionExpanded ? 150 : 1000,
+                                    maxHeight: shouldCollapseDescription &&  !isDescriptionExpanded ? 200 : 1000,
                                 }}
                                 transition={{
                                     duration: 0.5,

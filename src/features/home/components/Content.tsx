@@ -23,12 +23,13 @@ interface ContentProps {
     activeTab: string
     filters: RecipeFilters
     onRecipeClick: (recipe: Recipe) => void
+    onCreatePost: () => void 
 }
 
 export default function Content({ 
     recipes, isLoading, isFiltering, title, onOpenFilters, currentUser,
     currentUserId, savedRecipes, followingUserIds, authorFollowersCountMap, onFavoriteStateChange,
-    onFollowStateChange, activeTab, filters, onRecipeClick
+    onFollowStateChange, activeTab, filters, onRecipeClick, onCreatePost
 }: ContentProps) {
     const [visibleCount, setVisibleCount] = useState(20)
     const showLoading = isLoading || isFiltering
@@ -54,17 +55,8 @@ export default function Content({
             onRecipeClick={onRecipeClick}
             isLoading={showLoading}
             onOpenFilters={onOpenFilters}
+            onCreatePost={onCreatePost}
         />
-
-        {/* {selectedRecipe && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-                <ViewRecipe
-                    recipe={selectedRecipe}
-                    onClose={handleClose}
-                    currentUserId={currentUserId}
-                />
-            </div>
-        )} */}
     </div>
   )
 }

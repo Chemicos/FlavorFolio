@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from "react"
-import type { Recipe, SavedRecipe } from "../types"
-import RecipeCard from "./RecipeCard"
 import CircularProgress from '@mui/material/CircularProgress'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import PostAddRoundedIcon from "@mui/icons-material/PostAddRounded"
+import TuneIcon from '@mui/icons-material/Tune'
+
+import { useEffect, useRef, useState } from "react"
 import { motion, useInView } from "motion/react"
 
-import TuneIcon from '@mui/icons-material/Tune'
+import type { Recipe, SavedRecipe } from "../types"
+import RecipeCard from "./RecipeCard"
 import { CurrentUserCardData } from "../types/recipeCard.types"
 
 interface RecipeSectionProps {
@@ -23,6 +25,7 @@ interface RecipeSectionProps {
   onRecipeClick: (recipe: Recipe) => void
   isLoading: boolean
   onOpenFilters: () => void
+  onCreatePost: () => void
 }
 
 const initial_staggered_count = 20
@@ -51,7 +54,6 @@ export default function RecipeSection({
     visibleCount,
     onShowMore,
     currentUser,
-    currentUserId,
     savedRecipes,
     followingUserIds,
     authorFollowersCountMap,
@@ -59,7 +61,8 @@ export default function RecipeSection({
     onFavoriteStateChange,
     onRecipeClick,
     isLoading,
-    onOpenFilters
+    onOpenFilters,
+    onCreatePost
 }: RecipeSectionProps) {
     const sectionRef = useRef<HTMLElement | null>(null)
     const isInView = useInView(sectionRef, {
@@ -88,14 +91,26 @@ export default function RecipeSection({
                 {title}
             </h2>
 
-            <button
-                type="button"
-                onClick={onOpenFilters}
-                aria-label="Open filters"
-                className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0b0b0c]/40 text-[#a8b3cf] backdrop-blur-xl transition duration-200 hover:scale-105 hover:bg-[#0b0b0c] hover:text-white active:scale-100"
-            >
-                <TuneIcon sx={{ fontSize: 20 }} />
-            </button>
+            <div className="flex items-center gap-4">
+                <button 
+                    type="button"
+                    onClick={onCreatePost}
+                    className="flex items-center gap-2 rounded-lg bg-orange-500/10 border border-orange-400/20 px-3 sm:px-4 py-2.5 text-sm font-medium text-orange-200
+                    transition hover:border-orange-300/30 hover:bg-orange-500/20 hover:text-orange-100 active:scale-95"
+                >
+                    <PostAddRoundedIcon sx={{fontSize: 18}} />
+                    <span className='hidden sm:inline'>New post</span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onOpenFilters}
+                    aria-label="Open filters"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0b0b0c]/40 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
+                >
+                    <TuneIcon sx={{ fontSize: 20 }} />
+                </button>
+            </div>
         </div>
 
         {isLoading ? (

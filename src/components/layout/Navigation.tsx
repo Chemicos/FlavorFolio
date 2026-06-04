@@ -204,15 +204,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
             </Link>
 
             <div className='flex items-center gap-4 lg:gap-6'>
-              <button
-                type='button'
-                className='hidden sm:flex items-center gap-2 text-white/80  hover:text-white transition'
-              >
-                {/* <PostAddIcon sx={{ fontSize: 20 }} /> */}
-                <span className='text-[14px] font-medium'>New post</span>
-              </button>
-
-              <button
+              {/* <button
                 type='button'
                 onClick={toggleDarkMode}
                 className='flex h-8 w-14 items-center rounded-full border border-[#3f424a]/80 bg-[#0b0b0c] px-1 transition'
@@ -226,7 +218,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
                   <LightModeIcon sx={{ fontSize: 20}} />
                 }
                 </span>
-              </button>
+              </button> */}
 
               <button className='text-[#a8b3cf] hover:text-white'>
                 <NotificationsIcon sx={{fontSize: 25}} />

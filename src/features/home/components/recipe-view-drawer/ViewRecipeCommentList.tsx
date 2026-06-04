@@ -379,7 +379,7 @@ function CommentItem({
                                 disabled={!currentUserId}
                                 className={[
                                     "inline-flex items-center gap-1 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40",
-                                    isDisliked ? "text-[#db7668]" : "text-[#a8b3cf]/50 hover:text-white",
+                                    isDisliked ? "text-white" : "text-[#a8b3cf]/50 hover:text-white",
                                 ].join(" ")}
                             >
                                 <ThumbDownRoundedIcon sx={{ fontSize: 18 }} />
