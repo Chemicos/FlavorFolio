@@ -84,10 +84,10 @@ export default function RecipeCard({
   return (
     <article
       onClick={handleCardClick}
-      className='group relative w-[300px] 2xl-plus:w-[350px] cursor-pointer transition duration-150 hover:-translate-y-2'
+      className='group relative w-full cursor-pointer transition duration-150 will-change-transform hover:-translate-y-1'
     >
       <div className='relative flex flex-col items-center'>
-        <div className='relative z-0 h-[200px] 2xl-plus:h-[250px] w-full overflow-hidden rounded-t-[2.3rem] 2xl-plus:rounded-t-[3rem]'>
+        <div className='relative z-0 h-[200px] 2xl-plus:h-[250px] w-full overflow-hidden rounded-t-[2.3rem] 2xl-plus:rounded-t-[1rem]'>
           {!recipeImageLoaded && (
             <div className='absolute inset-0 animate-pulse bg-white/10'></div>
           )}
@@ -99,7 +99,7 @@ export default function RecipeCard({
             onLoad={handleRecipeImageLoad}
             onError={handleRecipeImageError}
             className={[
-              'h-full w-full object-cover transition duration-500',
+              'h-full w-full object-cover transition-opacity duration-200',
               recipeImageLoaded ? 'opacity-100' : 'opacity-0',
             ].join(' ')}
           />
@@ -124,7 +124,7 @@ export default function RecipeCard({
         <div className='relative z-10 -mt-10 w-full rounded-[2.3rem] 2xl-plus:rounded-[2.5rem] bg-[linear-gradient(180deg,_rgba(11,11,12,1)_50%,_rgba(11,11,12,0.56)_72%,_rgba(20,24,34,0)_100%)] 
         group-hover:bg-[#0b0b0c] px-5 pb-7 pt-5 2xl-plus:px-7 2xl-plus:pb-8 2xl-plus:pt-6 transition duration-300 ease-in-out
         '>
-          <h2 className='line-clamp-2 text-[1rem] 2xl-plus:text-lg font-bold leading-7 2xl-plus:leading-8 text-white'>
+          <h2 className='line-clamp-2 text-[1rem] font-semibold leading-7 2xl-plus:leading-8 text-white'>
             {truncatedTitle}
           </h2>
 

@@ -16,7 +16,7 @@ export default function ViewRecipeIngredients({ingredients}: ViewRecipeIngredien
             </h2>
         </div>
 
-        <div className="mt-5 flex flex-col gap-2 border-l-[1px] border-white/20 pl-4">
+        <div className="mt-5 flex flex-col gap-2 border-l-[1px] border-[#a8b3cf]/20 pl-4">
             {ingredients.map((ingredient, index) => {
                 const quantity = ingredient?.quantity ? String(ingredient.quantity) : ""
                 const unit = ingredient?.unit || ""
@@ -24,15 +24,15 @@ export default function ViewRecipeIngredients({ingredients}: ViewRecipeIngredien
 
                 return (
                     <div
-                    key={`${ingredient?.ingredient || "ingredient"}-${index}`}
-                    className="flex items-center gap-3"
+                        key={`${ingredient?.ingredient || "ingredient"}-${index}`}
+                        className="flex items-center gap-3"
                     >
-                    <div className="shrink-0 rounded-full bg-white/[0.06] px-3 py-1.5 text-sm font-semibold text-[#cbd3ea]">
+                    <div className="shrink-0 rounded-lg bg-[#0b0b0c] border border-white/[0.10] px-3 py-1.5 text-sm text-[#cbd3ea]">
                         {amountLabel || "-"}
                     </div>
 
                     <div className="min-w-0">
-                        <p className="truncate text-[0.98rem] font-medium text-white">
+                        <p className="truncate text-[0.98rem] text-white">
                         {ingredient?.ingredient || "Unknown ingredient"}
                         </p>
                     </div>

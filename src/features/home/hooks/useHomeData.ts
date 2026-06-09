@@ -3,7 +3,7 @@ import { RecipeFilters } from "../components/FilterDrawer"
 import { Recipe, SavedRecipe } from "../types"
 import type { CurrentUserCardData } from "../types/recipeCard.types"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
-import { collection, doc, getDoc, getDocs, onSnapshot } from "@firebase/firestore"
+import { collection, doc, DocumentSnapshot, getDoc, getDocs, limit, onSnapshot, orderBy, query, startAfter, where } from "firebase/firestore"
 import { db } from "../../../firebase-config"
 import { applyRecipeFilters, getAvailableCuisines } from "../utils/recipeFilters"
 import { sortByMostSaved, sortByNewest, sortForYou, sortTrending } from "../utils/recipeSorters"
@@ -12,9 +12,14 @@ interface UseHomeDataParams {
   activeTab: string
   filters: RecipeFilters
 }
+const PAGE_SIZE = 20
 
 export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
+
   const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [lastRecipeDoc, setLastRecipeDoc] = useState<DocumentSnapshot | null>(null)
+  const [hasMoreRecipes, setHasMoreRecipes] = useState(true)
+  const [isFetchingMoreRecipes, setIsFetchingMoreRecipes] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [authorFollowersCountMap, setAuthorFollowersCountMap] = useState<Record<string, number>>({})
   const [followingUserIds, setFollowingUserIds] = useState<string[]>([])
@@ -78,29 +83,78 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     return () => window.clearTimeout(timeout)
   }, [activeTab, filters])
 
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      setIsLoading(true)
+  const buildRecipesQuery = (cursor?: DocumentSnapshot | null) => {
+    const constraints = [
+      where("status", "==", "published"),
+      where("visibility", "==", "public"),
+      orderBy("createdAt", "desc"),
+      limit(PAGE_SIZE),
+    ]
 
-      try {
-        const recipeCollection = collection(db, "recipes")
-        const recipeSnapshot = await getDocs(recipeCollection)
+    return cursor
+      ? query(collection(db, "recipes"), ...constraints, startAfter(cursor))
+      : query(collection(db, "recipes"), ...constraints)
+  }
 
-        const nextRecipes = recipeSnapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        })) as Recipe[]
+  const mapRecipeDocs = (docs: DocumentSnapshot[]) => {
+    return docs.map((docSnap) => ({
+      id: docSnap.id,
+      recipeId: docSnap.id,
+      ...docSnap.data(),
+    })) as Recipe[]
+  }
 
-        setRecipes(nextRecipes)
-      } catch (error) {
-        console.error("Failed to fetch recipes:", error)
-      } finally {
-        setIsLoading(false)
-      }
+  const fetchInitialRecipes = useCallback(async () => {
+    setIsLoading(true)
+
+    try {
+      const snapshot = await getDocs(buildRecipesQuery())
+
+      setRecipes(mapRecipeDocs(snapshot.docs))
+      setLastRecipeDoc(snapshot.docs[snapshot.docs.length - 1] ?? null)
+      setHasMoreRecipes(snapshot.docs.length === PAGE_SIZE)
+    } catch (error) {
+      console.error("Failed to fetch initial recipes:", error)
+    } finally {
+      setIsLoading(false)
     }
-
-    fetchRecipes()
   }, [])
+
+  const fetchMoreRecipes = useCallback(async () => {
+    if (isFetchingMoreRecipes || !hasMoreRecipes || !lastRecipeDoc) return
+
+    setIsFetchingMoreRecipes(true)
+
+    try {
+      const snapshot = await getDocs(buildRecipesQuery(lastRecipeDoc))
+      const nextRecipes = mapRecipeDocs(snapshot.docs)
+
+      setRecipes((prev) => {
+        const existingIds = new Set(prev.map((recipe) => recipe.recipeId || recipe.id))
+
+        const uniqueNewRecipes = nextRecipes.filter(
+          (recipe) => !existingIds.has(recipe.recipeId || recipe.id)
+        )
+
+        return [...prev, ...uniqueNewRecipes]
+      })
+
+      setLastRecipeDoc(snapshot.docs[snapshot.docs.length - 1] ?? null)
+      setHasMoreRecipes(snapshot.docs.length === PAGE_SIZE)
+    } catch (error) {
+      console.error("Failed to fetch more recipes:", error)
+    } finally {
+      setIsFetchingMoreRecipes(false)
+    }
+  }, [hasMoreRecipes, isFetchingMoreRecipes, lastRecipeDoc])
+
+  useEffect(() => {
+    setRecipes([])
+    setLastRecipeDoc(null)
+    setHasMoreRecipes(true)
+
+    fetchInitialRecipes()
+  }, [fetchInitialRecipes])
 
   useEffect(() => {
     const fetchFollowing = async () => {
@@ -352,6 +406,9 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     handleFavoriteStateChange,
     handleFollowStateChange,
     handleRatingStateChange,
-    handleCommentStateChange
+    handleCommentStateChange,
+    hasMoreRecipes,
+    isFetchingMoreRecipes,
+    fetchMoreRecipes
   }
 }

@@ -3,13 +3,14 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
 import { motion } from "motion/react"
 import PostRecipeForm from "./PostRecipeForm"
 import { useEffect } from "react"
+import { CurrentUserCardData } from "../../types/recipeCard.types"
 
 interface PostRecipeDrawerProps {
-    isOpen: boolean
+    currentUser: CurrentUserCardData | null
     onClose: () => void
 }
 
-export default function PostRecipeDrawer({isOpen, onClose}: PostRecipeDrawerProps) {
+export default function PostRecipeDrawer({currentUser, onClose}: PostRecipeDrawerProps) {
     useEffect(() => {
         const originalOverflow = document.body.style.overflow
 
@@ -39,7 +40,7 @@ export default function PostRecipeDrawer({isOpen, onClose}: PostRecipeDrawerProp
             className="absolute right-0 top-0 flex h-full w-full max-w-[580px] flex-col overflow-hidden bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]"
         >
             <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
-                <PostRecipeForm onClose={onClose} />
+                <PostRecipeForm currentUser={currentUser} onClose={onClose} />
             </div>
         </motion.aside>
     </div>

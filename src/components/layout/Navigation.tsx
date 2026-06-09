@@ -176,8 +176,6 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
             : {
               width: "90%",
               marginTop: 16,
-              borderRadius: "20px",
-              boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
             }
           }
           transition={{
@@ -188,7 +186,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
             "mx-auto flex h-20 items-center justify-between px-6 transition-colors duration-300",
             isScrolled
               ? "bg-[#0b0b0c]/80 backdrop-blur-md"
-              : "bg-[#0b0b0c]",
+              : "",
           ].join(" ")}
         >
           

@@ -1,10 +1,11 @@
 import CircularProgress from '@mui/material/CircularProgress'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+// import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import PostAddRoundedIcon from "@mui/icons-material/PostAddRounded"
 import TuneIcon from '@mui/icons-material/Tune'
 
-import { useEffect, useRef, useState } from "react"
-import { motion, useInView } from "motion/react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { motion } from "motion/react"
+import { useWindowVirtualizer } from "@tanstack/react-virtual"
 
 import type { Recipe, SavedRecipe } from "../types"
 import RecipeCard from "./RecipeCard"
@@ -13,10 +14,10 @@ import { CurrentUserCardData } from "../types/recipeCard.types"
 interface RecipeSectionProps {
   title: string
   recipes: Recipe[]
-  visibleCount: number
-  onShowMore: () => void
   currentUser: CurrentUserCardData | null
-  currentUserId: string | null
+  hasMore: boolean
+  isFetchingMore: boolean
+  onFetchMore: () => void
   savedRecipes: SavedRecipe[]
   followingUserIds: string[]
   authorFollowersCountMap: Record<string, number>
@@ -28,31 +29,9 @@ interface RecipeSectionProps {
   onCreatePost: () => void
 }
 
-const initial_staggered_count = 20
-
-const cardVariants = {
-  hidden: {
-    opacity: 0,
-    y: 42,
-    filter: "blur(10px)",
-  },
-  visible: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.8,
-      delay: index < initial_staggered_count ? index * 0.1 + 0.05 : 0,
-      ease: [0.22, 1, 0.36, 1] as const,
-    },
-  })
-}
-
 export default function RecipeSection({
     title,
     recipes,
-    visibleCount,
-    onShowMore,
     currentUser,
     savedRecipes,
     followingUserIds,
@@ -62,32 +41,103 @@ export default function RecipeSection({
     onRecipeClick,
     isLoading,
     onOpenFilters,
-    onCreatePost
+    onCreatePost,
+    hasMore,
+    isFetchingMore,
+    onFetchMore,
 }: RecipeSectionProps) {
-    const sectionRef = useRef<HTMLElement | null>(null)
-    const isInView = useInView(sectionRef, {
-        amount: 0.2,
-        margin: "0px 0px -10% 0px"
-    })
+    const ROW_GAP = 64
+    const MIN_CARD_WIDTH = 300
+    const MAX_CARD_WIDTH = 350
+    const COLUMN_GAP = 25
+    const ESTIMATED_CARD_HEIGHT = 430
+    const ESTIMATED_ROW_HEIGHT = ESTIMATED_CARD_HEIGHT + ROW_GAP
 
-    const [hasAnimated, setHasAnimated] = useState(false)
+    const sectionRef = useRef<HTMLElement | null>(null)
+    const gridRef = useRef<HTMLDivElement | null>(null)
+
+    const [columns, setColumns] = useState(4)
+    const [cardWidth, setCardWidth] = useState(MAX_CARD_WIDTH)
+    
+    const [scrollMargin, setScrollMargin] = useState(0)
 
     useEffect(() => {
-        if (isInView && !hasAnimated) {
-            setHasAnimated(true)
+        const element = gridRef.current
+        if (!element || isLoading) return
+
+        const updateGridSize = () => {
+            const width = element.getBoundingClientRect().width
+
+            const nextColumns = Math.max(
+            1,
+            Math.floor((width + COLUMN_GAP) / (MIN_CARD_WIDTH + COLUMN_GAP))
+            )
+
+            const totalGap = (nextColumns - 1) * COLUMN_GAP
+            const nextCardWidth = Math.min(
+            MAX_CARD_WIDTH,
+            Math.floor((width - totalGap) / nextColumns)
+            )
+
+            setColumns(nextColumns)
+            setCardWidth(nextCardWidth)
         }
-    }, [isInView, hasAnimated])
+
+        updateGridSize()
+
+        const observer = new ResizeObserver(updateGridSize)
+        observer.observe(element)
+
+        return () => observer.disconnect()
+    }, [isLoading, recipes.length, title])
+
+    
+    useEffect(() => {
+        if (!gridRef.current) return
+        
+        setScrollMargin(gridRef.current.offsetTop)
+    }, [recipes.length, title])
+    
+    const rows = useMemo(() => {
+        const result: Recipe[][] = []
+        
+        for (let index = 0; index < recipes.length; index += columns) {
+            result.push(recipes.slice(index, index + columns))
+        }
+        
+        return result
+    }, [recipes, columns])
+    
+    const rowVirtualizer = useWindowVirtualizer({
+        count: rows.length,
+        estimateSize: () => ESTIMATED_ROW_HEIGHT,
+        overscan: 4,
+        scrollMargin,
+    })
+
+    useEffect(() => {
+        rowVirtualizer.measure()
+    }, [columns, cardWidth])
+    
+    const virtualRows = rowVirtualizer.getVirtualItems()            
+    
+    useEffect(() => {
+        const lastVirtualRow = virtualRows[virtualRows.length - 1]
+        if (!lastVirtualRow) return
+
+        const isNearEnd = lastVirtualRow.index >= rows.length - 2
+
+        if (isNearEnd && hasMore && !isFetchingMore && !isLoading) {
+            onFetchMore()
+        }
+    }, [virtualRows, rows.length, hasMore, isFetchingMore, isLoading, onFetchMore])
 
     if (!isLoading && !recipes.length) return null
-
-    const visibleRecipes = recipes.slice(0, visibleCount)
-    const hasMore = recipes.length > visibleCount
-
 
   return (
     <section ref={sectionRef} className="w-full min-h-[calc(100vh-140px)]">
         <div className="mb-12 flex items-center justify-between gap-4">
-            <h2 className="text-[1.3rem] 2xl-plus:text-[1.6rem] text-white/50">
+            <h2 className="text-[1.3rem] 2xl-plus:text-[1.6rem] text-white/45">
                 {title}
             </h2>
 
@@ -124,53 +174,62 @@ export default function RecipeSection({
                 />
             </div>
         ) : (
-            <motion.div 
-                className="flex flex-wrap justify-center gap-[25px]"
-            >
-                {visibleRecipes.map((recipe, index) => (
-                    <motion.div
-                        key={recipe.recipeId}
-                        custom={index}
-                        variants={cardVariants}
-                        initial="hidden"
-                        animate={hasAnimated ? "visible" : "hidden"}
-                        className="will-change-transform"
-                    >
-                        <RecipeCard
-                            recipe={recipe}
-                            onClick={() => onRecipeClick(recipe)}
-                            // currentUser={currentUserId}
-                            currentUser={currentUser}
-                            followingUserIds={followingUserIds}
-                            authorFollowersCount={authorFollowersCountMap[recipe.userId || ""] ?? Number(recipe?.author?.followersCount || 0)}
-                            onFollowStateChange={onFollowStateChange}
-                            onFavoriteStateChange={onFavoriteStateChange}
-                            savedRecipes={savedRecipes}
-                        />                    
-                    </motion.div>
-                ))}
-            </motion.div>
-        )}
-        
-        {hasMore && !isLoading && (
-            <div className="my-10 flex w-full justify-center">
-                <button 
-                    onClick={onShowMore}
-                    className="
-                    group relative flex items-center justify-center h-14 w-14 rounded-full bg-[#0b0b0c]/40 backdrop-blur-xl
-                    border border-[#a8b3cf]/10 transition duration-200 hover:bg-[#0b0b0c] hover:border-[#a8b3cf]/20 hover:scale-105
-                    active:scale-95 
-                    "
+            <div ref={gridRef} className="relative w-full">
+                <div
+                    style={{
+                    height: `${rowVirtualizer.getTotalSize()}px`,
+                    position: "relative",
+                    }}
                 >
-                    <KeyboardArrowDownIcon
-                        className="
-                        text-[#a8b3cf]
-                        transition duration-300
-                        group-hover:text-white
-                        "
-                        sx={{ fontSize: 30 }}
-                    />
-                </button>
+                    {virtualRows.map((virtualRow) => {
+                        const rowRecipes = rows[virtualRow.index] ?? []
+
+                        return (
+                            <motion.div
+                                key={virtualRow.key}
+                                ref={rowVirtualizer.measureElement}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.18, ease: "easeOut" }}
+                                data-index={virtualRow.index}
+                                className="absolute left-0 top-0 grid w-full justify-center"
+                                style={{
+                                    transform: `translateY(${
+                                        virtualRow.start - rowVirtualizer.options.scrollMargin
+                                    }px)`,
+                                    gridTemplateColumns: `repeat(${columns}, ${cardWidth}px)`,
+                                    columnGap: `${COLUMN_GAP}px`,
+                                    paddingBottom: `${ROW_GAP}px`,
+                                }}
+                            >
+                                {rowRecipes.map((recipe) => (
+                                    <div key={recipe.recipeId}>
+                                        <RecipeCard
+                                        key={recipe.recipeId}
+                                        recipe={recipe}
+                                        onClick={() => onRecipeClick(recipe)}
+                                        currentUser={currentUser}
+                                        followingUserIds={followingUserIds}
+                                        authorFollowersCount={
+                                            authorFollowersCountMap[recipe.userId || ""] ??
+                                            Number(recipe?.author?.followersCount || 0)
+                                        }
+                                        onFollowStateChange={onFollowStateChange}
+                                        onFavoriteStateChange={onFavoriteStateChange}
+                                        savedRecipes={savedRecipes}
+                                        />
+                                    </div>
+                                ))}
+                            </motion.div>
+                        )
+                        })}
+                </div>
+                </div>
+        )}
+
+        {isFetchingMore && (
+            <div className="flex w-full justify-center py-8">
+                <CircularProgress size={32} thickness={4} sx={{ color: "#fff" }} />
             </div>
         )}
     </section>

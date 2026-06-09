@@ -34,7 +34,7 @@ export default function ViewRecipeStepsSection({
                   onClick={onToggleAllSteps} 
                   className={[
                       "rounded-md px-4 py-2 text-sm text-[#a8b3cf]/60 transition hover:bg-[#0b0b0c] hover:text-white active:scale-95",
-                      areAllStepsExpanded ? "bg-[#0b0b0c] text-white" : ""
+                      areAllStepsExpanded ? "bg-[#0b0b0c] border border-white/[0.10] text-white" : ""
                   ].join(" ")}
               >
                   {areAllStepsExpanded ? "Collapse all" : "Expand all"}
@@ -57,7 +57,7 @@ export default function ViewRecipeStepsSection({
                           onClick={() => onToggleStep(stepNumber)}
                           className="flex w-full items-center justify-between px-5 py-4 text-left"
                       >
-                          <span className="text-sm font-semibold text-white">
+                          <span className="text-sm font-semibold uppercase tracking-[0.16em] text-orange-200/70">
                               Step {stepNumber}
                           </span>
 
@@ -87,7 +87,7 @@ export default function ViewRecipeStepsSection({
 
                                   <div className="px-5 pb-5">
                                   {step?.imageUrl && (
-                                      <div className="mb-4 overflow-hidden rounded-2xl bg-white/10">
+                                      <div className="my-4 overflow-hidden rounded-2xl bg-white/10">
                                       <img
                                           src={step.imageUrl}
                                           alt={`Step ${stepNumber}`}
@@ -96,7 +96,7 @@ export default function ViewRecipeStepsSection({
                                       </div>
                                   )}
 
-                                  <p className="text-[0.98rem] leading-7 text-white">
+                                  <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[#c4cbdb]">
                                       {step?.description || "No description available."}
                                   </p>
                                   </div>

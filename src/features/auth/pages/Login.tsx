@@ -3,8 +3,6 @@ import { auth } from "../../../firebase-config.js"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 
-import bg from "../../../assets/blurry-gradient-haikei.svg"
-
 import SignInHeroRight from "./components/heroes/SignInHeroRight.js"
 import AuthCard from "./components/AuthCard.js"
 import SignUpHeroRight from "./components/heroes/SignUpHeroRight.js"
@@ -15,22 +13,13 @@ export default function Login() {
 
   const initialMode = location.pathname.includes("register") ? "signup" : "signin"
   const [mode, setMode] = useState(initialMode)
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     if (user && location.pathname === "/") {
-  //       navigate("/home")
-  //     }
-  //   })
-  //   return () => unsubscribe()
-  // }, [navigate, location.pathname])
 
   return (
     <div className="min-h-screen w-screen relative overflow-hidden">
-      <img
-        src={bg}
-        alt="background"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+      <section 
+        className="flex flex-col items-center h-screen"
+        style={{backgroundImage: `radial-gradient(circle at top, #8a5101 35%, #733000 45%, #000 75%)`}}
+      >
       <div className="absolute inset-0 bg-[#0b0b0c]/45" />
 
       <div className="relative z-10 min-h-screen w-full px-4 py-10 flex items-center justify-center">
@@ -45,6 +34,7 @@ export default function Login() {
 
         </div>
       </div>
+      </section>
     </div>
   )
 }

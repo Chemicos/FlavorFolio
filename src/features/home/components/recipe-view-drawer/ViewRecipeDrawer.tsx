@@ -67,7 +67,7 @@ export default function ViewRecipeDrawer({
         ratingsCount: Number(recipe?.stats?.ratingsCount || 0)
     })
 
-    const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({1: true})
+    const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({})
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
     const {
@@ -143,6 +143,14 @@ export default function ViewRecipeDrawer({
 
         fetchUserRating()
     }, [currentUser?.uid, recipe.recipeId])
+
+    useEffect(() => {
+        setExpandedSteps(
+            Object.fromEntries(
+                (recipe?.cookingSteps || []).map((_step, index) => [index + 1, true])
+            )
+        )
+    }, [recipe?.id])
 
     const ingredients = useMemo(() => {
         return Array.isArray(recipe?.ingredients) ? recipe.ingredients : []
@@ -440,7 +448,7 @@ export default function ViewRecipeDrawer({
 
                     <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-8 pt-10">
                         {recipe.cuisine && (
-                            <div className="mb-3 inline-flex items-center rounded-full border border-orange-400/15 bg-orange-500/10 px-3 py-1 text-xs font-medium tracking-wide text-orange-200">
+                            <div className="mb-3 inline-flex items-center rounded-lg border border-orange-400/15 bg-orange-500/10 px-3 py-1 text-xs font-medium tracking-wide text-orange-200">
                                 {recipe.cuisine}
                             </div>
                         )}

@@ -12,7 +12,7 @@ export default function AuthCard({mode = "signin", onModeChange}: AuthCardProps)
     const isSignIn = mode === 'signin'
 
   return (
-    <div className="flex flex-col w-full max-w-[460px] rounded-lg bg-[#0b0b0c]/40 p-8 lg:px-10">
+    <div className="flex flex-col w-full max-w-[460px] rounded-lg bg-[#0b0b0c]/50 backdrop-blur-2xl p-8 lg:px-10">
         <div className="flex flex-col items-start gap-8">
         <div className="flex flex-col items-center mx-auto gap-1">
             <img src={logo} alt="FlavorFolio" className="h-8 w-8" />
