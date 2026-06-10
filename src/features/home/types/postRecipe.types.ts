@@ -11,6 +11,7 @@ export interface PostRecipeStep {
     description: string
     image?: File | null
     imagePreview?: string
+    existingImageUrl?: string
 }
 
 export interface PostRecipeStepDraft {

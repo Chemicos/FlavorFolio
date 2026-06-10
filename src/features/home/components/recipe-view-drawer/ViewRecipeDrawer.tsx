@@ -6,14 +6,18 @@ import { useImageLoaded } from "../../hooks/useImageLoaded"
 import { AnimatePresence, motion } from "motion/react"
 
 import MuiRating from "@mui/material/Rating"
-import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded';
-import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded';
-import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
-import SignalCellularAltRoundedIcon from "@mui/icons-material/SignalCellularAltRounded";
-import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
-import { formatCompactCount, formatDurationMinutes, formatFollowersLabel } from "../../utils/recipeCardFormatters";
+import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded'
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
+import FavoriteIcon from '@mui/icons-material/Favorite'
+import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded'
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
+import SignalCellularAltRoundedIcon from "@mui/icons-material/SignalCellularAltRounded"
+import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded"
+import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded"
+import EditRoundedIcon from "@mui/icons-material/EditRounded"
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded"
+
+import { formatCompactCount, formatDurationMinutes, formatFollowersLabel } from "../../utils/recipeCardFormatters"
 import { CircularProgress } from "@mui/material"
 import { getUserRecipeRating, rateRecipe } from "../../services/ratings.service"
 import { ViewRecipeComment } from "./ViewRecipeCommentList"
@@ -42,6 +46,7 @@ interface ViewRecipeDrawerProps {
         }
     ) => void
     onCommentStateChange: (recipeId: string, commentsCount: number) => void
+    onEditRecipe: (recipe: Recipe) => void
 }
 
 export default function ViewRecipeDrawer({
@@ -54,10 +59,13 @@ export default function ViewRecipeDrawer({
     onFollowStateChange,
     onFavoriteStateChange,
     onRatingStateChange,
-    onCommentStateChange
+    onCommentStateChange,
+    onEditRecipe,
 }: ViewRecipeDrawerProps) {
     type ViewRecipeTab = "ingredients" | "steps" | "comments"
 
+    const canManageRecipe = Boolean(currentUser?.uid && recipe.userId === currentUser.uid)
+    const [isRecipeMenuOpen, setIsRecipeMenuOpen] = useState(false)
     const [userRating, setUserRating] = useState<number | null>(null)
     const [ratingLoading, setRatingLoading] = useState(false)
     const [activeTab, setActiveTab] = useState<ViewRecipeTab>("ingredients")
@@ -424,12 +432,63 @@ export default function ViewRecipeDrawer({
                             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
                         </button>
 
-                        <button
+                        {/* <button
                             type="button"
                             className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[#0b0b0c]/60 text-[#a8b3cf] backdrop-blur-xl transition duration-200 hover:scale-105 hover:bg-[#0b0b0c] hover:text-white"
                             >
                             <ShareRoundedIcon sx={{ fontSize: 19 }} />
-                        </button>
+                        </button> */}
+
+                        <div className="absolute right-5 top-5 z-30">
+                            <button
+                                type="button"
+                                onClick={() => setIsRecipeMenuOpen((prev) => !prev)}
+                                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0b0b0c]/60 text-[#a8b3cf] backdrop-blur-xl transition duration-200 hover:scale-105 hover:bg-[#0b0b0c] hover:text-white"
+                            >
+                                <MoreVertRoundedIcon sx={{ fontSize: 21 }} />
+                            </button>
+
+                            <AnimatePresence>
+                                {isRecipeMenuOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                                    transition={{ duration: 0.16 }}
+                                    className="absolute right-0 top-[calc(100%+10px)] w-44 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
+                                >
+                                    <button
+                                        type="button"
+                                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+                                    >
+                                        <ShareRoundedIcon sx={{ fontSize: 18 }} />
+                                        Share
+                                    </button>
+
+                                    {canManageRecipe && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => onEditRecipe(recipe)}
+                                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+                                        >
+                                        <EditRoundedIcon sx={{ fontSize: 18 }} />
+                                            Edit recipe
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                                        >
+                                        <DeleteRoundedIcon sx={{ fontSize: 18 }} />
+                                            Delete recipe
+                                        </button>
+                                    </>
+                                    )}
+                                </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
 
                         <button
                             type="button"
@@ -553,7 +612,7 @@ export default function ViewRecipeDrawer({
                         </div>
 
                         <div className="mt-10 grid grid-cols-3 gap-3">
-                            <div className="rounded-xl bg-[#0b0b0c] px-4 py-5 text-center">
+                            <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
                                 <div className="flex justify-center text-white">
                                     <AccessTimeOutlinedIcon sx={{ fontSize: 22 }} />
                                 </div>
@@ -561,14 +620,14 @@ export default function ViewRecipeDrawer({
                                 <p className="mt-3 text-sm font-semibold text-white">duration</p>
                             </div>
 
-                            <div className="rounded-xl bg-[#0b0b0c] px-4 py-5 text-center">
+                            <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
                                 <div className="flex justify-center text-white">
                                     <SignalCellularAltRoundedIcon sx={{ fontSize: 22 }} />
                                 </div>
                                 <p className="mt-3 text-sm font-semibold text-white">difficulty</p>
                             </div>
 
-                            <div className="rounded-xl bg-[#0b0b0c] px-4 py-5 text-center">
+                            <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
                                 <div className="flex justify-center text-white">
                                     <RestaurantRoundedIcon sx={{ fontSize: 22 }} />
                                 </div>
@@ -576,19 +635,19 @@ export default function ViewRecipeDrawer({
                             </div>
 
                             <div className="flex justify-center">
-                                <span className="rounded-full bg-[#0b0b0c]/60 px-5 py-2 text-sm font-semibold text-white">
+                                <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
                                     {formatDurationMinutes(recipe.durationMinutes)}
                                 </span>
                             </div>
 
                             <div className="flex justify-center">
-                                <span className="rounded-full bg-[#0b0b0c]/60 px-5 py-2 text-sm font-semibold text-white">
+                                <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
                                     {recipe.difficulty}
                                 </span>
                             </div>
 
                             <div className="flex justify-center">
-                                <span className="rounded-full bg-[#0b0b0c]/60 px-5 py-2 text-sm font-semibold text-white">
+                                <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
                                     {recipe.servings ? `${recipe.servings}` : "info"}
                                 </span>
                             </div>

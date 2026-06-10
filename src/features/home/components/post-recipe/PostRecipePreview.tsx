@@ -27,6 +27,8 @@ interface PostRecipePreviewProps {
     isSubmitting: boolean
     onPost: () => void
     onBack: () => void
+    mode?: "create" | "edit"
+    submitLabel?: string
 }
 
 export default function PostRecipePreview({
@@ -45,6 +47,8 @@ export default function PostRecipePreview({
     isSubmitting,
     onPost,
     onBack,
+    mode = "create",
+    submitLabel = "Post"
 }: PostRecipePreviewProps) {
     const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({})
 
@@ -224,6 +228,7 @@ export default function PostRecipePreview({
                 mode="preview"
                 completionPercentage={completionPercentage}
                 isSubmitting={isSubmitting}
+                submitLabel={submitLabel}
                 onEdit={onBack}
                 onPost={onPost}
             />

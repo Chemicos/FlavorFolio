@@ -1,16 +1,24 @@
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
 
-import { motion } from "motion/react"
+import { AnimatePresence, motion } from "motion/react"
 import PostRecipeForm from "./PostRecipeForm"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
+import PostRecipeSubmissionInfo from "./PostRecipeSubmissionInfo"
+import { Recipe } from "../../types"
 
 interface PostRecipeDrawerProps {
     currentUser: CurrentUserCardData | null
     onClose: () => void
+    onSubmitSuccess: () => void
+    mode?: "create" | "edit"
+    recipeToEdit?: Recipe | null
+    onUpdateSuccess?: () => void
 }
 
-export default function PostRecipeDrawer({currentUser, onClose}: PostRecipeDrawerProps) {
+export default function PostRecipeDrawer({currentUser, onClose, onSubmitSuccess, mode, recipeToEdit, onUpdateSuccess}: PostRecipeDrawerProps) {
+    const [showSubmissionInfo, setShowSubmissionInfo] = useState(mode !== "edit")
+
     useEffect(() => {
         const originalOverflow = document.body.style.overflow
 
@@ -40,9 +48,22 @@ export default function PostRecipeDrawer({currentUser, onClose}: PostRecipeDrawe
             className="absolute right-0 top-0 flex h-full w-full max-w-[580px] flex-col overflow-hidden bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]"
         >
             <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
-                <PostRecipeForm currentUser={currentUser} onClose={onClose} />
+                <PostRecipeForm 
+                    currentUser={currentUser} 
+                    onClose={onClose} 
+                    onSubmitSuccess={onSubmitSuccess}
+                    mode={mode}
+                    recipeToEdit={recipeToEdit}
+                    onUpdateSuccess={onUpdateSuccess}
+                />
             </div>
         </motion.aside>
+
+        <AnimatePresence>
+            {showSubmissionInfo && mode !== "edit" && (
+                <PostRecipeSubmissionInfo onContinue={() => setShowSubmissionInfo(false)} />
+            )}
+        </AnimatePresence>
     </div>
   )
 }

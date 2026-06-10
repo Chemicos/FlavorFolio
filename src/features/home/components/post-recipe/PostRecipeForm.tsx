@@ -13,26 +13,34 @@ import { formatDurationFromMinutes } from "../../utils/recipeDuration"
 import PostRecipeCuisineSelect from "./PostRecipeCuisineSelect"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
 import { createPendingRecipe } from "../../services/recipes.service"
+import { Recipe } from "../../types"
 
 
 interface PostRecipeFormProps {
   onClose: () => void
   currentUser: CurrentUserCardData | null
+  onSubmitSuccess: () => void
+  mode?: "create" | "edit"
+  recipeToEdit?: Recipe | null
+  onUpdateSuccess?: () => void
 }
 
-export default function PostRecipeForm({onClose, currentUser}: PostRecipeFormProps) {
+export default function PostRecipeForm({
+  onClose, currentUser, onSubmitSuccess, mode = "create", recipeToEdit = null, onUpdateSuccess
+}: PostRecipeFormProps) {
   const MIN_TITLE_LENGTH = 5
   const MIN_DESCRIPTION_LENGTH = 30  
 
+  const isEditMode = mode === "edit" && Boolean(recipeToEdit)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [cuisine, setCuisine] = useState("")
-  const [duration, setDuration] = useState("")
-  const [servings, setServings] = useState("")
-  const [difficulty, setDifficulty] = useState("easy")
-  const [meal, setMeal] = useState("lunch")
-  const [visibility, setVisibility] = useState<"public" | "private">("public")
+  const [title, setTitle] = useState(recipeToEdit?.title || "")
+  const [description, setDescription] = useState(recipeToEdit?.description || "")
+  const [cuisine, setCuisine] = useState(recipeToEdit?.cuisine || "")
+  const [duration, setDuration] = useState(recipeToEdit?.durationMinutes ? String(recipeToEdit.durationMinutes) : "")
+  const [servings, setServings] = useState(recipeToEdit?.servings ? String(recipeToEdit.servings) : "")
+  const [difficulty, setDifficulty] = useState(recipeToEdit?.difficulty || "easy")
+  const [meal, setMeal] = useState(recipeToEdit?.meal || "lunch")
+  const [visibility, setVisibility] = useState<"public" | "private">(recipeToEdit?.visibility === "private" ? "private" : "public")
 
   const difficultyOptions = [
     {label: "Easy", value: "easy"},
@@ -59,7 +67,6 @@ export default function PostRecipeForm({onClose, currentUser}: PostRecipeFormPro
 
   const fieldClass = "w-full rounded-md border border-white/10 bg-[#0b0b0c] px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50 focus:ring-2 focus:ring-orange-500/10"
   const labelClass = "mb-2 block text-xs font-medium text-[#a8b3cf]"
-  const selectClass = `${fieldClass} cursor-pointer`
 
   const titleTooShort = title.trim().length > 0 && title.trim().length < MIN_TITLE_LENGTH
   const descriptionTooShort =
@@ -67,10 +74,26 @@ export default function PostRecipeForm({onClose, currentUser}: PostRecipeFormPro
     description.trim().length < MIN_DESCRIPTION_LENGTH
 
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState("")
+  const [imagePreview, setImagePreview] = useState(recipeToEdit?.image || "")
 
-  const [ingredients, setIngredients] = useState<PostRecipeIngredient[]>([])
-  const [steps, setSteps] = useState<PostRecipeStep[]>([])
+  const [ingredients, setIngredients] = useState<PostRecipeIngredient[]>(
+    recipeToEdit?.ingredients?.map((ingredient, index) => ({
+      id: crypto.randomUUID(),
+      ingredient: ingredient.ingredient || "",
+      quantity: String(ingredient.quantity || ""),
+      unit: ingredient.unit || "g",
+    })) || []
+  )
+  const [steps, setSteps] = useState<PostRecipeStep[]>(
+    recipeToEdit?.cookingSteps?.map((step, index) => ({
+      id: crypto.randomUUID(),
+      title: step.title || "",
+      description: step.description || "",
+      image: null,
+      imagePreview: step.image || step.imageUrl || "",
+      existingImageUrl: step.image || step.imageUrl || "",
+    })) || []
+  )
 
   const completionItems = [
     { done: !!imageFile, weight: 15 },
@@ -143,7 +166,8 @@ export default function PostRecipeForm({onClose, currentUser}: PostRecipeFormPro
         currentUser,
       })
 
-      onClose()
+      onSubmitSuccess()
+      // onClose()
     } catch (error) {
       console.error("Failed to create recipe:", error)
     } finally {
@@ -169,6 +193,8 @@ export default function PostRecipeForm({onClose, currentUser}: PostRecipeFormPro
         isSubmitting={isSubmitting}
         onPost={handlePostRecipe}
         onBack={() => setIsPreviewOpen(false)}
+        mode={mode}
+        submitLabel={isEditMode ? "Update" : "Post"}
       />
     )
   }
@@ -227,8 +253,12 @@ export default function PostRecipeForm({onClose, currentUser}: PostRecipeFormPro
       </div>
 
       <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-8 pt-10">
-        <p className="text-sm font-medium text-[#a8b3cf]">Create recipe</p>
-        <h2 className="mt-1 text-[1.5rem] font-medium text-white">New post</h2>
+        <p className="text-sm font-medium text-[#a8b3cf]">
+          {isEditMode ? "Edit recipe" : "Create recipe"}
+        </p>
+        <h2 className="mt-1 text-[1.5rem] font-medium text-white">
+          {isEditMode ? "Update post" : "New post"}
+        </h2>
 
         <div className="mt-8 flex flex-col gap-5">
           <div className="relative">
@@ -361,6 +391,7 @@ export default function PostRecipeForm({onClose, currentUser}: PostRecipeFormPro
           isSubmitting={isSubmitting}
           onPreview={() => setIsPreviewOpen(true)}
           onPost={handlePostRecipe}
+          submitLabel={isEditMode ? "Update" : "Post"}
         />
       </div>
     </form>

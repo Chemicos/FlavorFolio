@@ -5,7 +5,6 @@ import Content from "../components/Content.js"
 
 import Snackbar from "@mui/material/Snackbar"
 import Alert from "@mui/material/Alert"
-// import bg from "../../../assets/blurry-gradient-haikei.svg"
 import ScrollToTopButton from "../components/ScrollToTopButton"
 import FilterBar from "../components/FilterBar"
 import FeedTabs from "../components/FeedTabs"
@@ -29,6 +28,7 @@ export default function Home() {
   const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
 
   const {
     activeRecipes,
@@ -62,18 +62,26 @@ export default function Home() {
 
   useEffect(() => {
     const raw = sessionStorage.getItem("authFeedback")
-    if (!raw) return 
+    if (!raw) return
 
     try {
       const parsed = JSON.parse(raw)
       setsnackbarMessage(parsed.message || "Authentication successful.")
       setSnackbarOpen(true)
-    } catch (err) {
-      console.error("Failed to parse auth feedback:", err)
+    } catch (error) {
+      console.error("Failed to parse auth feedback:", error)
     } finally {
       sessionStorage.removeItem("authFeedback")
     }
   }, [])
+
+  const handleRecipeSubmitSuccess = () => {
+    setsnackbarMessage(
+      "Recipe submitted successfully. You'll be notified once it has been reviewed by an administrator."
+    )
+    setSnackbarOpen(true)
+    setIsPostFormVisible(false)
+  }
   
   const handlePostClick = () => {
     setIsPostFormVisible(true)
@@ -90,6 +98,23 @@ export default function Home() {
   const handleCloseRecipeDrawer = () => {
     setSelectedRecipe(null)
   }
+
+  const handleEditRecipe = (recipe: Recipe) => {
+    setSelectedRecipe(null)
+    setEditingRecipe(recipe)
+  }
+
+  const handleClosePostRecipeDrawer = () => {
+    setIsPostFormVisible(false)
+    setEditingRecipe(null)
+  }
+
+  const handleRecipeUpdateSuccess = () => {
+    setsnackbarMessage("Recipe updated successfully.")
+    setSnackbarOpen(true)
+    setEditingRecipe(null)
+  }
+
   
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#101b16]">
@@ -146,8 +171,15 @@ export default function Home() {
       <ScrollToTopButton />
 
       <AnimatePresence>
-        {isPostFormVisible && (
-          <PostRecipeDrawer onClose={() => setIsPostFormVisible(false)} currentUser={currentUser} />
+        {(isPostFormVisible || editingRecipe) && (
+          <PostRecipeDrawer 
+            onClose={handleClosePostRecipeDrawer} 
+            currentUser={currentUser} 
+            onSubmitSuccess={handleRecipeSubmitSuccess}
+            mode={editingRecipe ?  "edit" : "create"}
+            recipeToEdit={editingRecipe}
+            onUpdateSuccess={handleRecipeUpdateSuccess}
+          />
         )}
       </AnimatePresence>
 
@@ -155,9 +187,9 @@ export default function Home() {
 
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={3500}
+        autoHideDuration={4000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       >
         <Alert
           onClose={handleSnackbarClose}
@@ -166,7 +198,7 @@ export default function Home() {
           sx={{ 
             width: "100%", 
             backgroundColor: "rgba(0, 205, 6, 0.3)",
-            backdropFilter: "blur(10px)",
+            backdropFilter: "blur(20px)",
             "& .MuiAlert-icon": {
               color: "#00cd06",
             },
@@ -205,6 +237,7 @@ export default function Home() {
             onFollowStateChange={handleFollowStateChange}
             onRatingStateChange={handleRatingStateChange}
             onCommentStateChange={handleCommentStateChange}
+            onEditRecipe={handleEditRecipe}
           />
         )}
       </AnimatePresence>

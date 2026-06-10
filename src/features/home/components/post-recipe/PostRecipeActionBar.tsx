@@ -7,6 +7,7 @@ interface PostRecipeActionBarProps {
   onPreview?: () => void
   onEdit?: () => void
   onPost: () => void
+  submitLabel?: string
 }
 
 export default function PostRecipeActionBar({
@@ -15,7 +16,8 @@ export default function PostRecipeActionBar({
     isSubmitting,
     onPreview,
     onEdit,
-    onPost
+    onPost,
+    submitLabel = "Post"
 }: PostRecipeActionBarProps) {
     const canPost = completionPercentage === 100 && !isSubmitting
   return (
@@ -50,11 +52,7 @@ export default function PostRecipeActionBar({
             <span className="relative z-10 inline-flex items-center justify-center">
                 {isSubmitting ? (
                     <CircularProgress size={18} thickness={5} sx={{ color: "#fed7aa" }} />
-                ) : canPost ? (
-                    "Post"
-                ) : (
-                    `${completionPercentage}%`
-                )}
+                ) : canPost ? submitLabel : `${completionPercentage}%`}
             </span>
         </button>
     </div>
