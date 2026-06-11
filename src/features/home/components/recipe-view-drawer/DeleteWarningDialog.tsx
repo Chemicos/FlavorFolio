@@ -1,19 +1,25 @@
 import { CircularProgress } from "@mui/material"
 import { AnimatePresence, motion } from "motion/react"
 
-interface DeleteCommentWarningDialogProps {
-    isOpen: boolean
-    isDeleting?: boolean
-    onCancel: () => void
-    onConfirm: () => void
+interface DeleteWarningDialogProps {
+  isOpen: boolean
+  isDeleting?: boolean
+  title?: string
+  description?: string
+  confirmLabel?: string
+  onCancel: () => void
+  onConfirm: () => void
 }
 
-export default function DeleteCommentWarningDialog({
-    isOpen,
-    isDeleting = false,
-    onCancel,
-    onConfirm,
-}: DeleteCommentWarningDialogProps) {
+export default function DeleteWarningDialog({
+  isOpen,
+  isDeleting = false,
+  title = "Delete item?",
+  description = "This action cannot be undone.",
+  confirmLabel = "Delete",
+  onCancel,
+  onConfirm,
+}: DeleteWarningDialogProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -32,10 +38,10 @@ export default function DeleteCommentWarningDialog({
             onClick={(event) => event.stopPropagation()}
             className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-[#0b0b0c] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.65)]"
           >
-            <h3 className="text-lg font-bold text-white">Delete comment?</h3>
+            <h3 className="text-lg font-bold text-white">{title}</h3>
 
             <p className="mt-2 text-sm leading-6 text-[#a8b3cf]">
-              This action cannot be undone. The comment will be permanently removed.
+              {description}
             </p>
 
             <div className="mt-6 flex justify-end gap-3">
@@ -57,7 +63,7 @@ export default function DeleteCommentWarningDialog({
                 {isDeleting ? (
                   <CircularProgress size={16} thickness={5} sx={{ color: "#ff8b7d" }} />
                 ) : (
-                  "Delete"
+                  confirmLabel
                 )}
               </button>
             </div>

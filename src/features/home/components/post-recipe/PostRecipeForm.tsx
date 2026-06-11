@@ -12,7 +12,7 @@ import PostRecipeSelectDropdown from "./PostRecipeSelectDropdown"
 import { formatDurationFromMinutes } from "../../utils/recipeDuration"
 import PostRecipeCuisineSelect from "./PostRecipeCuisineSelect"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
-import { createPendingRecipe } from "../../services/recipes.service"
+import { createPendingRecipe, updateRecipe } from "../../services/recipes.service"
 import { Recipe } from "../../types"
 
 
@@ -96,7 +96,7 @@ export default function PostRecipeForm({
   )
 
   const completionItems = [
-    { done: !!imageFile, weight: 15 },
+    { done: Boolean(imageFile || imagePreview), weight: 15 },
 
     { done: title.trim().length >= 5, weight: 10 },
     { done: description.trim().length >= 30, weight: 15 },
@@ -146,11 +146,33 @@ export default function PostRecipeForm({
   }
 
   const handlePostRecipe = async () => {
-    if (completionPercentage !== 100 || isSubmitting || !imageFile || !currentUser) return
+    if (completionPercentage !== 100 || isSubmitting || !currentUser) return
 
     setIsSubmitting(true)
 
     try {
+      if (isEditMode && recipeToEdit?.recipeId) {
+        await updateRecipe({
+          recipeId: recipeToEdit.recipeId,
+          title,
+          description,
+          cuisine,
+          duration,
+          servings,
+          difficulty,
+          meal,
+          visibility,
+          imageFile,
+          existingImageUrl: recipeToEdit.image || "",
+          ingredients,
+          steps,
+          currentUser,
+        })
+
+        onUpdateSuccess?.()
+        return
+      }
+
       await createPendingRecipe({
         title,
         description,
@@ -160,7 +182,7 @@ export default function PostRecipeForm({
         difficulty,
         meal,
         visibility,
-        imageFile,
+        imageFile: imageFile!,
         ingredients,
         steps,
         currentUser,

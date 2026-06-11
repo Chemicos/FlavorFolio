@@ -376,6 +376,15 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
       })
     )
   }
+  
+  const handleRecipeDeleteStateChange = (recipeId: string) => {
+    setRecipes((prev) =>
+      prev.filter((recipe) => {
+        const id = recipe.recipeId || recipe.id
+        return id !== recipeId
+      })
+    )
+  }
 
   const handleCommentStateChange = useCallback((recipeId: string, commentsCount: number) => {
     setRecipes((prev) =>
@@ -409,6 +418,7 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     handleCommentStateChange,
     hasMoreRecipes,
     isFetchingMoreRecipes,
-    fetchMoreRecipes
+    fetchMoreRecipes,
+    handleRecipeDeleteStateChange
   }
 }

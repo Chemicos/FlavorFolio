@@ -30,6 +30,12 @@ export default function Home() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
 
+  const isAnyOverlayOpen =
+    isPostFormVisible ||
+    Boolean(editingRecipe) ||
+    Boolean(selectedRecipe) ||
+    isFilterDrawerOpen
+
   const {
     activeRecipes,
     availableCuisines,
@@ -45,7 +51,8 @@ export default function Home() {
     handleFavoriteStateChange,
     handleFollowStateChange,
     handleRatingStateChange,
-    handleCommentStateChange
+    handleCommentStateChange,
+    handleRecipeDeleteStateChange
   } = useHomeData({activeTab, filters})
   
   const handleSnackbarClose = (
@@ -59,6 +66,18 @@ export default function Home() {
   const handleResetFilters = () => {
     setFilters(defaultRecipeFilters)
   }
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow
+
+    if (isAnyOverlayOpen) {
+      document.body.style.overflow = "hidden"
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow
+    }
+  }, [isAnyOverlayOpen])
 
   useEffect(() => {
     const raw = sessionStorage.getItem("authFeedback")
@@ -102,6 +121,14 @@ export default function Home() {
   const handleEditRecipe = (recipe: Recipe) => {
     setSelectedRecipe(null)
     setEditingRecipe(recipe)
+    setIsPostFormVisible(true)
+  }
+
+  const handleRecipeDeleteSuccess = (recipeId: string) => {
+    handleRecipeDeleteStateChange(recipeId)
+    setsnackbarMessage("Recipe deleted successfully.")
+    setSnackbarOpen(true)
+    setSelectedRecipe(null)
   }
 
   const handleClosePostRecipeDrawer = () => {
@@ -110,9 +137,10 @@ export default function Home() {
   }
 
   const handleRecipeUpdateSuccess = () => {
-    setsnackbarMessage("Recipe updated successfully.")
+    setsnackbarMessage("Recipe updated successfully. You'll be notified once it has been reviewed by an administrator.")
     setSnackbarOpen(true)
     setEditingRecipe(null)
+    setIsPostFormVisible(false)
   }
 
   
@@ -171,7 +199,7 @@ export default function Home() {
       <ScrollToTopButton />
 
       <AnimatePresence>
-        {(isPostFormVisible || editingRecipe) && (
+        {isPostFormVisible && (
           <PostRecipeDrawer 
             onClose={handleClosePostRecipeDrawer} 
             currentUser={currentUser} 
@@ -238,6 +266,7 @@ export default function Home() {
             onRatingStateChange={handleRatingStateChange}
             onCommentStateChange={handleCommentStateChange}
             onEditRecipe={handleEditRecipe}
+            onDeleteRecipe={handleRecipeDeleteSuccess}
           />
         )}
       </AnimatePresence>

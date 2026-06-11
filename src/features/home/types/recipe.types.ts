@@ -35,6 +35,7 @@ export interface Recipe {
     recipeId: string
     title?: string
     image?: string
+    imageFileName?: string
     description?: string
     durationMinutes?: number
     difficulty?: string

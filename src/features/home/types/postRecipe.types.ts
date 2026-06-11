@@ -12,6 +12,7 @@ export interface PostRecipeStep {
     image?: File | null
     imagePreview?: string
     existingImageUrl?: string
+    existingImageFileName?: string | null
 }
 
 export interface PostRecipeStepDraft {

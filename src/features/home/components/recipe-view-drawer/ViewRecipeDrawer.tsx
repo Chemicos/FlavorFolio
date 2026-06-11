@@ -23,10 +23,12 @@ import { getUserRecipeRating, rateRecipe } from "../../services/ratings.service"
 import { ViewRecipeComment } from "./ViewRecipeCommentList"
 import { useRecipeComments } from "../../hooks/useRecipeComments"
 import { createRecipeComment, createRecipeReply, deleteRecipeComment, listenToRecipeCommentReactions, toggleRecipeCommentReaction, updateRecipeComment } from "../../services/comments.service"
-import DeleteCommentWarningDialog from "./DeleteCommentWarningDialog"
+// import DeleteCommentWarningDialog from "./DeleteWarningDialog"
 import ViewRecipeIngredients from "./ViewRecipeIngredients"
 import ViewRecipeStepsSection from "./ViewRecipeStepsSection"
 import ViewRecipeCommentsSection from "./ViewRecipeCommentsSection"
+import DeleteWarningDialog from "./DeleteWarningDialog"
+import { deleteRecipe } from "../../services/recipes.service"
 
 interface ViewRecipeDrawerProps {
     recipe: Recipe,
@@ -47,6 +49,7 @@ interface ViewRecipeDrawerProps {
     ) => void
     onCommentStateChange: (recipeId: string, commentsCount: number) => void
     onEditRecipe: (recipe: Recipe) => void
+    onDeleteRecipe: (recipeId: string) => void
 }
 
 export default function ViewRecipeDrawer({
@@ -61,8 +64,12 @@ export default function ViewRecipeDrawer({
     onRatingStateChange,
     onCommentStateChange,
     onEditRecipe,
+    onDeleteRecipe,
 }: ViewRecipeDrawerProps) {
     type ViewRecipeTab = "ingredients" | "steps" | "comments"
+
+    const [isDeleteRecipeDialogOpen, setIsDeleteRecipeDialogOpen] = useState(false)
+    const [isDeletingRecipe, setIsDeletingRecipe] = useState(false)
 
     const canManageRecipe = Boolean(currentUser?.uid && recipe.userId === currentUser.uid)
     const [isRecipeMenuOpen, setIsRecipeMenuOpen] = useState(false)
@@ -116,10 +123,7 @@ export default function ViewRecipeDrawer({
         onCommentStateChange(recipe.recipeId, totalLiveCommentsCount)
     }, [recipe.recipeId, totalLiveCommentsCount, isLoadingComments, onCommentStateChange])
     
-    useEffect(() => {
-        const originalOverflow = document.body.style.overflow
-        document.body.style.overflow = "hidden"
-        
+    useEffect(() => {   
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 onClose()
@@ -129,7 +133,6 @@ export default function ViewRecipeDrawer({
         window.addEventListener("keydown", handleKeyDown)
         
         return () => {
-            document.body.style.overflow = originalOverflow
             window.removeEventListener("keydown", handleKeyDown)
         }
     }, [onClose])
@@ -372,9 +375,29 @@ export default function ViewRecipeDrawer({
 
     const toggleStep = (index: number) => {
         setExpandedSteps((prev) => ({
-        ...prev,
-        [index]: !prev[index],
+            ...prev,
+            [index]: !prev[index],
         }))
+    }
+
+    const handleConfirmDeleteRecipe = async () => {
+        if (!currentUser || !recipe.recipeId || isDeletingRecipe) return
+
+        try {
+            setIsDeletingRecipe(true)
+
+            await deleteRecipe({
+                recipeId: recipe.recipeId,
+                currentUser,
+            })
+
+            onDeleteRecipe(recipe.recipeId)
+        } catch (error) {
+            console.error("Failed to delete recipe:", error)
+        } finally {
+            setIsDeletingRecipe(false)
+            setIsDeleteRecipeDialogOpen(false)
+        }
     }
 
     return (
@@ -432,13 +455,6 @@ export default function ViewRecipeDrawer({
                             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
                         </button>
 
-                        {/* <button
-                            type="button"
-                            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[#0b0b0c]/60 text-[#a8b3cf] backdrop-blur-xl transition duration-200 hover:scale-105 hover:bg-[#0b0b0c] hover:text-white"
-                            >
-                            <ShareRoundedIcon sx={{ fontSize: 19 }} />
-                        </button> */}
-
                         <div className="absolute right-5 top-5 z-30">
                             <button
                                 type="button"
@@ -479,6 +495,10 @@ export default function ViewRecipeDrawer({
                                         <button
                                             type="button"
                                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                                            onClick={() => {
+                                                setIsRecipeMenuOpen(false)
+                                                setIsDeleteRecipeDialogOpen(true)
+                                            }}
                                         >
                                         <DeleteRoundedIcon sx={{ fontSize: 18 }} />
                                             Delete recipe
@@ -790,11 +810,23 @@ export default function ViewRecipeDrawer({
                 </div>
             </motion.aside>
 
-            <DeleteCommentWarningDialog 
+            <DeleteWarningDialog
                 isOpen={Boolean(commentToDelete)} 
                 isDeleting={isDeletingComment}
+                title="Delete comment?"
+                description="This action cannot be undone. The comment will be permanently removed."
                 onCancel={() => setCommentToDelete(null)}
                 onConfirm={handleConfirmDeleteComment}
+            />
+
+            <DeleteWarningDialog
+                isOpen={isDeleteRecipeDialogOpen}
+                isDeleting={isDeletingRecipe}
+                title="Delete recipe?"
+                description="This action cannot be undone. The recipe, its ingredients, steps, comments and ratings will no longer be available."
+                confirmLabel="Delete"
+                onCancel={() => setIsDeleteRecipeDialogOpen(false)}
+                onConfirm={handleConfirmDeleteRecipe}
             />
         </div>
     )

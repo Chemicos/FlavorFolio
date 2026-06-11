@@ -2,7 +2,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
 
 import { AnimatePresence, motion } from "motion/react"
 import PostRecipeForm from "./PostRecipeForm"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
 import PostRecipeSubmissionInfo from "./PostRecipeSubmissionInfo"
 import { Recipe } from "../../types"
@@ -18,16 +18,6 @@ interface PostRecipeDrawerProps {
 
 export default function PostRecipeDrawer({currentUser, onClose, onSubmitSuccess, mode, recipeToEdit, onUpdateSuccess}: PostRecipeDrawerProps) {
     const [showSubmissionInfo, setShowSubmissionInfo] = useState(mode !== "edit")
-
-    useEffect(() => {
-        const originalOverflow = document.body.style.overflow
-
-        document.body.style.overflow = "hidden"
-
-        return () => {
-            document.body.style.overflow = originalOverflow
-        }
-    }, [])
     
   return (
     <div className="fixed inset-0 z-[90]">
