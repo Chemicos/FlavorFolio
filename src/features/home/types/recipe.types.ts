@@ -42,6 +42,7 @@ export interface Recipe {
     meal?: string
     servings?: number
     cuisine?: string
+    user?: string
     userId?: string
     status?: string
     visibility?: string

@@ -14,12 +14,14 @@ import FloatingSpeedDial from "../../../components/layout/FloatingSpeedDial"
 import { Recipe } from "../types"
 import ViewRecipeDrawer from "../components/recipe-view-drawer/ViewRecipeDrawer"
 import PostRecipeDrawer from "../components/post-recipe/PostRecipeDrawer"
+import RecipeSearchBar from "../components/search-recipe/RecipeSearchBar"
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("For You")
   //Filtering
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
   const [filters, setFilters] = useState<RecipeFilters>(defaultRecipeFilters)
+  const [searchQuery, setSearchQuery] = useState("")
   // Auth Feedback
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setsnackbarMessage] = useState("")
@@ -30,11 +32,7 @@ export default function Home() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
 
-  const isAnyOverlayOpen =
-    isPostFormVisible ||
-    Boolean(editingRecipe) ||
-    Boolean(selectedRecipe) ||
-    isFilterDrawerOpen
+  const isAnyOverlayOpen = isPostFormVisible || Boolean(editingRecipe) || Boolean(selectedRecipe) || isFilterDrawerOpen
 
   const {
     activeRecipes,
@@ -143,6 +141,29 @@ export default function Home() {
     setIsPostFormVisible(false)
   }
 
+  const searchedRecipes = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+
+    if (!query) return activeRecipes
+
+    return activeRecipes.filter((recipe) => {
+      const searchableText = [
+        recipe.title,
+        recipe.description,
+        recipe.cuisine,
+        recipe.meal,
+        recipe.difficulty,
+        recipe.user,
+        recipe.author?.username,
+        ...(recipe.ingredients || []).map((item) => item.ingredient),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+
+      return searchableText.includes(query)
+    })
+  }, [activeRecipes, searchQuery])
   
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#101b16]">
@@ -162,7 +183,17 @@ export default function Home() {
       <div className="mx-auto mt-[8rem] w-full max-w-[1400px] 2xl-plus:max-w-[1800px] px-6 xl:px-10">
         <FeedTabs
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          // onTabChange={setActiveTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab)
+            setSearchQuery("")
+          }}
+        />
+
+        <RecipeSearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          resultCount={searchedRecipes.length}
         />
 
         <FilterBar
@@ -174,7 +205,8 @@ export default function Home() {
 
       <div className="mx-auto flex w-full max-w-[1400px] 2xl-plus:max-w-[1800px] flex-col items-center mt-8 gap-8 px-6 xl:px-10">        
         <Content
-          recipes={activeRecipes}
+          // recipes={activeRecipes}
+          recipes={searchedRecipes}
           isLoading={isLoading}
           isFiltering={isFiltering}
           title={activeTab}

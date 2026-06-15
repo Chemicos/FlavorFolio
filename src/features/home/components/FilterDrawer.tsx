@@ -273,16 +273,16 @@ export default function FilterDrawer({
         }))
     }
 
-    useEffect(() => {
-        if (!isOpen) return
+    // useEffect(() => {
+    //     if (!isOpen) return
 
-        const originalOverflow = document.body.style.overflow
-        document.body.style.overflow = "hidden"
+    //     const originalOverflow = document.body.style.overflow
+    //     document.body.style.overflow = "hidden"
 
-        return () => {
-            document.body.style.overflow = originalOverflow
-        }
-    }, [isOpen])
+    //     return () => {
+    //         document.body.style.overflow = originalOverflow
+    //     }
+    // }, [isOpen])
 
   return (
         <div className="fixed inset-0 z-[70]">
@@ -314,8 +314,8 @@ export default function FilterDrawer({
                 <div className="flex flex-col px-6">
                     <div className="mb-8 flex items-start justify-between gap-4">
                         <div>
-                            <h2 className="text-[1.4rem] text-[#a8b3cf]/55">Filter recipes</h2>
-                            <p className="mt-1 text-sm text-[#a8b3cf]/55">Refine the current feed</p>
+                            <h2 className="text-[1.4rem] text-[#d7def0]">Filter recipes</h2>
+                            <p className="mt-1 text-sm text-[#7f89a6]">Refine the current feed</p>
                         </div>
 
                         <button
@@ -323,7 +323,7 @@ export default function FilterDrawer({
                             aria-label="Close drawer"
                             onClick={onClose}
                             className="absolute top-10 right-0 translate-x-1/2 flex h-10 w-10 items-center justify-center rounded-lg 
-                            text-[#a8b3cf] transition border border-white/10 bg-[#16181d]/90 hover:bg-[#202429] hover:text-white hover:scale-105 active:scale-95"
+                            text-[#a8b3cf] transition border border-white/10 bg-[#16181d]/90 hover:bg-[#202429] hover:text-white"
                         >
                             <KeyboardArrowLeftIcon sx={{ fontSize: 24 }} />
                         </button>
