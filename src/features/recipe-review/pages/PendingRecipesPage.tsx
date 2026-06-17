@@ -14,6 +14,7 @@ import RecipeReviewDetailsDrawer from "../components/RecipeReviewDetailsDrawer"
 import { ReviewSectionKey } from "../services/recipeReview.service"
 import { ReviewSectionFeedback } from "../components/RecipeReviewSectionHeader"
 import DenyRecipeWindow from "../components/DenyRecipeWindow"
+import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 
 export default function PendingRecipesPage() {
     const [search, setSearch] = useState("")
@@ -28,8 +29,14 @@ export default function PendingRecipesPage() {
     const [filters, setFilters] = useState<RecipeReviewFilters>(defaultRecipeReviewFilters)
     const [isDenyWindowOpen, setIsDenyWindowOpen] = useState(false)
     const [denyRecipes, setDenyRecipes] = useState<ReviewRecipe[]>([])
-    
-    const {recipes, isLoading, error, handleReviewFeedbackStateChange} = usePendingRecipes()
+
+    const { showSnackbar } = useSnackbar()   
+    const {
+        recipes, isLoading, 
+        error, isReviewActionLoading,
+        handleReviewFeedbackStateChange, approveSelectedRecipes,
+        denySelectedRecipes,
+    } = usePendingRecipes()
 
     const [detailsDrawerWidth, setDetailsDrawerWidth] = useState(540)
 
@@ -141,6 +148,27 @@ export default function PendingRecipesPage() {
         )
     }
 
+    const handleApproveSelected = async () => {
+        try {
+            await approveSelectedRecipes(selectedIds)
+
+            showSnackbar(
+                selectedIds.length === 1
+                    ? "Recipe approved successfully."
+                    : `${selectedIds.length} recipes approved successfully.`,
+                "success"
+            )
+
+            setSelectedIds([])
+            setSelectedRecipe(null)
+        } catch {
+            showSnackbar(
+                "Failed to approve recipes.",
+                "error"
+            )
+        }
+    }
+
     const handleSelectAll = () => {
         if (selectedIds.length === filteredRecipes.length) {
             setSelectedIds([])
@@ -207,6 +235,47 @@ export default function PendingRecipesPage() {
         setIsDenyWindowOpen(true)
     }
 
+    const handleApproveRecipe = async (recipeId: string) => {
+         try {
+            await approveSelectedRecipes([recipeId])
+
+            showSnackbar("Recipe approved successfully.", "success")
+
+            setSelectedIds((prev) => prev.filter((id) => id !== recipeId))
+            setSelectedRecipe(null)
+        } catch {
+            showSnackbar("Failed to approve recipe.", "error")
+        }
+    }
+
+     const handleConfirmDeny = async ({
+        recipeIds,
+        reason,
+        message,
+    }: {
+        recipeIds: string[]
+        reason: string
+        message: string
+    }) => {
+        try {
+            await denySelectedRecipes({recipeIds, reason, message,})
+
+            showSnackbar(
+                recipeIds.length === 1
+                    ? "Recipe sent for revision."
+                    : `${recipeIds.length} recipes sent for revision.`,
+                "success"
+            )
+
+            setSelectedIds([])
+            setSelectedRecipe(null)
+            setIsDenyWindowOpen(false)
+            setDenyRecipes([])
+        } catch {
+            showSnackbar( "Failed to deny recipes.", "error" )
+        }
+    }
+
     return (
         <div 
             className="min-h-screen bg-[#16181d] text-white transition-[padding] duration-300"
@@ -224,12 +293,13 @@ export default function PendingRecipesPage() {
                     onSearchChange={setSearch}
                     onSelectAll={handleSelectAll}
                     onClearSelection={() => setSelectedIds([])}
-                    onApproveSelected={() => {}}
                     onOpenViewFilterOptions={() => setIsFilterDrawerOpen(true)}
                     filters={filters}
                     onChangeFilters={setFilters}
                     onResetFilters={() => setFilters(defaultRecipeReviewFilters)}
                     onDenySelected={handleOpenDenySelected}
+                    onApproveSelected={handleApproveSelected}
+                    isReviewActionLoading={isReviewActionLoading}
                 />
 
                 {error && (
@@ -286,7 +356,9 @@ export default function PendingRecipesPage() {
                         onClose={() => setSelectedRecipe(null)}
                         onResizeStart={handleDetailsResizeStart}
                         onFeedbackSaved={handleFeedbackSaved}
+                        isReviewActionLoading={isReviewActionLoading}
                         onDenyRecipe={handleOpenDenyRecipe}
+                        onApproveRecipe={handleApproveRecipe}
                     />
                 )}
             </AnimatePresence>
@@ -296,16 +368,13 @@ export default function PendingRecipesPage() {
                     <DenyRecipeWindow
                         isOpen={isDenyWindowOpen}
                         recipes={denyRecipes}
+                        isSubmitting={isReviewActionLoading}
                         onClose={() => {
+                            if (isReviewActionLoading) return
                             setIsDenyWindowOpen(false)
                             setDenyRecipes([])
                         }}
-                        onConfirm={(payload) => {
-                            console.log("deny payload", payload)
-
-                            setIsDenyWindowOpen(false)
-                            setDenyRecipes([])
-                        }}
+                        onConfirm={handleConfirmDeny}
                     />
                 )}
             </AnimatePresence>

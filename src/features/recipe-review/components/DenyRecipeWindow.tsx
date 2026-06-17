@@ -6,6 +6,7 @@ import CheckRoundedIcon from "@mui/icons-material/CheckRounded"
 import { useMemo, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { ReviewRecipe } from "../types/recipeReview.types"
+import { CircularProgress } from "@mui/material"
 
 interface DenyRecipeWindowProps {
   recipes: ReviewRecipe[]
@@ -94,7 +95,7 @@ export default function DenyRecipeWindow({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 18, scale: 0.96 }}
         transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-[560px] rounded-2xl border border-white/10 bg-[#25282d] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.55)]"
+        className="w-full max-w-[560px] rounded-2xl border border-white/10 bg-[#16181d] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.55)]"
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#0b0b0c] text-[#c7d0ee]">
@@ -229,8 +230,9 @@ export default function DenyRecipeWindow({
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={onClose}
-            className="rounded-lg px-5 py-3 text-sm font-medium text-[#c7d0ee] transition hover:bg-white/[0.04] hover:text-white"
+            className="rounded-lg px-5 py-3 text-sm font-medium text-[#c7d0ee] transition hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
           >
             Cancel
           </button>
@@ -241,8 +243,14 @@ export default function DenyRecipeWindow({
             onClick={handleConfirm}
             className="inline-flex items-center gap-2 rounded-lg border border-red-400/10 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-45"
           >
-            <BlockRoundedIcon sx={{ fontSize: 18 }} />
-            Deny
+            {isSubmitting ? (
+              <CircularProgress size={15} thickness={5} sx={{color: "#fca5a5"}} />
+            ): (
+              <>
+                <BlockRoundedIcon sx={{ fontSize: 18 }} />
+                Deny
+              </>
+            )}
           </button>
         </div>
       </motion.div>

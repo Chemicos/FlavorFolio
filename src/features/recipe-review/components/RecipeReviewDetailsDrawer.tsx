@@ -12,6 +12,7 @@ import RecipeReviewStepsSection from "./RecipeReviewStepsSection"
 import RecipeReviewSectionHeader, { ReviewIssueSeverity, ReviewSectionFeedback } from "./RecipeReviewSectionHeader"
 import { ReviewSectionKey, saveRecipeReviewFeedback } from "../services/recipeReview.service"
 import RecipeReviewIngredientsSection from "./RecipeReviewIngredientsSection"
+import { CircularProgress } from "@mui/material"
 
 interface RecipeReviewDetailsDrawerProps {
   recipe: ReviewRecipe
@@ -23,7 +24,9 @@ interface RecipeReviewDetailsDrawerProps {
     section: ReviewSectionKey,
     feedback: ReviewSectionFeedback
   ) => void
+  isReviewActionLoading?: boolean
   onDenyRecipe?: (recipe: ReviewRecipe) => void
+  onApproveRecipe?: (recipeId: string) => void
 }
 
 export default function RecipeReviewDetailsDrawer({
@@ -32,7 +35,9 @@ export default function RecipeReviewDetailsDrawer({
   onClose,
   onResizeStart,
   onFeedbackSaved,
+  isReviewActionLoading = false,
   onDenyRecipe,
+  onApproveRecipe,
 }:RecipeReviewDetailsDrawerProps) {
   type ReviewSectionKey = "description" | "ingredients" | "steps"
 
@@ -161,7 +166,7 @@ export default function RecipeReviewDetailsDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg text-[#a8b3cf] transition border border-white/10 backdrop-blur-xl bg-[#16181d]/90 hover:bg-[#202429] hover:text-white"
+            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg text-[#a8b3cf] transition border border-white/10 backdrop-blur-xl bg-[#16181d]/90 hover:bg-[#0b0b0c] hover:text-white"
           >
             <CloseRoundedIcon sx={{ fontSize: 20 }} />
           </button>
@@ -297,16 +302,23 @@ export default function RecipeReviewDetailsDrawer({
           <button
             type="button"
             onClick={() => onDenyRecipe?.(recipe)}
-            className="flex h-11 flex-1 items-center justify-center rounded-lg border border-red-400/10 bg-red-500/10 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 active:scale-[0.98]"
+            disabled={isReviewActionLoading}
+            className="flex h-11 flex-1 items-center justify-center rounded-lg border border-red-400/10 bg-red-500/10 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-45 active:scale-[0.98]"
           >
             Deny
           </button>
 
           <button
             type="button"
-            className="flex h-11 flex-1 items-center justify-center rounded-lg border border-lime-400/10 bg-lime-500/10 text-sm font-semibold text-lime-300 transition hover:bg-lime-500/15 active:scale-[0.98]"
+            disabled={isReviewActionLoading}
+            onClick={() => onApproveRecipe?.(recipe.recipeId)}
+            className="flex h-11 flex-1 items-center justify-center rounded-lg border border-lime-400/10 bg-lime-500/10 text-sm font-semibold text-lime-300 transition hover:bg-lime-500/15 disabled:cursor-not-allowed disabled:opacity-45 active:scale-[0.98]"
           >
-            Approve
+            {isReviewActionLoading ? (
+              <CircularProgress size={15} thickness={5} sx={{ color: "#bef264" }} />
+            ) : (
+              "Approve"
+            )}
           </button>
         </div>
       </div>

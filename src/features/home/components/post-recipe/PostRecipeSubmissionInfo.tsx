@@ -22,7 +22,7 @@ export default function PostRecipeSubmissionInfo({onContinue}: PostRecipeSubmiss
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.96 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-[500px] rounded-2xl bg-[#202429] border border-white/[0.10] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.55)]"
+        className="w-full max-w-[500px] rounded-2xl bg-[#16181d] border border-white/[0.10] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.55)]"
       >
         <div className="relative">
           <div className="flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-[#0b0b0c]">

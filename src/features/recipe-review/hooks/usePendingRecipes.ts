@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { ReviewRecipe } from "../types/recipeReview.types";
-import { fetchPendingRecipes, ReviewSectionKey } from "../services/recipeReview.service";
+import { approveRecipes, denyRecipes, fetchPendingRecipes, ReviewSectionKey } from "../services/recipeReview.service";
 import { ReviewSectionFeedback } from "../components/RecipeReviewSectionHeader";
 
 export function usePendingRecipes() {
     const [recipes, setRecipes] = useState<ReviewRecipe[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [isReviewActionLoading, setIsReviewActionLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
@@ -18,19 +19,13 @@ export function usePendingRecipes() {
 
                 const result = await fetchPendingRecipes()
 
-                if (isMounted) {
-                setRecipes(result)
-                }
+                if (isMounted) {setRecipes(result)}
             } catch (err) {
                 console.error("Failed to fetch pending recipes:", err)
 
-                if (isMounted) {
-                setError("Failed to load pending recipes.")
-                }
+                if (isMounted) {setError("Failed to load pending recipes.")}
             } finally {
-                if (isMounted) {
-                    setIsLoading(false)
-                }
+                if (isMounted) {setIsLoading(false)}
             }
         }
 
@@ -55,16 +50,55 @@ export function usePendingRecipes() {
                     ...recipe.reviewFeedback,
                     [section]: feedback,
                 },
-                }
+            }
             : recipe
         )
         )
     }
 
+    const approveSelectedRecipes = async (recipeIds: string[]) => {
+        setIsReviewActionLoading(true)
+
+        try {
+        await approveRecipes(recipeIds)
+
+        setRecipes((prev) =>
+            prev.filter((recipe) => !recipeIds.includes(recipe.recipeId))
+        )
+        } finally {
+        setIsReviewActionLoading(false)
+        }
+    }
+
+    const denySelectedRecipes = async ({
+        recipeIds,
+        reason,
+        message,
+    }: {
+        recipeIds: string[]
+        reason: string
+        message: string
+    }) => {
+        setIsReviewActionLoading(true)
+
+        try {
+        await denyRecipes({ recipeIds, reason, message })
+
+        setRecipes((prev) =>
+            prev.filter((recipe) => !recipeIds.includes(recipe.recipeId))
+        )
+        } finally {
+        setIsReviewActionLoading(false)
+        }
+    }
+
     return {
         recipes,
         isLoading,
+        isReviewActionLoading,
         error,
-        handleReviewFeedbackStateChange
+        handleReviewFeedbackStateChange,
+        approveSelectedRecipes,
+        denySelectedRecipes,
     }
 }

@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc, where } from "@firebase/firestore";
+import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from "@firebase/firestore";
 import { ReviewRecipe } from "../types/recipeReview.types";
 import { db } from "../../../firebase-config";
 import { ReviewSectionFeedback } from "../components/RecipeReviewSectionHeader";
@@ -9,6 +9,51 @@ export type ReviewSectionKey =
   | "description"
   | "ingredients"
   | "steps"
+
+export async function approveRecipes(recipeIds: string[]) {
+  const batch = writeBatch(db)
+
+  recipeIds.forEach((recipeId) => {
+    const recipeRef = doc(db, "recipes", recipeId)
+
+    batch.update(recipeRef, {
+      status: "published",
+      approvedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
+  })
+
+  await batch.commit()
+}
+
+export async function denyRecipes({
+  recipeIds,
+  reason,
+  message,
+}: {
+  recipeIds: string[]
+  reason: string
+  message: string
+}) {
+  const batch = writeBatch(db)
+
+  recipeIds.forEach((recipeId) => {
+    const recipeRef = doc(db, "recipes", recipeId)
+
+    batch.update(recipeRef, {
+      status: "revision",
+      denialFeedback: {
+        reason,
+        message: message.trim(),
+        createdAt: serverTimestamp(),
+      },
+      deniedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
+  })
+
+  await batch.commit()
+}
 
 export async function saveRecipeReviewFeedback({
   recipeId,

@@ -5,6 +5,7 @@ import TuneRoundedIcon from "@mui/icons-material/TuneRounded"
 import RecipeReviewSearch from "./RecipeReviewSearch"
 import { RecipeReviewFilters } from "../types/recipeReviewFilters.types"
 import RecipeReviewFilterBar from "./RecipeReviewFilterBar"
+import { CircularProgress } from "@mui/material"
 
 interface RecipeReviewPageHeaderProps {
   search: string
@@ -12,6 +13,7 @@ interface RecipeReviewPageHeaderProps {
   totalCount: number
   onSearchChange: (value: string) => void
   onApproveSelected: () => void
+  isReviewActionLoading?: boolean
   onDenySelected: () => void
   onSelectAll: () => void
   onClearSelection: () => void
@@ -27,6 +29,7 @@ export default function RecipeReviewPageHeader({
   totalCount, 
   onSearchChange,
   onApproveSelected, 
+  isReviewActionLoading = false,
   onDenySelected, 
   onSelectAll, 
   onClearSelection,
@@ -41,9 +44,15 @@ export default function RecipeReviewPageHeader({
   return (
     <section className="mb-8">
       <div>
-        <h1 className="text-[1.8rem] font-semibold text-white">
-          Pending recipes
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-[1.6rem] font-semibold text-white">
+            Pending recipes
+          </h1>
+
+          <span className="text-xs font-medium text-[#6f7892]">
+            {totalCount}
+          </span>
+        </div>
 
         <p className="mt-2 text-sm text-[#a8b3cf]">
           Here's a list of pending recipes that need your verification
@@ -51,7 +60,7 @@ export default function RecipeReviewPageHeader({
       </div>
 
       <div className="mt-8 flex items-start justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-start gap-3">
           <RecipeReviewSearch
             value={search}
             onChange={onSearchChange}
@@ -59,7 +68,7 @@ export default function RecipeReviewPageHeader({
           />
 
           {hasSelection && (
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex h-12 shrink-0 items-center gap-3">
               <button
                 type="button"
                 onClick={onDenySelected}
@@ -71,11 +80,18 @@ export default function RecipeReviewPageHeader({
 
               <button
                 type="button"
+                disabled={isReviewActionLoading}
                 onClick={onApproveSelected}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-lime-400/10 bg-lime-500/10 px-4 text-sm font-medium text-lime-300 transition hover:bg-lime-500/15"
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-lime-400/10 bg-lime-500/10 px-4 text-sm font-medium text-lime-300 transition hover:bg-lime-500/15 disabled:cursor-not-allowed disabled:opacity-45"
               >
-                <CheckRoundedIcon sx={{ fontSize: 17 }} />
-                Approve
+                {isReviewActionLoading ? (
+                  <CircularProgress size={14} thickness={5} sx={{ color: "#bef264" }} />
+                ) : (
+                  <>
+                    <CheckRoundedIcon sx={{ fontSize: 17 }} />
+                    Approve
+                  </>
+                )}
               </button>
             </div>
           )}
