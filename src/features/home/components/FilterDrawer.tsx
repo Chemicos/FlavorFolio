@@ -332,8 +332,7 @@ export default function FilterDrawer({
                     <button
                         type="button"
                         onClick={onReset}
-                        className="mr-auto mb-6 text-[1rem] rounded-lg px-4 py-2 text-[#a8b3cf]/65 transition hover:text-white active:text-[#a8b3cf]/65
-                        hover:bg-white/[0.04] border border-white/10"
+                        className="mr-auto mb-6 text-[1rem] rounded-lg border border-white/10 px-4 py-2 text-sm text-[#a8b3cf]/70 transition hover:bg-white/[0.04] hover:text-white"
                     >
                         Reset filters
                     </button>

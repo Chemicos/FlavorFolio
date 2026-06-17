@@ -84,7 +84,7 @@ export default function RecipeReviewPageHeader({
         <button
           type="button"
           onClick={onOpenViewFilterOptions}
-          className="inline-flex h-12 shrink-0 items-center gap-2 rounded-lg px-4 text-sm text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
+          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg px-4 text-sm text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
         >
           <TuneRoundedIcon sx={{ fontSize: 20 }} />
           View

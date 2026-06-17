@@ -8,7 +8,6 @@ import { motion } from "motion/react"
 
 import { ReviewRecipe } from "../types/recipeReview.types"
 import { useEffect, useMemo, useState } from "react"
-import ViewRecipeIngredients from "../../home/components/recipe-view-drawer/ViewRecipeIngredients"
 import RecipeReviewStepsSection from "./RecipeReviewStepsSection"
 import RecipeReviewSectionHeader, { ReviewIssueSeverity, ReviewSectionFeedback } from "./RecipeReviewSectionHeader"
 import { ReviewSectionKey, saveRecipeReviewFeedback } from "../services/recipeReview.service"
@@ -24,6 +23,7 @@ interface RecipeReviewDetailsDrawerProps {
     section: ReviewSectionKey,
     feedback: ReviewSectionFeedback
   ) => void
+  onDenyRecipe?: (recipe: ReviewRecipe) => void
 }
 
 export default function RecipeReviewDetailsDrawer({
@@ -32,6 +32,7 @@ export default function RecipeReviewDetailsDrawer({
   onClose,
   onResizeStart,
   onFeedbackSaved,
+  onDenyRecipe,
 }:RecipeReviewDetailsDrawerProps) {
   type ReviewSectionKey = "description" | "ingredients" | "steps"
 
@@ -134,14 +135,14 @@ export default function RecipeReviewDetailsDrawer({
       exit={{ x: "100%" }}
       transition={{ type: "spring", stiffness: 260, damping: 32 }}
       style={{ width }}
-      className="fixed right-0 top-0 z-[60] flex h-screen flex-col overflow-hidden border-l border-white/10 bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]"
+      className="fixed right-0 top-20 z-40 flex h-[calc(100vh-80px)] flex-col overflow-hidden border-l border-white/10 bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]"
     >
       <div
         onMouseDown={onResizeStart}
         className="absolute left-0 top-0 z-50 h-full w-3 -translate-x-1/2 cursor-col-resize before:absolute before:left-1/2 before:top-0 before:h-full before:w-px before:bg-white/10 hover:before:bg-orange-400/60"
       />
 
-      <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+      <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
         <div className="relative h-[340px] overflow-hidden bg-[#0b0b0c]">
           {recipe.image ? (
             <img
@@ -160,7 +161,7 @@ export default function RecipeReviewDetailsDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full text-white transition hover:bg-orange-500/20 hover:backdrop-blur-xl active:scale-90"
+            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg text-[#a8b3cf] transition border border-white/10 backdrop-blur-xl bg-[#16181d]/90 hover:bg-[#202429] hover:text-white"
           >
             <CloseRoundedIcon sx={{ fontSize: 20 }} />
           </button>
@@ -288,6 +289,25 @@ export default function RecipeReviewDetailsDrawer({
               <p className="mt-3 text-sm text-[#7f89a6]">No steps added yet.</p>
             )}
           </section>
+        </div>
+      </div>
+
+      <div className="shrink-0 border-t border-white/10 bg-[#16181d]/95 px-6 py-4 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => onDenyRecipe?.(recipe)}
+            className="flex h-11 flex-1 items-center justify-center rounded-lg border border-red-400/10 bg-red-500/10 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 active:scale-[0.98]"
+          >
+            Deny
+          </button>
+
+          <button
+            type="button"
+            className="flex h-11 flex-1 items-center justify-center rounded-lg border border-lime-400/10 bg-lime-500/10 text-sm font-semibold text-lime-300 transition hover:bg-lime-500/15 active:scale-[0.98]"
+          >
+            Approve
+          </button>
         </div>
       </div>
     </motion.aside>

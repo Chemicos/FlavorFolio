@@ -13,6 +13,7 @@ import RecipeReviewFilterDrawer from "../components/RecipeReviewFilterDrawer"
 import RecipeReviewDetailsDrawer from "../components/RecipeReviewDetailsDrawer"
 import { ReviewSectionKey } from "../services/recipeReview.service"
 import { ReviewSectionFeedback } from "../components/RecipeReviewSectionHeader"
+import DenyRecipeWindow from "../components/DenyRecipeWindow"
 
 export default function PendingRecipesPage() {
     const [search, setSearch] = useState("")
@@ -25,6 +26,8 @@ export default function PendingRecipesPage() {
 
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
     const [filters, setFilters] = useState<RecipeReviewFilters>(defaultRecipeReviewFilters)
+    const [isDenyWindowOpen, setIsDenyWindowOpen] = useState(false)
+    const [denyRecipes, setDenyRecipes] = useState<ReviewRecipe[]>([])
     
     const {recipes, isLoading, error, handleReviewFeedbackStateChange} = usePendingRecipes()
 
@@ -154,7 +157,7 @@ export default function PendingRecipesPage() {
         const startWidth = detailsDrawerWidth
 
         const handleMouseMove = (moveEvent: MouseEvent) => {
-            const nextWidth = Math.min(760, Math.max(420, startWidth + startX - moveEvent.clientX))
+            const nextWidth = Math.min(760, Math.max(430, startWidth + startX - moveEvent.clientX))
 
             setDetailsDrawerWidth(nextWidth)
         }
@@ -188,6 +191,22 @@ export default function PendingRecipesPage() {
         })
     }
 
+    const selectedRecipes = useMemo(() => {
+        return recipes.filter((recipe) => selectedIds.includes(recipe.recipeId))
+    }, [recipes, selectedIds])
+
+    const handleOpenDenySelected = () => {
+        if (!selectedRecipes.length) return
+
+        setDenyRecipes(selectedRecipes)
+        setIsDenyWindowOpen(true)
+    }
+
+    const handleOpenDenyRecipe = (recipe: ReviewRecipe) => {
+        setDenyRecipes([recipe])
+        setIsDenyWindowOpen(true)
+    }
+
     return (
         <div 
             className="min-h-screen bg-[#16181d] text-white transition-[padding] duration-300"
@@ -195,7 +214,7 @@ export default function PendingRecipesPage() {
                 paddingRight: selectedRecipe ? detailsDrawerWidth : 0
             }}
         >
-            <Navigation />
+            <Navigation variant="solid" />
 
             <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-28">
                 <RecipeReviewPageHeader 
@@ -206,11 +225,11 @@ export default function PendingRecipesPage() {
                     onSelectAll={handleSelectAll}
                     onClearSelection={() => setSelectedIds([])}
                     onApproveSelected={() => {}}
-                    onDenySelected={() => {}}
                     onOpenViewFilterOptions={() => setIsFilterDrawerOpen(true)}
                     filters={filters}
                     onChangeFilters={setFilters}
                     onResetFilters={() => setFilters(defaultRecipeReviewFilters)}
+                    onDenySelected={handleOpenDenySelected}
                 />
 
                 {error && (
@@ -224,6 +243,7 @@ export default function PendingRecipesPage() {
                         <RecipeReviewTable 
                             recipes={paginatedRecipes}
                             selectedIds={selectedIds}
+                            activeRecipeId={selectedRecipe?.recipeId || null}
                             isLoading={isLoading}
                             onToggleRecipe={handleToggleRecipe}
                             onViewRecipe={setSelectedRecipe}
@@ -247,7 +267,7 @@ export default function PendingRecipesPage() {
             <AnimatePresence>
                 {isFilterDrawerOpen && (
                     <RecipeReviewFilterDrawer
-                       isOpen={isFilterDrawerOpen}
+                        isOpen={isFilterDrawerOpen}
                         filters={filters}
                         availableCuisines={availableCuisines}
                         onClose={() => setIsFilterDrawerOpen(false)}
@@ -266,6 +286,26 @@ export default function PendingRecipesPage() {
                         onClose={() => setSelectedRecipe(null)}
                         onResizeStart={handleDetailsResizeStart}
                         onFeedbackSaved={handleFeedbackSaved}
+                        onDenyRecipe={handleOpenDenyRecipe}
+                    />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {isDenyWindowOpen && (
+                    <DenyRecipeWindow
+                        isOpen={isDenyWindowOpen}
+                        recipes={denyRecipes}
+                        onClose={() => {
+                            setIsDenyWindowOpen(false)
+                            setDenyRecipes([])
+                        }}
+                        onConfirm={(payload) => {
+                            console.log("deny payload", payload)
+
+                            setIsDenyWindowOpen(false)
+                            setDenyRecipes([])
+                        }}
                     />
                 )}
             </AnimatePresence>

@@ -10,6 +10,7 @@ interface RecipeReviewTableRowProps {
   isSelected: boolean
   onToggle: () => void
   onView: () => void
+  isActive?: boolean
 }
 
 function formatCreatedAt(value: any) {
@@ -26,16 +27,19 @@ export default function RecipeReviewTableRow({
   recipe,
   isSelected,
   onToggle,
-  onView
+  onView,
+  isActive = false,
 }: RecipeReviewTableRowProps) {
   const stepsCount = recipe.cookingSteps?.length || 0
   const hasNoSteps = stepsCount === 0
 
   const cellClassName = [
-    "px-4 py-2 transition-colors duration-200",
-    isSelected
-      ? "bg-[#161b24]"
-      : "bg-[#0b0b0c] group-hover:bg-[#202429]",
+    "px-4 py-2 transition-colors",
+     isActive
+      ? "bg-[#202636]"
+      : isSelected
+        ? "bg-[#161b24]"
+        : "bg-[#0b0b0c] group-hover:bg-[#202429]",
   ].join(" ")
 
   return (

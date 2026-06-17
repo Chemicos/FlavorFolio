@@ -11,6 +11,7 @@ interface RecipeReviewTableProps {
   isLoading: boolean
   onToggleRecipe: (recipeId: string) => void
   onViewRecipe: (recipe: ReviewRecipe) => void
+  activeRecipeId?: string | null
 }
 
 const columns = [
@@ -32,6 +33,7 @@ export default function RecipeReviewTable({
   isLoading,
   onToggleRecipe,
   onViewRecipe,
+  activeRecipeId,
 }: RecipeReviewTableProps) {
   type SortKey =
     | "title"
@@ -56,7 +58,6 @@ export default function RecipeReviewTable({
   )
 
   const [sort, setSort] = useState<SortState>({key: null, direction: null})
-  // const [durationSort, setDurationSort] = useState<DurationSortDirection>(null)
 
   const handleResizeStart = (
     event: React.MouseEvent<HTMLDivElement>,
@@ -269,6 +270,7 @@ export default function RecipeReviewTable({
                   key={recipe.recipeId}
                   recipe={recipe}
                   isSelected={selectedIds.includes(recipe.recipeId)}
+                  isActive={activeRecipeId === recipe.recipeId}
                   onToggle={() => onToggleRecipe(recipe.recipeId)}
                   onView={() => onViewRecipe(recipe)}
                 />

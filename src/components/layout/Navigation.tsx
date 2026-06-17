@@ -17,6 +17,7 @@ import UserDropdownMenu from './UserDropdownMenu'
 
 interface NavigationProps {
   onFeedbackClick?: () => void
+  variant?: "transparent" | "solid"
 }
 
 interface FirestoreUser {
@@ -25,24 +26,25 @@ interface FirestoreUser {
   profileImage?: string
 }
 
-export default function Navigation({ onFeedbackClick }: NavigationProps) {
+export default function Navigation({ onFeedbackClick, variant = "transparent" }: NavigationProps) {
     const navigate = useNavigate()
     const auth = getAuth()
-
+    
     const [username, setUsername] = useState('')
     const [userPhoto, setUserPhoto] = useState('')
     const avatarImageRef = useRef<HTMLImageElement | null>(null)
     const [avatarLoaded, setAvatarLoaded] = useState(false)
-
+    
     const [isAdmin, setIsAdmin] = useState(false)
     const [pendingCount, setPendingCount] = useState(0)
     const [feedbackCount, setFeedbackCount] = useState(0)
     const [isDarkMode, setIsDarkMode] = useState(false)
-
+    
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const menuOpen = Boolean(anchorEl)
     const [isScrolled, setIsScrolled] = useState(false)
-
+    const shouldUseSolidNav = variant === "solid" || isScrolled
+    
     useEffect(() => {
       const fetchPendingCount = async () => {
         const pendingCollection = collection(db, 'pendingRecipes')
@@ -166,7 +168,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
         <motion.nav 
           initial={false}
           animate={
-            isScrolled
+            shouldUseSolidNav
             ? {
               width: "100%",
               marginTop: 0,
@@ -183,9 +185,9 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
             ease: [0.22, 1, 0.36, 1],
           }}
           className={[
-            "mx-auto flex h-20 items-center justify-between px-6 transition-colors duration-300",
-            isScrolled
-              ? "bg-[#0b0b0c]/80 backdrop-blur-md"
+            "mx-auto flex h-20 items-center justify-between px-6 transition-colors duration-200",
+            shouldUseSolidNav
+              ? "bg-[#0b0b0c]/80 backdrop-blur-md border-b border-white/10"
               : "",
           ].join(" ")}
         >
