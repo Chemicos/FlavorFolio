@@ -70,7 +70,7 @@ export default function RecipeReviewTableRow({
 
       case "description":
         return (
-          <p className="truncate text-sm text-[#9aa6c7]">
+          <p className="truncate text-sm text-[#a8b3cf]">
             {recipe.description || "No description"}
           </p>
         )
@@ -165,35 +165,38 @@ export default function RecipeReviewTableRow({
 
       case "actions":
         return (
-          <Tooltip
-            title="View submission"
-            arrow
-            placement="top"
-            slotProps={{
-              tooltip: {
-                sx: {
-                  bgcolor: "#0b0b0c",
-                  color: "#d7def0",
-                  fontSize: "0.75rem",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(12px)",
+          <div className="flex justify-end overflow-hidden">
+
+            <Tooltip
+              title="View submission"
+              arrow
+              placement="top"
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    bgcolor: "#0b0b0c",
+                    color: "#d7def0",
+                    fontSize: "0.75rem",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(12px)",
+                  },
                 },
-              },
-              arrow: {
-                sx: {
-                  color: "#0b0b0c",
+                arrow: {
+                  sx: {
+                    color: "#0b0b0c",
+                  },
                 },
-              },
-            }}
-          >
-            <button
-              type="button"
-              onClick={onView}
-              className="inline-flex translate-x-3 items-center justify-center text-[#a8b3cf] opacity-0 transition-all duration-200 ease-out hover:text-white active:scale-95 group-hover:translate-x-0 group-hover:opacity-100"
+              }}
             >
-              <ViewSidebarIcon sx={{ fontSize: 24 }} />
-            </button>
-          </Tooltip>
+              <button
+                type="button"
+                onClick={onView}
+                className="inline-flex translate-x-3 items-center justify-center text-[#a8b3cf] opacity-0 transition-all duration-200 ease-out hover:text-white active:scale-95 group-hover:translate-x-0 group-hover:opacity-100"
+              >
+                <ViewSidebarIcon sx={{ fontSize: 24 }} />
+              </button>
+            </Tooltip>
+          </div>
         )
 
       default:

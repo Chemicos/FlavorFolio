@@ -41,7 +41,7 @@ export async function denyRecipes({
     const recipeRef = doc(db, "recipes", recipeId)
 
     batch.update(recipeRef, {
-      status: "revision",
+      status: "needs_revision",
       denialFeedback: {
         reason,
         message: message.trim(),
