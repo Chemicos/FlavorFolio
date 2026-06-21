@@ -1,4 +1,4 @@
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded"
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded"
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded"
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded"
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
@@ -115,9 +115,9 @@ export default function PostRecipePreview({
             <button
                 type="button"
                 onClick={onBack}
-                className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full text-white transition hover:bg-orange-500/20 hover:backdrop-blur-xl active:scale-90"
+                className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
             >
-                <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+                <ChevronLeftRoundedIcon sx={{ fontSize: 26 }} />
             </button>
         </div>
         

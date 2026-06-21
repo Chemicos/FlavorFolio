@@ -1,7 +1,7 @@
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 import { useEffect, useState } from "react"
 import { NeedsRevisionRecipe } from "../types/needsRevision.types"
-import { fetchNeedsRevisionRecipes } from "../services/needsRevision.service"
+import { deleteNeedsRevisionRecipes, fetchNeedsRevisionRecipes, submitNeedsRevisionRecipe, updateNeedsRevisionRecipe, UpdateNeedsRevisionRecipePayload } from "../services/needsRevision.service"
 
 export function useNeedsRevisionRecipes() {
   const [recipes, setRecipes] = useState<NeedsRevisionRecipe[]>([])
@@ -49,9 +49,56 @@ export function useNeedsRevisionRecipes() {
     }
   }, [])
 
+  const deleteRecipes = async (recipeIds: string[]) => {
+    await deleteNeedsRevisionRecipes(recipeIds)
+
+    setRecipes((prev) =>
+      prev.filter((recipe) => !recipeIds.includes(recipe.recipeId))
+    )
+  }
+
+  const submitRecipeForReview = async (recipeId: string) => {
+    await submitNeedsRevisionRecipe(recipeId)
+
+    setRecipes((prev) =>
+      prev.filter((recipe) => recipe.recipeId !== recipeId)
+    )
+  }
+
+  const updateRecipeDraft = async ({
+    recipeId,
+    payload,
+  }: {
+    recipeId: string
+    payload: UpdateNeedsRevisionRecipePayload
+  }) => {
+    const updatedRecipeData = await updateNeedsRevisionRecipe({ recipeId, payload })
+
+    const updatedRecipe = {
+      ...updatedRecipeData,
+      recipeId,
+    }
+
+    setRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.recipeId === recipeId
+          ? {
+              ...recipe,
+              ...updatedRecipeData,
+            }
+          : recipe
+      )
+    )
+
+    return updatedRecipe
+  }
+
   return {
     recipes,
     isLoading,
     error,
+    deleteRecipes,
+    submitRecipeForReview,
+    updateRecipeDraft,
   }
 }

@@ -24,6 +24,7 @@ interface RecipeReviewSectionHeaderProps {
   onSave: () => void
   onMessageChange: (value: string) => void
   onSeverityChange: (value: ReviewIssueSeverity) => void
+  canEdit?: boolean
 }
 
 export default function RecipeReviewSectionHeader({
@@ -38,6 +39,7 @@ export default function RecipeReviewSectionHeader({
     onSave,
     onMessageChange,
     onSeverityChange,
+    canEdit = true,
 }: RecipeReviewSectionHeaderProps) {
     const hasFeedback = Boolean(feedback?.message?.trim())
 
@@ -77,15 +79,16 @@ export default function RecipeReviewSectionHeader({
             </Tooltip>
             )}
         </div>
-
-        <button
-            type="button"
-            onClick={onStartEdit}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
-        >
-            <AddCommentRoundedIcon sx={{ fontSize: 16 }} />
-            Feedback
-        </button>
+        {canEdit && (
+            <button
+                type="button"
+                onClick={onStartEdit}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
+            >
+                <AddCommentRoundedIcon sx={{ fontSize: 16 }} />
+                Feedback
+            </button>
+        )}
         </div>
 
         <AnimatePresence initial={false}>

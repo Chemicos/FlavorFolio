@@ -8,17 +8,38 @@ import NeedsRevisionPagination from "../components/NeedsRevisionPagination";
 import { useDebounce } from "../../recipe-review/hooks/useDebounce";
 import { AnimatePresence } from "motion/react";
 import DeleteNeedsRevisionWindow from "../components/DeleteNeedsRevisionWindow";
+import RecipeReviewDetailsDrawer from "../../recipe-review/components/RecipeReviewDetailsDrawer";
+import PostRecipeDrawer from "../../home/components/post-recipe/PostRecipeDrawer";
+import { Recipe } from "../../home/types";
+import { useSnackbar } from "../../../components/layout/SnackbarProvider";
 
 export default function NeedsRevisionPage() {
+  const { showSnackbar } = useSnackbar()
+
   const [selectedRecipe, setSelectedRecipe] = useState<NeedsRevisionRecipe | null>(null)
-  const { recipes, isLoading, error } = useNeedsRevisionRecipes()
+  const [isDeleteWindowOpen, setIsDeleteWindowOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [recipesToDelete, setRecipesToDelete] = useState<NeedsRevisionRecipe[]>([])
+  const [isRevisionActionLoading, setIsRevisionActionLoading] = useState(false)
+
+  const { 
+    recipes, 
+    isLoading, 
+    error,
+    deleteRecipes: deleteNeedsRevisionRecipes,
+    submitRecipeForReview,
+    updateRecipeDraft,
+  } = useNeedsRevisionRecipes()
+
+  const [editingRecipe, setEditingRecipe] = useState<NeedsRevisionRecipe | null>(null)
+  const [previewRecipe, setPreviewRecipe] = useState<NeedsRevisionRecipe | null>(null)
 
   const [search, setSearch] = useState("")
   const debouncedSearch = useDebounce(search, 300)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const activeRecipeId = selectedRecipe?.recipeId || editingRecipe?.recipeId || previewRecipe?.recipeId || null
 
-  const [isDeleteWindowOpen, setIsDeleteWindowOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [detailsDrawerWidth, setDetailsDrawerWidth] = useState(540)
 
   const filteredRecipes = useMemo(() => {
     const query = debouncedSearch.trim().toLowerCase()
@@ -79,21 +100,124 @@ export default function NeedsRevisionPage() {
     setSelectedIds(filteredRecipes.map((recipe) => recipe.recipeId).filter(Boolean))
   }
 
+  const handleDetailsResizeStart = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
+    const startX = event.clientX
+    const startWidth = detailsDrawerWidth
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const nextWidth = Math.min(760, Math.max(430, startWidth + startX - moveEvent.clientX))
+      setDetailsDrawerWidth(nextWidth)
+    }
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleMouseUp)
+    }
+
+    document.addEventListener("mousemove", handleMouseMove)
+    document.addEventListener("mouseup", handleMouseUp)
+  }
+
+  const currentUser = useMemo(() => {
+    const recipe = editingRecipe || previewRecipe || selectedRecipe
+
+    if (!recipe) return null
+
+    return {
+      uid: recipe.userId,
+      userId: recipe.userId,
+      username: recipe.user || recipe.author?.username || "",
+      profileImage: recipe.author?.profileImage || "",
+    }
+  }, [editingRecipe, previewRecipe, selectedRecipe])
+
   const handleConfirmDelete = async (recipeIds: string[]) => {
     try {
       setIsDeleting(true)
 
-      console.log("delete recipe ids", recipeIds)
+      await deleteNeedsRevisionRecipes(recipeIds)
+
+      showSnackbar(
+        `${recipeIds.length} recipe${recipeIds.length === 1 ? "" : "s"} deleted.`,
+        "success"
+      )
 
       setSelectedIds([])
+      setSelectedRecipe((prev) =>
+        prev && recipeIds.includes(prev.recipeId) ? null : prev
+      )
+      setEditingRecipe((prev) =>
+        prev && recipeIds.includes(prev.recipeId) ? null : prev
+      )
+
       setIsDeleteWindowOpen(false)
+      setRecipesToDelete([])
+    } catch (error) {
+      console.error("Failed to delete recipes:", error)
+      showSnackbar("Failed to delete recipe. Please try again.", "error")
     } finally {
       setIsDeleting(false)
     }
   }
 
+  const handleSubmitRevision = async (recipeId: string) => {
+    try {
+      setIsRevisionActionLoading(true)
+
+      await submitRecipeForReview(recipeId)
+
+      showSnackbar("Recipe sent for review.", "success")
+
+      setSelectedIds([])
+      setSelectedRecipe(null)
+      setEditingRecipe(null)
+      setPreviewRecipe(null)
+    } catch (error) {
+      console.error("Failed to send recipe for review:", error)
+      showSnackbar("Failed to send recipe for review.", "error")
+    }
+    finally {
+      setIsRevisionActionLoading(false)
+    }
+  }
+
+  const handleRevisionDraftUpdate = async (payload: {
+    recipeId: string
+    payload: any
+  }) => {
+    const updatedRecipe = await updateRecipeDraft(payload)
+
+    setSelectedRecipe((prev) =>
+      prev?.recipeId === payload.recipeId
+        ? { ...prev, ...updatedRecipe }
+        : prev
+    )
+
+    setEditingRecipe((prev) =>
+      prev?.recipeId === payload.recipeId
+        ? { ...prev, ...updatedRecipe }
+        : prev
+    )
+  }
+
+  const handleOpenDeleteSelected = () => {
+    if (!selectedRecipes.length) return
+    setRecipesToDelete(selectedRecipes)
+    setIsDeleteWindowOpen(true)
+  }
+
+  const handleOpenDeleteRecipe = (recipe: NeedsRevisionRecipe) => {
+    setRecipesToDelete([recipe])
+    setIsDeleteWindowOpen(true)
+  }
+
   return (
-    <div className="min-h-screen bg-[#16181d] text-white">
+    <div 
+      className="min-h-screen bg-[#16181d] text-white transition-[padding] duration-300"
+      style={{paddingRight: selectedRecipe || editingRecipe || previewRecipe ? detailsDrawerWidth : 0}}
+    >
       <Navigation variant="solid" />
 
       <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-28">
@@ -104,7 +228,7 @@ export default function NeedsRevisionPage() {
           onSearchChange={setSearch}
           onSelectAll={handleSelectAll}
           onClearSelection={() => setSelectedIds([])}
-          onDeleteSelected={() => setIsDeleteWindowOpen(true)}
+          onDeleteSelected={handleOpenDeleteSelected}
         />
 
         {error && (
@@ -118,7 +242,7 @@ export default function NeedsRevisionPage() {
                 recipes={paginatedRecipes}
                 selectedIds={selectedIds}
                 isLoading={isLoading}
-                activeRecipeId={selectedRecipe?.recipeId || null}
+                activeRecipeId={activeRecipeId}
                 onToggleRecipe={handleToggleRecipe}
                 onViewRecipe={setSelectedRecipe}
             />
@@ -140,10 +264,54 @@ export default function NeedsRevisionPage() {
         {isDeleteWindowOpen && (
           <DeleteNeedsRevisionWindow
             isOpen={isDeleteWindowOpen}
-            recipes={selectedRecipes}
+            recipes={recipesToDelete}
             isSubmitting={isDeleting}
-            onClose={() => setIsDeleteWindowOpen(false)}
+            onClose={() => {
+              setIsDeleteWindowOpen(false)
+              setRecipesToDelete([])
+            }}
             onConfirm={handleConfirmDelete}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedRecipe && !editingRecipe && (
+          <RecipeReviewDetailsDrawer
+            key={selectedRecipe.recipeId}
+            recipe={selectedRecipe}
+            mode="revision"
+            width={detailsDrawerWidth}
+            isRevisionActionLoading={isRevisionActionLoading}
+            onClose={() => setSelectedRecipe(null)}
+            onResizeStart={handleDetailsResizeStart}
+            onDeleteRecipe={handleOpenDeleteRecipe}
+            onSubmitRevision={handleSubmitRevision}
+            onEditRecipe={(recipe) => {
+              setEditingRecipe(recipe)
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {editingRecipe && (
+          <PostRecipeDrawer
+            currentUser={currentUser}
+            mode="edit"
+            updateMode="revision_draft"
+            variant="side"
+            width={detailsDrawerWidth}
+            topOffset={80}
+            onResizeStart={handleDetailsResizeStart}
+            recipeToEdit={editingRecipe as unknown as Recipe}
+            onClose={() => setEditingRecipe(null)}
+            onSubmitSuccess={() => setEditingRecipe(null)}
+            onUpdateSuccess={() => {
+              showSnackbar("Recipe draft updated.", "success")
+              setEditingRecipe(null)
+            }}
+            onRevisionDraftUpdate={handleRevisionDraftUpdate}
           />
         )}
       </AnimatePresence>

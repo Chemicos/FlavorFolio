@@ -17,6 +17,8 @@ import DenyRecipeWindow from "../components/DenyRecipeWindow"
 import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 
 export default function PendingRecipesPage() {
+    const { showSnackbar } = useSnackbar()
+       
     const [search, setSearch] = useState("")
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [selectedRecipe, setSelectedRecipe] = useState<ReviewRecipe | null>(null)
@@ -30,7 +32,6 @@ export default function PendingRecipesPage() {
     const [isDenyWindowOpen, setIsDenyWindowOpen] = useState(false)
     const [denyRecipes, setDenyRecipes] = useState<ReviewRecipe[]>([])
 
-    const { showSnackbar } = useSnackbar()   
     const {
         recipes, isLoading, 
         error, isReviewActionLoading,

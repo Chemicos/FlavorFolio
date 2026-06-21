@@ -1,4 +1,3 @@
-import TuneRoundedIcon from "@mui/icons-material/TuneRounded"
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded"
 
 import RecipeReviewSearch from "../../recipe-review/components/RecipeReviewSearch"
@@ -11,7 +10,6 @@ interface NeedsRevisionPageHeaderProps {
   onSelectAll: () => void
   onClearSelection: () => void
   onDeleteSelected: () => void
-  onOpenViewFilterOptions?: () => void
 }
 
 export default function NeedsRevisionPageHeader({
@@ -22,7 +20,6 @@ export default function NeedsRevisionPageHeader({
   onSelectAll,
   onClearSelection,
   onDeleteSelected,
-  onOpenViewFilterOptions,
 }: NeedsRevisionPageHeaderProps) {
   const hasSelection = selectedCount > 0
   const allSelected = totalCount > 0 && selectedCount === totalCount
@@ -67,14 +64,14 @@ export default function NeedsRevisionPageHeader({
           )}
         </div>
 
-        <button
+        {/* <button
           type="button"
           onClick={onOpenViewFilterOptions}
           className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg px-4 text-sm text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
         >
           <TuneRoundedIcon sx={{ fontSize: 20 }} />
           View
-        </button>
+        </button> */}
       </div>
 
       <div className="mt-5 flex h-10 items-center gap-6">

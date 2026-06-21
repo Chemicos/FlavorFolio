@@ -30,6 +30,7 @@ export interface UserDropdownMenuProps {
     isAdmin: boolean
     pendingCount?: number
     feedbackCount?: number
+    needsRevisionCount?: number
 }
 
 interface MenuActionItemProps {
@@ -123,6 +124,7 @@ export default function UserDropdownMenu({
     isAdmin,
     pendingCount = 0,
     feedbackCount = 0,
+    needsRevisionCount = 0,
 }: UserDropdownMenuProps) {
   return (
     <Menu 
@@ -162,6 +164,7 @@ export default function UserDropdownMenu({
           icon={<BlockIcon fontSize="small" />}
           label="Needs revision"
           onClick={onNeedsRevision}
+          badgeCount={needsRevisionCount}
         />
 
         {isAdmin && [

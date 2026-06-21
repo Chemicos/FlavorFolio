@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import FlavorFolioLogo from '../../assets/FF_logo.png'
 import { Link, useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
-import { collection, doc, getDoc, getDocs } from '@firebase/firestore'
+import { collection, doc, getCountFromServer, getDoc, getDocs, query, where } from '@firebase/firestore'
 import { db } from "../../firebase-config"
 // import Notifications from './Notifications'
 
@@ -36,6 +36,7 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
     const [avatarLoaded, setAvatarLoaded] = useState(false)
     
     const [isAdmin, setIsAdmin] = useState(false)
+    const [needsRevisionCount, setNeedsRevisionCount] = useState(0)
     const [pendingCount, setPendingCount] = useState(0)
     const [feedbackCount, setFeedbackCount] = useState(0)
     const [isDarkMode, setIsDarkMode] = useState(false)
@@ -118,16 +119,34 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
     }
   }, [])
 
+  useEffect(() => {
+    const fetchNeedsRevisionCount = async () => {
+      const user = auth.currentUser
+      if (!user) return
+
+      const needsRevisionQuery = query(
+        collection(db, "recipes"),
+        where("userId", "==", user.uid),
+        where("status", "==", "needs_revision")
+      )
+
+      const snapshot = await getCountFromServer(needsRevisionQuery)
+      setNeedsRevisionCount(snapshot.data().count)
+    }
+
+    fetchNeedsRevisionCount()
+  }, [])
+
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode
     setIsDarkMode(newDarkMode)
-        localStorage.setItem('darkMode', String(newDarkMode))
+    localStorage.setItem('darkMode', String(newDarkMode))
 
-        if (newDarkMode) {
-            document.documentElement.classList.add('dark')
-        } else {
-            document.documentElement.classList.remove('dark')
-        }
+    if (newDarkMode) {
+        document.documentElement.classList.add('dark')
+    } else {
+        document.documentElement.classList.remove('dark')
+    }
   }
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -204,22 +223,6 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
             </Link>
 
             <div className='flex items-center gap-4 lg:gap-6'>
-              {/* <button
-                type='button'
-                onClick={toggleDarkMode}
-                className='flex h-8 w-14 items-center rounded-full border border-[#3f424a]/80 bg-[#0b0b0c] px-1 transition'
-              >
-                <span  className={["flex h-6 w-6 items-center justify-center rounded-full text-white transition-transform duration-300",
-                  isDarkMode ? "translate-x-6" : "translate-x-0",
-                ].join(" ")}>
-                {isDarkMode ? 
-                  <DarkModeIcon sx={{ fontSize: 20}} /> 
-                  : 
-                  <LightModeIcon sx={{ fontSize: 20}} />
-                }
-                </span>
-              </button> */}
-
               <button className='text-[#a8b3cf] hover:text-white'>
                 <NotificationsIcon sx={{fontSize: 25}} />
               </button>
@@ -284,6 +287,7 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
                   isAdmin={isAdmin}
                   pendingCount={pendingCount}
                   feedbackCount={feedbackCount}
+                  needsRevisionCount={needsRevisionCount}
                 />
               </div>
             </div>

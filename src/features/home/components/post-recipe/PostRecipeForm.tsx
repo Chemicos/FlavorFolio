@@ -1,5 +1,5 @@
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded"
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded"
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded"
 
 import { useMemo, useState } from "react"
 import PostRecipeSteps from "./PostRecipeSteps"
@@ -23,10 +23,22 @@ interface PostRecipeFormProps {
   mode?: "create" | "edit"
   recipeToEdit?: Recipe | null
   onUpdateSuccess?: () => void
+  updateMode?: "default" | "revision_draft"
+  onRevisionDraftUpdate?: (data: {
+    recipeId: string
+    payload: Record<string, any>
+  }) => Promise<void>
 }
 
 export default function PostRecipeForm({
-  onClose, currentUser, onSubmitSuccess, mode = "create", recipeToEdit = null, onUpdateSuccess
+  onClose, 
+  currentUser, 
+  onSubmitSuccess, 
+  mode = "create", 
+  recipeToEdit = null, 
+  onUpdateSuccess,
+  updateMode = "default",
+  onRevisionDraftUpdate,
 }: PostRecipeFormProps) {
   const MIN_TITLE_LENGTH = 5
   const MIN_DESCRIPTION_LENGTH = 30  
@@ -152,25 +164,51 @@ export default function PostRecipeForm({
 
     try {
       if (isEditMode && recipeToEdit?.recipeId) {
-        await updateRecipe({
-          recipeId: recipeToEdit.recipeId,
-          title,
-          description,
-          cuisine,
-          duration,
-          servings,
-          difficulty,
-          meal,
-          visibility,
-          imageFile,
-          existingImageUrl: recipeToEdit.image || "",
-          ingredients,
-          steps,
-          currentUser,
-        })
+        if(mode === "edit") {
+          if (mode === "edit" && updateMode === "revision_draft" && recipeToEdit?.recipeId) {
+            await onRevisionDraftUpdate?.({
+              recipeId: recipeToEdit.recipeId,
+              payload: {
+                title,
+                description,
+                cuisine,
+                duration,
+                servings,
+                difficulty,
+                meal,
+                visibility,
+                imageFile,
+                existingImageUrl: recipeToEdit.image || "",
+                existingImageFileName: recipeToEdit.imageFileName || "",
+                ingredients,
+                steps,
+              },
+            })
 
-        onUpdateSuccess?.()
-        return
+            onUpdateSuccess?.()
+            return
+          }
+          
+          await updateRecipe({
+            recipeId: recipeToEdit.recipeId,
+            title,
+            description,
+            cuisine,
+            duration,
+            servings,
+            difficulty,
+            meal,
+            visibility,
+            imageFile,
+            existingImageUrl: recipeToEdit.image || "",
+            ingredients,
+            steps,
+            currentUser,
+          })
+  
+          onUpdateSuccess?.()
+          return
+        }
       }
 
       await createPendingRecipe({
@@ -268,9 +306,9 @@ export default function PostRecipeForm({
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full hover:backdrop-blur-xl text-white transition-all duration-200 hover:bg-orange-500/20 hover:scale-105 active:scale-90"
+          className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
         >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          <ChevronLeftRoundedIcon sx={{ fontSize: 26 }} />
         </button>
       </div>
 

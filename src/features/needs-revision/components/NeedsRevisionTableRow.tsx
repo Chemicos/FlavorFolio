@@ -3,6 +3,7 @@ import ViewSidebarIcon from "@mui/icons-material/ViewSidebar"
 
 import { NeedsRevisionRecipe } from "../types/needsRevision.types"
 import { NeedsRevisionTableColumn } from "./NeedsRevisionTable"
+import { useEffect, useRef, useState } from "react"
 
 interface NeedsRevisionTableRowProps {
     recipe: NeedsRevisionRecipe
@@ -21,6 +22,65 @@ function formatDate(value: any) {
         hour: "2-digit",
         minute: "2-digit",
     }).format(new Date(value.seconds * 1000))
+}
+
+function TruncatedTooltipText({
+  children,
+  className = "",
+}: {
+  children: string
+  className?: string
+}) {
+  const textRef = useRef<HTMLSpanElement | null>(null)
+  const [isTruncated, setIsTruncated] = useState(false)
+
+  useEffect(() => {
+    const element = textRef.current
+    if (!element) return
+
+    const checkTruncation = () => {
+      setIsTruncated(element.scrollWidth > element.clientWidth)
+    }
+
+    checkTruncation()
+
+    const resizeObserver = new ResizeObserver(checkTruncation)
+    resizeObserver.observe(element)
+
+    return () => resizeObserver.disconnect()
+  }, [children])
+
+  return (
+    <Tooltip
+      title={isTruncated ? children : ""}
+      arrow
+      placement="top"
+      disableHoverListener={!isTruncated}
+      slotProps={{
+        tooltip: {
+          sx: {
+            maxWidth: 360,
+            bgcolor: "#0b0b0c",
+            color: "#d7def0",
+            fontSize: "0.75rem",
+            lineHeight: 1.6,
+            border: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(12px)",
+            padding: "0.5rem"
+          },
+        },
+        arrow: {
+          sx: {
+            color: "#0b0b0c",
+          },
+        },
+      }}
+    >
+      <span ref={textRef} className={`block truncate ${className}`}>
+        {children}
+      </span>
+    </Tooltip>
+  )
 }
 
 export default function NeedsRevisionTableRow({
@@ -59,39 +119,39 @@ export default function NeedsRevisionTableRow({
             )
         case "title":
             return (
-            <p className="truncate text-sm font-medium text-[#d7def0]">
-                {recipe.title || "Untitled recipe"}
-            </p>
+                <TruncatedTooltipText className="text-sm font-medium text-[#d7def0]">
+                    {recipe.title || "Untitled recipe"}
+                </TruncatedTooltipText>
             )
 
         case "reason":
             return (
-            <span className="truncate text-sm capitalize text-[#a8b3cf]">
+            <TruncatedTooltipText className="text-sm capitalize text-[#a8b3cf]">
                 {recipe.denialFeedback?.reasonLabel ||
-                recipe.denialFeedback?.reason?.replaceAll("_", " ") ||
-                "-"}
-            </span>
+                    recipe.denialFeedback?.reason?.replaceAll("_", " ") ||
+                    "-"}
+            </TruncatedTooltipText>
             )
 
         case "description":
             return (
-            <span className="truncate text-sm text-[#a8b3cf]">
-                {recipe.reviewFeedback?.description?.message || "-"}
-            </span>
+                <TruncatedTooltipText className="text-sm text-[#a8b3cf]">
+                    {recipe.reviewFeedback?.description?.message || "-"}
+                </TruncatedTooltipText>
             )
 
         case "ingredients":
             return (
-            <span className="truncate text-sm text-[#a8b3cf]">
-                {recipe.reviewFeedback?.ingredients?.message || "-"}
-            </span>
+                <TruncatedTooltipText className="text-sm text-[#a8b3cf]">
+                    {recipe.reviewFeedback?.ingredients?.message || "-"}
+                </TruncatedTooltipText>
             )
 
         case "steps":
             return (
-            <span className="truncate text-sm text-[#a8b3cf]">
-                {recipe.reviewFeedback?.steps?.message || "-"}
-            </span>
+                <TruncatedTooltipText className="text-sm text-[#a8b3cf]">
+                    {recipe.reviewFeedback?.steps?.message || "-"}
+                </TruncatedTooltipText>
             )
 
         case "updatedAt":
@@ -156,6 +216,9 @@ export default function NeedsRevisionTableRow({
                         cellClassName,
                         index === 0 ? "rounded-l-lg" : "",
                         index === columns.length - 1 ? "rounded-r-xl text-right" : "",
+                        column.key === "select"
+                        ? "sticky left-0 z-10 backdrop-blur-xl"
+                        : "",
                         column.key === "actions"
                         ? "sticky right-0 z-10 text-right backdrop-blur-xl"
                         : "",

@@ -1,8 +1,11 @@
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded"
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined"
 import SignalCellularAltRoundedIcon from "@mui/icons-material/SignalCellularAltRounded"
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded"
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded"
+import EditRoundedIcon from "@mui/icons-material/EditRounded"
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded"
+import SendRoundedIcon from "@mui/icons-material/SendRounded"
 
 import { motion } from "motion/react"
 
@@ -13,9 +16,11 @@ import RecipeReviewSectionHeader, { ReviewIssueSeverity, ReviewSectionFeedback }
 import { ReviewSectionKey, saveRecipeReviewFeedback } from "../services/recipeReview.service"
 import RecipeReviewIngredientsSection from "./RecipeReviewIngredientsSection"
 import { CircularProgress } from "@mui/material"
+import { formatDurationFromMinutes } from "../../home/utils/recipeDuration"
 
 interface RecipeReviewDetailsDrawerProps {
   recipe: ReviewRecipe
+  mode?: "review" | "revision"
   width: number
   onClose: () => void
   onResizeStart: (event: React.MouseEvent<HTMLDivElement>) => void
@@ -27,10 +32,15 @@ interface RecipeReviewDetailsDrawerProps {
   isReviewActionLoading?: boolean
   onDenyRecipe?: (recipe: ReviewRecipe) => void
   onApproveRecipe?: (recipeId: string) => void
+  onEditRecipe?: (recipe: ReviewRecipe) => void
+  onDeleteRecipe?: (recipe: ReviewRecipe) => void
+  onSubmitRevision?: (recipeId: string) => void
+  isRevisionActionLoading?: boolean
 }
 
 export default function RecipeReviewDetailsDrawer({
   recipe,
+  mode = "review",
   width,
   onClose,
   onResizeStart,
@@ -38,8 +48,14 @@ export default function RecipeReviewDetailsDrawer({
   isReviewActionLoading = false,
   onDenyRecipe,
   onApproveRecipe,
+  onEditRecipe,
+  onDeleteRecipe,
+  onSubmitRevision,
+  isRevisionActionLoading = false,
 }:RecipeReviewDetailsDrawerProps) {
   type ReviewSectionKey = "description" | "ingredients" | "steps"
+  const isReviewMode = mode === "review"
+  const isRevisionMode = mode === "revision"
 
   const getInitialReviewFeedback = (recipe: ReviewRecipe) => ({
     description: recipe.reviewFeedback?.description || defaultSectionFeedback,
@@ -133,6 +149,10 @@ export default function RecipeReviewDetailsDrawer({
     }
   }
 
+  const formattedDuration = formatDurationFromMinutes(
+    String(recipe.durationMinutes || "")
+  )
+
   return (
     <motion.aside
       initial={{ x: "100%" }}
@@ -166,9 +186,9 @@ export default function RecipeReviewDetailsDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg text-[#a8b3cf] transition border border-white/10 backdrop-blur-xl bg-[#16181d]/90 hover:bg-[#0b0b0c] hover:text-white"
+            className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
           >
-            <CloseRoundedIcon sx={{ fontSize: 20 }} />
+            <ChevronLeftRoundedIcon sx={{ fontSize: 26 }} />
           </button>
         </div>
 
@@ -226,12 +246,13 @@ export default function RecipeReviewDetailsDrawer({
             <InfoBox icon={<SignalCellularAltRoundedIcon sx={{ fontSize: 22 }} />} label="difficulty" />
             <InfoBox icon={<GroupsRoundedIcon sx={{ fontSize: 22 }} />} label="servings" />
 
-            <InfoValue value={recipe.durationMinutes ? `${recipe.durationMinutes} min` : "-"} />
+            <InfoValue value={recipe.durationMinutes ? formattedDuration : "-"} />
             <InfoValue value={recipe.difficulty || "-"} />
             <InfoValue value={recipe.servings ? String(recipe.servings) : "-"} />
           </div>
 
           <section className="mt-8">
+            
             <RecipeReviewSectionHeader 
               title="Description"
               feedback={reviewFeedback.description}
@@ -244,6 +265,7 @@ export default function RecipeReviewDetailsDrawer({
               onSave={() => handleSaveFeedback("description")}
               onMessageChange={setDraftMessage}
               onSeverityChange={setDraftSeverity}
+              canEdit={isReviewMode}
             />
 
             <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#7f89a6]">
@@ -264,6 +286,7 @@ export default function RecipeReviewDetailsDrawer({
               onSave={() => handleSaveFeedback("ingredients")}
               onMessageChange={setDraftMessage}
               onSeverityChange={setDraftSeverity}
+              canEdit={isReviewMode}
             />
             
             <RecipeReviewIngredientsSection ingredients={ingredients} />
@@ -282,6 +305,7 @@ export default function RecipeReviewDetailsDrawer({
               onSave={() => handleSaveFeedback("steps")}
               onMessageChange={setDraftMessage}
               onSeverityChange={setDraftSeverity}
+              canEdit={isReviewMode}
             />
 
             {steps.length ? (
@@ -296,32 +320,68 @@ export default function RecipeReviewDetailsDrawer({
           </section>
         </div>
       </div>
+      
+      {isReviewMode && (
+        <div className="shrink-0 border-t border-white/10 bg-[#16181d]/95 px-6 py-4 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onDenyRecipe?.(recipe)}
+              disabled={isReviewActionLoading}
+              className="flex h-11 flex-1 items-center justify-center rounded-lg border border-red-400/10 bg-red-500/10 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-45 active:scale-[0.98]"
+            >
+              Deny
+            </button>
 
-      <div className="shrink-0 border-t border-white/10 bg-[#16181d]/95 px-6 py-4 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => onDenyRecipe?.(recipe)}
-            disabled={isReviewActionLoading}
-            className="flex h-11 flex-1 items-center justify-center rounded-lg border border-red-400/10 bg-red-500/10 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-45 active:scale-[0.98]"
-          >
-            Deny
-          </button>
-
-          <button
-            type="button"
-            disabled={isReviewActionLoading}
-            onClick={() => onApproveRecipe?.(recipe.recipeId)}
-            className="flex h-11 flex-1 items-center justify-center rounded-lg border border-lime-400/10 bg-lime-500/10 text-sm font-semibold text-lime-300 transition hover:bg-lime-500/15 disabled:cursor-not-allowed disabled:opacity-45 active:scale-[0.98]"
-          >
-            {isReviewActionLoading ? (
-              <CircularProgress size={15} thickness={5} sx={{ color: "#bef264" }} />
-            ) : (
-              "Approve"
-            )}
-          </button>
+            <button
+              type="button"
+              disabled={isReviewActionLoading}
+              onClick={() => onApproveRecipe?.(recipe.recipeId)}
+              className="flex h-11 flex-1 items-center justify-center rounded-lg border border-lime-400/10 bg-lime-500/10 text-sm font-semibold text-lime-300 transition hover:bg-lime-500/15 disabled:cursor-not-allowed disabled:opacity-45 active:scale-[0.98]"
+            >
+              {isReviewActionLoading ? (
+                <CircularProgress size={15} thickness={5} sx={{ color: "#bef264" }} />
+              ) : (
+                "Approve"
+              )}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {isRevisionMode && (
+        <div className="shrink-0 border-t border-white/10 bg-[#16181d]/95 px-6 py-4 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onDeleteRecipe?.(recipe)}
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-red-400/10 bg-red-500/10 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 active:scale-[0.98]"
+            >
+              <DeleteRoundedIcon sx={{ fontSize: 18 }} />
+              Delete
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onEditRecipe?.(recipe)}
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-orange-400/10 bg-orange-500/10 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/15 active:scale-[0.98]"
+            >
+              <EditRoundedIcon sx={{ fontSize: 18 }} />
+              Edit
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onSubmitRevision?.(recipe.recipeId)}
+              disabled={isRevisionActionLoading}
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-lime-400/10 bg-lime-500/10 text-sm font-semibold text-lime-300 transition hover:bg-lime-500/15 disabled:opacity-45"
+            >
+              <SendRoundedIcon sx={{ fontSize: 18 }} />
+              Send
+            </button>
+          </div>
+        </div>
+      )}
     </motion.aside>
   )
 }
@@ -344,7 +404,7 @@ function InfoBox({
 function InfoValue({ value }: { value: string }) {
   return (
     <div className="flex justify-center">
-      <span className="rounded-lg border border-white/[0.10] bg-[#0b0b0c]/60 px-5 py-2 text-xs font-semibold text-white capitalize">
+      <span className="rounded-lg border border-white/[0.10] bg-[#0b0b0c]/60 px-5 py-2 text-xs font-semibold text-white">
         {value}
       </span>
     </div>
