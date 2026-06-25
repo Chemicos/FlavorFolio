@@ -3,7 +3,7 @@ import { Skeleton } from "@mui/material";
 
 import { ReviewRecipe } from "../types/recipeReview.types";
 import RecipeReviewTableRow from "./RecipeReviewTableRow";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   closestCenter,
   DndContext,
@@ -84,14 +84,55 @@ export default function RecipeReviewTable({
   onViewRecipe,
   activeRecipeId,
 }: RecipeReviewTableProps) {
-  const [columns, setColumns] = useState([...defaultColumns])
+  const TABLE_PREFS_KEY = "flavorfolio.recipeReviewTablePrefs"
+
+  const savedPrefs = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem(TABLE_PREFS_KEY) || "{}")
+    } catch {
+      return {}
+    }
+  }, [])
+
+  //Local storage sorted table header
+  const [columns, setColumns] = useState(() => {
+    const savedOrder = savedPrefs.columnOrder as string[] | undefined
+    if (!savedOrder?.length) return [...defaultColumns]
+
+    const byKey = new Map(defaultColumns.map((column) => [column.key, column]))
+    const ordered = savedOrder
+      .map((key) => byKey.get(key as any))
+      .filter(Boolean) as RecipeReviewTableColumn[]
+
+    const missing = defaultColumns.filter(
+      (column) => !savedOrder.includes(column.key)
+    )
+
+    return [...ordered, ...missing]
+  })
   const [activeColumnKey, setActiveColumnKey] = useState<string | null>(null)
 
-  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(
-    Object.fromEntries(columns.map((column) => [column.key, column.width]))
-  )
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => ({
+    ...Object.fromEntries(defaultColumns.map((column) => [column.key, column.width])),
+    ...(savedPrefs.columnWidths || {}),
+  }))
 
-  const [sort, setSort] = useState<SortState>({key: null, direction: null})
+  const [sort, setSort] = useState<{ key: SortKey | null; direction: SortDirection }>(() => ({
+    key: savedPrefs.sort?.key || null,
+    direction: savedPrefs.sort?.direction || null,
+  }))
+
+  useEffect(() => {
+    localStorage.setItem(
+      TABLE_PREFS_KEY,
+      JSON.stringify({
+        columnOrder: columns.map((column) => column.key),
+        columnWidths,
+        sort,
+      })
+    )
+  }, [columns, columnWidths, sort])
+  // -------------------------------
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

@@ -5,19 +5,21 @@ interface RecipeReviewSearchProps {
   value: string
   onChange: (value: string) => void
   resultCount?: number
+  placeholder?: string
 }
 
 export default function RecipeReviewSearch({
   value,
   onChange,
-  resultCount
+  resultCount,
+   placeholder = "Search recipe...",
 }: RecipeReviewSearchProps) {
   const hasValue = value.trim().length > 0
   return (
     <div className="w-full sm:w-[260px]">
       <div
         className={[
-          "relative flex h-12 items-center rounded-lg border bg-[#0b0b0c] transition",
+          "relative flex h-12 items-center rounded-md border bg-[#0b0b0c] transition",
           hasValue
             ? "border-orange-400/35 shadow-[0_0_0_1px_rgba(254,170,43,0.08)]"
             : "border-white/10 hover:border-white/20",
@@ -31,7 +33,7 @@ export default function RecipeReviewSearch({
         <input
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Search recipe..."
+          placeholder={placeholder}
           className="h-full w-full rounded-lg bg-transparent pl-11 pr-11 text-sm text-white outline-none placeholder:text-[#6f7892]"
         />
 

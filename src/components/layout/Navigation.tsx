@@ -3,12 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 import FlavorFolioLogo from '../../assets/FF_logo.png'
 import { Link, useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
-import { collection, doc, getCountFromServer, getDoc, getDocs, query, where } from '@firebase/firestore'
+import { collection, doc, getCountFromServer, getDoc, getDocs, onSnapshot, query, where } from '@firebase/firestore'
 import { db } from "../../firebase-config"
 // import Notifications from './Notifications'
 
 import {motion} from "motion/react"
-import PostAddIcon from '@mui/icons-material/PostAdd'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -20,11 +19,11 @@ interface NavigationProps {
   variant?: "transparent" | "solid"
 }
 
-interface FirestoreUser {
-  username?: string
-  admin?: boolean
-  profileImage?: string
-}
+// interface FirestoreUser {
+//   username?: string
+//   admin?: boolean
+//   profileImage?: string
+// }
 
 export default function Navigation({ onFeedbackClick, variant = "transparent" }: NavigationProps) {
     const navigate = useNavigate()
@@ -73,28 +72,52 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
     
   // Retrieving username & avatar from users or google and remaining connected >>
     useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const uid = user.uid
-          const userRef = doc(db, 'users', uid)
-          const docSnap = await getDoc(userRef)
+      let unsubscribeUserDoc: (() => void) | undefined
 
-          if (docSnap.exists()) {
-            const userData = docSnap.data()
-            setUsername(userData.username || user.displayName)
-            setIsAdmin(Boolean(userData.admin))
-            setUserPhoto(userData.profileImage || user.photoURL || '')
-          } else {
-            setUsername(user.displayName || '')
-            setUserPhoto(user.photoURL || '')
-          } 
+      const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      unsubscribeUserDoc?.()
+
+      if (!user) {
+        setUsername("")
+        setUserPhoto("")
+        navigate("/")
+        return
+      }
+
+      const userRef = doc(db, "users", user.uid)
+
+      unsubscribeUserDoc = onSnapshot(userRef, (docSnap) => {  
+        if (docSnap.exists()) {
+          const userData = docSnap.data()
+          const nextPhoto = userData.profileImage || user.photoURL || ""
+
+          setUsername(userData.username || user.displayName || "")
+          setIsAdmin(Boolean(userData.admin))
+          setUserPhoto((prevPhoto) => {
+            if (prevPhoto !== nextPhoto) {
+              setAvatarLoaded(false)
+            }
+            return nextPhoto
+          })
         } else {
-          setUsername('')
-          setUserPhoto('')
-          navigate("/")
+          const nextPhoto = user.photoURL || ""
+          setUsername(user.displayName || "")
+
+          setUserPhoto((prevPhoto) => {
+            if (prevPhoto !== nextPhoto) {
+              setAvatarLoaded(false)
+            }
+
+            return nextPhoto
+          })
         }
       })
-      return () => unsubscribe()
+    })
+
+    return () => {
+      unsubscribeAuth()
+      unsubscribeUserDoc?.()
+    }
   }, [navigate, auth])
   // <<
 
@@ -245,7 +268,7 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
                         onLoad={() => setAvatarLoaded(true)}
                         onError={() => setAvatarLoaded(true)}
                         className={[
-                          'rounded-lg object-cover transition-opacity duration-300',
+                          'h-full w-full rounded-lg object-cover transition-opacity duration-300',
                           avatarLoaded ? 'opacity-100' : 'opacity-0',
                         ].join(' ')}
                       />

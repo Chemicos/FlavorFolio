@@ -3,7 +3,7 @@ import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownR
 
 import { NeedsRevisionRecipe } from "../types/needsRevision.types"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import NeedsRevisionTableRow from "./NeedsRevisionTableRow"
 import { closestCenter, DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { arrayMove, horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable"
@@ -62,17 +62,53 @@ export default function NeedsRevisionTable({
     onToggleRecipe,
     onViewRecipe,
 }: NeedsRevisionTableProps) {
-    const [columns, setColumns] = useState([...defaultColumns])
+    const TABLE_PREFS_KEY = "flavorfolio.needsRevisionTablePrefs"
+
+    const savedPrefs = useMemo(() => {
+      try {
+        return JSON.parse(localStorage.getItem(TABLE_PREFS_KEY) || "{}")
+      } catch {
+        return {}
+      }
+    }, [])
+
+    const [columns, setColumns] = useState(() => {
+      const savedOrder = savedPrefs.columnOrder as string[] | undefined
+      if (!savedOrder?.length) return [...defaultColumns]
+
+      const byKey = new Map(defaultColumns.map((column) => [column.key, column]))
+      const ordered = savedOrder
+        .map((key) => byKey.get(key as ColumnKey))
+        .filter(Boolean) as NeedsRevisionTableColumn[]
+
+      const missing = defaultColumns.filter(
+        (column) => !savedOrder.includes(column.key)
+      )
+
+      return [...ordered, ...missing]
+    })
     const [activeColumnKey, setActiveColumnKey] = useState<string | null>(null)
 
-    const [columnWidths, setColumnWidths] = useState<Record<string, number>>(
-      Object.fromEntries(defaultColumns.map((column) => [column.key, column.width]))
-    )
+    const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => ({
+      ...Object.fromEntries(defaultColumns.map((column) => [column.key, column.width])),
+      ...(savedPrefs.columnWidths || {}),
+    }))
 
-    const [sort, setSort] = useState<{ key: SortKey | null; direction: SortDirection }>({
-        key: null,
-        direction: null,
-    })
+    const [sort, setSort] = useState<{ key: SortKey | null; direction: SortDirection }>(() => ({
+      key: savedPrefs.sort?.key || null,
+      direction: savedPrefs.sort?.direction || null,
+    }))
+
+    useEffect(() => {
+      localStorage.setItem(
+        TABLE_PREFS_KEY,
+        JSON.stringify({
+          columnOrder: columns.map((column) => column.key),
+          columnWidths,
+          sort,
+        })
+      )
+    }, [columns, columnWidths, sort])
 
     const sensors = useSensors(
       useSensor(PointerSensor, {

@@ -16,6 +16,7 @@ import type { User } from 'firebase/auth'
 import { auth } from './firebase-config'
 import PendingRecipesPage from './features/recipe-review/pages/PendingRecipesPage'
 import NeedsRevisionPage from './features/needs-revision/pages/NeedsRevisionPage'
+import MyProfilePage from './features/profile/pages/MyProfilePage'
 
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -40,7 +41,7 @@ function App() {
           <Route path="/home" element={user ? <Home /> : <Navigate replace to="/" />} />
           <Route path='/pending' element={user ? <PendingRecipesPage /> : <Navigate replace to="/" />} />
           <Route path='/needs-revision' element={user ? <NeedsRevisionPage /> : <Navigate replace to="/" />} />
-          <Route path='/profile' element={user ? <ProfilePage /> : <Navigate replace to="/" />} />
+          <Route path='/profile' element={user ? <MyProfilePage /> : <Navigate replace to="/" />} />
           <Route path='/settings' element={user ? <AccountSettings /> : <Navigate replace to="/" />} />
           <Route path='/userProfile/:userId' element={user ? <ViewUserProfile /> : <Navigate replace to="/" />} />
           <Route path='/dashboard' element={user ? <Dashboard /> : <Navigate replace to="/" />} />

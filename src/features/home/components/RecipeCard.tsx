@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useEffect, useMemo, useState, useRef } from 'react'
 import type { Recipe, SavedRecipe } from "../types"
 import type { CurrentUserCardData } from '../types/recipeCard.types'
