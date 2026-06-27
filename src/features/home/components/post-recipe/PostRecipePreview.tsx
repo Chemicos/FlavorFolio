@@ -122,7 +122,7 @@ export default function PostRecipePreview({
         </div>
         
         <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-8 pt-10">
-            <div className="mt-2 flex flex-wrap gap-3 text-sm text-[#c4cbdb]">
+            <div className="flex flex-wrap gap-3 text-sm text-[#c4cbdb]">
                 {cuisine && (
                     <div className="mb-3 flex items-center gap-2 rounded-xl text-xs border border-orange-400/15 bg-orange-500/10 px-3 py-2 text-orange-200 capitalize">
                         <RestaurantRoundedIcon sx={{ fontSize: 17 }} />

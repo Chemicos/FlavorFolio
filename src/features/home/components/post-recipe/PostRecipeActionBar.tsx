@@ -26,7 +26,7 @@ export default function PostRecipeActionBar({
             onClick={mode === "preview" ? onEdit : onPreview}
             disabled={isSubmitting}
             type="button"
-            className="rounded-lg px-5 py-2.5 text-sm font-medium text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-md px-5 py-2.5 text-sm font-medium text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
             {mode === "preview" ? "Edit recipe" : "Preview"}
         </button>
@@ -36,7 +36,7 @@ export default function PostRecipeActionBar({
             disabled={!canPost}
             onClick={onPost}
             className={[
-            "relative min-w-[118px] overflow-hidden rounded-lg border px-6 py-2.5 text-sm font-semibold transition",
+            "relative min-w-[118px] overflow-hidden rounded-md border px-6 py-2.5 text-sm font-semibold transition",
             canPost
                 ? "border-orange-400/40 bg-orange-500/20 text-orange-100 hover:bg-orange-500/30 active:scale-95"
                 : "cursor-not-allowed border-orange-400/10 bg-orange-500/5 text-orange-200/60",

@@ -28,6 +28,8 @@ import ViewRecipeStepsSection from "./ViewRecipeStepsSection"
 import ViewRecipeCommentsSection from "./ViewRecipeCommentsSection"
 import DeleteWarningDialog from "./DeleteWarningDialog"
 import { deleteRecipe } from "../../services/recipes.service"
+import { doc, onSnapshot } from "@firebase/firestore"
+import { db } from "../../../../firebase-config"
 
 interface ViewRecipeDrawerProps {
     recipe: Recipe,
@@ -49,6 +51,8 @@ interface ViewRecipeDrawerProps {
     onCommentStateChange: (recipeId: string, commentsCount: number) => void
     onEditRecipe: (recipe: Recipe) => void
     onDeleteRecipe: (recipeId: string) => void
+    presentation?: "overlay" | "inline"
+    width?: number
 }
 
 export default function ViewRecipeDrawer({
@@ -64,11 +68,21 @@ export default function ViewRecipeDrawer({
     onCommentStateChange,
     onEditRecipe,
     onDeleteRecipe,
+    presentation = "overlay",
+    width = 540,
 }: ViewRecipeDrawerProps) {
     type ViewRecipeTab = "ingredients" | "steps" | "comments"
 
+    const isInline = presentation === "inline"
+    const asideClassName = isInline
+    ? "sticky top-16 flex h-[calc(100vh-80px)] flex-col overflow-hidden rounded-l-2xl border-l border-white/10 bg-gradient-to-b from-[#16181d]/80 via-[#16181d]/95 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.28)]"
+    : "absolute right-0 top-0 flex h-full w-full max-w-[540px] flex-col overflow-hidden bg-gradient-to-b from-[#16181d]/40 via-[#16181d]/80 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.38)]"
+
     const [isDeleteRecipeDialogOpen, setIsDeleteRecipeDialogOpen] = useState(false)
     const [isDeletingRecipe, setIsDeletingRecipe] = useState(false)
+
+    const isRecipePublic = recipe.status === "published"
+    const showInteractions = isRecipePublic
 
     const canManageRecipe = Boolean(currentUser?.uid && recipe.userId === currentUser.uid)
     const [isRecipeMenuOpen, setIsRecipeMenuOpen] = useState(false)
@@ -83,6 +97,8 @@ export default function ViewRecipeDrawer({
 
     const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({})
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
+
+    const [liveAuthorFollowersCount, setLiveAuthorFollowersCount] = useState(Number(authorFollowersCount || 0))
 
     const {
         isOwner,
@@ -137,6 +153,30 @@ export default function ViewRecipeDrawer({
     }, [onClose])
 
     useEffect(() => {
+        if (!recipe.userId) {
+            setLiveAuthorFollowersCount(Number(authorFollowersCount || 0))
+            return
+        }
+
+        const userRef = doc(db, "users", recipe.userId)
+
+        const unsubscribe = onSnapshot(userRef, (snapshot) => {
+            if (!snapshot.exists()) {
+            setLiveAuthorFollowersCount(Number(authorFollowersCount || 0))
+            return
+            }
+
+            const data = snapshot.data()
+
+            setLiveAuthorFollowersCount(
+            Number(data.stats?.followersCount || 0)
+            )
+        })
+
+        return () => unsubscribe()
+    }, [recipe.userId, authorFollowersCount])
+
+    useEffect(() => {
         const fetchUserRating = async () => {
             if (!currentUser?.uid || !recipe.recipeId) {
                 setUserRating(null)
@@ -187,10 +227,21 @@ export default function ViewRecipeDrawer({
 
     const [isSubmittingComment, setIsSubmittingComment] = useState(false)
     const displayedCommentsCount = totalLiveCommentsCount || commentsCount
+
+    const showComments = isRecipePublic
+
     const tabs: {id: ViewRecipeTab; label: string, count?: number}[] = [
         {id: "ingredients", label: "Ingredients", count: ingredients.length},
         {id: "steps", label: "Steps", count: steps.length},
-        {id: "comments", label: "Comments", count: displayedCommentsCount}
+        ...(showComments
+            ? [
+                {
+                    id: "comments" as const,
+                    label: "Comments",
+                    count: displayedCommentsCount,
+                },
+            ]
+            : []),
     ]
 
     const [commentReactions, setCommentReactions] = useState<Record<string, "like" | "dislike">>({})
@@ -216,6 +267,18 @@ export default function ViewRecipeDrawer({
 
         return () => unsubscribe()
     }, [recipe.recipeId, currentUser?.uid])
+
+    useEffect(() => {
+        setRatingStats({
+            averageRating: Number(recipe?.stats?.averageRating || 0),
+            ratingsCount: Number(recipe?.stats?.ratingsCount || 0),
+        })
+
+        setUserRating(null)
+        setActiveTab("ingredients")
+        setIsDescriptionExpanded(false)
+        setIsRecipeMenuOpen(false)
+    }, [recipe.recipeId])
 
     const handleRatingChange = async (_event: React.SyntheticEvent, value: number | null) => {
         if (!value || !currentUser?.uid || !recipe.recipeId || ratingLoading) return
@@ -399,79 +462,69 @@ export default function ViewRecipeDrawer({
         }
     }
 
-    return (
-        <div className="fixed inset-0 z-[80]">
-            <motion.div
-                className="absolute inset-0 bg-[#050506]/40 backdrop-blur-[2px]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                onClick={onClose}
-            />
+    const drawer = (
+        <motion.aside
+            initial={isInline ? { opacity: 0 } : { x: "100%" }}
+            animate={isInline ? { opacity: 1 } : { x: 0 }}
+            exit={isInline ? { opacity: 0 } : { x: "105%" }}
+            transition={{
+            type: "spring",
+            stiffness: 240,
+            damping: 30,
+            mass: 1,
+            }}
+            style={isInline ? { width, flexShrink: 0 } : undefined}
+            className={asideClassName}
+        >
+            <div className="flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+                <div className="relative">
+                    <div className="relative h-[340px] w-full overflow-hidden">
+                        {!imageLoaded && (
+                            <div className="absolute inset-0 animate-pulse bg-white/10" />
+                        )}
 
-            <motion.aside
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "105%" }}
-                transition={{
-                    type: "spring",
-                    stiffness: 240,
-                    damping: 30,
-                    mass: 1,
-                }}
-                className="absolute right-0 top-0 flex h-full w-full max-w-[540px] flex-col overflow-hidden 
-                    bg-gradient-to-b from-[#16181d]/40 via-[#16181d]/80 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.38)]"
-            >
-                <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
-                    <div className="relative">
-                        <div className="relative h-[340px] w-full overflow-hidden">
-                            {!imageLoaded && (
-                                <div className="absolute inset-0 animate-pulse bg-white/10" />
-                            )}
+                        <img
+                            ref={imageRef}
+                            src={recipe.image}
+                            alt={recipe.title}
+                            onLoad={handleImageLoad}
+                            onError={handleImageError}
+                            className={[
+                                "h-full w-full object-cover transition duration-500",
+                                imageLoaded ? "opacity-100" : "opacity-0",
+                            ].join(" ")}
+                            />
 
-                            <img
-                                ref={imageRef}
-                                src={recipe.image}
-                                alt={recipe.title}
-                                onLoad={handleImageLoad}
-                                onError={handleImageError}
-                                className={[
-                                    "h-full w-full object-cover transition duration-500",
-                                    imageLoaded ? "opacity-100" : "opacity-0",
-                                ].join(" ")}
-                                />
+                        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#16181d] to-transparent" />
+                    </div>
 
-                            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#16181d] to-transparent" />
-                        </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
+                        >
+                        <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+                    </button>
 
+                    <div className="absolute right-5 top-5 z-30">
                         <button
                             type="button"
-                            onClick={onClose}
-                            className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[#0b0b0c]/60 backdrop-blur-xl text-[#a8b3cf] transition duration-200 hover:scale-105 hover:bg-[#0b0b0c] hover:text-white
-                            active:scale-90"
-                            >
-                            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+                            onClick={() => setIsRecipeMenuOpen((prev) => !prev)}
+                            className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
+                        >
+                            <MoreVertRoundedIcon sx={{ fontSize: 21 }} />
                         </button>
 
-                        <div className="absolute right-5 top-5 z-30">
-                            <button
-                                type="button"
-                                onClick={() => setIsRecipeMenuOpen((prev) => !prev)}
-                                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0b0b0c]/60 text-[#a8b3cf] backdrop-blur-xl transition duration-200 hover:scale-105 hover:bg-[#0b0b0c] hover:text-white"
+                        <AnimatePresence>
+                            {isRecipeMenuOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                                transition={{ duration: 0.16 }}
+                                className="absolute right-0 top-[calc(100%+10px)] w-44 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
                             >
-                                <MoreVertRoundedIcon sx={{ fontSize: 21 }} />
-                            </button>
-
-                            <AnimatePresence>
-                                {isRecipeMenuOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                                    transition={{ duration: 0.16 }}
-                                    className="absolute right-0 top-[calc(100%+10px)] w-44 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
-                                >
+                                {showInteractions && (
                                     <button
                                         type="button"
                                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
@@ -479,36 +532,38 @@ export default function ViewRecipeDrawer({
                                         <ShareRoundedIcon sx={{ fontSize: 18 }} />
                                         Share
                                     </button>
-
-                                    {canManageRecipe && (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={() => onEditRecipe(recipe)}
-                                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
-                                        >
-                                        <EditRoundedIcon sx={{ fontSize: 18 }} />
-                                            Edit recipe
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
-                                            onClick={() => {
-                                                setIsRecipeMenuOpen(false)
-                                                setIsDeleteRecipeDialogOpen(true)
-                                            }}
-                                        >
-                                        <DeleteRoundedIcon sx={{ fontSize: 18 }} />
-                                            Delete recipe
-                                        </button>
-                                    </>
-                                    )}
-                                </motion.div>
                                 )}
-                            </AnimatePresence>
-                        </div>
 
+                                {canManageRecipe && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => onEditRecipe(recipe)}
+                                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+                                    >
+                                    <EditRoundedIcon sx={{ fontSize: 18 }} />
+                                        Edit recipe
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                                        onClick={() => {
+                                            setIsRecipeMenuOpen(false)
+                                            setIsDeleteRecipeDialogOpen(true)
+                                        }}
+                                    >
+                                    <DeleteRoundedIcon sx={{ fontSize: 18 }} />
+                                        Delete recipe
+                                    </button>
+                                </>
+                                )}
+                            </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {showInteractions && (
                         <button
                             type="button"
                             onClick={handleToggleFavorite}
@@ -522,18 +577,28 @@ export default function ViewRecipeDrawer({
                                 }}
                             />
                         </button>
-                    </div>
+                    )}
+                </div>
 
-                    <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-8 pt-10">
+                <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-8 pt-10">
+                    <div className="mb-3 flex flex-wrap gap-3">
                         {recipe.cuisine && (
-                            <div className="mb-3 inline-flex items-center rounded-lg border border-orange-400/15 bg-orange-500/10 px-3 py-1 text-xs font-medium tracking-wide text-orange-200">
+                            <div className="inline-flex items-center gap-2 rounded-xl text-xs border border-orange-400/15 bg-orange-500/10 px-3 py-2 text-orange-200 capitalize">
+                                <RestaurantRoundedIcon sx={{ fontSize: 17 }} />
                                 {recipe.cuisine}
                             </div>
                         )}
-                        
-                        <h1 className="max-w-[92%] text-[1.6rem] font-bold leading-[2.35rem] text-white">
-                            {recipe.title}
-                        </h1>
+
+                        <div className="flex items-center gap-2 rounded-xl text-xs border border-orange-400/15 bg-orange-500/10 px-3 py-2  text-orange-200 capitalize">
+                            <span>{recipe.meal}</span>
+                        </div>
+                    </div>
+                    
+                    <h1 className="max-w-[92%] text-[1.6rem] font-bold leading-[2.35rem] text-white">
+                        {recipe.title}
+                    </h1>
+
+                    {showInteractions && (
 
                         <div className="mt-3 flex items-center gap-2 text-[#d9dde9]">
                             <MuiRating
@@ -571,36 +636,36 @@ export default function ViewRecipeDrawer({
                                 <span className="text-sm text-[#a8b3cf]">{formatCompactCount(displayedCommentsCount, true)}</span>
                             </div>
                         </div>
+                    )}
 
-                        <div className="mt-8">
-                            <p className="text-sm font-medium text-[#9aa6c7]">Recipe by</p>
+                    <div className="mt-8">
+                        <p className="text-sm font-medium text-[#9aa6c7]">Recipe by</p>
 
-                            <div className="mt-3 flex items-center gap-8">
-                                <div className="flex min-w-0 items-center gap-3">
-                                    <div className="h-10 w-10 overflow-hidden rounded-lg bg-white/10">
-                                        {authorProfileImage ? (
-                                        <img
-                                            src={authorProfileImage}
-                                            alt={authorUsername}
-                                            className="h-full w-full object-cover"
-                                        />
-                                        ) : (
-                                        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-white/70">
-                                            {authorUsername.charAt(0).toUpperCase()}
-                                        </div>
-                                        )}
+                        <div className="mt-3 flex items-center gap-8">
+                            <div className="flex min-w-0 items-center gap-3">
+                                <div className="h-10 w-10 overflow-hidden rounded-lg bg-white/10">
+                                    {authorProfileImage ? (
+                                    <img
+                                        src={authorProfileImage}
+                                        alt={authorUsername}
+                                        className="h-full w-full object-cover"
+                                    />
+                                    ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-white/70">
+                                        {authorUsername.charAt(0).toUpperCase()}
                                     </div>
-
-                                    <div className="min-w-0">
-                                        <p className="truncate text-base font-medium text-[#c7d0e7]">
-                                            {authorUsername}
-                                        </p>
-                                        <p className="text-sm text-[#7f89a6]">
-                                            {formatFollowersLabel(authorFollowersCount)}
-                                        </p>
-                                    </div>
+                                    )}
                                 </div>
 
+                                <div className="min-w-0">
+                                    <p className="truncate text-base font-medium text-[#c7d0e7]">{authorUsername}</p>
+                                    <p className="text-sm text-[#7f89a6]">
+                                        {formatFollowersLabel(liveAuthorFollowersCount)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {showInteractions && (
                                 <button
                                     type="button"
                                     onClick={handleToggleFollow}
@@ -627,206 +692,232 @@ export default function ViewRecipeDrawer({
                                         "Follow"
                                     )}
                                 </button>
-                            </div>
-                        </div>
-
-                        <div className="mt-10 grid grid-cols-3 gap-3">
-                            <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
-                                <div className="flex justify-center text-white">
-                                    <AccessTimeOutlinedIcon sx={{ fontSize: 22 }} />
-                                </div>
-
-                                <p className="mt-3 text-sm font-semibold text-white">duration</p>
-                            </div>
-
-                            <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
-                                <div className="flex justify-center text-white">
-                                    <SignalCellularAltRoundedIcon sx={{ fontSize: 22 }} />
-                                </div>
-                                <p className="mt-3 text-sm font-semibold text-white">difficulty</p>
-                            </div>
-
-                            <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
-                                <div className="flex justify-center text-white">
-                                    <RestaurantRoundedIcon sx={{ fontSize: 22 }} />
-                                </div>
-                                <p className="mt-3 text-sm font-semibold text-white">portions</p>
-                            </div>
-
-                            <div className="flex justify-center">
-                                <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
-                                    {formatDurationMinutes(recipe.durationMinutes)}
-                                </span>
-                            </div>
-
-                            <div className="flex justify-center">
-                                <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
-                                    {recipe.difficulty}
-                                </span>
-                            </div>
-
-                            <div className="flex justify-center">
-                                <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
-                                    {recipe.servings ? `${recipe.servings}` : "info"}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="mt-10">
-                            <h2 className="text-[1.2rem] font-bold text-white">Description</h2>
-                            <div className="relative mt-3">
-                                <motion.div
-                                initial={false}
-                                animate={{
-                                    maxHeight: shouldCollapseDescription &&  !isDescriptionExpanded ? 200 : 1000,
-                                }}
-                                transition={{
-                                    duration: 0.5,
-                                    ease: [0.22, 1, 0.36, 1],
-                                }}
-                                className="relative overflow-hidden"
-                                >
-                                <p className="text-[1rem] leading-8 text-[#8f97b1]">
-                                    {description}
-                                </p>
-
-                                {shouldCollapseDescription && !isDescriptionExpanded && (
-                                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#16181d] via-[#16181d]/80 to-transparent backdrop-blur-[1px]" />
-                                )}
-                                </motion.div>
-
-                                {shouldCollapseDescription && (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsDescriptionExpanded((prev) => !prev)}
-                                    className="mt-2 text-sm text-[#a8b3cf] underline underline-offset-2 transition hover:text-white"
-                                >
-                                    {isDescriptionExpanded ? "View less" : "View more"}
-                                </button>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="sticky top-0 z-20 mt-10 bg-[#16181d]/95 py-3 backdrop-blur-xl">
-                            <div className="grid grid-cols-3 gap-2 rounded-xl bg-[#0b0b0c] p-1">
-                                {tabs.map((tab) => {
-                                    const isActive = activeTab === tab.id
-
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            type="button"
-                                            onClick={() => setActiveTab(tab.id)}
-                                            className={[
-                                                "flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition active:scale-95",
-                                                isActive
-                                                    ? "bg-orange-600/80 text-white shadow-[0_8px_24px_rgba(255,140,0,0.35)]"
-                                                    : "text-[#7f89a6] hover:bg-white/[0.04] hover:text-white",
-                                            ].join(" ")}
-                                        >
-                                            <span>{tab.label}</span>
-
-                                            {typeof tab.count === "number" && (
-                                                <span className={[
-                                                        "text-[0.68rem]",
-                                                        isActive ? "text-white/90" : "text-[#7f89a6]"
-                                                    ].join(" ")}
-                                                >
-                                                    {formatCompactCount(tab.count, true)}
-                                                </span>
-                                            )}
-                                        </button>
-                                    )
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="pt-2">
-                            <AnimatePresence mode="wait" initial={false}>
-                                {activeTab === "ingredients" && (
-                                    <motion.div
-                                        key="ingredients"
-                                        initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -8 }}
-                                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                                    >
-                                        <ViewRecipeIngredients ingredients={ingredients} />
-                                    </motion.div>
-                                )}
-
-                                {activeTab === "steps" && (
-                                    <motion.div
-                                        key="steps"
-                                        initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -8 }}
-                                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                                    >
-                                        <ViewRecipeStepsSection
-                                            steps={steps}
-                                            expandedSteps={expandedSteps}
-                                            areAllStepsExpanded={areAllStepsExpanded}
-                                            onToggleStep={toggleStep}
-                                            onToggleAllSteps={toggleAllSteps}
-                                        />
-                                    </motion.div>
-                                )}
-
-                                {activeTab === "comments" && (
-                                    <motion.div
-                                        key="comments"
-                                        initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -8 }}
-                                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                                    >
-                                        <ViewRecipeCommentsSection
-                                            commentsCount={commentsCount}
-                                            comments={commentsWithReactions}
-                                            currentUser={currentUser}
-                                            isLoadingComments={isLoadingComments}
-                                            isSubmittingComment={isSubmittingComment}
-                                            editingCommentId={editingCommentId}
-                                            isUpdatingComment={isUpdatingComment}
-                                            replyingCommentId={replyingCommentId}
-                                            isSubmittingReply={isSubmittingReply}
-                                            onSubmitComment={handleSubmitComment}
-                                            onStartReplyComment={(comment) => setReplyingCommentId(comment.id)}
-                                            onCancelReplyComment={() => setReplyingCommentId(null)}
-                                            onReplyComment={handleSubmitReply}
-                                            onToggleCommentReaction={handleToggleCommentReaction}
-                                            onStartEditComment={(comment) => setEditingCommentId(comment.id)}
-                                            onCancelEditComment={() => setEditingCommentId(null)}
-                                            onUpdateComment={handleUpdateComment}
-                                            onDeleteComment={setCommentToDelete}
-                                        />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                            )}
                         </div>
                     </div>
+
+                    <div className="mt-10 grid grid-cols-3 gap-3">
+                        <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
+                            <div className="flex justify-center text-white">
+                                <AccessTimeOutlinedIcon sx={{ fontSize: 22 }} />
+                            </div>
+
+                            <p className="mt-3 text-sm font-semibold text-white">duration</p>
+                        </div>
+
+                        <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
+                            <div className="flex justify-center text-white">
+                                <SignalCellularAltRoundedIcon sx={{ fontSize: 22 }} />
+                            </div>
+                            <p className="mt-3 text-sm font-semibold text-white">difficulty</p>
+                        </div>
+
+                        <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
+                            <div className="flex justify-center text-white">
+                                <RestaurantRoundedIcon sx={{ fontSize: 22 }} />
+                            </div>
+                            <p className="mt-3 text-sm font-semibold text-white">portions</p>
+                        </div>
+
+                        <div className="flex justify-center">
+                            <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
+                                {formatDurationMinutes(recipe.durationMinutes)}
+                            </span>
+                        </div>
+
+                        <div className="flex justify-center">
+                            <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
+                                {recipe.difficulty}
+                            </span>
+                        </div>
+
+                        <div className="flex justify-center">
+                            <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
+                                {recipe.servings ? `${recipe.servings}` : "info"}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="mt-10">
+                        <h2 className="text-[1.2rem] font-bold text-white">Description</h2>
+                        <div className="relative mt-3">
+                            <motion.div
+                            initial={false}
+                            animate={{
+                                maxHeight: shouldCollapseDescription &&  !isDescriptionExpanded ? 200 : 1000,
+                            }}
+                            transition={{
+                                duration: 0.5,
+                                ease: [0.22, 1, 0.36, 1],
+                            }}
+                            className="relative overflow-hidden"
+                            >
+                            <p className="text-[1rem] leading-8 text-[#8f97b1]">
+                                {description}
+                            </p>
+
+                            {shouldCollapseDescription && !isDescriptionExpanded && (
+                                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#16181d] via-[#16181d]/80 to-transparent backdrop-blur-[1px]" />
+                            )}
+                            </motion.div>
+
+                            {shouldCollapseDescription && (
+                            <button
+                                type="button"
+                                onClick={() => setIsDescriptionExpanded((prev) => !prev)}
+                                className="mt-2 text-sm text-[#a8b3cf] underline underline-offset-2 transition hover:text-white"
+                            >
+                                {isDescriptionExpanded ? "View less" : "View more"}
+                            </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="sticky top-0 z-20 mt-10 bg-[#16181d]/95 py-3 backdrop-blur-xl">
+                        <div 
+                            className="grid grid-cols-3 gap-2 rounded-xl bg-[#0b0b0c] p-1"
+                            style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+                        >
+                            {tabs.map((tab) => {
+                                const isActive = activeTab === tab.id
+
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={[
+                                            "flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition active:scale-95",
+                                            isActive
+                                                ? "bg-orange-600/80 text-white shadow-[0_8px_24px_rgba(255,140,0,0.35)]"
+                                                : "text-[#7f89a6] hover:bg-white/[0.04] hover:text-white",
+                                        ].join(" ")}
+                                    >
+                                        <span>{tab.label}</span>
+
+                                        {typeof tab.count === "number" && (
+                                            <span className={[
+                                                    "text-[0.68rem]",
+                                                    isActive ? "text-white/90" : "text-[#7f89a6]"
+                                                ].join(" ")}
+                                            >
+                                                {formatCompactCount(tab.count, true)}
+                                            </span>
+                                        )}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="pt-2">
+                        <AnimatePresence mode="wait" initial={false}>
+                            {activeTab === "ingredients" && (
+                                <motion.div
+                                    key="ingredients"
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -8 }}
+                                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                                >
+                                    <ViewRecipeIngredients ingredients={ingredients} />
+                                </motion.div>
+                            )}
+
+                            {activeTab === "steps" && (
+                                <motion.div
+                                    key="steps"
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -8 }}
+                                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                                >
+                                    <ViewRecipeStepsSection
+                                        steps={steps}
+                                        expandedSteps={expandedSteps}
+                                        areAllStepsExpanded={areAllStepsExpanded}
+                                        onToggleStep={toggleStep}
+                                        onToggleAllSteps={toggleAllSteps}
+                                    />
+                                </motion.div>
+                            )}
+
+                            {showComments && activeTab === "comments" && (
+                                <motion.div
+                                    key="comments"
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -8 }}
+                                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                                >
+                                    <ViewRecipeCommentsSection
+                                        commentsCount={commentsCount}
+                                        comments={commentsWithReactions}
+                                        currentUser={currentUser}
+                                        isLoadingComments={isLoadingComments}
+                                        isSubmittingComment={isSubmittingComment}
+                                        editingCommentId={editingCommentId}
+                                        isUpdatingComment={isUpdatingComment}
+                                        replyingCommentId={replyingCommentId}
+                                        isSubmittingReply={isSubmittingReply}
+                                        onSubmitComment={handleSubmitComment}
+                                        onStartReplyComment={(comment) => setReplyingCommentId(comment.id)}
+                                        onCancelReplyComment={() => setReplyingCommentId(null)}
+                                        onReplyComment={handleSubmitReply}
+                                        onToggleCommentReaction={handleToggleCommentReaction}
+                                        onStartEditComment={(comment) => setEditingCommentId(comment.id)}
+                                        onCancelEditComment={() => setEditingCommentId(null)}
+                                        onUpdateComment={handleUpdateComment}
+                                        onDeleteComment={setCommentToDelete}
+                                    />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
-            </motion.aside>
+            </div>
+        </motion.aside>
+    )
 
-            <DeleteWarningDialog
-                isOpen={Boolean(commentToDelete)} 
-                isDeleting={isDeletingComment}
-                title="Delete comment?"
-                description="This action cannot be undone. The comment will be permanently removed."
-                onCancel={() => setCommentToDelete(null)}
-                onConfirm={handleConfirmDeleteComment}
+    if (isInline) {
+        return (
+            <>
+                {drawer}
+
+                <DeleteWarningDialog
+                    isOpen={Boolean(commentToDelete)} 
+                    isDeleting={isDeletingComment}
+                    title="Delete comment?"
+                    description="This action cannot be undone. The comment will be permanently removed."
+                    onCancel={() => setCommentToDelete(null)}
+                    onConfirm={handleConfirmDeleteComment}
+                />
+
+                <DeleteWarningDialog
+                    isOpen={isDeleteRecipeDialogOpen}
+                    isDeleting={isDeletingRecipe}
+                    title="Delete recipe?"
+                    description={`Are you sure you want to delete "${recipe.title}"? This action cannot be undone. The recipe, its ingredients, steps, comments and ratings will no longer be available.`}
+                    confirmLabel="Delete"
+                    onCancel={() => setIsDeleteRecipeDialogOpen(false)}
+                    onConfirm={handleConfirmDeleteRecipe}
+                />
+            </>
+        )
+    }
+
+    return (
+        <div className="fixed inset-0 z-[80]">
+            <motion.div
+                className="absolute inset-0 bg-[#050506]/40 backdrop-blur-[2px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                onClick={onClose}
             />
 
-            <DeleteWarningDialog
-                isOpen={isDeleteRecipeDialogOpen}
-                isDeleting={isDeletingRecipe}
-                title="Delete recipe?"
-                description="This action cannot be undone. The recipe, its ingredients, steps, comments and ratings will no longer be available."
-                confirmLabel="Delete"
-                onCancel={() => setIsDeleteRecipeDialogOpen(false)}
-                onConfirm={handleConfirmDeleteRecipe}
-            />
+            {drawer}
         </div>
     )
 }

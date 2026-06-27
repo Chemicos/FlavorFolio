@@ -227,9 +227,9 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
             ease: [0.22, 1, 0.36, 1],
           }}
           className={[
-            "mx-auto flex h-20 items-center justify-between px-6 transition-colors duration-200",
+            "mx-auto flex h-16 items-center justify-between px-6 transition-colors duration-200",
             shouldUseSolidNav
-              ? "bg-[#0b0b0c]/80 backdrop-blur-md border-b border-white/10"
+              ? "bg-[#0b0b0c] border-b border-white/10"
               : "",
           ].join(" ")}
         >
@@ -257,9 +257,9 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
                   aria-expanded={menuOpen}
                   aria-haspopup="true"
                   onClick={handleMenuOpen}
-                  className='flex items-center gap-3 rounded-2xl px-3 py-2 pr-4 transition hover:bg-[#202429]/80'
+                  className='flex items-center gap-3 rounded-lg px-3 py-1 pr-4 transition hover:bg-[#202429]/80'
                 >
-                  <div className='relative h-10 w-10 overflow-hidden rounded-lg bg-white/10'>
+                  <div className='relative h-8 w-8 overflow-hidden rounded-lg bg-white/10'>
                     {userPhoto ? (
                       <img
                         ref={avatarImageRef}
@@ -268,7 +268,7 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
                         onLoad={() => setAvatarLoaded(true)}
                         onError={() => setAvatarLoaded(true)}
                         className={[
-                          'h-full w-full rounded-lg object-cover transition-opacity duration-300',
+                          'h-full w-full rounded-md object-cover transition-opacity duration-300',
                           avatarLoaded ? 'opacity-100' : 'opacity-0',
                         ].join(' ')}
                       />
@@ -279,7 +279,7 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
 
                   <div className='hidden min-w-[110px] text-left md:flex flex-col gap-[2px]'>
                     <p className='truncate text-sm font-semibold text-[#a8b3cf]'>{username}</p>
-                    <p className='text-[12px] text-[#a8b3cf]/50'>
+                    <p className='text-[11px] text-[#a8b3cf]/50'>
                       {isAdmin ? "Admin" : "Member"}
                     </p>
                   </div>
@@ -292,7 +292,7 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
                     }}
                     className='flex items-center justify-center'
                   >
-                    <ExpandMoreIcon sx={{fontSize: 30, color: "#a8b3cf"}} />
+                    <ExpandMoreIcon sx={{fontSize: 24, color: "#a8b3cf"}} />
                   </motion.div>
                 </button>
 

@@ -1,22 +1,50 @@
-import { useEffect, useMemo, useState } from "react";
+import { CircularProgress } from "@mui/material";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMyProfile } from "../hooks/useMyProfile";
+import { useDebounce } from "../../recipe-review/hooks/useDebounce";
+import { AnimatePresence } from "motion/react";
+import { useMyProfileRecipes } from "../hooks/useMyProfileRecipes";
+
 import Navigation from "../../../components/layout/Navigation";
 import MyProfileHeader from "../components/MyProfileHeader";
 import ProfileRecipeTabs, { ProfileRecipeTabItem, ProfileRecipeTabValue } from "../components/ProfileRecipeTabs";
 import ProfileRecipeToolbar, { ProfileRecipeSortValue, ProfileRecipeViewMode } from "../components/ProfileRecipeToolbar";
 import ProfileRecipeGrid, { ProfileRecipeGridItem } from "../components/ProfileRecipeGrid";
-import { useMyProfile } from "../hooks/useMyProfile";
-import { useMyProfileRecipes } from "../hooks/useMyProfileRecipes";
 import ProfileRecipeGridSkeleton from "../components/ProfileRecipeGridSkeleton";
-import { useDebounce } from "../../recipe-review/hooks/useDebounce";
 import MyProfileEditForm from "../components/MyProfileEditForm";
 import { useSnackbar } from "../../../components/layout/SnackbarProvider";
 import { Recipe } from "../../home/types";
 import { CurrentUserCardData } from "../../home/types/recipeCard.types";
-import { fetchProfileRecipeById } from "../services/profileRecipes.service";
-import { AnimatePresence } from "motion/react";
+import { fetchProfileRecipeById, subscribeToProfileRecipeById } from "../services/profileRecipes.service";
 import ViewRecipeDrawer from "../../home/components/recipe-view-drawer/ViewRecipeDrawer";
+import PostRecipeDrawer from "../../home/components/post-recipe/PostRecipeDrawer";
+import { useNavigate } from "react-router-dom";
+import DeleteWarningDialog from "../../home/components/recipe-view-drawer/DeleteWarningDialog";
+
+function ViewRecipeDrawerLoading({ width }: { width: number }) {
+  return (
+    <aside
+      style={{ width, flexShrink: 0 }}
+      className="sticky top-16 flex h-[calc(100vh-80px)] flex-col items-center justify-center overflow-hidden rounded-l-2xl border-l border-white/10 bg-gradient-to-b from-[#16181d]/80 via-[#16181d]/95 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.28)]"
+    >
+      <div className="flex flex-col items-center gap-4">
+        <CircularProgress
+          size={34}
+          thickness={4.5}
+          sx={{ color: "#feaa2b" }}
+        />
+
+        <p className="text-sm font-medium text-[#a8b3cf]">
+          Loading recipe...
+        </p>
+      </div>
+    </aside>
+  )
+}
 
 export default function MyProfilePage() {
+  const navigate = useNavigate()
   const [activeRecipeTab, setActiveRecipeTab] = useState<ProfileRecipeTabValue>("my-recipes")
   const { 
     userId,
@@ -34,12 +62,23 @@ export default function MyProfilePage() {
     recipes,
     savedRecipes,
     isLoading: isRecipesLoading,
+    isActionLoading,
     error: recipesError,
     deleteRecipe,
+    setRecipes,
+    setSavedRecipes,
   } = useMyProfileRecipes(userId)
 
+  const [recipeDrawerWidth] = useState(540)
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
+
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
+  const [isRecipeEditLoading, setIsRecipeEditLoading] = useState(false)
+  const isDrawerOpen = Boolean(
+    selectedRecipe || editingRecipe || isRecipeDrawerLoading || isRecipeEditLoading
+  )
 
   const { showSnackbar } = useSnackbar()
 
@@ -51,6 +90,9 @@ export default function MyProfilePage() {
   const [category, setCategory] = useState("all")
   const [viewMode, setViewMode] = useState<ProfileRecipeViewMode>("grid")
   const [isEditingProfile, setIsEditingProfile] = useState(false)
+
+  const [recipeToDelete, setRecipeToDelete] = useState<ProfileRecipeGridItem | null>(null)
+  const [followingUserIds, setFollowingUserIds] = useState<string[]>([])
 
   const recipeTabs = useMemo<ProfileRecipeTabItem[]>(
     () => [
@@ -79,7 +121,7 @@ export default function MyProfilePage() {
         label: "Drafts",
         count: recipes.filter((recipe) => recipe.status === "draft").length,
       },
-    ],[recipes, profile?.stats.savedRecipesCount]
+    ],[recipes, savedRecipes]
   )
 
   const categories = useMemo(
@@ -96,18 +138,181 @@ export default function MyProfilePage() {
     }
   }, [userId, profile])
 
-  const handleOpenRecipeDrawer = async (recipe: ProfileRecipeGridItem) => {
-    try {
-      setIsRecipeDrawerLoading(true)
+  // const handleOpenRecipeDrawer = async (recipe: ProfileRecipeGridItem) => {
+  //   try {
+  //     setIsRecipeDrawerLoading(true)
+  //     setSelectedRecipe(null)
 
-      const fullRecipe = await fetchProfileRecipeById(recipe.id)
-      setSelectedRecipe(fullRecipe)
-    } catch (error) {
-      console.error("Failed to open recipe:", error)
-      showSnackbar("Failed to open recipe. Please try again.", "error")
-    } finally {
-      setIsRecipeDrawerLoading(false)
+  //     const fullRecipe = await fetchProfileRecipeById(recipe.id)
+  //     setSelectedRecipe(fullRecipe)
+  //   } catch (error) {
+  //     console.error("Failed to open recipe:", error)
+  //     showSnackbar("Failed to open recipe. Please try again.", "error")
+  //   } finally {
+  //     setIsRecipeDrawerLoading(false)
+  //   }
+  // }
+
+  const handleOpenRecipeDrawer = (recipe: ProfileRecipeGridItem) => {
+    setEditingRecipe(null)
+    setSelectedRecipeId(recipe.id)
+  }
+
+  useEffect(() => {
+    if (!selectedRecipeId) {
+      setSelectedRecipe(null)
+      return
     }
+
+    setIsRecipeDrawerLoading(true)
+
+    const unsubscribe = subscribeToProfileRecipeById(
+      selectedRecipeId,
+      (recipe) => {
+        setSelectedRecipe(recipe)
+        setIsRecipeDrawerLoading(false)
+      },
+      (error) => {
+        console.error("Failed to subscribe to selected recipe:", error)
+        showSnackbar("Failed to load recipe updates.", "error")
+        setIsRecipeDrawerLoading(false)
+      }
+    )
+
+    return () => unsubscribe()
+  }, [selectedRecipeId, showSnackbar])
+
+  const handleEditRecipe = async (recipe: Recipe) => {
+    setIsRecipeEditLoading(true)
+    setEditingRecipe(null)
+
+    await new Promise((resolve) => setTimeout(resolve, 220))
+
+    setEditingRecipe(recipe)
+    setIsRecipeEditLoading(false)
+  }
+
+  const handleRatingStateChange = useCallback((recipeId: string, stats: {
+    averageRating: number
+    ratingsCount: number
+    ratingSum?: number
+  }) => {
+    const nextRating = Number(stats.averageRating || 0)
+
+    setRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.id === recipeId
+          ? { ...recipe, rating: nextRating }
+          : recipe
+      )
+    )
+
+    setSavedRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.id === recipeId
+          ? { ...recipe, rating: nextRating }
+          : recipe
+      )
+    )
+
+    setSelectedRecipe((prev) => {
+      if (!prev || prev.recipeId !== recipeId) return prev
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          averageRating: nextRating,
+          ratingsCount: stats.ratingsCount,
+          ratingsSum: stats.ratingSum ?? prev.stats?.ratingsSum ?? 0,
+        },
+      }
+    })
+
+    showSnackbar("Recipe rating updated successfully.", "success")
+  }, [setRecipes, setSavedRecipes, showSnackbar])
+
+  const handleFollowStateChange = useCallback((
+    authorUserId: string,
+    isNowFollowing: boolean,
+    nextFollowersCount?: number
+  ) => {
+    setFollowingUserIds((prev) =>
+      isNowFollowing
+        ? Array.from(new Set([...prev, authorUserId]))
+        : prev.filter((id) => id !== authorUserId)
+    )
+
+    setSelectedRecipe((prev) => {
+      if (!prev || prev.userId !== authorUserId) return prev
+
+      const currentCount = Number(prev.author?.followersCount || 0)
+
+      return {
+        ...prev,
+        author: {
+          ...prev.author,
+          followersCount:
+            typeof nextFollowersCount === "number"
+              ? nextFollowersCount
+              : Math.max(0, currentCount + (isNowFollowing ? 1 : -1)),
+        },
+      }
+    })
+
+    showSnackbar(
+      isNowFollowing ? "Creator followed." : "Creator unfollowed.",
+      isNowFollowing ? "success" : "info"
+    )
+  }, [showSnackbar])
+
+  const handleCommentStateChange = useCallback((
+    recipeId: string,
+    nextCommentsCount: number
+  ) => {
+    const normalizedCount = Number(nextCommentsCount || 0)
+
+    setRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.id === recipeId
+          ? { ...recipe, commentsCount: normalizedCount }
+          : recipe
+      )
+    )
+
+    setSavedRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.id === recipeId
+          ? { ...recipe, commentsCount: normalizedCount }
+          : recipe
+      )
+    )
+
+    setSelectedRecipe((prev) => {
+      if (!prev || prev.recipeId !== recipeId) return prev
+
+      const currentCount = Number(prev.stats?.commentsCount || 0)
+      if (currentCount === normalizedCount) return prev
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          commentsCount: normalizedCount,
+        },
+      }
+    })
+  }, [setRecipes, setSavedRecipes])
+
+  const handleProfileRecipeEdit = async (recipe: ProfileRecipeGridItem) => {
+    if (recipe.status === "needs_revision") {
+      navigate(`/needs-revision?recipeId=${recipe.id}`)
+      return
+    }
+
+    const fullRecipe = await fetchProfileRecipeById(recipe.id)
+
+    handleEditRecipe(fullRecipe)
   }
 
   const visibleRecipes = useMemo(() => {
@@ -183,121 +388,205 @@ export default function MyProfilePage() {
     })
   }, [recipes, savedRecipes, activeRecipeTab, debouncedSearchQuery, category, sortBy])
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-[#16181d] text-white">
+    <div className="relative min-h-screen bg-[#0d0e11] text-white">
       <div className="relative z-10">
         <Navigation variant="solid" />
 
-        <main className="mx-auto w-full max-w-[1400px] px-6 pt-28 xl:px-10">
+        <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-28 xl:px-10">
+          <main 
+            className={[
+              "min-w-0 flex-1 transition-all duration-300",
+              isDrawerOpen ? "max-w-none" : "mx-auto max-w-[1400px]",
+            ].join(" ")}
+          >
+            {isEditingProfile ? (
+              <MyProfileEditForm
+                profile={profile}
+                isSaving={isProfileSaving}
+                onCancel={() => setIsEditingProfile(false)}
+                onSave={async (payload) => {
+                  try {
+                    await saveProfile(payload)
+                    setIsEditingProfile(false)
+                    showSnackbar("Profile updated successfully.", "success")
+                  } catch (error) {
+                    console.error("Failed to update profile:", error)
+                    showSnackbar("Failed to update profile. Please try again.", "error")
+                  }
+                }}
+              />
+            ) : (
+              <MyProfileHeader
+                username={profile?.username || "User"}
+                fullName={profile?.fullName || "User"}
+                bio={profile?.bio || "Food lover & recipe creator."}
+                profileImage={profile?.profileImage || ""}
+                bannerImage={profile?.bannerImage || ""}
+                location={profile?.location || "Location not set"}
+                website={profile?.website || "Website not set"}
+                joinedLabel={profile?.joinedLabel || "Joined recently"}
+                recipesCount={recipes.length}
+                followersCount={profile?.stats.followersCount || 0}
+                followingCount={profile?.stats.followingCount || 0}
+                savesCount={profile?.stats.savedRecipesCount || 0}
+                onEditProfile={() => setIsEditingProfile(true)}
+                onChangeAvatar={uploadAvatarImage}
+                isAvatarUploading={isAvatarUploading}
+                onChangeBanner={uploadBannerImage}
+                isBannerUploading={isBannerUploading}
+              />
+            )}
 
-          {isEditingProfile ? (
-            <MyProfileEditForm
-              profile={profile}
-              isSaving={isProfileSaving}
-              onCancel={() => setIsEditingProfile(false)}
-              onSave={async (payload) => {
-                try {
-                  await saveProfile(payload)
-                  setIsEditingProfile(false)
-                  showSnackbar("Profile updated successfully.", "success")
-                } catch (error) {
-                  console.error("Failed to update profile:", error)
-                  showSnackbar("Failed to update profile. Please try again.", "error")
-                }
-              }}
-            />
-          ) : (
-            <MyProfileHeader
-              username={profile?.username || "User"}
-              fullName={profile?.fullName || "User"}
-              bio={profile?.bio || "Food lover & recipe creator."}
-              profileImage={profile?.profileImage || ""}
-              bannerImage={profile?.bannerImage || ""}
-              location={profile?.location || "Location not set"}
-              website={profile?.website || "Website not set"}
-              joinedLabel={profile?.joinedLabel || "Joined recently"}
-              recipesCount={recipes.length}
-              followersCount={profile?.stats.followersCount || 0}
-              followingCount={profile?.stats.followingCount || 0}
-              savesCount={profile?.stats.savedRecipesCount || 0}
-              onEditProfile={() => setIsEditingProfile(true)}
-              onChangeAvatar={uploadAvatarImage}
-              isAvatarUploading={isAvatarUploading}
-              onChangeBanner={uploadBannerImage}
-              isBannerUploading={isBannerUploading}
-            />
-          )}
+            <div className="sticky top-16 z-40 bg-[#0d0e11] pb-5">
+              <ProfileRecipeTabs
+                activeTab={activeRecipeTab}
+                onTabChange={setActiveRecipeTab}
+                tabs={recipeTabs}
+              />
 
-          <div className="sticky top-20 z-40 bg-[#16181d] pb-5">
-            <ProfileRecipeTabs
-              activeTab={activeRecipeTab}
-              onTabChange={setActiveRecipeTab}
-              tabs={recipeTabs}
-            />
-
-            <ProfileRecipeToolbar
-              searchQuery={searchQuery}
-              onSearchQueryChange={setSearchQuery}
-              resultCount={visibleRecipes.length}
-              sortBy={sortBy}
-              onSortByChange={setSortBy}
-              category={category}
-              onCategoryChange={setCategory}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              categories={categories}
-            />
-          </div>
-
-
-          {(isRecipesLoading || isSearching) && (
-            <ProfileRecipeGridSkeleton viewMode={viewMode} count={8} />
-          )}
-
-          {recipesError && (
-            <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-500/10 p-6 text-sm text-red-200">
-              {recipesError}
+              <ProfileRecipeToolbar
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
+                resultCount={visibleRecipes.length}
+                sortBy={sortBy}
+                onSortByChange={setSortBy}
+                category={category}
+                onCategoryChange={setCategory}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                categories={categories}
+              />
             </div>
-          )}
 
-          {!isRecipesLoading && !isSearching && !recipesError && (
-            <ProfileRecipeGrid
-              recipes={visibleRecipes}
-              viewMode={viewMode}
-              onRecipeClick={handleOpenRecipeDrawer}
-              onRecipeDelete={(recipe) => {
-                deleteRecipe(recipe.id)
-              }}
-            />
-          )}
-        </main>
 
-        <AnimatePresence>
-          {selectedRecipe && currentUser && (
-            <ViewRecipeDrawer
-              recipe={selectedRecipe}
-              currentUser={currentUser}
-              savedRecipes={savedRecipes.map((recipe) => ({
-                recipeId: recipe.id,
-              }))}
-              followingUserIds={[]}
-              authorFollowersCount={
-                Number(selectedRecipe.author?.followersCount || 0)
+            {(isRecipesLoading || isSearching) && (
+              <ProfileRecipeGridSkeleton viewMode={viewMode} count={8} />
+            )}
+
+            {recipesError && (
+              <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-500/10 p-6 text-sm text-red-200">
+                {recipesError}
+              </div>
+            )}
+
+            {!isRecipesLoading && !isSearching && !recipesError && (
+              <ProfileRecipeGrid
+                recipes={visibleRecipes}
+                viewMode={viewMode}
+                currentUserId={userId}
+                onRecipeClick={handleOpenRecipeDrawer}
+                onRecipeEdit={handleProfileRecipeEdit}
+                onRecipeDelete={(recipe) => {
+                  setRecipeToDelete(recipe)
+                }}
+              />
+            )}
+          </main>
+
+          <AnimatePresence mode="wait">
+            {(isRecipeDrawerLoading || isRecipeEditLoading) && (
+              <ViewRecipeDrawerLoading width={recipeDrawerWidth} />
+            )}
+
+            {!isRecipeDrawerLoading && !isRecipeEditLoading && editingRecipe && currentUser &&  (
+              <PostRecipeDrawer
+                currentUser={currentUser}
+                mode="edit"
+                variant="inline"
+                width={recipeDrawerWidth}
+                recipeToEdit={editingRecipe}
+                onClose={() => setEditingRecipe(null)}
+                onSubmitSuccess={() => setEditingRecipe(null)}
+                onUpdateSuccess={() => {
+                  showSnackbar("Recipe updated and sent for review.", "success")
+                  setEditingRecipe(null)
+                }}
+              />
+            )}   
+
+            {!isRecipeDrawerLoading && !isRecipeEditLoading && !editingRecipe && selectedRecipe && currentUser && (
+              <ViewRecipeDrawer
+                presentation="inline"
+                width={recipeDrawerWidth}
+                recipe={selectedRecipe}
+                currentUser={currentUser}
+                savedRecipes={savedRecipes.map((recipe) => ({
+                  recipeId: recipe.id,
+                }))}
+                followingUserIds={followingUserIds}
+                authorFollowersCount={
+                  Number(selectedRecipe.author?.followersCount || 0)
+                }
+                onClose={() => {
+                  setSelectedRecipeId(null)
+                  setSelectedRecipe(null)
+                }}
+                onFollowStateChange={handleFollowStateChange}
+                onFavoriteStateChange={(recipeId, isNowSaved) => {
+                  if (!selectedRecipe) return
+
+                  if (isNowSaved) {
+                    showSnackbar("Recipe saved.", "success")
+                    return
+                  }
+
+                  showSnackbar("Recipe removed from saved recipes.", "info")
+
+                  if (activeRecipeTab === "saved-recipes") {
+                    setSelectedRecipeId(null)
+                    setSelectedRecipe(null)
+                  }
+                }}
+                onRatingStateChange={handleRatingStateChange}
+                onCommentStateChange={handleCommentStateChange}
+                onEditRecipe={handleEditRecipe}
+                onDeleteRecipe={(recipeId) => {
+                  deleteRecipe(recipeId)
+                  setSelectedRecipe(null)
+                  setEditingRecipe(null)
+                }}
+              />
+            )} 
+          </AnimatePresence>
+
+          <DeleteWarningDialog
+            isOpen={Boolean(recipeToDelete)}
+            isDeleting={isActionLoading}
+            title="Delete recipe?"
+            description={
+              recipeToDelete
+                ? `Are you sure you want to delete "${recipeToDelete.title}"? This action cannot be undone. The recipe, its ingredients, steps, comments and ratings will no longer be available.`
+                : "This action cannot be undone. The recipe, its ingredients, steps, comments and ratings will no longer be available."
+            }
+            confirmLabel="Delete"
+            onCancel={() => {
+              if (isActionLoading) return
+              setRecipeToDelete(null)
+            }}
+            onConfirm={async () => {
+              if (!recipeToDelete) return
+
+              try {
+                await deleteRecipe(recipeToDelete.id)
+
+                if (selectedRecipeId === recipeToDelete.id) {
+                  setSelectedRecipeId(null)
+                  setSelectedRecipe(null)
+                }
+
+                if (editingRecipe?.recipeId === recipeToDelete.id) {
+                  setEditingRecipe(null)
+                }
+
+                setRecipeToDelete(null)
+                showSnackbar("Recipe deleted successfully.", "success")
+              } catch (error) {
+                console.error("Failed to delete recipe:", error)
+                showSnackbar("Failed to delete recipe. Please try again.", "error")
               }
-              onClose={() => setSelectedRecipe(null)}
-              onFollowStateChange={() => {}}
-              onFavoriteStateChange={() => {}}
-              onRatingStateChange={() => {}}
-              onCommentStateChange={() => {}}
-              onEditRecipe={(recipe) => {
-                console.log("Edit recipe from profile drawer", recipe)
-              }}
-              onDeleteRecipe={(recipeId) => {
-                deleteRecipe(recipeId)
-                setSelectedRecipe(null)
-              }}
-            />
-          )}
-        </AnimatePresence>
+            }}
+          />
+        </div>
       </div>
     </div>
   )

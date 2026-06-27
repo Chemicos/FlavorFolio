@@ -1,7 +1,7 @@
 import { deleteObject, ref } from "firebase/storage"
 import { ProfileRecipeGridItem, ProfileRecipeStatus } from "../components/ProfileRecipeGrid"
 import { db, storage } from "../../../firebase-config"
-import { collection, deleteDoc, doc, documentId, getDoc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc, where } from "@firebase/firestore"
+import { collection, deleteDoc, doc, documentId, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where } from "@firebase/firestore"
 import { Recipe } from "../../home/types"
 
 export interface ProfileRecipeDocument {
@@ -74,6 +74,7 @@ export async function fetchProfileRecipeById(recipeId: string): Promise<Recipe> 
 function mapProfileRecipe(docId: string, data: ProfileRecipeDocument): ProfileRecipeGridItem {
   return {
     id: data.recipeId || docId,
+    userId: data.userId || "",
     title: data.title || "Untitled recipe",
     image: data.image || "",
     meal: data.meal || "Meal",
@@ -213,4 +214,76 @@ export async function setProfileRecipeVisibility({
     visibility,
     updatedAt: serverTimestamp(),
   })
+}
+
+export function subscribeToMyProfileRecipes(
+  userId: string,
+  onChange: (recipes: ProfileRecipeGridItem[]) => void,
+  onError: (error: Error) => void
+) {
+  const recipesQuery = query(
+    collection(db, "recipes"),
+    where("userId", "==", userId),
+    where("status", "in", ["published", "pending", "needs_revision", "draft"]),
+    orderBy("updatedAt", "desc"),
+    limit(80)
+  )
+
+  return onSnapshot(
+    recipesQuery,
+    (snapshot) => {
+      onChange(
+        snapshot.docs.map((docSnap) =>
+          mapProfileRecipe(docSnap.id, docSnap.data() as ProfileRecipeDocument)
+        )
+      )
+    },
+    onError
+  )
+}
+
+export function subscribeToMySavedProfileRecipes(
+  userId: string,
+  onChange: (recipes: ProfileRecipeGridItem[]) => void,
+  onError: (error: Error) => void
+) {
+  const savedRecipesRef = collection(db, "users", userId, "savedRecipes")
+
+  return onSnapshot(
+    savedRecipesRef,
+    async () => {
+      try {
+        const savedRecipes = await fetchMySavedProfileRecipes(userId)
+        onChange(savedRecipes)
+      } catch (error) {
+        onError(error as Error)
+      }
+    },
+    onError
+  )
+}
+
+export function subscribeToProfileRecipeById(
+  recipeId: string,
+  onChange: (recipe: Recipe | null) => void,
+  onError: (error: Error) => void
+) {
+  const recipeRef = doc(db, "recipes", recipeId)
+
+  return onSnapshot(
+    recipeRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onChange(null)
+        return
+      }
+
+      onChange({
+        recipeId: snapshot.id,
+        id: snapshot.id,
+        ...snapshot.data(),
+      } as Recipe)
+    },
+    onError
+  )
 }

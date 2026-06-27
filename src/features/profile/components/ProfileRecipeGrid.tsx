@@ -9,7 +9,7 @@ import ShareRoundedIcon from "@mui/icons-material/ShareRounded"
 
 import { ProfileRecipeViewMode } from "./ProfileRecipeToolbar"
 import { useEffect, useRef, useState } from "react"
-// import { createPortal } from "react-dom"
+import { createPortal } from "react-dom"
 import { AnimatePresence, motion } from "motion/react"
 
 export type ProfileRecipeStatus =
@@ -20,6 +20,7 @@ export type ProfileRecipeStatus =
 
 export interface ProfileRecipeGridItem {
     id: string
+    userId: string
     title: string
     image: string
     meal: string
@@ -36,8 +37,9 @@ export interface ProfileRecipeGridItem {
 interface ProfileRecipeGridProps {
   recipes: ProfileRecipeGridItem[]
   viewMode: ProfileRecipeViewMode
+  currentUserId?: string | null
   onRecipeClick?: (recipe: ProfileRecipeGridItem) => void
-   onRecipeEdit?: (recipe: ProfileRecipeGridItem) => void
+  onRecipeEdit?: (recipe: ProfileRecipeGridItem) => void
   onRecipeDelete?: (recipe: ProfileRecipeGridItem) => void
   onRecipeShare?: (recipe: ProfileRecipeGridItem) => void
 }
@@ -51,15 +53,15 @@ const statusConfig: Record<
 > = {
   published: {
     label: "Published",
-    className: "bg-emerald-600/50 text-white",
+    className: "bg-green-800/50 text-white",
   },
   pending: {
     label: "Pending review",
-    className: "bg-yellow-400/60 text-white",
+    className: "bg-yellow-600/70 text-white",
   },
   needs_revision: {
     label: "Needs revision",
-    className: "bg-orange-600/50 text-white",
+    className: "bg-orange-700/70 text-white",
   },
   draft: {
     label: "Draft",
@@ -105,30 +107,67 @@ function ProfileRecipeEmptyState() {
 
 function ProfileRecipeActionsMenu({
   recipe,
+  currentUserId,
   buttonClassName,
   onEdit,
   onDelete,
   onShare,
 }: {
   recipe: ProfileRecipeGridItem
+  currentUserId?: string | null 
   buttonClassName: string
   onEdit?: (recipe: ProfileRecipeGridItem) => void
   onDelete?: (recipe: ProfileRecipeGridItem) => void
   onShare?: (recipe: ProfileRecipeGridItem) => void
 }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
+
   const [isOpen, setIsOpen] = useState(false)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
+
+  const isPublished = recipe.status === "published"
+  const canManageRecipe = recipe.userId === currentUserId
+
+  const updateMenuPosition = () => {
+    const rect = buttonRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    setMenuPosition({
+      top: rect.top - 8,
+      left: rect.right,
+    })
+  }
 
   useEffect(() => {
+    if (!isOpen) return
+
+    updateMenuPosition()
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setIsOpen(false)
+      const target = event.target as Node
+
+      if (
+        wrapperRef.current?.contains(target) ||
+        menuRef.current?.contains(target)
+      ) {
+        return
       }
+
+      setIsOpen(false)
     }
 
+    window.addEventListener("scroll", updateMenuPosition, true)
+    window.addEventListener("resize", updateMenuPosition)
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+
+    return () => {
+      window.removeEventListener("scroll", updateMenuPosition, true)
+      window.removeEventListener("resize", updateMenuPosition)
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isOpen])
 
   const handleAction = (
     event: React.MouseEvent,
@@ -139,13 +178,69 @@ function ProfileRecipeActionsMenu({
     setIsOpen(false)
   }
 
+  const menu = (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          ref={menuRef}
+          initial={{ opacity: 0, y: 6, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 6, scale: 0.96 }}
+          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            position: "fixed",
+            top: menuPosition.top,
+            left: menuPosition.left,
+            transform: "translate(-100%, -100%)",
+          }}
+          className="z-[80] w-44 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {isPublished && (
+            <button
+              type="button"
+              onClick={(event) => handleAction(event, onShare)}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+            >
+              <ShareRoundedIcon sx={{ fontSize: 18 }} />
+              Share
+            </button>
+          )}
+
+          {canManageRecipe && (
+            <>
+              <button
+                type="button"
+                onClick={(event) => handleAction(event, onEdit)}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+              >
+                <EditRoundedIcon sx={{ fontSize: 18 }} />
+                Edit recipe
+              </button>
+
+              <button
+                type="button"
+                onClick={(event) => handleAction(event, onDelete)}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+              >
+                <DeleteOutlineRoundedIcon sx={{ fontSize: 18 }} />
+                Delete recipe
+              </button>
+            </>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+
   return (
     <div
-      ref={menuRef}
-      className="relative z-50"
+      ref={wrapperRef}
+      className="relative"
       onClick={(event) => event.stopPropagation()}
     >
       <button
+        ref={buttonRef}
         type="button"
         aria-label="Recipe actions"
         onClick={(event) => {
@@ -157,56 +252,21 @@ function ProfileRecipeActionsMenu({
         <MoreHorizRoundedIcon sx={{ fontSize: 21 }} />
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.96 }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute right-0 bottom-[calc(100%+8px)] z-50 w-44 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
-          >
-            <button
-              type="button"
-              onClick={(event) => handleAction(event, onShare)}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
-            >
-              <ShareRoundedIcon sx={{ fontSize: 18 }} />
-              Share
-            </button>
-
-            <button
-              type="button"
-              onClick={(event) => handleAction(event, onEdit)}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
-            >
-              <EditRoundedIcon sx={{ fontSize: 18 }} />
-              Edit recipe
-            </button>
-
-            <button
-              type="button"
-              onClick={(event) => handleAction(event, onDelete)}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
-            >
-              <DeleteOutlineRoundedIcon sx={{ fontSize: 18 }} />
-              Delete recipe
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {typeof document !== "undefined" ? createPortal(menu, document.body) : null}
     </div>
   )
 }
 
 function ProfileRecipeGridCard({
   recipe,
+  currentUserId,
   onRecipeClick,
   onRecipeEdit,
   onRecipeDelete,
   onRecipeShare,
 }: {
   recipe: ProfileRecipeGridItem
+  currentUserId?: string | null
   onRecipeClick?: (recipe: ProfileRecipeGridItem) => void
   onRecipeEdit?: (recipe: ProfileRecipeGridItem) => void
   onRecipeDelete?: (recipe: ProfileRecipeGridItem) => void
@@ -276,6 +336,7 @@ function ProfileRecipeGridCard({
 
                     <ProfileRecipeActionsMenu
                       recipe={recipe}
+                      currentUserId={currentUserId}
                       onEdit={onRecipeEdit}
                       onDelete={onRecipeDelete}
                       onShare={onRecipeShare}
@@ -290,6 +351,7 @@ function ProfileRecipeGridCard({
 
 function ProfileRecipeListCard({
   recipe,
+  currentUserId,
   onRecipeClick,
   onRecipeMenuClick,
   onRecipeEdit,
@@ -297,6 +359,7 @@ function ProfileRecipeListCard({
   onRecipeShare,
 }: {
   recipe: ProfileRecipeGridItem
+  currentUserId?: string | null
   onRecipeClick?: (recipe: ProfileRecipeGridItem) => void
   onRecipeMenuClick?: (recipe: ProfileRecipeGridItem) => void
   onRecipeEdit?: (recipe: ProfileRecipeGridItem) => void
@@ -332,6 +395,7 @@ function ProfileRecipeListCard({
 
             <ProfileRecipeActionsMenu
               recipe={recipe}
+              currentUserId={currentUserId}
               onEdit={onRecipeEdit}
               onDelete={onRecipeDelete}
               onShare={onRecipeShare}
@@ -372,6 +436,7 @@ function ProfileRecipeListCard({
 
 export default function ProfileRecipeGrid({
     recipes,
+    currentUserId,
     viewMode,
     onRecipeClick,
     onRecipeEdit,
@@ -384,10 +449,11 @@ export default function ProfileRecipeGrid({
 
     if (viewMode === "list") {
         return (
-        <section className="mt-6 grid gap-2">
+        <section className="my-6 grid gap-2">
             {recipes.map((recipe) => (
             <ProfileRecipeListCard
                 key={recipe.id}
+                currentUserId={currentUserId}
                 recipe={recipe}
                 onRecipeClick={onRecipeClick}
                 onRecipeEdit={onRecipeEdit}
@@ -399,10 +465,11 @@ export default function ProfileRecipeGrid({
         )
     }
   return (
-    <section className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="my-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
       {recipes.map((recipe) => (
         <ProfileRecipeGridCard
           key={recipe.id}
+          currentUserId={currentUserId}
           recipe={recipe}
           onRecipeClick={onRecipeClick}
           onRecipeEdit={onRecipeEdit}

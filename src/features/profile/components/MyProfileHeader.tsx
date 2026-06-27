@@ -163,7 +163,7 @@ export default function MyProfileHeader({
         </div>
       </div>
 
-      <div className="grid grid-cols-4 divide-x divide-white/10 border-t border-white/10 bg-[#111318]/80">
+      <div className="grid grid-cols-4 divide-x divide-white/10 bg-[#111318]/80">
         {[
           { label: "Recipes", value: recipesCount },
           { label: "Followers", value: followersCount },
