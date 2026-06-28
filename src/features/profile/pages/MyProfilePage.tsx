@@ -22,7 +22,7 @@ import PostRecipeDrawer from "../../home/components/post-recipe/PostRecipeDrawer
 import { useNavigate } from "react-router-dom";
 import DeleteWarningDialog from "../../home/components/recipe-view-drawer/DeleteWarningDialog";
 import MyProfileEditFormLoading from "../components/MyProfileEditFormLoading";
-import { ProfileConnectionType } from "../services/profileConnections.service";
+import { ProfileConnectionType, subscribeToMyFollowingUserIds } from "../services/profileConnections.service";
 import ProfileConnectionsModal from "../components/ProfileConnectionsModal";
 
 function ViewRecipeDrawerLoading({ width }: { width: number }) {
@@ -143,6 +143,23 @@ export default function MyProfilePage() {
       profileImage: profile.profileImage || "",
     }
   }, [userId, profile])
+
+  useEffect(() => {
+    if (!userId) {
+      setFollowingUserIds([])
+      return
+    }
+
+    const unsubscribe = subscribeToMyFollowingUserIds({
+      userId,
+      onChange: setFollowingUserIds,
+      onError: (error) => {
+        console.error("Failed to load following user ids:", error)
+      },
+    })
+
+    return () => unsubscribe()
+  }, [userId])
 
   const handleOpenRecipeDrawer = (recipe: ProfileRecipeGridItem) => {
     setEditingRecipe(null)
@@ -501,6 +518,7 @@ export default function MyProfilePage() {
           <ProfileConnectionsModal
             isOpen={Boolean(connectionsModalType)}
             userId={userId}
+            currentUserId={userId}
             type={connectionsModalType || "followers"}
             onClose={() => setConnectionsModalType(null)}
           />

@@ -37,6 +37,7 @@ interface ViewRecipeDrawerProps {
     savedRecipes: SavedRecipe[]
     followingUserIds: string[]
     authorFollowersCount: number
+    onAuthorClick?: (userId: string) => void
     onClose: () => void
     onFollowStateChange: (authorId: string, isNowFollowing: boolean) => void
     onFavoriteStateChange: (recipeId: string, isNowSaved: boolean) => void
@@ -61,6 +62,7 @@ export default function ViewRecipeDrawer({
     savedRecipes,
     followingUserIds,
     authorFollowersCount,
+    onAuthorClick,
     onClose,
     onFollowStateChange,
     onFavoriteStateChange,
@@ -642,7 +644,14 @@ export default function ViewRecipeDrawer({
                         <p className="text-sm font-medium text-[#9aa6c7]">Recipe by</p>
 
                         <div className="mt-3 flex items-center gap-8">
-                            <div className="flex min-w-0 items-center gap-3">
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    if (!recipe.userId) return
+                                    onAuthorClick?.(recipe.userId)
+                                }}
+                                className="flex min-w-0 items-center gap-3 rounded-lg text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
+                            >
                                 <div className="h-10 w-10 overflow-hidden rounded-lg bg-white/10">
                                     {authorProfileImage ? (
                                     <img
@@ -663,7 +672,7 @@ export default function ViewRecipeDrawer({
                                         {formatFollowersLabel(liveAuthorFollowersCount)}
                                     </p>
                                 </div>
-                            </div>
+                            </button>
 
                             {showInteractions && (
                                 <button

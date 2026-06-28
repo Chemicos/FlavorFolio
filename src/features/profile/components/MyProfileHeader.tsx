@@ -23,6 +23,7 @@ interface MyProfileHeaderProps {
   isBannerUploading?: boolean
   onFollowersClick?: () => void
   onFollowingClick?: () => void
+  rightAction?: React.ReactNode
 }
 
 function formatCompactNumber(value: number) {
@@ -51,6 +52,7 @@ export default function MyProfileHeader({
   isBannerUploading = false,
   onFollowersClick,
   onFollowingClick,
+  rightAction,
 }: MyProfileHeaderProps) {
   const displayName = fullName || username
 
@@ -69,24 +71,26 @@ export default function MyProfileHeader({
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0c] via-[#0b0b0c]/45 to-black/20" />
 
-        <label className="absolute right-5 top-5 inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-white/10 bg-[#0b0b0c]/70 px-4 text-sm text-[#d7def0] backdrop-blur-xl transition hover:bg-[#16181d] hover:text-white">
-          <CameraAltRoundedIcon sx={{ fontSize: 16 }} />
-          {isBannerUploading ? "Uploading..." : "Change banner"}
+        {onChangeBanner && (
+          <label className="absolute right-5 top-5 inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-white/10 bg-[#0b0b0c]/70 px-4 text-sm text-[#d7def0] backdrop-blur-xl transition hover:bg-[#16181d] hover:text-white">
+            <CameraAltRoundedIcon sx={{ fontSize: 16 }} />
+            {isBannerUploading ? "Uploading..." : "Change banner"}
 
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            disabled={isBannerUploading}
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (!file) return
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={isBannerUploading}
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (!file) return
 
-              onChangeBanner?.(file)
-              event.target.value = ""
-            }}
-          />
-        </label>
+                onChangeBanner?.(file)
+                event.target.value = ""
+              }}
+            />
+          </label>
+        )}
 
         <div className="absolute bottom-8 left-8 right-8 flex items-end gap-6">
           <div className="relative h-36 w-36 shrink-0 rounded-full border-4 border-[#0b0b0c] bg-[#16181d] p-1 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
@@ -102,23 +106,25 @@ export default function MyProfileHeader({
               </div>
             )}
 
-            <label className="absolute bottom-2 right-2 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-[#202429] text-white shadow-lg transition hover:bg-[#16181d]">
-              <CameraAltRoundedIcon sx={{ fontSize: 19 }} />
+            {onChangeAvatar && (
+              <label className="absolute bottom-2 right-2 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-[#202429] text-white shadow-lg transition hover:bg-[#16181d]">
+                <CameraAltRoundedIcon sx={{ fontSize: 19 }} />
 
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={isAvatarUploading}
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  if (!file) return
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={isAvatarUploading}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0]
+                    if (!file) return
 
-                  onChangeAvatar?.(file)
-                  event.target.value = ""
-                }}
-              />
-            </label>
+                    onChangeAvatar?.(file)
+                    event.target.value = ""
+                  }}
+                />
+              </label>
+            )}
           </div>
 
           <div className="min-w-0 pb-2">
@@ -127,14 +133,18 @@ export default function MyProfileHeader({
                 {displayName}
               </h1>
 
-              <button
-                type="button"
-                onClick={onEditProfile}
-                className="inline-flex h-9 items-center gap-2 rounded-lg border border-orange-400/25 bg-orange-500/20 px-4 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/30"
-              >
-                <EditRoundedIcon sx={{ fontSize: 17 }} />
-                Edit profile
-              </button>
+              {onEditProfile && (
+                <button
+                  type="button"
+                  onClick={onEditProfile}
+                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-orange-400/25 bg-orange-500/20 px-4 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/30"
+                >
+                  <EditRoundedIcon sx={{ fontSize: 17 }} />
+                  Edit profile
+                </button>
+              )}
+
+              {rightAction}
             </div>
 
             <p className="mt-1 text-sm font-medium text-[#a8b3cf]">

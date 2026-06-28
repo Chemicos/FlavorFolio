@@ -6,10 +6,12 @@ import { ProfileConnectionType, ProfileConnectionUser, subscribeToProfileConnect
 
 import { AnimatePresence, motion } from "motion/react"
 import { CircularProgress } from "@mui/material"
+import { useNavigate } from "react-router-dom"
 
 interface ProfileConnectionsModalProps {
   isOpen: boolean
   userId: string | null
+  currentUserId?: string | null
   type: ProfileConnectionType
   onClose: () => void
 }
@@ -28,9 +30,12 @@ function formatSince(followedAt?: ProfileConnectionUser["followedAt"]) {
 export default function ProfileConnectionsModal({
     isOpen,
     userId,
+    currentUserId,
     type,
     onClose,
 }: ProfileConnectionsModalProps) {
+    const navigate = useNavigate()
+
     const [users, setUsers] = useState<ProfileConnectionUser[]>([])
     const [searchQuery, setSearchQuery] = useState("")
     const [isLoading, setIsLoading] = useState(true)
@@ -61,6 +66,17 @@ export default function ProfileConnectionsModal({
 
         return () => unsubscribe()
     }, [isOpen, userId, type])
+
+    const handleUserClick = (nextUserId: string) => {
+      onClose()
+
+      if (nextUserId === currentUserId) {
+        navigate("/profile")
+        return
+      }
+
+      navigate(`/users/${nextUserId}`)
+    }
 
     const visibleUsers = useMemo(() => {
         const query = searchQuery.trim().toLowerCase()
@@ -130,42 +146,36 @@ export default function ProfileConnectionsModal({
                 ) : (
                   <div className="divide-y divide-white/10">
                     {visibleUsers.map((user) => (
-                      <div
+                      <button
                         key={user.uid}
-                        className="flex items-center justify-between gap-4 py-4"
+                        type="button"
+                        onClick={() => handleUserClick(user.uid)}
+                        className="flex w-full items-center gap-3 py-4 text-left transition hover:bg-white/[0.035]"
                       >
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="h-11 w-11 overflow-hidden rounded-full bg-white/10">
-                            {user.profileImage ? (
-                              <img
-                                src={user.profileImage}
-                                alt={user.username}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
-                                {user.username.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-white">
-                              {user.username}
-                            </p>
-                            <p className="mt-0.5 text-xs text-[#8f97b1]">
-                              {formatSince(user.followedAt)}
-                            </p>
-                          </div>
+                        <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white/10">
+                          {user.profileImage ? (
+                            <img
+                              src={user.profileImage}
+                              alt={user.username}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
+                              {user.username.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                         </div>
 
-                        <button
-                          type="button"
-                          className="rounded-lg bg-[#0b0b0c] px-4 py-2 text-sm font-semibold text-[#d7def0] transition hover:bg-white/[0.06] hover:text-white"
-                        >
-                          {type === "followers" ? "View" : "Following"}
-                        </button>
-                      </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-white">
+                            {user.username}
+                          </p>
+
+                          <p className="mt-0.5 text-xs text-[#8f97b1]">
+                            {formatSince(user.followedAt)}
+                          </p>
+                        </div>
+                      </button>
                     ))}
                   </div>
                 )}

@@ -15,8 +15,10 @@ import { Recipe } from "../types"
 import ViewRecipeDrawer from "../components/recipe-view-drawer/ViewRecipeDrawer"
 import PostRecipeDrawer from "../components/post-recipe/PostRecipeDrawer"
 import RecipeSearchBar from "../components/search-recipe/RecipeSearchBar"
+import { useNavigate } from "react-router-dom"
 
 export default function Home() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("For You")
   //Filtering
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
@@ -91,6 +93,17 @@ export default function Home() {
       sessionStorage.removeItem("authFeedback")
     }
   }, [])
+
+  const handleAuthorProfileClick = (authorId: string) => {
+    setSelectedRecipe(null)
+
+    if (authorId === currentUser?.uid) {
+      navigate("/profile")
+      return
+    }
+
+    navigate(`/users/${authorId}`)
+  }
 
   const handleRecipeSubmitSuccess = () => {
     setsnackbarMessage(
@@ -175,7 +188,6 @@ export default function Home() {
           }}
         />
     </div>
-    {/* <div className="absolute inset-0 z-0 bg-[#0b0b0c]/30" /> */}
 
     <div className="relative z-10">
       <Navigation onFeedbackClick={handleFeedbackClick} />
@@ -292,6 +304,7 @@ export default function Home() {
               authorFollowersCountMap[selectedRecipe.userId || ""] ??
               Number(selectedRecipe?.author?.followersCount || 0)
             }
+            onAuthorClick={handleAuthorProfileClick}
             onClose={handleCloseRecipeDrawer}
             onFavoriteStateChange={handleFavoriteStateChange}
             onFollowStateChange={handleFollowStateChange}
