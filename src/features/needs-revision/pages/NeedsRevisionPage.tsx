@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Navigation from "../../../components/layout/Navigation";
 import NeedsRevisionPageHeader from "../components/NeedsRevisionPageHeader";
 import { NeedsRevisionRecipe } from "../types/needsRevision.types";
@@ -12,6 +12,7 @@ import RecipeReviewDetailsDrawer from "../../recipe-review/components/RecipeRevi
 import PostRecipeDrawer from "../../home/components/post-recipe/PostRecipeDrawer";
 import { Recipe } from "../../home/types";
 import { useSnackbar } from "../../../components/layout/SnackbarProvider";
+import { useSearchParams } from "react-router-dom";
 
 export default function NeedsRevisionPage() {
   const { showSnackbar } = useSnackbar()
@@ -38,6 +39,10 @@ export default function NeedsRevisionPage() {
   const debouncedSearch = useDebounce(search, 300)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const activeRecipeId = selectedRecipe?.recipeId || editingRecipe?.recipeId || previewRecipe?.recipeId || null
+
+  const [searchParams] = useSearchParams()
+  const openedRecipeFromUrlRef = useRef(false)
+  const recipeIdFromUrl = searchParams.get("recipeId")
 
   const [detailsDrawerWidth, setDetailsDrawerWidth] = useState(540)
 
@@ -86,6 +91,22 @@ export default function NeedsRevisionPage() {
         : [...prev, recipeId]
     )
   }
+
+  useEffect(() => {
+    if (!recipeIdFromUrl || openedRecipeFromUrlRef.current || isLoading) return
+
+    const recipeToEdit = recipes.find(
+      (recipe) => recipe.recipeId === recipeIdFromUrl
+    )
+
+    if (!recipeToEdit) return
+
+    setEditingRecipe(null)
+    setPreviewRecipe(null)
+    setSelectedRecipe(recipeToEdit)
+
+    openedRecipeFromUrlRef.current = true
+  }, [recipeIdFromUrl, recipes, isLoading])
 
   const selectedRecipes = useMemo(() => {
     return recipes.filter((recipe) => selectedIds.includes(recipe.recipeId))

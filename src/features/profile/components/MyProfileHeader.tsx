@@ -16,12 +16,13 @@ interface MyProfileHeaderProps {
   recipesCount?: number
   followersCount?: number
   followingCount?: number
-  savesCount?: number
   onEditProfile?: () => void
   onChangeAvatar?: (file: File) => void
   isAvatarUploading?: boolean
   onChangeBanner?: (file: File) => void
   isBannerUploading?: boolean
+  onFollowersClick?: () => void
+  onFollowingClick?: () => void
 }
 
 function formatCompactNumber(value: number) {
@@ -43,12 +44,13 @@ export default function MyProfileHeader({
   recipesCount = 0,
   followersCount = 0,
   followingCount = 0,
-  savesCount = 0,
   onEditProfile,
   onChangeAvatar,
   isAvatarUploading = false,
   onChangeBanner,
   isBannerUploading = false,
+  onFollowersClick,
+  onFollowingClick,
 }: MyProfileHeaderProps) {
   const displayName = fullName || username
 
@@ -163,20 +165,34 @@ export default function MyProfileHeader({
         </div>
       </div>
 
-      <div className="grid grid-cols-4 divide-x divide-white/10 bg-[#111318]/80">
+      <div className="grid grid-cols-3 divide-x divide-white/10 bg-[#111318]/80">
         {[
           { label: "Recipes", value: recipesCount },
-          { label: "Followers", value: followersCount },
-          { label: "Following", value: followingCount },
-          { label: "Saves", value: savesCount },
-        ].map((stat) => (
-          <div key={stat.label} className="px-6 py-6 text-center">
-            <p className="text-2xl font-bold text-white">
-              {formatCompactNumber(stat.value)}
-            </p>
-            <p className="mt-1 text-sm text-[#8f97b1]">{stat.label}</p>
-          </div>
-        ))}
+          { label: "Followers", value: followersCount, onClick: onFollowersClick },
+          { label: "Following", value: followingCount, onClick: onFollowingClick },
+        ].map((stat) => {
+          const isClickable = Boolean(stat.onClick)
+
+          return (
+            <button
+              key={stat.label}
+              type="button"
+              onClick={stat.onClick}
+              disabled={!isClickable}
+              className={[
+                "px-6 py-6 text-center transition",
+                isClickable
+                  ? "cursor-pointer hover:bg-white/[0.04]"
+                  : "cursor-default",
+              ].join(" ")}
+            >
+              <p className="text-2xl font-bold text-white">
+                {formatCompactNumber(stat.value)}
+              </p>
+              <p className="mt-1 text-sm text-[#8f97b1]">{stat.label}</p>
+            </button>
+          )
+        })}
       </div>
     </section>
   )

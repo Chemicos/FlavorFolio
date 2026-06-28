@@ -129,6 +129,7 @@ function ProfileRecipeActionsMenu({
 
   const isPublished = recipe.status === "published"
   const canManageRecipe = recipe.userId === currentUserId
+  const editLabel = recipe.status === "needs_revision" ? "Resolve revision" : "Edit recipe"
 
   const updateMenuPosition = () => {
     const rect = buttonRef.current?.getBoundingClientRect()
@@ -215,7 +216,7 @@ function ProfileRecipeActionsMenu({
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
               >
                 <EditRoundedIcon sx={{ fontSize: 18 }} />
-                Edit recipe
+                {editLabel}
               </button>
 
               <button

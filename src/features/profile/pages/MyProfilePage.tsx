@@ -21,6 +21,9 @@ import ViewRecipeDrawer from "../../home/components/recipe-view-drawer/ViewRecip
 import PostRecipeDrawer from "../../home/components/post-recipe/PostRecipeDrawer";
 import { useNavigate } from "react-router-dom";
 import DeleteWarningDialog from "../../home/components/recipe-view-drawer/DeleteWarningDialog";
+import MyProfileEditFormLoading from "../components/MyProfileEditFormLoading";
+import { ProfileConnectionType } from "../services/profileConnections.service";
+import ProfileConnectionsModal from "../components/ProfileConnectionsModal";
 
 function ViewRecipeDrawerLoading({ width }: { width: number }) {
   return (
@@ -90,9 +93,12 @@ export default function MyProfilePage() {
   const [category, setCategory] = useState("all")
   const [viewMode, setViewMode] = useState<ProfileRecipeViewMode>("grid")
   const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [isProfileEditLoading, setIsProfileEditLoading] = useState(false)
 
   const [recipeToDelete, setRecipeToDelete] = useState<ProfileRecipeGridItem | null>(null)
   const [followingUserIds, setFollowingUserIds] = useState<string[]>([])
+
+  const [connectionsModalType, setConnectionsModalType] = useState<ProfileConnectionType | null>(null)
 
   const recipeTabs = useMemo<ProfileRecipeTabItem[]>(
     () => [
@@ -138,24 +144,19 @@ export default function MyProfilePage() {
     }
   }, [userId, profile])
 
-  // const handleOpenRecipeDrawer = async (recipe: ProfileRecipeGridItem) => {
-  //   try {
-  //     setIsRecipeDrawerLoading(true)
-  //     setSelectedRecipe(null)
-
-  //     const fullRecipe = await fetchProfileRecipeById(recipe.id)
-  //     setSelectedRecipe(fullRecipe)
-  //   } catch (error) {
-  //     console.error("Failed to open recipe:", error)
-  //     showSnackbar("Failed to open recipe. Please try again.", "error")
-  //   } finally {
-  //     setIsRecipeDrawerLoading(false)
-  //   }
-  // }
-
   const handleOpenRecipeDrawer = (recipe: ProfileRecipeGridItem) => {
     setEditingRecipe(null)
     setSelectedRecipeId(recipe.id)
+  }
+
+  const handleOpenProfileEditor = async () => {
+    setIsProfileEditLoading(true)
+    setIsEditingProfile(false)
+
+    await new Promise((resolve) => setTimeout(resolve, 220))
+
+    setIsEditingProfile(true)
+    setIsProfileEditLoading(false)
   }
 
   useEffect(() => {
@@ -304,6 +305,17 @@ export default function MyProfilePage() {
     })
   }, [setRecipes, setSavedRecipes])
 
+  const handleViewDrawerRecipeEdit = async (recipe: Recipe) => {
+    const recipeId = recipe.recipeId || recipe.id
+
+    if (recipe.status === "needs_revision") {
+      navigate(`/needs-revision?recipeId=${recipeId}`)
+      return
+    }
+
+    await handleEditRecipe(recipe)
+  }
+
   const handleProfileRecipeEdit = async (recipe: ProfileRecipeGridItem) => {
     if (recipe.status === "needs_revision") {
       navigate(`/needs-revision?recipeId=${recipe.id}`)
@@ -399,7 +411,9 @@ export default function MyProfilePage() {
               isDrawerOpen ? "max-w-none" : "mx-auto max-w-[1400px]",
             ].join(" ")}
           >
-            {isEditingProfile ? (
+            {isProfileEditLoading ? (
+              <MyProfileEditFormLoading />
+            ): isEditingProfile ? (
               <MyProfileEditForm
                 profile={profile}
                 isSaving={isProfileSaving}
@@ -415,7 +429,7 @@ export default function MyProfilePage() {
                   }
                 }}
               />
-            ) : (
+            ): (
               <MyProfileHeader
                 username={profile?.username || "User"}
                 fullName={profile?.fullName || "User"}
@@ -428,12 +442,13 @@ export default function MyProfilePage() {
                 recipesCount={recipes.length}
                 followersCount={profile?.stats.followersCount || 0}
                 followingCount={profile?.stats.followingCount || 0}
-                savesCount={profile?.stats.savedRecipesCount || 0}
-                onEditProfile={() => setIsEditingProfile(true)}
+                onEditProfile={handleOpenProfileEditor}
                 onChangeAvatar={uploadAvatarImage}
                 isAvatarUploading={isAvatarUploading}
                 onChangeBanner={uploadBannerImage}
                 isBannerUploading={isBannerUploading}
+                onFollowersClick={() => setConnectionsModalType("followers")}
+                onFollowingClick={() => setConnectionsModalType("following")}
               />
             )}
 
@@ -482,6 +497,13 @@ export default function MyProfilePage() {
               />
             )}
           </main>
+
+          <ProfileConnectionsModal
+            isOpen={Boolean(connectionsModalType)}
+            userId={userId}
+            type={connectionsModalType || "followers"}
+            onClose={() => setConnectionsModalType(null)}
+          />
 
           <AnimatePresence mode="wait">
             {(isRecipeDrawerLoading || isRecipeEditLoading) && (
@@ -539,7 +561,7 @@ export default function MyProfilePage() {
                 }}
                 onRatingStateChange={handleRatingStateChange}
                 onCommentStateChange={handleCommentStateChange}
-                onEditRecipe={handleEditRecipe}
+                onEditRecipe={handleViewDrawerRecipeEdit}
                 onDeleteRecipe={(recipeId) => {
                   deleteRecipe(recipeId)
                   setSelectedRecipe(null)

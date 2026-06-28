@@ -7,6 +7,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Manrope", "sans-serif"]
+      },
       backgroundColor: {
         'ff-bg': '#F0DDC0',
         'ff-btn': '#FEAA2B',

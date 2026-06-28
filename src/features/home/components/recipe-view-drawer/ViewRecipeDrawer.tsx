@@ -542,7 +542,7 @@ export default function ViewRecipeDrawer({
                                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
                                     >
                                     <EditRoundedIcon sx={{ fontSize: 18 }} />
-                                        Edit recipe
+                                        {recipe.status === "needs_revision" ? "Resolve revision" : "Edit recipe"}
                                     </button>
 
                                     <button
