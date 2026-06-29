@@ -344,6 +344,19 @@ export default function MyProfilePage() {
     handleEditRecipe(fullRecipe)
   }
 
+  const handleAuthorProfileClick = useCallback((authorId: string) => {
+    setSelectedRecipeId(null)
+    setSelectedRecipe(null)
+    setEditingRecipe(null)
+
+    if (authorId === userId) {
+      navigate("/profile")
+      return
+    }
+
+    navigate(`/users/${authorId}`)
+  }, [navigate, userId])
+
   const visibleRecipes = useMemo(() => {
     const query = debouncedSearchQuery.trim().toLowerCase()
     const sourceRecipes = activeRecipeTab === "saved-recipes" ? savedRecipes : recipes
@@ -557,6 +570,7 @@ export default function MyProfilePage() {
                 authorFollowersCount={
                   Number(selectedRecipe.author?.followersCount || 0)
                 }
+                onAuthorClick={handleAuthorProfileClick}
                 onClose={() => {
                   setSelectedRecipeId(null)
                   setSelectedRecipe(null)

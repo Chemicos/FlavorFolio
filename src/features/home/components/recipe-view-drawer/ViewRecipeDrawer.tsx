@@ -863,6 +863,7 @@ export default function ViewRecipeDrawer({
                                         commentsCount={commentsCount}
                                         comments={commentsWithReactions}
                                         currentUser={currentUser}
+                                        onAuthorClick={onAuthorClick}
                                         isLoadingComments={isLoadingComments}
                                         isSubmittingComment={isSubmittingComment}
                                         editingCommentId={editingCommentId}

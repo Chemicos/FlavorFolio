@@ -1,6 +1,10 @@
-import { useParams } from "react-router-dom"
+import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded"
+import SendRoundedIcon from "@mui/icons-material/SendRounded"
+import BlockRoundedIcon from "@mui/icons-material/BlockRounded"
+
+import { useNavigate, useParams } from "react-router-dom"
 import { useUserProfile } from "../hooks/useUserProfile"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useDebounce } from "../../recipe-review/hooks/useDebounce"
 
 import ProfileRecipeToolbar, { ProfileRecipeSortValue, ProfileRecipeViewMode } from "../components/ProfileRecipeToolbar"
@@ -16,7 +20,7 @@ import ProfileConnectionsModal from "../components/ProfileConnectionsModal"
 import { Recipe } from "../../home/types"
 import { CurrentUserCardData } from "../../home/types/recipeCard.types"
 import { subscribeToProfileRecipeById } from "../services/profileRecipes.service"
-import { AnimatePresence } from "motion/react"
+import { AnimatePresence, motion } from "motion/react"
 import ViewRecipeDrawer from "../../home/components/recipe-view-drawer/ViewRecipeDrawer"
 import { MyProfileData, subscribeToMyProfile } from "../services/profile.service"
 
@@ -33,12 +37,15 @@ function ViewRecipeDrawerLoading({ width }: { width: number }) {
 }
 
 export default function UserProfilePage() {
+  const navigate = useNavigate()
   const { userId } = useParams<{ userId: string }>()
   const { showSnackbar } = useSnackbar()
 
   const { profile, recipes, setRecipes, isLoading, error } = useUserProfile(userId)
   const [connectionsModalType, setConnectionsModalType] = useState<ProfileConnectionType | null>(null)
   const isConnectionsModalOpen = Boolean(connectionsModalType)
+  const [isProfileActionsMenuOpen, setIsProfileActionsMenuOpen] = useState(false)
+  const profileActionsMenuRef = useRef<HTMLDivElement | null>(null)
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [currentUserProfile, setCurrentUserProfile] = useState<MyProfileData | null>(null)
@@ -87,6 +94,25 @@ export default function UserProfilePage() {
 
     return () => unsubscribe()
   }, [currentUserId])
+
+  useEffect(() => {
+    if (!isProfileActionsMenuOpen) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileActionsMenuRef.current &&
+        !profileActionsMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileActionsMenuOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isProfileActionsMenuOpen])
 
   useEffect(() => {
     if (!currentUserId) {
@@ -384,6 +410,28 @@ export default function UserProfilePage() {
     })
   }, [recipes, debouncedSearchQuery, category, sortBy])
 
+  const handleAuthorProfileClick = useCallback((authorId: string) => {
+    setSelectedRecipeId(null)
+    setSelectedRecipe(null)
+
+    if (authorId === currentUserId) {
+      navigate("/profile")
+      return
+    }
+
+    navigate(`/users/${authorId}`)
+  }, [navigate, currentUserId])
+
+  const handleSendMessage = () => {
+    setIsProfileActionsMenuOpen(false)
+    showSnackbar("Messaging is coming soon.", "info")
+  }
+
+  const handleBlockUser = () => {
+    setIsProfileActionsMenuOpen(false)
+    showSnackbar("Block user flow is coming soon.", "info")
+  }
+
   return (
     <div className="relative min-h-screen bg-[#0d0e11] text-white">
       <Navigation variant="solid" />
@@ -417,26 +465,67 @@ export default function UserProfilePage() {
                 onFollowersClick={() => setConnectionsModalType("followers")}
                 onFollowingClick={() => setConnectionsModalType("following")}
                 rightAction={
-                  !isOwnProfile ? (
-                    <button
-                      type="button"
-                      onClick={handleToggleFollow}
-                      disabled={isFollowLoading}
-                      className={[
-                        "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
-                        isFollowingProfile
-                          ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
-                          : "border-white/10 bg-[#0b0b0c]/80 text-white hover:bg-white/[0.06]",
-                      ].join(" ")}
-                    >
-                      {isFollowLoading ? (
-                        <CircularProgress size={15} thickness={5} sx={{ color: "#ffffff" }} />
-                      ) : isFollowingProfile ? (
-                        "Following"
-                      ) : (
-                        "Follow"
-                      )}
-                    </button>
+                 !isOwnProfile ? (
+                    <div ref={profileActionsMenuRef} className="relative flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleToggleFollow}
+                        disabled={isFollowLoading}
+                        className={[
+                          "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+                          isFollowingProfile
+                            ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                            : "border-white/10 bg-[#0b0b0c]/80 text-white hover:hover:bg-[#202429]/80",
+                        ].join(" ")}
+                      >
+                        {isFollowLoading ? (
+                          <CircularProgress size={15} thickness={5} sx={{ color: "#ffffff" }} />
+                        ) : isFollowingProfile ? (
+                          "Following"
+                        ) : (
+                          "Follow"
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsProfileActionsMenuOpen((prev) => !prev)}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-[#0b0b0c]/80 text-[#a8b3cf] transition hover:bg-[#202429]/80 hover:text-white active:scale-95"
+                        aria-label="Profile options"
+                      >
+                        <MoreVertRoundedIcon sx={{ fontSize: 20 }} />
+                      </button>
+
+                      <AnimatePresence>
+                        {isProfileActionsMenuOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                            transition={{ duration: 0.16 }}
+                            className="absolute right-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
+                          >
+                            <button
+                              type="button"
+                              onClick={handleSendMessage}
+                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+                            >
+                              <SendRoundedIcon sx={{ fontSize: 18 }} />
+                              Send message
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={handleBlockUser}
+                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                            >
+                              <BlockRoundedIcon sx={{ fontSize: 18 }} />
+                              Block user
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   ) : null
                 }
               />
@@ -488,6 +577,7 @@ export default function UserProfilePage() {
               savedRecipes={savedRecipeIds.map((recipeId) => ({ recipeId }))}
               followingUserIds={followingUserIds}
               authorFollowersCount={Number(selectedRecipe.author?.followersCount || 0)}
+              onAuthorClick={handleAuthorProfileClick}
               onClose={() => {
                 setSelectedRecipeId(null)
                 setSelectedRecipe(null)

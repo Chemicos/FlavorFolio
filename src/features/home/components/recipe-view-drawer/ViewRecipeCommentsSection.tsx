@@ -24,12 +24,14 @@ interface ViewRecipeCommentsSectionProps {
   onCancelEditComment: () => void
   onUpdateComment: (comment: ViewRecipeComment, value: string) => void
   onDeleteComment: (comment: ViewRecipeComment) => void
+  onAuthorClick?: (userId: string) => void
 }
 
 export default function ViewRecipeCommentsSection({
   commentsCount,
   comments,
   currentUser,
+  onAuthorClick,
   isLoadingComments,
   isSubmittingComment,
   editingCommentId,
@@ -68,6 +70,7 @@ export default function ViewRecipeCommentsSection({
               <ViewRecipeCommentList 
                   comments={comments} 
                   currentUserId={currentUser?.uid}
+                  onAuthorClick={onAuthorClick}
                   editingCommentId={editingCommentId}
                   isUpdatingComment={isUpdatingComment}
                   replyingCommentId={replyingCommentId}

@@ -47,6 +47,7 @@ interface ViewRecipeCommentListProps {
   onCancelEditComment?: () => void
   onUpdateComment?: (comment: ViewRecipeComment, value: string) => void
   onDeleteComment?: (comment: ViewRecipeComment) => void
+  onAuthorClick?: (userId: string) => void
 }
 
 export default function ViewRecipeCommentList({ 
@@ -63,7 +64,8 @@ export default function ViewRecipeCommentList({
     onStartEditComment,
     onCancelEditComment,
     onUpdateComment,
-    onDeleteComment
+    onDeleteComment,
+    onAuthorClick,
 }: ViewRecipeCommentListProps) {
     if (!comments.length) {
         return (
@@ -94,6 +96,7 @@ export default function ViewRecipeCommentList({
                     onCancelEditComment={onCancelEditComment}
                     onUpdateComment={onUpdateComment}
                     onDeleteComment={onDeleteComment} 
+                    onAuthorClick={onAuthorClick}
                 />
             ))}
         </div> 
@@ -134,7 +137,8 @@ function CommentItem({
     onStartEditComment,
     onCancelEditComment,
     onUpdateComment,
-    onDeleteComment
+    onDeleteComment,
+    onAuthorClick,
 }: {
     comment: ViewRecipeComment 
     currentUserId?: string
@@ -153,6 +157,7 @@ function CommentItem({
     onCancelEditComment?: () => void
     onUpdateComment?: (comment: ViewRecipeComment, value: string) => void
     onDeleteComment?: (comment: ViewRecipeComment) => void
+    onAuthorClick?: (userId: string) => void
 }) {
     const isOwnComment = Boolean(currentUserId && comment.userId === currentUserId)
     const [showReplies, setShowReplies] = useState(false)
@@ -221,31 +226,52 @@ function CommentItem({
     return (
         <div className={isReply ? "ml-2" : ""}>
             <div className="flex items-start gap-4">
-                <div
+                <button
+                    type="button"
+                    disabled={!comment.userId}
+                    onClick={() => {
+                        if (!comment.userId) return
+                        onAuthorClick?.(comment.userId)
+                    }}
                     className={[
+                        "flex shrink-0 items-start gap-4 rounded-lg text-left transition",
+                        comment.userId ? "hover:bg-white/[0.035] active:scale-[0.99]" : "cursor-default",
+                    ].join(" ")}
+                    >
+                    <div
+                        className={[
                         "shrink-0 overflow-hidden bg-white/10",
                         isReply ? "h-9 w-9 rounded-lg" : "h-11 w-11 rounded-lg",
-                    ].join(" ")}
-                >
-                {comment.profileImage ? (
-                    <img
-                    src={comment.profileImage}
-                    alt={comment.username}
-                    className="h-full w-full object-cover"
-                    />
-                ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-white/70">
-                    {comment.username.charAt(0).toUpperCase()}
+                        ].join(" ")}
+                    >
+                        {comment.profileImage ? (
+                        <img
+                            src={comment.profileImage}
+                            alt={comment.username}
+                            className="h-full w-full object-cover"
+                        />
+                        ) : (
+                        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-white/70">
+                            {comment.username.charAt(0).toUpperCase()}
+                        </div>
+                        )}
                     </div>
-                )}
-                </div>
+                    </button>
 
                 <div className="min-w-0 flex-1">
                     <div className="relative flex items-start justify-between gap-3">
                         <div className="flex min-w-0 flex-wrap items-center gap-3">
-                            <p className={isReply ? "text-sm font-medium text-white" : "text-sm font-bold text-white"}>
+                            <button
+                                type="button"
+                                disabled={!comment.userId}
+                                onClick={() => {
+                                    if (!comment.userId) return
+                                    onAuthorClick?.(comment.userId)
+                                }}
+                                className="truncate text-sm font-bold text-white transition hover:text-orange-300 disabled:hover:text-white"
+                            >
                                 {comment.username}
-                            </p>
+                            </button>
 
                             <span className="text-sm text-[#a8b3cf]/60">
                                 {comment.createdAtLabel || "now"}
@@ -495,6 +521,7 @@ function CommentItem({
                                     onCancelEditComment={onCancelEditComment}
                                     onUpdateComment={onUpdateComment}
                                     onDeleteComment={onDeleteComment}
+                                    onAuthorClick={onAuthorClick}
                                 />
                             ))}
                             </div>

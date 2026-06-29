@@ -3,8 +3,8 @@ import Home from './features/home/pages/Home'
 // import Cookies from 'universal-cookie'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 // import PendingRecipes from './components/PendingRecipes'
-import ProfilePage from './components/myProfile/ProfilePage'
-import AccountSettings from './components/AccountSettings/AccountSettings'
+// import ProfilePage from './components/myProfile/ProfilePage'
+// import AccountSettings from './components/AccountSettings/AccountSettings'
 // import ViewUserProfile from './components/UsersProfile/ViewUserProfile'
 import Dashboard from './components/DashboardAdmin/Dashboard'
 import ManageFeedback from './components/Feedback/ManageFeedback'
@@ -18,6 +18,7 @@ import PendingRecipesPage from './features/recipe-review/pages/PendingRecipesPag
 import NeedsRevisionPage from './features/needs-revision/pages/NeedsRevisionPage'
 import MyProfilePage from './features/profile/pages/MyProfilePage'
 import UserProfilePage from './features/profile/pages/UserProfilePage'
+import AccountSettingsPage from './features/account-settings/pages/AccountSettingsPage'
 
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -44,7 +45,7 @@ function App() {
           <Route path='/needs-revision' element={user ? <NeedsRevisionPage /> : <Navigate replace to="/" />} />
           <Route path='/profile' element={user ? <MyProfilePage /> : <Navigate replace to="/" />} />
           <Route path="/users/:userId" element={user ? <UserProfilePage /> : <Navigate replace to="/" />} />
-          <Route path='/settings' element={user ? <AccountSettings /> : <Navigate replace to="/" />} />
+          <Route path='/settings' element={user ? <AccountSettingsPage /> : <Navigate replace to="/" />} />
           <Route path='/dashboard' element={user ? <Dashboard /> : <Navigate replace to="/" />} />
           <Route path='/manage-feedback' element={user ? <ManageFeedback /> : <Navigate replace to="/" />} />
         </Routes>
