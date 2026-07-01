@@ -36,7 +36,7 @@ export default function DeleteWarningDialog({
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-[#0b0b0c] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.65)]"
+            className="w-full max-w-[450px] rounded-2xl border border-white/10 bg-[#0b0b0c] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.65)]"
           >
             <h3 className="text-lg font-bold text-white">{title}</h3>
 

@@ -184,13 +184,13 @@ export default function SignInForm() {
                 label={<span className="text-[#a8b3cf]/70 hover:text-white transition text-sm">Remember me</span>}
             />
 
-            <button
-            type="button"
-            className="text-[#a8b3cf]/55 hover:text-white/85 transition text-sm hover:underline underline-offset-4"
+            {/* <button
+                type="button"
+                className="text-[#a8b3cf]/55 hover:text-white/85 transition text-sm hover:underline underline-offset-4"
             // onClick={() => navigate("/forgot-password")}
             >
             Forgot password?
-            </button>
+            </button> */}
         </div>
 
         <Button

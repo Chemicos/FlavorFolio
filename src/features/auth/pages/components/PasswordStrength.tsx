@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react"
 
-const passwordCriteria = (password) => ([
+export const passwordCriteria = (password: string) => ([
     {
         id: 'minLength',
         text: 'Use at least 8 characters',
