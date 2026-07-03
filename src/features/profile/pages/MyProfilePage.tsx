@@ -24,6 +24,7 @@ import DeleteWarningDialog from "../../home/components/recipe-view-drawer/Delete
 import MyProfileEditFormLoading from "../components/MyProfileEditFormLoading";
 import { ProfileConnectionType, subscribeToMyFollowingUserIds } from "../services/profileConnections.service";
 import ProfileConnectionsModal from "../components/ProfileConnectionsModal";
+import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service";
 
 function ViewRecipeDrawerLoading({ width }: { width: number }) {
   return (
@@ -100,6 +101,10 @@ export default function MyProfilePage() {
 
   const [connectionsModalType, setConnectionsModalType] = useState<ProfileConnectionType | null>(null)
 
+  const [blockedUserIds, setBlockedUserIds] = useState<string[]>([])
+  const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
+  const [isBlockLoading, setIsBlockLoading] = useState(false)
+
   const recipeTabs = useMemo<ProfileRecipeTabItem[]>(
     () => [
       {
@@ -160,6 +165,67 @@ export default function MyProfilePage() {
 
     return () => unsubscribe()
   }, [userId])
+
+  useEffect(() => {
+    if (!userId) {
+      setBlockedUserIds([])
+      setBlockedByUserIds([])
+      return
+    }
+
+    const unsubBlocked = subscribeToBlockedUserIds({
+      userId,
+      onChange: setBlockedUserIds,
+      onError: (error) => console.error("Failed to load blocked users:", error),
+    })
+
+    const unsubBlockedBy = subscribeToBlockedByUserIds({
+      userId,
+      onChange: setBlockedByUserIds,
+      onError: (error) => console.error("Failed to load blocked by users:", error),
+    })
+
+    return () => {
+      unsubBlocked()
+      unsubBlockedBy()
+    }
+  }, [userId])
+
+  const handleBlockCommentAuthor = async (user: {
+    userId: string
+    username: string
+    profileImage?: string
+  }) => {
+    if (!userId || user.userId === userId || isBlockLoading) return
+
+    try {
+      setIsBlockLoading(true)
+
+      await blockUser({
+        currentUserId: userId,
+        targetUserId: user.userId,
+        targetUsername: user.username || "User",
+        targetProfileImage: user.profileImage || "",
+      })
+
+      setSavedRecipes((prev) =>
+        prev.filter((recipe) => recipe.userId !== user.userId)
+      )
+
+      setBlockedUserIds((prev) =>
+        prev.includes(user.userId) ? prev : [...prev, user.userId]
+      )
+
+      setFollowingUserIds((prev) => prev.filter((id) => id !== user.userId))
+
+      showSnackbar(`${user.username} has been blocked.`, "success")
+    } catch (error) {
+      console.error("Failed to block comment author:", error)
+      showSnackbar("Failed to block user. Please try again.", "error")
+    } finally {
+      setIsBlockLoading(false)
+    }
+  }
 
   const handleOpenRecipeDrawer = (recipe: ProfileRecipeGridItem) => {
     setEditingRecipe(null)
@@ -360,8 +426,11 @@ export default function MyProfilePage() {
   const visibleRecipes = useMemo(() => {
     const query = debouncedSearchQuery.trim().toLowerCase()
     const sourceRecipes = activeRecipeTab === "saved-recipes" ? savedRecipes : recipes
+    const filteredBlockedRecipes = sourceRecipes.filter(
+      (recipe) => !blockedUserIds.includes(recipe.userId)
+    )
 
-    const filteredByTab = sourceRecipes.filter((recipe) => {
+    const filteredByTab = filteredBlockedRecipes.filter((recipe) => {
       if (activeRecipeTab === "my-recipes") {
         return recipe.status === "published"
       }
@@ -599,6 +668,9 @@ export default function MyProfilePage() {
                   setSelectedRecipe(null)
                   setEditingRecipe(null)
                 }}
+                onBlockUser={handleBlockCommentAuthor}
+                blockedUserIds={blockedUserIds}
+                blockedByUserIds={blockedByUserIds}
               />
             )} 
           </AnimatePresence>

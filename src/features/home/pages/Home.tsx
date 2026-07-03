@@ -16,6 +16,7 @@ import ViewRecipeDrawer from "../components/recipe-view-drawer/ViewRecipeDrawer"
 import PostRecipeDrawer from "../components/post-recipe/PostRecipeDrawer"
 import RecipeSearchBar from "../components/search-recipe/RecipeSearchBar"
 import { useNavigate } from "react-router-dom"
+import { subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service"
 
 export default function Home() {
   const navigate = useNavigate()
@@ -33,6 +34,9 @@ export default function Home() {
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
+
+  const [blockedUserIds, setBlockedUserIds] = useState<string[]>([])
+  const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
 
   const isAnyOverlayOpen = isPostFormVisible || Boolean(editingRecipe) || Boolean(selectedRecipe) || isFilterDrawerOpen
 
@@ -66,6 +70,31 @@ export default function Home() {
   const handleResetFilters = () => {
     setFilters(defaultRecipeFilters)
   }
+
+  useEffect(() => {
+    if (!currentUser?.uid) {
+      setBlockedUserIds([])
+      setBlockedByUserIds([])
+      return
+    }
+
+    const unsubBlocked = subscribeToBlockedUserIds({
+      userId: currentUser.uid,
+      onChange: setBlockedUserIds,
+      onError: console.error,
+    })
+
+    const unsubBlockedBy = subscribeToBlockedByUserIds({
+      userId: currentUser.uid,
+      onChange: setBlockedByUserIds,
+      onError: console.error,
+    })
+
+    return () => {
+      unsubBlocked()
+      unsubBlockedBy()
+    }
+  }, [currentUser?.uid])
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow
@@ -177,6 +206,17 @@ export default function Home() {
       return searchableText.includes(query)
     })
   }, [activeRecipes, searchQuery])
+
+  const blockedRelationshipUserIds = useMemo(
+    () => new Set([...blockedUserIds, ...blockedByUserIds]),
+    [blockedUserIds, blockedByUserIds]
+  )
+
+  const visibleSearchedRecipes = useMemo(() => {
+    return searchedRecipes.filter(
+      (recipe) => !blockedRelationshipUserIds.has(recipe.userId || "")
+    )
+  }, [searchedRecipes, blockedRelationshipUserIds])
   
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#101b16]">
@@ -218,7 +258,7 @@ export default function Home() {
       <div className="mx-auto flex w-full max-w-[1400px] 2xl-plus:max-w-[1800px] flex-col items-center mt-8 gap-8 px-6 xl:px-10">        
         <Content
           // recipes={activeRecipes}
-          recipes={searchedRecipes}
+          recipes={visibleSearchedRecipes}
           isLoading={isLoading}
           isFiltering={isFiltering}
           title={activeTab}
@@ -312,6 +352,8 @@ export default function Home() {
             onCommentStateChange={handleCommentStateChange}
             onEditRecipe={handleEditRecipe}
             onDeleteRecipe={handleRecipeDeleteSuccess}
+            blockedUserIds={blockedUserIds}
+            blockedByUserIds={blockedByUserIds}
           />
         )}
       </AnimatePresence>

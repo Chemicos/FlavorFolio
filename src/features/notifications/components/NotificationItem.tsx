@@ -1,0 +1,147 @@
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
+import StarRoundedIcon from "@mui/icons-material/StarRounded"
+import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded"
+import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded"
+import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded"
+import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded"
+import ReportProblemRoundedIcon from "@mui/icons-material/ReportProblemRounded"
+import ThumbUpRoundedIcon from "@mui/icons-material/ThumbUpRounded"
+import ThumbDownRoundedIcon from "@mui/icons-material/ThumbDownRounded"
+
+import { FlavorFolioNotification, NotificationType } from "../services/notifications.service"
+
+interface NotificationItemProps {
+    notification: FlavorFolioNotification
+    onMarkAsRead: (notificationId: string) => void
+    onDelete: (notificationId: string) => void
+    onClick?: (notification: FlavorFolioNotification) => void
+}
+
+function formatNotificationDate(createdAt?: FlavorFolioNotification["createdAt"]) {
+  if (!createdAt?.seconds) return "Just now"
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(createdAt.seconds * 1000))
+}
+
+function getNotificationIcon(type: NotificationType) {
+  const iconClass = "text-orange-200"
+
+  switch (type) {
+    case "recipe_saved":
+    case "recipe_unsaved":
+      return <FavoriteRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "comment":
+      return <ChatBubbleOutlineRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "reply":
+      return <ReplayRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "follow":
+    case "unfollow":
+      return <PersonAddAltRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "needs_revision":
+      return <ReportProblemRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "rating":
+      return <StarRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "comment_like":
+    case "reply_like":
+      return <ThumbUpRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "comment_dislike":
+    case "reply_dislike":
+      return <ThumbDownRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    default:
+      return <ChatBubbleOutlineRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+  }
+}
+
+
+export default function NotificationItem({
+    notification,
+    onMarkAsRead,
+    onDelete,
+    onClick,
+}: NotificationItemProps) {
+    const actorInitial = notification.actorUsername?.charAt(0)?.toUpperCase() || "F"
+
+    const handleItemClick = () => {
+        if (!notification.read) {onMarkAsRead(notification.id)}
+
+        onClick?.(notification)
+    }
+
+  return (
+    <div
+      className={[
+        "group relative border-b border-white/10 px-4 py-4 transition last:border-b-0",
+        notification.read
+          ? "bg-transparent opacity-70 hover:opacity-100"
+          : "bg-white/[0.025] hover:bg-white/[0.045]",
+      ].join(" ")}
+    >
+      <button
+        type="button"
+        onClick={handleItemClick}
+        className="flex w-full gap-3 text-left"
+      >
+        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white/10">
+          {notification.actorProfileImage ? (
+            <img
+              src={notification.actorProfileImage}
+              alt={notification.actorUsername || "User"}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
+              {actorInitial}
+            </div>
+          )}
+
+          <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-[#1b1d22] bg-orange-500/90">
+            {getNotificationIcon(notification.type)}
+          </div>
+        </div>
+
+        <div className="min-w-0 flex-1 pr-7">
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-sm font-semibold leading-5 text-white">
+              {notification.actorUsername || "FlavorFolio"}
+            </p>
+
+            {!notification.read && (
+              <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.75)]" />
+            )}
+          </div>
+
+          <p className="mt-1 text-sm leading-6 text-[#d7def0]">
+            {notification.message}
+          </p>
+
+          {notification.recipeTitle && (
+            <p className="mt-1 truncate text-xs font-medium text-orange-200/80">
+              {notification.recipeTitle}
+            </p>
+          )}
+
+          <p className="mt-2 text-xs text-[#6f7892]">
+            {formatNotificationDate(notification.createdAt)}
+          </p>
+        </div>
+      </button>
+
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation()
+          onDelete(notification.id)
+        }}
+        className="absolute right-3 top-4 flex h-7 w-7 items-center justify-center rounded-lg text-[#6f7892] opacity-0 transition hover:bg-white/[0.06] hover:text-white group-hover:opacity-100"
+        aria-label="Delete notification"
+      >
+        <CloseRoundedIcon sx={{ fontSize: 17 }} />
+      </button>
+    </div>
+  )
+}

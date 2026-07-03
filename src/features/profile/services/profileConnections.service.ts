@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, increment, onSnapshot, query, serverTimestamp, writeBatch } from "@firebase/firestore"
 import { db } from "../../../firebase-config"
+import { addFollowNotificationToBatch, deleteFollowNotificationFromBatch } from "../../notifications/services/notifications.service"
 
 export type ProfileConnectionType = "followers" | "following"
 
@@ -132,6 +133,11 @@ export async function toggleProfileFollow({
       "stats.followersCount": increment(-1),
     })
 
+    deleteFollowNotificationFromBatch(batch, {
+      recipientUserId: targetUserId,
+      actorUserId: currentUserId,
+    })
+
     await batch.commit()
     return false
   }
@@ -156,6 +162,13 @@ export async function toggleProfileFollow({
 
   batch.update(targetUserRef, {
     "stats.followersCount": increment(1),
+  })
+
+  addFollowNotificationToBatch(batch, {
+    recipientUserId: targetUserId,
+    actorUserId: currentUserId,
+    actorUsername: currentUsername,
+    actorProfileImage: currentProfileImage,
   })
 
   await batch.commit()

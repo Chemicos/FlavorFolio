@@ -11,6 +11,18 @@ interface CreateRecipeCommentInput {
     comment: string
 }
 
+function getCommentNotificationId(recipeId: string, commentId: string) {
+  return `comment_${recipeId}_${commentId}`
+}
+
+function getReplyNotificationId(recipeId: string, replyId: string) {
+  return `reply_${recipeId}_${replyId}`
+}
+
+function getCommentReactionNotificationId(commentId: string, actorUserId: string) {
+  return `reaction_${commentId}_${actorUserId}`
+}
+
 interface CreateRecipeReplyInput {
   recipeId: string
   parentCommentId: string
@@ -35,6 +47,9 @@ export async function createRecipeComment(input: CreateRecipeCommentInput) {
         }
 
         const recipeData = recipeSnap.data()
+        const recipeOwnerId = recipeData?.userId || ""
+        const recipeTitle = recipeData?.title || "your recipe"
+
         const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
 
         transaction.set(commentRef, {
@@ -51,6 +66,34 @@ export async function createRecipeComment(input: CreateRecipeCommentInput) {
             updatedAt: serverTimestamp(),
         })
 
+        if (recipeOwnerId && recipeOwnerId !== input.userId) {
+            const notificationRef = doc(
+                db,
+                "users",
+                recipeOwnerId,
+                "notifications",
+                getCommentNotificationId(input.recipeId, commentRef.id)
+            )
+
+            transaction.set(notificationRef, {
+                type: "comment",
+                recipientUserId: recipeOwnerId,
+                actorUserId: input.userId,
+                actorUsername: input.username || "Someone",
+                actorProfileImage: input.profileImage || "",
+                recipeId: input.recipeId,
+                recipeTitle,
+                commentId: commentRef.id,
+                commentPreview:
+                input.comment.length > 120
+                    ? `${input.comment.slice(0, 120)}...`
+                    : input.comment,
+                message: `${input.username || "Someone"} commented on ${recipeTitle}.`,
+                read: false,
+                createdAt: serverTimestamp(),
+            })
+        }
+
         transaction.set(
             recipeRef,
             {
@@ -65,64 +108,101 @@ export async function createRecipeComment(input: CreateRecipeCommentInput) {
 }
 
 export async function createRecipeReply(input: CreateRecipeReplyInput) {
-    const recipeRef = doc(db, "recipes", input.recipeId)
-    const parentCommentRef = doc(db, "recipes", input.recipeId, "comments", input.parentCommentId)
-    const replyRef = doc(collection(db, "recipes", input.recipeId, "comments"))
+  const recipeRef = doc(db, "recipes", input.recipeId)
+  const parentCommentRef = doc(
+    db,
+    "recipes",
+    input.recipeId,
+    "comments",
+    input.parentCommentId
+  )
+  const replyRef = doc(collection(db, "recipes", input.recipeId, "comments"))
 
-    await runTransaction(db, async (transaction) => {
-        const recipeSnap = await transaction.get(recipeRef)
-        const parentCommentSnap = await transaction.get(parentCommentRef)
+  await runTransaction(db, async (transaction) => {
+    const recipeSnap = await transaction.get(recipeRef)
+    const parentCommentSnap = await transaction.get(parentCommentRef)
 
-        if (!recipeSnap.exists()) {
-        throw new Error("Recipe document missing.")
-        }
+    if (!recipeSnap.exists()) {
+      throw new Error("Recipe document missing.")
+    }
 
-        if (!parentCommentSnap.exists()) {
-        throw new Error("Parent comment missing.")
-        }
+    if (!parentCommentSnap.exists()) {
+      throw new Error("Parent comment missing.")
+    }
 
-        const recipeData = recipeSnap.data()
-        const parentData = parentCommentSnap.data()
+    const recipeData = recipeSnap.data()
+    const parentData = parentCommentSnap.data()
 
-        const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
-        const currentRepliesCount = Number(parentData?.repliesCount || 0)
+    const recipeTitle = recipeData?.title || "your recipe"
+    const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
+    const currentRepliesCount = Number(parentData?.repliesCount || 0)
 
-        transaction.set(replyRef, {
-            comment: input.comment,
-            userId: input.userId,
-            username: input.username,
-            profileImage: input.profileImage || "",
-            parentCommentId: input.parentCommentId,
-            replyToUserId: input.replyToUserId || "",
-            replyToUsername: input.replyToUsername || "",
-            replyToCommentId: input.replyToCommentId || input.parentCommentId,
-            likesCount: 0,
-            dislikesCount: 0,
-            edited: false,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        })
-
-        transaction.set(
-        parentCommentRef,
-        {
-            repliesCount: currentRepliesCount + 1,
-            updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-        )
-
-        transaction.set(
-        recipeRef,
-        {
-            stats: {
-                ...recipeData?.stats,
-                commentsCount: currentCommentsCount + 1,
-            },
-        },
-        { merge: true }
-        )
+    transaction.set(replyRef, {
+      comment: input.comment,
+      userId: input.userId,
+      username: input.username,
+      profileImage: input.profileImage || "",
+      parentCommentId: input.parentCommentId,
+      replyToUserId: input.replyToUserId || "",
+      replyToUsername: input.replyToUsername || "",
+      replyToCommentId: input.replyToCommentId || input.parentCommentId,
+      likesCount: 0,
+      dislikesCount: 0,
+      edited: false,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     })
+
+    if (input.replyToUserId && input.replyToUserId !== input.userId) {
+      const notificationRef = doc(
+        db,
+        "users",
+        input.replyToUserId,
+        "notifications",
+        getReplyNotificationId(input.recipeId, replyRef.id)
+      )
+
+      transaction.set(notificationRef, {
+        type: "reply",
+        recipientUserId: input.replyToUserId,
+        actorUserId: input.userId,
+        actorUsername: input.username || "Someone",
+        actorProfileImage: input.profileImage || "",
+        recipeId: input.recipeId,
+        recipeTitle,
+        commentId: input.parentCommentId,
+        replyId: replyRef.id,
+        replyToCommentId: input.replyToCommentId || input.parentCommentId,
+        replyPreview:
+          input.comment.length > 120
+            ? `${input.comment.slice(0, 120)}...`
+            : input.comment,
+        message: `${input.username || "Someone"} replied to your comment on ${recipeTitle}.`,
+        read: false,
+        createdAt: serverTimestamp(),
+      })
+    }
+
+    transaction.set(
+      parentCommentRef,
+      {
+        repliesCount: currentRepliesCount + 1,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    )
+
+    transaction.set(
+      recipeRef,
+      {
+        stats: {
+          ...recipeData?.stats,
+          commentsCount: currentCommentsCount + 1,
+        },
+      },
+      { merge: true }
+    )
+  })
 }
 
 type CommentReactionType = "like" | "dislike"
@@ -131,68 +211,129 @@ export async function toggleRecipeCommentReaction({
     recipeId,
     commentId,
     userId,
-    type
+    username,
+    profileImage,
+    type,
 }: {
     recipeId: string
     commentId: string
     userId: string
+    username: string
+    profileImage?: string
     type: CommentReactionType
 }) {
-    const commentRef = doc(db, "recipes", recipeId, "comments", commentId)
-    const reactionId = `${recipeId}_${commentId}_${userId}`
-    const reactionRef = doc(db, "commentReactions", reactionId)
+   const recipeRef = doc(db, "recipes", recipeId)
+  const commentRef = doc(db, "recipes", recipeId, "comments", commentId)
 
-    await runTransaction(db, async (transaction) => {
-        const commentSnap = await transaction.get(commentRef)
-        const reactionSnap = await transaction.get(reactionRef)
+  const reactionId = `${recipeId}_${commentId}_${userId}`
+  const reactionRef = doc(db, "commentReactions", reactionId)
 
-        if (!commentSnap.exists()) {
-            throw new Error("Comment document does not exist.")
-        }
+  await runTransaction(db, async (transaction) => {
+    const recipeSnap = await transaction.get(recipeRef)
+    const commentSnap = await transaction.get(commentRef)
+    const reactionSnap = await transaction.get(reactionRef)
 
-        const previousType = reactionSnap.exists()
-            ? reactionSnap.data()?.type as CommentReactionType
-            : null
+    if (!recipeSnap.exists()) {
+      throw new Error("Recipe document does not exist.")
+    }
 
-        if (previousType === type) {
-            transaction.delete(reactionRef)
+    if (!commentSnap.exists()) {
+      throw new Error("Comment document does not exist.")
+    }
 
-            transaction.update(commentRef, {
-                [`${type}sCount`]: increment(-1),
-                updatedAt: serverTimestamp(),
-            })
+    const recipeData = recipeSnap.data()
+    const commentData = commentSnap.data()
 
-            return
-        }
+    const commentOwnerId = commentData?.userId || ""
+    const recipeTitle = recipeData?.title || "your recipe"
+    const isReply = Boolean(commentData?.parentCommentId)
 
-        if (previousType) {
-            transaction.update(commentRef, {
-                [`${previousType}sCount`]: increment(-1),
-                [`${type}sCount`]: increment(1),
-                updatedAt: serverTimestamp(),
-            })
-        } else {
-            transaction.update(commentRef, {
-                [`${type}sCount`]: increment(1),
-                updatedAt: serverTimestamp(),
-            })
-        }
+    const previousType = reactionSnap.exists()
+      ? (reactionSnap.data()?.type as CommentReactionType)
+      : null
 
-        transaction.set(
-            reactionRef,
-            {
-                recipeId,
-                commentId,
-                userId,
-                type,
-                createdAt: reactionSnap.exists()
-                    ? reactionSnap.data()?.createdAt
-                    : serverTimestamp(),
-                updatedAt: serverTimestamp(),  
-            },
-            { merge: true }
-        )
-    })
+    const notificationRef = doc(
+      db,
+      "users",
+      commentOwnerId,
+      "notifications",
+      getCommentReactionNotificationId(commentId, userId)
+    )
+
+    if (previousType === type) {
+      transaction.delete(reactionRef)
+
+      transaction.update(commentRef, {
+        [`${type}sCount`]: increment(-1),
+        updatedAt: serverTimestamp(),
+      })
+
+      if (commentOwnerId && commentOwnerId !== userId) {
+        transaction.delete(notificationRef)
+      }
+
+      return
+    }
+
+    if (previousType) {
+      transaction.update(commentRef, {
+        [`${previousType}sCount`]: increment(-1),
+        [`${type}sCount`]: increment(1),
+        updatedAt: serverTimestamp(),
+      })
+    } else {
+      transaction.update(commentRef, {
+        [`${type}sCount`]: increment(1),
+        updatedAt: serverTimestamp(),
+      })
+    }
+
+    transaction.set(
+      reactionRef,
+      {
+        recipeId,
+        commentId,
+        userId,
+        type,
+        createdAt: reactionSnap.exists()
+          ? reactionSnap.data()?.createdAt
+          : serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    )
+
+    if (commentOwnerId && commentOwnerId !== userId) {
+      const notificationType =
+        isReply
+          ? type === "like"
+            ? "reply_like"
+            : "reply_dislike"
+          : type === "like"
+            ? "comment_like"
+            : "comment_dislike"
+
+      transaction.set(
+        notificationRef,
+        {
+          type: notificationType,
+          recipientUserId: commentOwnerId,
+          actorUserId: userId,
+          actorUsername: username || "Someone",
+          actorProfileImage: profileImage || "",
+          recipeId,
+          recipeTitle,
+          commentId,
+          parentCommentId: commentData?.parentCommentId || null,
+          reactionType: type,
+          message: `${username || "Someone"} ${type === "like" ? "liked" : "disliked"} your ${isReply ? "reply" : "comment"} on ${recipeTitle}.`,
+          read: false,
+          createdAt: serverTimestamp(),
+        },
+        { merge: true }
+      )
+    }
+  })
 }
 
 export function listenToRecipeCommentReactions(

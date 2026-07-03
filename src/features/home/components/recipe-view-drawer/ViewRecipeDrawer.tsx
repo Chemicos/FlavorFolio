@@ -22,7 +22,14 @@ import { CircularProgress } from "@mui/material"
 import { getUserRecipeRating, rateRecipe } from "../../services/ratings.service"
 import { ViewRecipeComment } from "./ViewRecipeCommentList"
 import { useRecipeComments } from "../../hooks/useRecipeComments"
-import { createRecipeComment, createRecipeReply, deleteRecipeComment, listenToRecipeCommentReactions, toggleRecipeCommentReaction, updateRecipeComment } from "../../services/comments.service"
+import { 
+    createRecipeComment, 
+    createRecipeReply, 
+    deleteRecipeComment, 
+    listenToRecipeCommentReactions, 
+    toggleRecipeCommentReaction, 
+    updateRecipeComment 
+} from "../../services/comments.service"
 import ViewRecipeIngredients from "./ViewRecipeIngredients"
 import ViewRecipeStepsSection from "./ViewRecipeStepsSection"
 import ViewRecipeCommentsSection from "./ViewRecipeCommentsSection"
@@ -54,6 +61,13 @@ interface ViewRecipeDrawerProps {
     onDeleteRecipe: (recipeId: string) => void
     presentation?: "overlay" | "inline"
     width?: number
+    onBlockUser?: (user: {
+        userId: string
+        username: string
+        profileImage?: string
+    }) => void
+    blockedUserIds?: string[]
+    blockedByUserIds?: string[]
 }
 
 export default function ViewRecipeDrawer({
@@ -72,6 +86,9 @@ export default function ViewRecipeDrawer({
     onDeleteRecipe,
     presentation = "overlay",
     width = 540,
+    onBlockUser,
+    blockedUserIds = [],
+    blockedByUserIds = [],
 }: ViewRecipeDrawerProps) {
     type ViewRecipeTab = "ingredients" | "steps" | "comments"
 
@@ -228,25 +245,51 @@ export default function ViewRecipeDrawer({
     const shouldCollapseDescription = description.trim().length > 100
 
     const [isSubmittingComment, setIsSubmittingComment] = useState(false)
-    const displayedCommentsCount = totalLiveCommentsCount || commentsCount
+    const [commentReactions, setCommentReactions] = useState<Record<string, "like" | "dislike">>({})
 
+    const commentsWithReactions = useMemo(() => {
+        return comments.map((comment) => ({
+            ...comment,
+            currentUserReaction: commentReactions[comment.id] || null,
+            replies: comment.replies?.map((reply) => ({
+            ...reply,
+            currentUserReaction: commentReactions[reply.id] || null,
+            })),
+        }))
+    }, [comments, commentReactions])
+
+    const hiddenCommentUserIds = useMemo(() => {
+        return new Set(
+            [...blockedUserIds, ...blockedByUserIds]
+            .filter(Boolean)
+            .map((id) => id.trim())
+        )
+    }, [blockedUserIds, blockedByUserIds])
+
+    const visibleCommentsWithReactions = useMemo(() => {
+        return commentsWithReactions
+            .filter((comment) => {
+            const commentUserId = comment.userId?.trim()
+            return !commentUserId || !hiddenCommentUserIds.has(commentUserId)
+            })
+            .map((comment) => ({
+            ...comment,
+            replies: (comment.replies || []).filter((reply) => {
+                const replyUserId = reply.userId?.trim()
+                return !replyUserId || !hiddenCommentUserIds.has(replyUserId)
+            }),
+        }))
+    }, [commentsWithReactions, hiddenCommentUserIds])
+
+     const visibleCommentsCount = useMemo(() => {
+        return visibleCommentsWithReactions.reduce((total, comment) => {
+            return total + 1 + (comment.replies?.length || 0)
+        }, 0)
+    }, [visibleCommentsWithReactions])
+    const displayedCommentsCount = visibleCommentsCount
     const showComments = isRecipePublic
 
-    const tabs: {id: ViewRecipeTab; label: string, count?: number}[] = [
-        {id: "ingredients", label: "Ingredients", count: ingredients.length},
-        {id: "steps", label: "Steps", count: steps.length},
-        ...(showComments
-            ? [
-                {
-                    id: "comments" as const,
-                    label: "Comments",
-                    count: displayedCommentsCount,
-                },
-            ]
-            : []),
-    ]
-
-    const [commentReactions, setCommentReactions] = useState<Record<string, "like" | "dislike">>({})
+    
     const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null)
     const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 
@@ -292,6 +335,8 @@ export default function ViewRecipeDrawer({
                 recipeId: recipe.recipeId,
                 userId: currentUser.uid,
                 value,
+                username: currentUser.username || "User",
+                profileImage: currentUser.profileImage || "",
             })
 
             setUserRating(result.userRating)
@@ -405,9 +450,11 @@ export default function ViewRecipeDrawer({
         if (!currentUser?.uid || !recipe.recipeId) return
         try {
             await toggleRecipeCommentReaction({
-                recipeId: recipe.recipeId, 
+                recipeId: recipe.recipeId,
                 commentId: comment.id,
                 userId: currentUser.uid,
+                username: currentUser.username || "User",
+                profileImage: currentUser.profileImage || "",
                 type,
             })
         } catch (error) {
@@ -415,16 +462,19 @@ export default function ViewRecipeDrawer({
         }
     }
 
-    const commentsWithReactions = useMemo(() => {
-        return comments.map((comment) => ({
-            ...comment,
-            currentUserReaction: commentReactions[comment.id] || null,
-            replies: comment.replies?.map((reply) => ({
-            ...reply,
-            currentUserReaction: commentReactions[reply.id] || null,
-            })),
-        }))
-    }, [comments, commentReactions])
+    const tabs: {id: ViewRecipeTab; label: string, count?: number}[] = [
+        {id: "ingredients", label: "Ingredients", count: ingredients.length},
+        {id: "steps", label: "Steps", count: steps.length},
+        ...(showComments
+            ? [
+                {
+                    id: "comments" as const,
+                    label: "Comments",
+                    count: visibleCommentsCount,
+                },
+            ]
+            : []),
+    ]
     
     const toggleAllSteps = () => {
         if (areAllStepsExpanded) {
@@ -860,8 +910,8 @@ export default function ViewRecipeDrawer({
                                     transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                                 >
                                     <ViewRecipeCommentsSection
-                                        commentsCount={commentsCount}
-                                        comments={commentsWithReactions}
+                                        commentsCount={visibleCommentsCount}
+                                        comments={visibleCommentsWithReactions}
                                         currentUser={currentUser}
                                         onAuthorClick={onAuthorClick}
                                         isLoadingComments={isLoadingComments}
@@ -879,6 +929,9 @@ export default function ViewRecipeDrawer({
                                         onCancelEditComment={() => setEditingCommentId(null)}
                                         onUpdateComment={handleUpdateComment}
                                         onDeleteComment={setCommentToDelete}
+                                        onBlockUser={onBlockUser}
+                                        blockedUserIds={blockedUserIds}
+                                        blockedByUserIds={blockedByUserIds}
                                     />
                                 </motion.div>
                             )}

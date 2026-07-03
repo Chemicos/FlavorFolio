@@ -83,20 +83,9 @@ export function useRecipeCardActions({
       const didSave = await toggleSavedRecipe({
         currentUserId: currentUser.uid,
         recipeId: recipe.recipeId,
+        currentUsername: currentUser.username || "User",
+        currentProfileImage: currentUser.profileImage || "",
       })
-
-      if (didSave && recipe.userId && recipe.userId !== currentUser.uid) {
-        await createRecipeSaveNotification({
-          recipientUserId: recipe.userId,
-          type: "recipe_saved",
-          actorUserId: currentUser.uid,
-          actorUsername: currentUser.username || "",
-          actorProfileImage: currentUser.profileImage || "",
-          recipeId: recipe.recipeId,
-          recipeTitle: recipe.title || "",
-          message: `User ${currentUser.username} added ${recipe.title} to their favorite recipes.`,
-        })
-      }
 
       onFavoriteStateChange(recipe.recipeId, didSave)
     } catch (error) {

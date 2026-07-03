@@ -15,12 +15,24 @@ interface ToggleFollowInput {
   currentProfileImage: string
 }
 
+function getFollowNotificationId(actorUserId: string) {
+  return `follow_${actorUserId}`
+}
+
 export async function toggleFollowUser(input: ToggleFollowInput) {
   const currentUserRef = doc(db, "users", input.currentUserId)
   const authorUserRef = doc(db, "users", input.authorId)
 
   const followingRef = doc(db, "users", input.currentUserId, "following", input.authorId)
   const followerRef = doc(db, "users", input.authorId, "followers", input.currentUserId)
+
+  const followNotificationRef = doc(
+    db,
+    "users",
+    input.authorId,
+    "notifications",
+    getFollowNotificationId(input.currentUserId)
+  )
 
   return runTransaction(db, async (transaction) => {
     const followingSnap = await transaction.get(followingRef)
@@ -40,6 +52,7 @@ export async function toggleFollowUser(input: ToggleFollowInput) {
     if (followingSnap.exists()) {
       transaction.delete(followingRef)
       transaction.delete(followerRef)
+      transaction.delete(followNotificationRef)
 
       transaction.set(authorUserRef, {
         stats: {
@@ -70,6 +83,18 @@ export async function toggleFollowUser(input: ToggleFollowInput) {
       username: input.currentUsername,
       profileImageUrl: input.currentProfileImage,
       followedAt: serverTimestamp(),
+    })
+
+    transaction.set(followNotificationRef, {
+      type: "user_followed",
+      recipientUserId: input.authorId,
+      actorUserId: input.currentUserId,
+      actorUsername: input.currentUsername || "User",
+      actorProfileImage: input.currentProfileImage || "",
+      title: "New follower",
+      message: `${input.currentUsername || "Someone"} started following you.`,
+      isRead: false,
+      createdAt: serverTimestamp(),
     })
 
     transaction.set(authorUserRef, {

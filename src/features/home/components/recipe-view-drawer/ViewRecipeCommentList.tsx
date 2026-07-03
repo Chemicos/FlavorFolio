@@ -33,21 +33,28 @@ export interface ViewRecipeComment {
 }
 
 interface ViewRecipeCommentListProps {
-  comments?: ViewRecipeComment[]
-  currentUserId?: string
-  editingCommentId?: string | null
-  isUpdatingComment?: boolean
-  isSubmittingReply?: boolean
-  replyingCommentId?: string | null
-  onStartReplyComment?: (comment: ViewRecipeComment) => void
-  onCancelReplyComment?: () => void
-  onReplyComment?: (comment: ViewRecipeComment, value: string) => void
-  onToggleCommentReaction?: (comment: ViewRecipeComment, type: "like" | "dislike") => void
-  onStartEditComment?: (comment: ViewRecipeComment) => void
-  onCancelEditComment?: () => void
-  onUpdateComment?: (comment: ViewRecipeComment, value: string) => void
-  onDeleteComment?: (comment: ViewRecipeComment) => void
-  onAuthorClick?: (userId: string) => void
+    comments?: ViewRecipeComment[]
+    currentUserId?: string
+    editingCommentId?: string | null
+    isUpdatingComment?: boolean
+    isSubmittingReply?: boolean
+    replyingCommentId?: string | null
+    onStartReplyComment?: (comment: ViewRecipeComment) => void
+    onCancelReplyComment?: () => void
+    onReplyComment?: (comment: ViewRecipeComment, value: string) => void
+    onToggleCommentReaction?: (comment: ViewRecipeComment, type: "like" | "dislike") => void
+    onStartEditComment?: (comment: ViewRecipeComment) => void
+    onCancelEditComment?: () => void
+    onUpdateComment?: (comment: ViewRecipeComment, value: string) => void
+    onDeleteComment?: (comment: ViewRecipeComment) => void
+    onAuthorClick?: (userId: string) => void
+    onBlockUser?: (user: {
+    userId: string
+    username: string
+    profileImage?: string
+    }) => void
+    blockedUserIds?: string[]
+    blockedByUserIds?: string[]
 }
 
 export default function ViewRecipeCommentList({ 
@@ -66,8 +73,24 @@ export default function ViewRecipeCommentList({
     onUpdateComment,
     onDeleteComment,
     onAuthorClick,
+    onBlockUser,
+    blockedUserIds = [],
+    blockedByUserIds = [],
 }: ViewRecipeCommentListProps) {
-    if (!comments.length) {
+    const hiddenUserIds = new Set([...blockedUserIds, ...blockedByUserIds])
+    
+    console.log("hidden ids:", [...hiddenUserIds])
+    console.log("comments:", comments.map((c) => c.userId))
+    const visibleComments = comments
+        .filter((comment) => !comment.userId || !hiddenUserIds.has(comment.userId))
+        .map((comment) => ({
+            ...comment,
+            replies: (comment.replies || []).filter(
+                (reply) => !reply.userId || !hiddenUserIds.has(reply.userId)
+            ),
+    }))
+
+    if (!visibleComments.length) {
         return (
           <p className="text-sm text-[#a8b3cf]/40 text-center">
             No comments yet. Be the first to share your thoughts.
@@ -77,7 +100,7 @@ export default function ViewRecipeCommentList({
 
     return (
        <div className="flex flex-col gap-8">
-            {comments.map((comment) => (
+            {visibleComments.map((comment) => (
                 <CommentItem 
                     key={comment.id} 
                     comment={comment} 
@@ -97,6 +120,9 @@ export default function ViewRecipeCommentList({
                     onUpdateComment={onUpdateComment}
                     onDeleteComment={onDeleteComment} 
                     onAuthorClick={onAuthorClick}
+                    onBlockUser={onBlockUser}
+                    blockedUserIds={blockedUserIds}
+                    blockedByUserIds={blockedByUserIds}
                 />
             ))}
         </div> 
@@ -139,6 +165,9 @@ function CommentItem({
     onUpdateComment,
     onDeleteComment,
     onAuthorClick,
+    onBlockUser,
+    blockedUserIds = [],
+    blockedByUserIds = [],
 }: {
     comment: ViewRecipeComment 
     currentUserId?: string
@@ -158,7 +187,16 @@ function CommentItem({
     onUpdateComment?: (comment: ViewRecipeComment, value: string) => void
     onDeleteComment?: (comment: ViewRecipeComment) => void
     onAuthorClick?: (userId: string) => void
+    onBlockUser?: (user: {
+        userId: string
+        username: string
+        profileImage?: string
+    }) => void
+    blockedUserIds?: string[]
+    blockedByUserIds?: string[]
 }) {
+    const hiddenUserIds = new Set([...blockedUserIds, ...blockedByUserIds])
+
     const isOwnComment = Boolean(currentUserId && comment.userId === currentUserId)
     const [showReplies, setShowReplies] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -167,8 +205,9 @@ function CommentItem({
 
     const [replyValue, setReplyValue] = useState("")
     const replyTextareaRef = useRef<HTMLTextAreaElement | null>(null)
-
-    const replies = comment.replies || []
+    const replies = (comment.replies || []).filter(
+        (reply) => !reply.userId || !hiddenUserIds.has(reply.userId)
+    )
     const hasReplies = replies.length > 0
     const replyMention = `@${comment.username} `
     const hasReplyText = replyValue.trim() !== replyMention.trim()
@@ -330,7 +369,19 @@ function CommentItem({
                                     )}
 
                                     {!isOwnComment && (
-                                        <button type="button"
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (!comment.userId) return
+
+                                                setIsMenuOpen(false)
+
+                                                onBlockUser?.({
+                                                userId: comment.userId,
+                                                username: comment.username,
+                                                profileImage: comment.profileImage || "",
+                                                })
+                                            }}
                                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
                                         >
                                             <BlockRoundedIcon sx={{ fontSize: 18 }} />
@@ -522,6 +573,9 @@ function CommentItem({
                                     onUpdateComment={onUpdateComment}
                                     onDeleteComment={onDeleteComment}
                                     onAuthorClick={onAuthorClick}
+                                    onBlockUser={onBlockUser}
+                                    blockedUserIds={blockedUserIds}
+                                    blockedByUserIds={blockedByUserIds}
                                 />
                             ))}
                             </div>

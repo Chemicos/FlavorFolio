@@ -13,6 +13,8 @@ import LightModeIcon from '@mui/icons-material/LightMode'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import UserDropdownMenu from './UserDropdownMenu'
+import { useNotifications } from '../../features/notifications/hooks/useNotifications'
+import NotificationsPopover from '../../features/notifications/components/NotificationsPopover'
 
 interface NavigationProps {
   onFeedbackClick?: () => void
@@ -44,6 +46,18 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
     const menuOpen = Boolean(anchorEl)
     const [isScrolled, setIsScrolled] = useState(false)
     const shouldUseSolidNav = variant === "solid" || isScrolled
+
+    const notificationRef = useRef<HTMLDivElement | null>(null)
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+
+    const {
+      notifications,
+      unreadCount,
+      isLoading: isLoadingNotifications,
+      markAsRead,
+      markAllAsRead,
+      deleteNotification,
+    } = useNotifications(20)
     
     useEffect(() => {
       const fetchPendingCount = async () => {
@@ -160,6 +174,24 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
     fetchNeedsRevisionCount()
   }, [])
 
+  useEffect(() => {
+    if (!isNotificationsOpen) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!notificationRef.current) return
+
+      if (!notificationRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false)
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown)
+    }
+  }, [isNotificationsOpen])
+
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode
     setIsDarkMode(newDarkMode)
@@ -246,9 +278,39 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
             </Link>
 
             <div className='flex items-center gap-4 lg:gap-6'>
-              <button className='text-[#a8b3cf] hover:text-white'>
-                <NotificationsIcon sx={{fontSize: 25}} />
-              </button>
+              <div ref={notificationRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsNotificationsOpen((prev) => !prev)}
+                  className="relative flex h-10 w-10 items-center justify-center rounded-lg text-[#a8b3cf] transition hover:bg-white/[0.06] hover:text-white active:scale-95"
+                  aria-label="Notifications"
+                >
+                  <NotificationsIcon sx={{ fontSize: 25 }} />
+
+                  {unreadCount > 0 && (
+                    <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-400 px-1 text-[10px] font-bold text-[#0b0b0c] shadow-[0_0_14px_rgba(251,146,60,0.65)]">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                <NotificationsPopover
+                  isOpen={isNotificationsOpen}
+                  notifications={notifications}
+                  unreadCount={unreadCount}
+                  isLoading={isLoadingNotifications}
+                  onClose={() => setIsNotificationsOpen(false)}
+                  onMarkAsRead={markAsRead}
+                  onMarkAllAsRead={markAllAsRead}
+                  onDelete={deleteNotification}
+                  onNotificationClick={(notification) => {
+                    if (notification.recipeId) {
+                      setIsNotificationsOpen(false)
+                      // momentan doar închidem; mai târziu putem deschide recipe drawer / navigate.
+                    }
+                  }}
+                />
+              </div>
 
               <div className='relative'>
                 <button

@@ -1,6 +1,7 @@
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded"
 import SendRoundedIcon from "@mui/icons-material/SendRounded"
 import BlockRoundedIcon from "@mui/icons-material/BlockRounded"
+import { CircularProgress } from "@mui/material"
 
 import { useNavigate, useParams } from "react-router-dom"
 import { useUserProfile } from "../hooks/useUserProfile"
@@ -14,7 +15,6 @@ import ProfileRecipeGridSkeleton from "../components/ProfileRecipeGridSkeleton"
 import ProfileRecipeGrid from "../components/ProfileRecipeGrid"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 import { ProfileConnectionType, subscribeToMyFollowingUserIds, subscribeToMySavedRecipeIds, toggleProfileFollow } from "../services/profileConnections.service"
-import { CircularProgress } from "@mui/material"
 import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 import ProfileConnectionsModal from "../components/ProfileConnectionsModal"
 import { Recipe } from "../../home/types"
@@ -23,6 +23,7 @@ import { subscribeToProfileRecipeById } from "../services/profileRecipes.service
 import { AnimatePresence, motion } from "motion/react"
 import ViewRecipeDrawer from "../../home/components/recipe-view-drawer/ViewRecipeDrawer"
 import { MyProfileData, subscribeToMyProfile } from "../services/profile.service"
+import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds, unblockUser } from "../../account-settings/services/blockedUsers.service"
 
 function ViewRecipeDrawerLoading({ width }: { width: number }) {
   return (
@@ -40,6 +41,15 @@ export default function UserProfilePage() {
   const navigate = useNavigate()
   const { userId } = useParams<{ userId: string }>()
   const { showSnackbar } = useSnackbar()
+  
+
+  const [blockedUserIds, setBlockedUserIds] = useState<string[]>([])
+  const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
+  const [isBlockLoading, setIsBlockLoading] = useState(false)
+
+  const isBlockedProfile = Boolean(userId && blockedUserIds.includes(userId))
+  const isBlockedByProfile = Boolean(userId && blockedByUserIds.includes(userId))
+  const hasBlockedRelationship = isBlockedProfile || isBlockedByProfile
 
   const { profile, recipes, setRecipes, isLoading, error } = useUserProfile(userId)
   const [connectionsModalType, setConnectionsModalType] = useState<ProfileConnectionType | null>(null)
@@ -69,6 +79,23 @@ export default function UserProfilePage() {
   const isDrawerOpen = Boolean(selectedRecipe || isRecipeDrawerLoading)
 
   const categories = useMemo(() => ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],[])
+
+  useEffect(() => {
+    if (!currentUserId) {
+      setBlockedByUserIds([])
+      return
+    }
+
+    const unsubscribe = subscribeToBlockedByUserIds({
+      userId: currentUserId,
+      onChange: setBlockedByUserIds,
+      onError: (error) => {
+        console.error("Failed to load blocked by users:", error)
+      },
+    })
+
+    return () => unsubscribe()
+  }, [currentUserId])
 
   useEffect(() => {
     const auth = getAuth()
@@ -113,6 +140,23 @@ export default function UserProfilePage() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [isProfileActionsMenuOpen])
+
+  useEffect(() => {
+    if (!currentUserId) {
+      setBlockedUserIds([])
+      return
+    }
+
+    const unsubscribe = subscribeToBlockedUserIds({
+      userId: currentUserId,
+      onChange: setBlockedUserIds,
+      onError: (error) => {
+        console.error("Failed to load blocked users:", error)
+      },
+    })
+
+    return () => unsubscribe()
+  }, [currentUserId])
 
   useEffect(() => {
     if (!currentUserId) {
@@ -427,9 +471,43 @@ export default function UserProfilePage() {
     showSnackbar("Messaging is coming soon.", "info")
   }
 
-  const handleBlockUser = () => {
-    setIsProfileActionsMenuOpen(false)
-    showSnackbar("Block user flow is coming soon.", "info")
+  const handleToggleBlockUser = async () => {
+    if (!currentUserId || !userId || !profile || isOwnProfile || isBlockLoading) return
+
+    try {
+      setIsProfileActionsMenuOpen(false)
+      setIsBlockLoading(true)
+
+      if (isBlockedProfile) {
+        await unblockUser({
+          currentUserId,
+          targetUserId: userId,
+        })
+
+        setBlockedUserIds((prev) => prev.filter((id) => id !== userId))
+        showSnackbar(`${profile.username} has been unblocked.`, "success")
+        return
+      }
+
+      await blockUser({
+        currentUserId,
+        targetUserId: userId,
+        targetUsername: profile.username || "User",
+        targetProfileImage: profile.profileImage || "",
+      })
+
+      setBlockedUserIds((prev) =>
+        prev.includes(userId) ? prev : [...prev, userId]
+      )
+
+      setFollowingUserIds((prev) => prev.filter((id) => id !== userId))
+      showSnackbar(`${profile.username} has been blocked.`, "success")
+    } catch (error) {
+      console.error("Failed to update block status:", error)
+      showSnackbar("Failed to update block status. Please try again.", "error")
+    } finally {
+      setIsBlockLoading(false)
+    }
   }
 
   return (
@@ -467,25 +545,27 @@ export default function UserProfilePage() {
                 rightAction={
                  !isOwnProfile ? (
                     <div ref={profileActionsMenuRef} className="relative flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleToggleFollow}
-                        disabled={isFollowLoading}
-                        className={[
-                          "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
-                          isFollowingProfile
-                            ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
-                            : "border-white/10 bg-[#0b0b0c]/80 text-white hover:hover:bg-[#202429]/80",
-                        ].join(" ")}
-                      >
-                        {isFollowLoading ? (
-                          <CircularProgress size={15} thickness={5} sx={{ color: "#ffffff" }} />
-                        ) : isFollowingProfile ? (
-                          "Following"
-                        ) : (
-                          "Follow"
-                        )}
-                      </button>
+                      {!hasBlockedRelationship && (
+                        <button
+                          type="button"
+                          onClick={handleToggleFollow}
+                          disabled={isFollowLoading}
+                          className={[
+                            "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+                            isFollowingProfile
+                              ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                              : "border-white/10 bg-[#0b0b0c]/80 text-white hover:bg-[#202429]/80",
+                          ].join(" ")}
+                        >
+                          {isFollowLoading ? (
+                            <CircularProgress size={15} thickness={5} sx={{ color: "#ffffff" }} />
+                          ) : isFollowingProfile ? (
+                            "Following"
+                          ) : (
+                            "Follow"
+                          )}
+                        </button>
+                      )}
 
                       <button
                         type="button"
@@ -516,11 +596,16 @@ export default function UserProfilePage() {
 
                             <button
                               type="button"
-                              onClick={handleBlockUser}
-                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                              onClick={handleToggleBlockUser}
+                              disabled={isBlockLoading}
+                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d] disabled:opacity-60"
                             >
-                              <BlockRoundedIcon sx={{ fontSize: 18 }} />
-                              Block user
+                              {isBlockLoading ? (
+                                <CircularProgress size={15} thickness={5} sx={{ color: "#ff8b7d" }} />
+                              ) : (
+                                <BlockRoundedIcon sx={{ fontSize: 18 }} />
+                              )}
+                              {isBlockedProfile ? "Unblock user" : "Block user"}
                             </button>
                           </motion.div>
                         )}
@@ -551,13 +636,27 @@ export default function UserProfilePage() {
                 <ProfileRecipeGridSkeleton viewMode={viewMode} count={8} />
               )}
 
-              {!isLoading && !isSearching && (
-                <ProfileRecipeGrid
-                  recipes={visibleRecipes}
-                  viewMode={viewMode}
-                  currentUserId={null}
-                  onRecipeClick={(recipe) => {setSelectedRecipeId(recipe.id)}}
-                />
+              {hasBlockedRelationship ? (
+                <div className="mt-8 rounded-2xl border border-orange-400/10 bg-orange-500/[0.04] p-8 text-center">
+                  <h3 className="text-lg font-bold text-white">
+                    {isBlockedProfile ? "You blocked this user" : "This profile is unavailable"}
+                  </h3>
+
+                  <p className="mx-auto mt-2 max-w-[520px] text-sm leading-6 text-[#8f97b1]">
+                    {isBlockedProfile
+                      ? "Recipes and interactions from this profile are hidden. You can manage blocked accounts from Account Settings."
+                      : "You cannot view this profile or interact with this user."}
+                  </p>
+                </div>
+              ) : (
+                !isLoading && !isSearching && (
+                  <ProfileRecipeGrid
+                    recipes={visibleRecipes}
+                    viewMode={viewMode}
+                    currentUserId={null}
+                    onRecipeClick={(recipe) => setSelectedRecipeId(recipe.id)}
+                  />
+                )
               )}
             </>
           )}

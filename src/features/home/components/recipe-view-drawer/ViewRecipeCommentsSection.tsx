@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
 import { formatCompactCount } from "../../utils/recipeCardFormatters"
 import ViewRecipeCommentComposer from "./ViewRecipeCommentComposer"
@@ -25,6 +26,13 @@ interface ViewRecipeCommentsSectionProps {
   onUpdateComment: (comment: ViewRecipeComment, value: string) => void
   onDeleteComment: (comment: ViewRecipeComment) => void
   onAuthorClick?: (userId: string) => void
+  onBlockUser?: (user: {
+    userId: string
+    username: string
+    profileImage?: string
+  }) => void
+  blockedUserIds?: string[]
+  blockedByUserIds?: string[]
 }
 
 export default function ViewRecipeCommentsSection({
@@ -46,14 +54,47 @@ export default function ViewRecipeCommentsSection({
   onStartEditComment,
   onCancelEditComment,
   onUpdateComment,
-  onDeleteComment
+  onDeleteComment,
+  onBlockUser,
+  blockedUserIds = [],
+  blockedByUserIds = [],
 }: ViewRecipeCommentsSectionProps) {
+
+  const hiddenUserIds = useMemo(() => {
+    return new Set(
+      [...blockedUserIds, ...blockedByUserIds]
+        .filter(Boolean)
+        .map((id) => id.trim())
+    )
+  }, [blockedUserIds, blockedByUserIds])
+
+  const visibleComments = useMemo(() => {
+    return comments
+      .filter((comment) => {
+        const userId = comment.userId?.trim()
+        return userId && !hiddenUserIds.has(userId)
+      })
+      .map((comment) => ({
+        ...comment,
+        replies: (comment.replies || []).filter((reply) => {
+          const userId = reply.userId?.trim()
+          return userId && !hiddenUserIds.has(userId)
+        }),
+      }))
+  }, [comments, hiddenUserIds])
+
+  const visibleCommentsCount = useMemo(() => {
+    return visibleComments.reduce(
+      (total, comment) => total + 1 + (comment.replies?.length || 0),
+      0
+    )
+  }, [visibleComments])
   return (
     <div className="mt-4">
       <div className="flex items-center gap-3">
           <ChatBubbleOutlineRoundedIcon sx={{fontSize: 20, color: "#ffffff"}} />
           <h2 className="text-[1.2rem] font-bold text-white">
-              Comments {formatCompactCount(commentsCount, true)}
+              Comments {formatCompactCount(visibleCommentsCount, true)}
           </h2>
       </div>
 
@@ -68,7 +109,7 @@ export default function ViewRecipeCommentsSection({
               <p className="text-sm text-[#7f89a6]">Loading comments...</p>
           ): (
               <ViewRecipeCommentList 
-                  comments={comments} 
+                  comments={visibleComments} 
                   currentUserId={currentUser?.uid}
                   onAuthorClick={onAuthorClick}
                   editingCommentId={editingCommentId}
@@ -82,7 +123,10 @@ export default function ViewRecipeCommentsSection({
                   onStartEditComment={onStartEditComment}
                   onCancelEditComment={onCancelEditComment}
                   onUpdateComment={onUpdateComment}
-                  onDeleteComment={onDeleteComment} 
+                  onDeleteComment={onDeleteComment}
+                  onBlockUser={onBlockUser} 
+                  blockedUserIds={blockedUserIds}
+                  blockedByUserIds={blockedByUserIds}
               />
           )}
       </div>
