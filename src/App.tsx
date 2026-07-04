@@ -6,7 +6,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // import ProfilePage from './components/myProfile/ProfilePage'
 // import AccountSettings from './components/AccountSettings/AccountSettings'
 // import ViewUserProfile from './components/UsersProfile/ViewUserProfile'
-import Dashboard from './components/DashboardAdmin/Dashboard'
+// import Dashboard from './components/DashboardAdmin/Dashboard'
 import ManageFeedback from './components/Feedback/ManageFeedback'
 // import Register from './features/auth/pages/Register'
 import Login from './features/auth/pages/Login'
@@ -19,6 +19,8 @@ import NeedsRevisionPage from './features/needs-revision/pages/NeedsRevisionPage
 import MyProfilePage from './features/profile/pages/MyProfilePage'
 import UserProfilePage from './features/profile/pages/UserProfilePage'
 import AccountSettingsPage from './features/account-settings/pages/AccountSettingsPage'
+import AdminDashboardPage from './features/admin-dashboard/pages/AdminDashboardPage'
+import AdminRecipesPage from './features/admin-dashboard/pages/AdminRecipesPage'
 
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -46,7 +48,8 @@ function App() {
           <Route path='/profile' element={user ? <MyProfilePage /> : <Navigate replace to="/" />} />
           <Route path="/users/:userId" element={user ? <UserProfilePage /> : <Navigate replace to="/" />} />
           <Route path='/settings' element={user ? <AccountSettingsPage /> : <Navigate replace to="/" />} />
-          <Route path='/dashboard' element={user ? <Dashboard /> : <Navigate replace to="/" />} />
+          <Route path='/admin/dashboard' element={user ? <AdminDashboardPage/> : <Navigate replace to="/" />} />
+          <Route path="/admin/recipes" element={user ? <AdminRecipesPage /> : <Navigate replace to="/" />}/>
           <Route path='/manage-feedback' element={user ? <ManageFeedback /> : <Navigate replace to="/" />} />
         </Routes>
       </div>

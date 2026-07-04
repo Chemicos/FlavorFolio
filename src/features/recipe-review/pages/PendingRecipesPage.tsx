@@ -15,9 +15,13 @@ import { ReviewSectionKey } from "../services/recipeReview.service"
 import { ReviewSectionFeedback } from "../components/RecipeReviewSectionHeader"
 import DenyRecipeWindow from "../components/DenyRecipeWindow"
 import { useSnackbar } from "../../../components/layout/SnackbarProvider"
+import { useSearchParams } from "react-router-dom"
 
 export default function PendingRecipesPage() {
     const { showSnackbar } = useSnackbar()
+
+    const [searchParams, setSearchParams] = useSearchParams()
+    const targetRecipeId = searchParams.get("recipeId")
        
     const [search, setSearch] = useState("")
     const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -129,6 +133,28 @@ export default function PendingRecipesPage() {
         const startIndex = (currentPage - 1) * rowsPerPage
         return filteredRecipes.slice(startIndex, startIndex + rowsPerPage)
     }, [filteredRecipes, currentPage, rowsPerPage])
+
+    useEffect(() => {
+        if (!targetRecipeId || isLoading || !recipes.length) return
+
+        const targetRecipe = recipes.find(
+            (recipe) => recipe.recipeId === targetRecipeId
+        )
+
+        if (!targetRecipe) return
+
+        setSelectedRecipe(targetRecipe)
+
+        const targetIndex = filteredRecipes.findIndex(
+            (recipe) => recipe.recipeId === targetRecipeId
+        )
+
+        if (targetIndex >= 0) {
+            setCurrentPage(Math.floor(targetIndex / rowsPerPage) + 1)
+        }
+
+        setSearchParams({}, { replace: true })
+    }, [targetRecipeId, isLoading, recipes, filteredRecipes, rowsPerPage, setSearchParams,])
 
     useEffect(() => {
         setCurrentPage(1)

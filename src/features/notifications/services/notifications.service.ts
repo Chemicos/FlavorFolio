@@ -14,6 +14,7 @@ export type NotificationType =
     | "comment_dislike"
     | "reply_like"
     | "reply_dislike"
+    | "recipe_approved"
 
 export interface FlavorFolioNotification {
     id: string

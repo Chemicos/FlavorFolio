@@ -9,6 +9,7 @@ import MuiRating from "@mui/material/Rating"
 import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded'
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
 import FavoriteIcon from '@mui/icons-material/Favorite'
+import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded"
 import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded'
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
 import SignalCellularAltRoundedIcon from "@mui/icons-material/SignalCellularAltRounded"
@@ -622,7 +623,7 @@ export default function ViewRecipeDrawer({
                             disabled={isFavoriteLoading}
                             className="absolute bottom-[10px] right-7 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-[#23262f] text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition duration-200 hover:scale-105 active:scale-95 disabled:opacity-60"
                             >
-                            <FavoriteIcon
+                            <BookmarkRoundedIcon
                                 sx={{
                                 color: isFavorite ? "#feaa2b" : "#ffffff",
                                 fontSize: 20,

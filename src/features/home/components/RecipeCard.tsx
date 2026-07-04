@@ -3,7 +3,8 @@ import type { Recipe, SavedRecipe } from "../types"
 import type { CurrentUserCardData } from '../types/recipeCard.types'
 import { getAuth } from 'firebase/auth'
 
-import FavoriteIcon from '@mui/icons-material/Favorite'
+// import FavoriteIcon from '@mui/icons-material/Favorite'
+import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded"
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'
 import MuiRating from "@mui/material/Rating"
 
@@ -111,7 +112,7 @@ export default function RecipeCard({
             duration-150 active:scale-90 disabled:cursor-not-allowed disabled:opacity-60'
             disabled={isFavoriteLoading}
           >
-            <FavoriteIcon 
+            <BookmarkRoundedIcon
               sx={{
                 color: isFavorite ? "#feaa2b" : "#ffffff",
                 fontSize: 22,

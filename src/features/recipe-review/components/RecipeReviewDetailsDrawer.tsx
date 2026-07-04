@@ -57,18 +57,20 @@ export default function RecipeReviewDetailsDrawer({
   const isReviewMode = mode === "review"
   const isRevisionMode = mode === "revision"
 
+  const defaultSectionFeedback: ReviewSectionFeedback = {
+    message: "",
+    severity: null,
+  }
+
   const getInitialReviewFeedback = (recipe: ReviewRecipe) => ({
     description: recipe.reviewFeedback?.description || defaultSectionFeedback,
     ingredients: recipe.reviewFeedback?.ingredients || defaultSectionFeedback,
     steps: recipe.reviewFeedback?.steps || defaultSectionFeedback,
   })
+
   const [reviewFeedback, setReviewFeedback] = useState(() =>
     getInitialReviewFeedback(recipe)
   )
-  const defaultSectionFeedback = {
-    message: "",
-    severity: null,
-  }
 
   const [isSavingFeedback, setIsSavingFeedback] = useState(false)
   const [editingSection, setEditingSection] = useState<ReviewSectionKey | null>(null)

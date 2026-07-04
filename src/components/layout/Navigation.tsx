@@ -365,7 +365,7 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
                   onProfile={() => handleNavigate("/profile")}
                   onPending={() => handleNavigate("/pending")}
                   onNeedsRevision={() => handleNavigate("/needs-revision")}
-                  onDashboard={() => handleNavigate("/dashboard")}
+                  onDashboard={() => handleNavigate("/admin/dashboard")}
                   onFeedbacks={handleFeedbackMenuClick}
                   onSettings={() => handleNavigate("/settings")}
                   onSignOut={handleSignOut}
