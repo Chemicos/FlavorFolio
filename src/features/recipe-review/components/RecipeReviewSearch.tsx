@@ -12,7 +12,7 @@ export default function RecipeReviewSearch({
   value,
   onChange,
   resultCount,
-   placeholder = "Search recipe...",
+  placeholder = "Search recipe...",
 }: RecipeReviewSearchProps) {
   const hasValue = value.trim().length > 0
   return (

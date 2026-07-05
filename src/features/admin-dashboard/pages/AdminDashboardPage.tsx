@@ -6,12 +6,10 @@ import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded"
 import ChatBubbleRoundedIcon from "@mui/icons-material/ChatBubbleRounded"
 import StarRoundedIcon from "@mui/icons-material/StarRounded"
 import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded"
-import CircularProgress from "@mui/material/CircularProgress"
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded'
 
 import { useAdminDashboardStats } from "../hooks/useAdminDashboardStats"
 
-import Navigation from "../../../components/layout/Navigation"
 import AdminDashboardMetricsCard from "../components/AdminDashboardMetricsCard"
 import AdminDashboardChartCard from "../components/AdminDashboardChartCard"
 import AdminDashboardStatusChart from "../components/AdminDashboardStatusChart"
@@ -21,8 +19,10 @@ import AdminDashboardActivityCh from "../components/AdminDashboardActivityCh"
 import { AdminDashboardTimeRange } from "../types/adminDashboard.types"
 import { useMemo, useState } from "react"
 import AdminDashboardSelect from "../components/AdminDashboardSelect"
-import AdminDashboardSidebar from "../components/AdminDashboardSidebar"
 import AdminLayout from "../components/AdminLayout"
+import AdminDashboardPageSkeleton from "../components/skeletons/AdminDashboardPageSkeleton"
+import { exportAdminDashboardSummaryPdf } from "../services/adminDashboardPdf.service"
+import { auth } from "../../../firebase-config"
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value)
@@ -114,6 +114,22 @@ export default function AdminDashboardPage() {
 
   const [recipesTimeRange, setRecipesTimeRange] = useState<AdminDashboardTimeRange>("30d")
 
+  const activeTimeRangeLabel =
+    TIME_RANGE_OPTIONS.find((option) => option.value === recipesTimeRange)?.label || "Last 30 days"
+
+  const handleExportPdf = () => {
+    if (!stats) return
+
+    exportAdminDashboardSummaryPdf({
+      stats,
+      adminName:
+        auth.currentUser?.displayName ||
+        auth.currentUser?.email ||
+        "Admin",
+      timeRangeLabel: activeTimeRangeLabel,
+    })
+  }
+
   const recipesOverTime = useMemo(() => {
     if (!stats) return []
 
@@ -125,181 +141,163 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminLayout>
-      {/* <Navigation variant="solid" /> */}
-{/* 
-      <AdminDashboardSidebar
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapsed={() => setIsSidebarCollapsed((prev) => !prev)}
-      /> */}
+      <header className="flex flex-col gap-5 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
+            Admin Dashboard
+          </h1>
+          <p className="mt-2 text-sm text-[#8f97b1]">
+            Overview of platform activity, moderation and recipe performance.
+          </p>
+        </div>
 
-      {/* <main 
-        className={[
-          "w-full px-6 pb-16 pt-28 transition-all duration-300 xl:px-8",
-          isSidebarCollapsed
-            ? "xl:ml-[82px] xl:w-[calc(100%-82px)]"
-            : "xl:ml-[260px] xl:w-[calc(100%-260px)]",
-        ].join(" ")}
-      > */}
-        {/* <div className="mx-auto w-full max-w-[1400px]"> */}
-          <header className="flex flex-col gap-5 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
-                Admin Dashboard
-              </h1>
-              <p className="mt-2 text-sm text-[#8f97b1]">
-                Overview of platform activity, moderation and recipe performance.
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={refetch}
+            className="rounded-lg border border-white/10 bg-white/[0.04] p-[5px] text-sm font-semibold text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white"
+          >
+            <RefreshRoundedIcon sx={{ fontSize: 26 }} />
+          </button>
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={refetch}
-                className="rounded-lg border border-white/10 bg-white/[0.04] p-[5px] text-sm font-semibold text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white"
-              >
-                <RefreshRoundedIcon sx={{ fontSize: 26 }} />
-              </button>
+          <button
+            type="button"
+            onClick={handleExportPdf}
+            disabled={!stats}
+            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-[#feaa2b]/10 px-4 py-2 text-sm font-semibold text-[#ffd28a] transition hover:bg-[#feaa2b]/15 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
+            Export PDF
+          </button>
+        </div>
+      </header>
 
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-[#feaa2b]/10 px-4 py-2 text-sm font-semibold text-[#ffd28a] transition hover:bg-[#feaa2b]/15"
-              >
-                <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
-                Export PDF
-              </button>
-            </div>
-          </header>
+      {isLoading && <AdminDashboardPageSkeleton />}
 
-          {isLoading && (
-            <div className="flex h-[420px] items-center justify-center">
-              <CircularProgress size={34} sx={{ color: "#feaa2b" }} />
-            </div>
-          )}
+      {!isLoading && error && (
+        <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-sm text-red-200">
+          {error}
+        </div>
+      )}
 
-          {!isLoading && error && (
-            <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-sm text-red-200">
-              {error}
-            </div>
-          )}
+      {!isLoading && stats && (
+        <div className="mt-8 space-y-6">
+          <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+            <AdminDashboardMetricsCard
+              label="Total Users"
+              value={formatNumber(stats.totalUsers)}
+              helper="Live platform users"
+              icon={<PeopleRoundedIcon />}
+            />
 
-          {!isLoading && stats && (
-            <div className="mt-8 space-y-6">
-              <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-                <AdminDashboardMetricsCard
-                  label="Total Users"
-                  value={formatNumber(stats.totalUsers)}
-                  helper="Live platform users"
-                  icon={<PeopleRoundedIcon />}
-                />
+            <AdminDashboardMetricsCard
+              label="Total Recipes"
+              value={formatNumber(stats.totalRecipes)}
+              helper={`${formatNumber(stats.publishedRecipes)} published`}
+              icon={<MenuBookRoundedIcon />}
+            />
 
-                <AdminDashboardMetricsCard
-                  label="Total Recipes"
-                  value={formatNumber(stats.totalRecipes)}
-                  helper={`${formatNumber(stats.publishedRecipes)} published`}
-                  icon={<MenuBookRoundedIcon />}
-                />
+            <AdminDashboardMetricsCard
+              label="Pending Reviews"
+              value={formatNumber(stats.pendingRecipes)}
+              helper="Waiting for moderation"
+              icon={<HourglassTopRoundedIcon />}
+            />
 
-                <AdminDashboardMetricsCard
-                  label="Pending Reviews"
-                  value={formatNumber(stats.pendingRecipes)}
-                  helper="Waiting for moderation"
-                  icon={<HourglassTopRoundedIcon />}
-                />
+            <AdminDashboardMetricsCard
+              label="Needs Revision"
+              value={formatNumber(stats.needsRevisionRecipes)}
+              helper="Returned to creators"
+              icon={<WarningAmberRoundedIcon />}
+            />
 
-                <AdminDashboardMetricsCard
-                  label="Needs Revision"
-                  value={formatNumber(stats.needsRevisionRecipes)}
-                  helper="Returned to creators"
-                  icon={<WarningAmberRoundedIcon />}
-                />
+            <AdminDashboardMetricsCard
+              label="Total Saves"
+              value={formatNumber(stats.totalSaves)}
+              helper="Across all recipes"
+              icon={<BookmarkRoundedIcon />}
+            />
 
-                <AdminDashboardMetricsCard
-                  label="Total Saves"
-                  value={formatNumber(stats.totalSaves)}
-                  helper="Across all recipes"
-                  icon={<BookmarkRoundedIcon />}
-                />
+            <AdminDashboardMetricsCard
+              label="Total Comments"
+              value={formatNumber(stats.totalComments)}
+              helper="Community activity"
+              icon={<ChatBubbleRoundedIcon />}
+            />
 
-                <AdminDashboardMetricsCard
-                  label="Total Comments"
-                  value={formatNumber(stats.totalComments)}
-                  helper="Community activity"
-                  icon={<ChatBubbleRoundedIcon />}
-                />
+            <AdminDashboardMetricsCard
+              label="Avg. Rating"
+              value={stats.averageRating.toFixed(2)}
+              helper="Global recipe rating"
+              icon={<StarRoundedIcon />}
+            />
 
-                <AdminDashboardMetricsCard
-                  label="Avg. Rating"
-                  value={stats.averageRating.toFixed(2)}
-                  helper="Global recipe rating"
-                  icon={<StarRoundedIcon />}
-                />
+            <AdminDashboardMetricsCard
+              label="Reports"
+              value="PDF"
+              helper="Export-ready"
+              icon={<FileDownloadRoundedIcon />}
+            />
+          </section>
 
-                <AdminDashboardMetricsCard
-                  label="Reports"
-                  value="PDF"
-                  helper="Export-ready"
-                  icon={<FileDownloadRoundedIcon />}
-                />
-              </section>
+          <section className="grid gap-6 2xl:grid-cols-[1.05fr_1.2fr]">
+            <AdminDashboardChartCard title="Recipe Status Distribution">
+              <AdminDashboardStatusChart
+                data={stats.statusDistribution}
+                totalRecipes={stats.totalRecipes}
+              />
+            </AdminDashboardChartCard>
 
-              <section className="grid gap-6 2xl:grid-cols-[1.05fr_1.2fr]">
-                <AdminDashboardChartCard title="Recipe Status Distribution">
-                  <AdminDashboardStatusChart
-                    data={stats.statusDistribution}
-                    totalRecipes={stats.totalRecipes}
-                  />
-                </AdminDashboardChartCard>
-
-                <AdminDashboardChartCard
-                  title="Recipes Over Time"
-                  action={
-                    <AdminDashboardSelect
-                      value={recipesTimeRange}
-                      options={TIME_RANGE_OPTIONS}
-                      onChange={(value) =>
-                        setRecipesTimeRange(
-                          value as AdminDashboardTimeRange
-                        )
-                      }
-                    />
+            <AdminDashboardChartCard
+              title="Recipes Over Time"
+              action={
+                <AdminDashboardSelect
+                  value={recipesTimeRange}
+                  options={TIME_RANGE_OPTIONS}
+                  onChange={(value) =>
+                    setRecipesTimeRange(
+                      value as AdminDashboardTimeRange
+                    )
                   }
-                >
-                  <AdminDashboardActivityChart
-                    data={recipesOverTime}
-                  />
-                </AdminDashboardChartCard>
-              </section>
+                />
+              }
+            >
+              <AdminDashboardActivityChart
+                data={recipesOverTime}
+              />
+            </AdminDashboardChartCard>
+          </section>
 
-              <section className="grid gap-6 xl:grid-cols-2 2xl:grid-cols-3">
-                <AdminDashboardChartCard title="Top Saved Recipes">
-                  <AdminDashboardTopRecipes recipes={stats.topSavedRecipes} />
-                </AdminDashboardChartCard>
+          <section className="grid gap-6 xl:grid-cols-2 2xl:grid-cols-3">
+            <AdminDashboardChartCard title="Top Saved Recipes">
+              <AdminDashboardTopRecipes recipes={stats.topSavedRecipes} />
+            </AdminDashboardChartCard>
 
-                <AdminDashboardChartCard title="Recent Moderation Activity">
-                  <AdminDashboardActivityCh activities={stats.recentModerationActivity} />
-                </AdminDashboardChartCard>
+            <AdminDashboardChartCard title="Recent Moderation Activity">
+              <AdminDashboardActivityCh activities={stats.recentModerationActivity} />
+            </AdminDashboardChartCard>
 
-                <AdminDashboardChartCard title="Moderation Queue">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-4">
-                      <span className="text-sm text-[#d7def0]">Pending Recipes</span>
-                      <strong className="text-white">{stats.pendingRecipes}</strong>
-                    </div>
+            <AdminDashboardChartCard title="Moderation Queue">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-4">
+                  <span className="text-sm text-[#d7def0]">Pending Recipes</span>
+                  <strong className="text-white">{stats.pendingRecipes}</strong>
+                </div>
 
-                    <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-4">
-                      <span className="text-sm text-[#d7def0]">Needs Revision</span>
-                      <strong className="text-white">{stats.needsRevisionRecipes}</strong>
-                    </div>
+                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-4">
+                  <span className="text-sm text-[#d7def0]">Needs Revision</span>
+                  <strong className="text-white">{stats.needsRevisionRecipes}</strong>
+                </div>
 
-                    <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-4">
-                      <span className="text-sm text-[#d7def0]">Published Recipes</span>
-                      <strong className="text-white">{stats.publishedRecipes}</strong>
-                    </div>
-                  </div>
-                </AdminDashboardChartCard>
-              </section>
-            </div>
-          )}
+                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-4">
+                  <span className="text-sm text-[#d7def0]">Published Recipes</span>
+                  <strong className="text-white">{stats.publishedRecipes}</strong>
+                </div>
+              </div>
+            </AdminDashboardChartCard>
+          </section>
+        </div>
+      )}
         {/* </div> */}
       {/* </main> */}
     </AdminLayout>

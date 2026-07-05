@@ -1,6 +1,8 @@
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded"
-import { Skeleton } from "@mui/material"
-import { useEffect, useMemo, useState } from "react"
+import CheckBoxOutlineBlankRoundedIcon from "@mui/icons-material/CheckBoxOutlineBlankRounded"
+import CheckBoxRoundedIcon from "@mui/icons-material/CheckBoxRounded"
+
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   closestCenter,
   DndContext,
@@ -19,8 +21,10 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 
-import type { AdminRecipeRow } from "../types/adminRecipes.types"
+import type { AdminRecipeRow, AdminRecipeStatus } from "../types/adminRecipes.types"
 import AdminRecipesTableRow from "./AdminRecipesTableRow"
+import AdminRecipesTableSkeleton from "./skeletons/AdminRecipesTableSkeleton"
+import { AnimatePresence, motion } from "motion/react"
 
 
 export type AdminRecipeColumnKey =
@@ -50,7 +54,7 @@ const defaultColumns: AdminRecipesTableColumn[] = [
   { key: "select", label: "", width: 56, minWidth: 56, resizable: false, sortable: false, draggable: false },
   { key: "title", label: "Recipe", width: 360, minWidth: 240, resizable: true, sortable: true, draggable: true },
   { key: "author", label: "Author", width: 190, minWidth: 150, resizable: true, sortable: true, draggable: true },
-  { key: "status", label: "Status", width: 160, minWidth: 130, resizable: true, sortable: true, draggable: true },
+  { key: "status", label: "Status", width: 160, minWidth: 130, resizable: true, sortable: false, draggable: true },
   { key: "meal", label: "Meal", width: 140, minWidth: 110, resizable: true, sortable: true, draggable: true },
   { key: "stats", label: "Stats", width: 210, minWidth: 160, resizable: true, sortable: true, draggable: true },
   { key: "updatedAt", label: "Updated", width: 160, minWidth: 130, resizable: true, sortable: true, draggable: true },
@@ -64,6 +68,164 @@ interface Props {
   activeRecipeId?: string | null
   onToggleRecipe: (recipeId: string) => void
   onViewRecipe: (recipe: AdminRecipeRow) => void
+  selectedStatuses: AdminRecipeStatus[]
+  onStatusFilterChange: (statuses: AdminRecipeStatus[]) => void
+}
+
+const STATUS_OPTIONS: {
+  value: AdminRecipeStatus
+  label: string
+  className: string
+}[] = [
+  {
+    value: "published",
+    label: "Published",
+    className: "border-emerald-400/20 bg-emerald-500/10 text-emerald-300",
+  },
+  {
+    value: "pending",
+    label: "Pending",
+    className: "border-violet-400/20 bg-violet-500/10 text-violet-300",
+  },
+  {
+    value: "needs_revision",
+    label: "Needs Revision",
+    className: "border-orange-400/20 bg-orange-500/10 text-orange-200",
+  },
+]
+
+function StatusFilterHeaderCell({
+  column,
+  selectedStatuses,
+  onStatusFilterChange,
+  onResizeStart,
+}: {
+  column: AdminRecipesTableColumn
+  selectedStatuses: AdminRecipeStatus[]
+  onStatusFilterChange: (statuses: AdminRecipeStatus[]) => void
+  onResizeStart: (
+    event: React.MouseEvent<HTMLDivElement>,
+    columnKey: AdminRecipeColumnKey,
+    minWidth: number
+  ) => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
+
+  const safeSelectedStatuses = selectedStatuses ?? []
+  const safeOnStatusFilterChange = onStatusFilterChange ?? (() => {})
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const toggleStatus = (status: AdminRecipeStatus) => {
+    safeOnStatusFilterChange(
+      safeSelectedStatuses.includes(status)
+        ? safeSelectedStatuses.filter((item) => item !== status)
+        : [...safeSelectedStatuses, status]
+    )
+  }
+
+  return (
+    <th className="relative px-4 py-3">
+      <div ref={wrapperRef} className="relative inline-flex">
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className={[
+            "flex min-w-0 items-center gap-1 truncate pr-2 transition-colors hover:text-white",
+            safeSelectedStatuses.length ? "text-white" : "text-[#a8b3cf]",
+          ].join(" ")}
+        >
+          <span className="truncate">{column.label}</span>
+
+          {safeSelectedStatuses.length > 0 && (
+            <span className="ml-1 rounded-full bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-bold text-orange-200">
+              {safeSelectedStatuses.length}
+            </span>
+          )}
+
+          <KeyboardArrowDownRoundedIcon
+            sx={{ fontSize: 18 }}
+            className={["transition", isOpen ? "rotate-180 opacity-100" : "opacity-50"].join(" ")}
+          />
+        </button>
+
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -6, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.96 }}
+              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute left-0 top-[calc(100%+10px)] z-[80] w-[230px] overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-2 shadow-[0_18px_45px_rgba(0,0,0,0.55)]"
+            >
+              <div className="mb-1 px-2 py-1 text-xs font-semibold text-[#7f89a6]">
+                Filter by status
+              </div>
+
+              {STATUS_OPTIONS.map((option) => {
+                const isSelected = safeSelectedStatuses.includes(option.value)
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => toggleStatus(option.value)}
+                    className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-white/[0.04]"
+                  >
+                    <span className={isSelected ? "text-orange-200" : "text-[#7f89a6]"}>
+                      {isSelected ? (
+                        <CheckBoxRoundedIcon sx={{ fontSize: 20 }} />
+                      ) : (
+                        <CheckBoxOutlineBlankRoundedIcon sx={{ fontSize: 20 }} />
+                      )}
+                    </span>
+
+                    <span
+                      className={[
+                        "inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold",
+                        option.className,
+                      ].join(" ")}
+                    >
+                      {option.label}
+                    </span>
+                  </button>
+                )
+              })}
+
+              {safeSelectedStatuses.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => safeOnStatusFilterChange([])}
+                  className="mt-1 w-full rounded-lg px-2 py-2 text-left text-xs font-semibold text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
+                >
+                  Clear filter
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {column.resizable && (
+        <div
+          onMouseDown={(event) =>
+            onResizeStart(event, column.key, column.minWidth)
+          }
+          className="absolute bottom-0 right-[-8px] top-0 w-5 cursor-col-resize before:absolute before:bottom-2 before:left-1/2 before:top-2 before:w-px before:-translate-x-1/2 before:bg-white/20 hover:before:w-[3px] hover:before:bg-orange-400/60"
+        />
+      )}
+    </th>
+  )
 }
 
 export default function AdminRecipesTable({
@@ -73,6 +235,8 @@ export default function AdminRecipesTable({
   activeRecipeId,
   onToggleRecipe,
   onViewRecipe,
+  selectedStatuses = [],
+  onStatusFilterChange = () => {},
 }: Props) {
   const TABLE_PREFS_KEY = "flavorfolio.adminRecipesTablePrefs"
 
@@ -278,6 +442,8 @@ export default function AdminRecipesTable({
                       sort={sort}
                       onSort={handleToggleSort}
                       onResizeStart={handleResizeStart}
+                      selectedStatuses={selectedStatuses}
+                      onStatusFilterChange={onStatusFilterChange}
                     />
                   ))}
                 </tr>
@@ -285,32 +451,7 @@ export default function AdminRecipesTable({
             </thead>
 
             {isLoading ? (
-              <tbody>
-                {Array.from({ length: 8 }).map((_, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {columns.map((column, columnIndex) => (
-                      <td
-                        key={column.key}
-                        className={[
-                          "bg-[#0b0b0c] px-4 py-4",
-                          columnIndex === 0 ? "rounded-l-lg" : "",
-                          columnIndex === columns.length - 1 ? "rounded-r-xl" : "",
-                        ].join(" ")}
-                      >
-                        <Skeleton
-                          variant={column.key === "select" ? "circular" : "rounded"}
-                          width={column.key === "select" ? 22 : "75%"}
-                          height={column.key === "select" ? 22 : 18}
-                          sx={{
-                            bgcolor: "rgba(168,179,207,0.10)",
-                            borderRadius: column.key === "select" ? "999px" : "8px",
-                          }}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
+              <AdminRecipesTableSkeleton />
             ) : (
               <tbody>
                 {displayedRecipes.map((recipe) => (
@@ -352,6 +493,8 @@ function SortableHeaderCell({
   sort,
   onSort,
   onResizeStart,
+  selectedStatuses,
+  onStatusFilterChange,
 }: {
   column: AdminRecipesTableColumn
   sort: { key: SortKey | null; direction: SortDirection }
@@ -361,6 +504,8 @@ function SortableHeaderCell({
     columnKey: AdminRecipeColumnKey,
     minWidth: number
   ) => void
+  selectedStatuses: AdminRecipeStatus[]
+  onStatusFilterChange: (statuses: AdminRecipeStatus[]) => void
 }) {
   const {
     attributes,
@@ -376,6 +521,17 @@ function SortableHeaderCell({
   })
 
   const isSortable = column.sortable && column.key !== "select" && column.key !== "actions"
+
+  if (column.key === "status") {
+    return (
+      <StatusFilterHeaderCell
+        column={column}
+        selectedStatuses={selectedStatuses}
+        onStatusFilterChange={onStatusFilterChange}
+        onResizeStart={onResizeStart}
+      />
+    )
+  }
 
   return (
     <th
