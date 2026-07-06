@@ -13,7 +13,7 @@ const items = [
   { label: "Dashboard", to: "/admin/dashboard", icon: <DashboardRoundedIcon sx={{ fontSize: 19 }} /> },
   { label: "Recipes", to: "/admin/recipes", icon: <RestaurantMenuRoundedIcon sx={{ fontSize: 19 }} /> },
   { label: "Users", to: "/admin/users", icon: <PeopleAltRoundedIcon sx={{ fontSize: 19 }} /> },
-  { label: "Moderation", to: "/admin/pending-recipes", icon: <FactCheckRoundedIcon sx={{ fontSize: 19 }} /> },
+  // { label: "Moderation", to: "/admin/pending-recipes", icon: <FactCheckRoundedIcon sx={{ fontSize: 19 }} /> },
   { label: "Reports", to: "/admin/reports", icon: <AssessmentRoundedIcon sx={{ fontSize: 19 }} /> },
 ]
 
@@ -68,7 +68,7 @@ export default function AdminDashboardSidebar({
                 "flex h-11 items-center rounded-xl text-sm font-semibold transition",
                 isCollapsed ? "justify-center px-0" : "gap-3 px-3",
                 isActive
-                  ? "border border-[#feaa2b]/25 bg-[#feaa2b]/10 text-[#ffd28a] shadow-[0_10px_30px_rgba(254,170,43,0.08)]"
+                  ? "border border-[#feaa2b]/25 bg-[#feaa2b]/10 text-[#ffd28a]"
                   : "text-[#a8b3cf] hover:bg-white/[0.04] hover:text-white",
               ].join(" ")
             }
@@ -81,15 +81,6 @@ export default function AdminDashboardSidebar({
           </NavLink>
         ))}
       </nav>
-
-      {!isCollapsed && (
-        <div className="absolute bottom-6 left-4 right-4 rounded-2xl border border-white/10 bg-[#16181d]/80 p-4">
-          <p className="text-sm font-semibold text-white">FlavorFolio Admin</p>
-          <p className="mt-1 text-xs leading-5 text-[#7f89a6]">
-            Dashboard, moderation and reports.
-          </p>
-        </div>
-      )}
     </aside>
   )
 }

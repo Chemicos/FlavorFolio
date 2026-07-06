@@ -21,6 +21,8 @@ import UserProfilePage from './features/profile/pages/UserProfilePage'
 import AccountSettingsPage from './features/account-settings/pages/AccountSettingsPage'
 import AdminDashboardPage from './features/admin-dashboard/pages/AdminDashboardPage'
 import AdminRecipesPage from './features/admin-dashboard/pages/AdminRecipesPage'
+import AdminUsersPage from './features/admin-dashboard/pages/AdminUsersPage'
+import AdminReportsPage from './features/admin-dashboard/pages/AdminReportsPage'
 
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -50,6 +52,8 @@ function App() {
           <Route path='/settings' element={user ? <AccountSettingsPage /> : <Navigate replace to="/" />} />
           <Route path='/admin/dashboard' element={user ? <AdminDashboardPage/> : <Navigate replace to="/" />} />
           <Route path="/admin/recipes" element={user ? <AdminRecipesPage /> : <Navigate replace to="/" />}/>
+          <Route path="/admin/users" element={user ? <AdminUsersPage /> : <Navigate replace to="/" />} />
+          <Route path="/admin/reports" element={user ? <AdminReportsPage /> : <Navigate replace to="/" />} />
           <Route path='/manage-feedback' element={user ? <ManageFeedback /> : <Navigate replace to="/" />} />
         </Routes>
       </div>

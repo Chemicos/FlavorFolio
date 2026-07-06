@@ -16,6 +16,8 @@ import DeleteWarningDialog from "../../home/components/recipe-view-drawer/Delete
 import AdminRecipesPageSkeleton from "../components/skeletons/AdminRecipesPageSkeleton"
 import { useDebounce } from "../../recipe-review/hooks/useDebounce"
 import { useSearchParams } from "react-router-dom"
+import { useAdminLiveRefresh } from "../hooks/useAdminLiveRefresh"
+import AdminLiveDataStatus from "../components/AdminLiveDataStatus"
 
 
 export default function AdminRecipesPage() {
@@ -25,6 +27,12 @@ export default function AdminRecipesPage() {
     const [selectedStatuses, setSelectedStatuses] = useState<AdminRecipeStatus[]>([])
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [selectedRecipe, setSelectedRecipe] = useState<AdminRecipeRow | null>(null)
+
+    const { isRefreshing, lastUpdatedAt, handleRefresh } = useAdminLiveRefresh({
+        isLoading,
+        hasData: recipes.length > 0,
+        onRefresh: refetch,
+    })
 
     const [searchParams, setSearchParams] = useSearchParams()
     const targetRecipeId = searchParams.get("recipeId")
@@ -190,13 +198,24 @@ export default function AdminRecipesPage() {
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={refetch}
-              className="self-start rounded-lg border border-white/10 bg-white/[0.04] p-[5px] text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white lg:self-auto"
-            >
-              <RefreshRoundedIcon sx={{ fontSize: 26 }} />
-            </button>
+            <div className="flex items-center gap-3">
+                <AdminLiveDataStatus
+                    isRefreshing={isRefreshing}
+                    lastUpdatedAt={lastUpdatedAt}
+                />
+
+                <button
+                    type="button"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="self-start rounded-lg border border-white/10 bg-white/[0.04] p-[5px] text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60 lg:self-auto"
+                >
+                    <RefreshRoundedIcon
+                    sx={{ fontSize: 26 }}
+                    className={isRefreshing ? "animate-spin" : ""}
+                    />
+                </button>
+            </div>
         </header>
 
         {isLoading ? (

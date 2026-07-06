@@ -78,25 +78,18 @@ export default function AccountSettingsSidebar({
               type="button"
               onClick={() => onTabChange(item.value)}
               className={[
-                "group relative flex w-full items-center gap-4 rounded-xl border border-transparent px-4 py-3.5 text-left transition",
-                "before:absolute before:left-0 before:top-2 before:h-[calc(100%-16px)] before:w-[3px] before:rounded-full before:transition",
+                "group flex h-11 w-full items-center rounded-xl text-sm font-semibold transition",
+                "gap-3 px-3 text-left",
                 isActive
-                  ? "bg-[#2a241f] text-orange-100 before:bg-orange-400"
-                  : "text-[#7f89a6] before:bg-transparent hover:bg-white/[0.035] hover:text-white",
+                  ? "border border-[#feaa2b]/25 bg-[#feaa2b]/10 text-[#ffd28a]"
+                  : "border border-transparent text-[#a8b3cf] hover:bg-white/[0.04] hover:text-white",
               ].join(" ")}
             >
-              <span
-                className={[
-                  "flex h-9 w-9 items-center justify-center rounded-lg transition",
-                  isActive
-                    ? "bg-white/[0.05] text-orange-300"
-                    : "bg-white/[0.04] text-[#7f89a6] group-hover:text-white",
-                ].join(" ")}
-              >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
                 <Icon sx={{ fontSize: 19 }} />
               </span>
 
-              <span className="text-sm font-semibold">{item.label}</span>
+              <span>{item.label}</span>
             </button>
           )
         })}
@@ -105,9 +98,9 @@ export default function AccountSettingsSidebar({
       <div className="mt-16 border-t border-white/10 pt-5">
         <button
           type="button"
-          className="group flex w-full items-center gap-4 rounded-xl border border-transparent px-4 py-3.5 text-left text-[#7f89a6] transition hover:bg-white/[0.035] hover:text-white"
+          className="group flex h-11 w-full items-center gap-3 rounded-xl border border-transparent px-3 text-left text-sm font-semibold text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.04] text-[#7f89a6] transition group-hover:text-white">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
             <LogoutRoundedIcon sx={{ fontSize: 19 }} />
           </span>
 

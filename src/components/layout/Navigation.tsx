@@ -5,7 +5,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 import { collection, doc, getCountFromServer, getDoc, getDocs, onSnapshot, query, where } from '@firebase/firestore'
 import { db } from "../../firebase-config"
-// import Notifications from './Notifications'
 
 import {motion} from "motion/react"
 import DarkModeIcon from '@mui/icons-material/DarkMode'
@@ -277,7 +276,7 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
               />
             </Link>
 
-            <div className='flex items-center gap-4 lg:gap-6'>
+            <div className='flex items-center gap-2'>
               <div ref={notificationRef} className="relative">
                 <button
                   type="button"

@@ -16,6 +16,28 @@ interface AdminRecipesTableRowProps {
   onView: () => void
 }
 
+const viewTooltipProps = {
+  tooltip: {
+    sx: {
+      bgcolor: "#0b0b0c",
+      color: "#d7def0",
+      fontSize: "0.75rem",
+      border: "1px solid rgba(255,255,255,0.08)",
+      backdropFilter: "blur(12px)",
+      boxShadow: "0 12px 30px rgba(0,0,0,0.45)",
+      px: 1.2,
+      py: 0.7,
+    },
+  },
+  arrow: {
+    sx: {
+      color: "#0b0b0c",
+      "&:before": {
+        border: "1px solid rgba(255,255,255,0.08)",
+      },
+    },
+  },
+}
 
 function formatDate(ms: number) {
   if (!ms) return "-"
@@ -150,23 +172,10 @@ export default function AdminRecipesTableRow({
             return (
             <div className="flex justify-end overflow-hidden">
                 <Tooltip
-                title="View recipe"
-                arrow
-                placement="top"
-                slotProps={{
-                    tooltip: {
-                    sx: {
-                        bgcolor: "#0b0b0c",
-                        color: "#d7def0",
-                        fontSize: "0.75rem",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        backdropFilter: "blur(12px)",
-                    },
-                    },
-                    arrow: {
-                    sx: { color: "#0b0b0c" },
-                    },
-                }}
+                    title="View recipe"
+                    arrow
+                    placement="top"
+                    slotProps={viewTooltipProps}
                 >
                 <button
                     type="button"

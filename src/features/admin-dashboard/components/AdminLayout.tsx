@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react"
 import Navigation from "../../../components/layout/Navigation"
 import AdminDashboardSidebar from "./AdminDashboardSidebar"
+import { useLocalStorage } from "../hooks/useLocalStorage"
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -13,7 +14,7 @@ export default function AdminLayout({
     rightOffset = 0,
     fullHeight = false,
 }: AdminLayoutProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useLocalStorage("admin-sidebar-collapsed", false)
 
   return (
     <div
@@ -23,8 +24,8 @@ export default function AdminLayout({
       <Navigation variant="solid" />
 
       <AdminDashboardSidebar
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapsed={() => setIsSidebarCollapsed((prev) => !prev)}
+        isCollapsed={isCollapsed}
+        onToggleCollapsed={() => setIsCollapsed((prev) => !prev)}
       />
 
       <main
@@ -33,7 +34,7 @@ export default function AdminLayout({
           fullHeight
             ? "flex h-screen flex-col overflow-hidden px-6 pb-6 pt-28"
             : "px-6 pb-16 pt-28",
-          isSidebarCollapsed
+          isCollapsed
             ? "xl:ml-[82px] xl:w-[calc(100%-82px)]"
             : "xl:ml-[260px] xl:w-[calc(100%-260px)]",
         ].join(" ")}

@@ -23,6 +23,9 @@ import AdminLayout from "../components/AdminLayout"
 import AdminDashboardPageSkeleton from "../components/skeletons/AdminDashboardPageSkeleton"
 import { exportAdminDashboardSummaryPdf } from "../services/adminDashboardPdf.service"
 import { auth } from "../../../firebase-config"
+import { useAdminLiveRefresh } from "../hooks/useAdminLiveRefresh"
+import AdminLiveDataStatus from "../components/AdminLiveDataStatus"
+import { getCurrentAdminDisplayName } from "../services/adminReports.service"
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value)
@@ -110,22 +113,25 @@ function buildRecipesOverTime(
 
 export default function AdminDashboardPage() {
   const { stats, isLoading, error, refetch } = useAdminDashboardStats()
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+
+  const { isRefreshing, lastUpdatedAt, handleRefresh } = useAdminLiveRefresh({
+    isLoading,
+    hasData: Boolean(stats),
+    onRefresh: refetch,
+  })
 
   const [recipesTimeRange, setRecipesTimeRange] = useState<AdminDashboardTimeRange>("30d")
 
   const activeTimeRangeLabel =
     TIME_RANGE_OPTIONS.find((option) => option.value === recipesTimeRange)?.label || "Last 30 days"
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     if (!stats) return
+    const adminName = await getCurrentAdminDisplayName()
 
     exportAdminDashboardSummaryPdf({
       stats,
-      adminName:
-        auth.currentUser?.displayName ||
-        auth.currentUser?.email ||
-        "Admin",
+      adminName,
       timeRangeLabel: activeTimeRangeLabel,
     })
   }
@@ -152,12 +158,21 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <AdminLiveDataStatus
+            isRefreshing={isRefreshing}
+            lastUpdatedAt={lastUpdatedAt}
+          />
+
           <button
             type="button"
-            onClick={refetch}
-            className="rounded-lg border border-white/10 bg-white/[0.04] p-[5px] text-sm font-semibold text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="rounded-lg border border-white/10 bg-white/[0.04] p-[5px] text-sm font-semibold text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <RefreshRoundedIcon sx={{ fontSize: 26 }} />
+            <RefreshRoundedIcon
+              sx={{ fontSize: 26 }}
+              className={isRefreshing ? "animate-spin" : ""}
+            />
           </button>
 
           <button
