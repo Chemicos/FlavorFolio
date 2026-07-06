@@ -7,7 +7,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // import AccountSettings from './components/AccountSettings/AccountSettings'
 // import ViewUserProfile from './components/UsersProfile/ViewUserProfile'
 // import Dashboard from './components/DashboardAdmin/Dashboard'
-import ManageFeedback from './components/Feedback/ManageFeedback'
+// import ManageFeedback from './components/Feedback/ManageFeedback'
 // import Register from './features/auth/pages/Register'
 import Login from './features/auth/pages/Login'
 import { useEffect, useState } from 'react'
@@ -23,6 +23,7 @@ import AdminDashboardPage from './features/admin-dashboard/pages/AdminDashboardP
 import AdminRecipesPage from './features/admin-dashboard/pages/AdminRecipesPage'
 import AdminUsersPage from './features/admin-dashboard/pages/AdminUsersPage'
 import AdminReportsPage from './features/admin-dashboard/pages/AdminReportsPage'
+import MessagesPage from './features/messages/pages/MessagesPage'
 
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -54,7 +55,9 @@ function App() {
           <Route path="/admin/recipes" element={user ? <AdminRecipesPage /> : <Navigate replace to="/" />}/>
           <Route path="/admin/users" element={user ? <AdminUsersPage /> : <Navigate replace to="/" />} />
           <Route path="/admin/reports" element={user ? <AdminReportsPage /> : <Navigate replace to="/" />} />
-          <Route path='/manage-feedback' element={user ? <ManageFeedback /> : <Navigate replace to="/" />} />
+          <Route path="/messages" element={user ? <MessagesPage /> : <Navigate replace to="/" />} />
+          <Route path="/messages/:conversationId" element={<MessagesPage />} />
+          {/* <Route path='/manage-feedback' element={user ? <ManageFeedback /> : <Navigate replace to="/" />} /> */}
         </Routes>
       </div>
     </Router>

@@ -24,6 +24,7 @@ import { AnimatePresence, motion } from "motion/react"
 import ViewRecipeDrawer from "../../home/components/recipe-view-drawer/ViewRecipeDrawer"
 import { MyProfileData, subscribeToMyProfile } from "../services/profile.service"
 import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds, unblockUser } from "../../account-settings/services/blockedUsers.service"
+import { createOrOpenDirectConversation } from "../../messages/services/messages.service"
 
 function ViewRecipeDrawerLoading({ width }: { width: number }) {
   return (
@@ -466,9 +467,25 @@ export default function UserProfilePage() {
     navigate(`/users/${authorId}`)
   }, [navigate, currentUserId])
 
-  const handleSendMessage = () => {
-    setIsProfileActionsMenuOpen(false)
-    showSnackbar("Messaging is coming soon.", "info")
+  const handleSendMessage = async () => {
+    if (!currentUserId || !userId || isOwnProfile) return
+
+    try {
+      setIsProfileActionsMenuOpen(false)
+
+      const conversationId = await createOrOpenDirectConversation({
+        currentUserId,
+        targetUserId: userId,
+      })
+
+      navigate(`/messages/${conversationId}`)
+    } catch (error) {
+      console.error("Failed to start conversation:", error)
+      showSnackbar(
+        "You can only message users who mutually follow you.",
+        "error"
+      )
+    }
   }
 
   const handleToggleBlockUser = async () => {
@@ -585,14 +602,16 @@ export default function UserProfilePage() {
                             transition={{ duration: 0.16 }}
                             className="absolute right-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
                           >
-                            <button
-                              type="button"
-                              onClick={handleSendMessage}
-                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
-                            >
-                              <SendRoundedIcon sx={{ fontSize: 18 }} />
-                              Send message
-                            </button>
+                            {isFollowingProfile && (
+                              <button
+                                type="button"
+                                onClick={handleSendMessage}
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-[#feaa2b]"
+                              >
+                                <SendRoundedIcon sx={{ fontSize: 18 }} />
+                                Send message
+                              </button>
+                            )}
 
                             <button
                               type="button"

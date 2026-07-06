@@ -279,7 +279,7 @@ export default function Home() {
         />
       </div>
 
-      <FloatingSpeedDial />
+      {/* <FloatingSpeedDial /> */}
       <ScrollToTopButton />
 
       <AnimatePresence>
