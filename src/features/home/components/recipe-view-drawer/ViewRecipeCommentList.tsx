@@ -78,9 +78,6 @@ export default function ViewRecipeCommentList({
     blockedByUserIds = [],
 }: ViewRecipeCommentListProps) {
     const hiddenUserIds = new Set([...blockedUserIds, ...blockedByUserIds])
-    
-    console.log("hidden ids:", [...hiddenUserIds])
-    console.log("comments:", comments.map((c) => c.userId))
     const visibleComments = comments
         .filter((comment) => !comment.userId || !hiddenUserIds.has(comment.userId))
         .map((comment) => ({

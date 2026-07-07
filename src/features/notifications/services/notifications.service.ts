@@ -8,6 +8,7 @@ export type NotificationType =
     | "reply"
     | "follow"
     | "unfollow"
+    | "user_followed"
     | "needs_revision"
     | "rating"
     | "comment_like"

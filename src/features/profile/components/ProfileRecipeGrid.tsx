@@ -311,7 +311,7 @@ function ProfileRecipeGridCard({
                     {formatDuration(recipe.durationMinutes)}
                 </p>
 
-                <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
+                <div className="mt-4 flex items-center justify-between pt-3">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5 text-amber-300">
                         <StarRoundedIcon sx={{ fontSize: 18 }} />

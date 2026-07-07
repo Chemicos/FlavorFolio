@@ -7,6 +7,14 @@ import { useConversations } from "../hooks/useConversations"
 import FloatingMessagesPanel from "./FloatingMessagesPanel"
 import { useLocation } from "react-router-dom"
 
+const hiddenRoutes = [
+  "/messages",
+  "/needs-revision",
+  "/pending-recipes",
+  "/admin/recipes",
+  "/admin/users",
+  "/admin/reports",
+]
 
 export default function FloatingMessagesButton() {
   const [isOpen, setIsOpen] = useState(false)
@@ -19,6 +27,10 @@ export default function FloatingMessagesButton() {
 
   const { conversations } = useConversations(currentUserId)
 
+  const shouldHide = hiddenRoutes.some((route) =>
+    location.pathname.startsWith(route)
+  )
+
   const unreadTotal = useMemo(() => {
     if (!currentUserId) return 0
 
@@ -26,7 +38,8 @@ export default function FloatingMessagesButton() {
       return sum + Number(conversation.unreadCount?.[currentUserId] || 0)
     }, 0)
   }, [conversations, currentUserId])
-
+  
+  if (shouldHide) return null
   if (!currentUserId) return null
 
   return (
@@ -35,7 +48,7 @@ export default function FloatingMessagesButton() {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className={[
-          "fixed bottom-6 right-6 z-50 flex h-14 items-center gap-3 rounded-full border px-5 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition active:scale-95",
+          "fixed bottom-6 right-6 z-40 flex h-14 items-center gap-3 rounded-full border px-5 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition active:scale-95",
           isOpen
             ? "border-[#feaa2b]/30 bg-[#feaa2b]/10 text-[#ffd28a]"
             : "border-white/10 bg-[#0b0b0c]/90 text-[#d7def0] hover:bg-[#16181d]",

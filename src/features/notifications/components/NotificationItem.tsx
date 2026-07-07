@@ -9,6 +9,7 @@ import ThumbUpRoundedIcon from "@mui/icons-material/ThumbUpRounded"
 import ThumbDownRoundedIcon from "@mui/icons-material/ThumbDownRounded"
 
 import { FlavorFolioNotification, NotificationType } from "../services/notifications.service"
+import { useNavigate } from "react-router-dom"
 
 interface NotificationItemProps {
     notification: FlavorFolioNotification
@@ -57,6 +58,46 @@ function getNotificationIcon(type: NotificationType) {
   }
 }
 
+function getNotificationAction(notification: FlavorFolioNotification) {
+  switch (notification.type) {
+    case "follow":
+    case "user_followed":
+      if (!notification.actorUserId) return null
+
+      return {
+        label: "View profile",
+        to: `/users/${notification.actorUserId}`,
+      }
+
+    case "recipe_approved":
+    case "comment":
+    case "reply":
+    case "comment_like":
+    case "comment_dislike":
+    case "reply_like":
+    case "reply_dislike":
+    case "rating":
+    case "recipe_saved":
+      if (!notification.recipeId) return null
+
+      return {
+        label: "View recipe",
+        to: `/profile?recipeId=${notification.recipeId}`,
+      }
+
+    case "needs_revision":
+      if (!notification.recipeId) return null
+
+      return {
+        label: "Resolve revision",
+        to: `/needs-revision?recipeId=${notification.recipeId}`,
+      }
+
+    default:
+      return null
+  }
+}
+
 
 export default function NotificationItem({
     notification,
@@ -65,11 +106,25 @@ export default function NotificationItem({
     onClick,
 }: NotificationItemProps) {
     const actorInitial = notification.actorUsername?.charAt(0)?.toUpperCase() || "F"
+    const navigate = useNavigate()
+    const action = getNotificationAction(notification)
 
     const handleItemClick = () => {
         if (!notification.read) {onMarkAsRead(notification.id)}
 
         onClick?.(notification)
+    }
+
+    const handleActionClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation()
+
+      if (!notification.read) {
+        onMarkAsRead(notification.id)
+      }
+
+      if (action?.to) {
+        navigate(action.to)
+      }
     }
 
   return (
@@ -81,10 +136,17 @@ export default function NotificationItem({
           : "bg-white/[0.025] hover:bg-white/[0.045]",
       ].join(" ")}
     >
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={handleItemClick}
-        className="flex w-full gap-3 text-left"
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            handleItemClick()
+          }
+        }}
+        className="flex w-full cursor-pointer gap-3 text-left"
       >
         <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white/10">
           {notification.actorProfileImage ? (
@@ -125,11 +187,21 @@ export default function NotificationItem({
             </p>
           )}
 
+          {action && (
+            <button
+              type="button"
+              onClick={handleActionClick}
+              className="mt-3 inline-flex h-8 items-center rounded-lg border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-[#d7def0] transition hover:border-[#feaa2b]/30 hover:bg-[#feaa2b]/10 hover:text-[#ffd28a] active:scale-95"
+            >
+              {action.label}
+            </button>
+          )}
+
           <p className="mt-2 text-xs text-[#6f7892]">
             {formatNotificationDate(notification.createdAt)}
           </p>
         </div>
-      </button>
+      </div>
 
       <button
         type="button"

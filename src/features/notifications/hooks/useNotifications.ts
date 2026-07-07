@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { deleteNotification, FlavorFolioNotification, markAllNotificationsAsRead, subscribeToUserNotifications } from "../services/notifications.service"
+import { deleteNotification, FlavorFolioNotification, markAllNotificationsAsRead, markNotificationAsRead, subscribeToUserNotifications } from "../services/notifications.service"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 
 export function useNotifications(limitCount = 20) {
@@ -52,7 +52,7 @@ export function useNotifications(limitCount = 20) {
   const handleMarkAsRead = async (notificationId: string) => {
     if (!currentUserId) return
 
-    await markAllNotificationsAsRead({
+    await markNotificationAsRead({
       userId: currentUserId,
       notificationId,
     })

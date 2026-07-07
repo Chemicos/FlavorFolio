@@ -1,3 +1,5 @@
+import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded"
+
 import { useEffect, useMemo, useState } from "react"
 import { useConversationMessages } from "../hooks/useConversationMessages"
 import { useConversations } from "../hooks/useConversations"
@@ -134,7 +136,7 @@ export default function ChatLayout({
             <div className="flex h-full items-center justify-center px-6 text-center">
               <div>
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#feaa2b]/10 text-2xl text-[#feaa2b]">
-                  💬
+                  <ChatBubbleOutlineRoundedIcon />
                 </div>
                 <h2 className="mt-5 text-xl font-bold text-white">
                   Select a conversation

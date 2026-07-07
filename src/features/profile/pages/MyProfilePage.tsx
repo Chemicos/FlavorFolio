@@ -19,7 +19,7 @@ import { CurrentUserCardData } from "../../home/types/recipeCard.types";
 import { fetchProfileRecipeById, subscribeToProfileRecipeById } from "../services/profileRecipes.service";
 import ViewRecipeDrawer from "../../home/components/recipe-view-drawer/ViewRecipeDrawer";
 import PostRecipeDrawer from "../../home/components/post-recipe/PostRecipeDrawer";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import DeleteWarningDialog from "../../home/components/recipe-view-drawer/DeleteWarningDialog";
 import MyProfileEditFormLoading from "../components/MyProfileEditFormLoading";
 import { ProfileConnectionType, subscribeToMyFollowingUserIds } from "../services/profileConnections.service";
@@ -89,6 +89,9 @@ export default function MyProfilePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearchQuery = useDebounce(searchQuery, 1000)
   const isSearching = searchQuery.trim() !== debouncedSearchQuery.trim()
+
+  const [searchParams, setSearchParams] = useSearchParams()
+  const recipeIdFromUrl = searchParams.get("recipeId")
 
   const [sortBy, setSortBy] = useState<ProfileRecipeSortValue>("latest")
   const [category, setCategory] = useState("all")
@@ -498,6 +501,24 @@ export default function MyProfilePage() {
       )
     })
   }, [recipes, savedRecipes, activeRecipeTab, debouncedSearchQuery, category, sortBy])
+
+  useEffect(() => {
+    if (!recipeIdFromUrl) return
+
+    setEditingRecipe(null)
+    setSelectedRecipe(null)
+    setSelectedRecipeId(recipeIdFromUrl)
+  }, [recipeIdFromUrl])
+
+  const handleCloseRecipeDrawer = () => {
+    setSelectedRecipeId(null)
+    setSelectedRecipe(null)
+
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete("recipeId")
+    setSearchParams(nextParams, { replace: true })
+  }
+
   return (
     <div className="relative min-h-screen bg-[#0d0e11] text-white">
       <div className="relative z-10">
@@ -640,10 +661,7 @@ export default function MyProfilePage() {
                   Number(selectedRecipe.author?.followersCount || 0)
                 }
                 onAuthorClick={handleAuthorProfileClick}
-                onClose={() => {
-                  setSelectedRecipeId(null)
-                  setSelectedRecipe(null)
-                }}
+                onClose={handleCloseRecipeDrawer}
                 onFollowStateChange={handleFollowStateChange}
                 onFavoriteStateChange={(recipeId, isNowSaved) => {
                   if (!selectedRecipe) return
