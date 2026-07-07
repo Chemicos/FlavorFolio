@@ -1,9 +1,14 @@
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded"
+
+import { Tooltip } from "@mui/material"
 import { ChatMessage } from "../types/messages.types"
 
 interface MessageBubbleProps {
   message: ChatMessage
   isOwn: boolean
   isSeen?: boolean
+  onDelete?: () => void
+  onOpenImage?: (imageUrl: string) => void
 }
 
 function formatTime(value: any) {
@@ -16,29 +21,96 @@ function formatTime(value: any) {
 }
 
 
-export default function MessageBubble({message, isOwn, isSeen = false,}: MessageBubbleProps) {
-  return (
-    <div className={["flex flex-col", isOwn ? "items-end" : "items-start"].join(" ")}>
-      <div
-        className={[
-          "max-w-[68%] rounded-2xl px-4 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.18)]",
-          isOwn
-            ? "rounded-br-md bg-[#feaa2b] text-[#0d0e11]"
-            : "rounded-bl-md border border-white/10 bg-[#0b0b0c] text-[#d7def0]",
-        ].join(" ")}
-      >
-        <p className="whitespace-pre-wrap text-sm leading-6">
-          {message.isDeleted ? "Message deleted." : message.text}
-        </p>
+const viewTooltipProps = {
+  tooltip: {
+    sx: {
+      bgcolor: "#0b0b0c",
+      color: "#d7def0",
+      fontSize: "0.75rem",
+      border: "1px solid rgba(255,255,255,0.08)",
+      backdropFilter: "blur(12px)",
+      boxShadow: "0 12px 30px rgba(0,0,0,0.45)",
+      px: 1.2,
+      py: 0.7,
+    },
+  },
+  arrow: {
+    sx: {
+      color: "#0b0b0c",
+      "&:before": {
+        border: "1px solid rgba(255,255,255,0.08)",
+      },
+    },
+  },
+}
 
-        <p
+export default function MessageBubble({
+  message, 
+  isOwn, 
+  isSeen = false, 
+  onDelete,
+  onOpenImage,
+}: MessageBubbleProps) {
+  return (
+    <div className={["group flex flex-col", isOwn ? "items-end" : "items-start"].join(" ")}>
+      <div className="flex items-end gap-2">
+        {isOwn && onDelete && (
+          <Tooltip title="Delete message" arrow placement="left" slotProps={viewTooltipProps}>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="mb-1 flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-[#0b0b0c] text-[#8f97b1] opacity-0 transition hover:border-red-400/20 hover:bg-red-500/10 hover:text-red-300 group-hover:opacity-100"
+            >
+              <DeleteOutlineRoundedIcon sx={{ fontSize: 17 }} />
+            </button>
+          </Tooltip>
+        )}
+
+        <div
           className={[
-            "mt-1 text-right text-[0.65rem]",
-            isOwn ? "text-[#3b2a10]" : "text-[#7f89a6]",
+            "max-w-[450px] rounded-2xl px-4 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.18)]",
+            isOwn
+              ? "rounded-br-md bg-[#feaa2b] text-[#0d0e11]"
+              : "rounded-bl-md border border-white/10 bg-[#0b0b0c] text-[#d7def0]",
           ].join(" ")}
         >
-          {formatTime(message.createdAt)}
-        </p>
+          {message.isDeleted ? (
+            <p className="whitespace-pre-wrap text-sm leading-6">
+              Message deleted.
+            </p>
+          ) : (
+            <>
+              {message.type === "image" && message.imageUrl && (
+                <button
+                  type="button"
+                  onClick={() => onOpenImage?.(message.imageUrl!)}
+                  className="mb-2 block overflow-hidden rounded-xl outline-none transition hover:opacity-90 focus:ring-2 focus:ring-[#feaa2b]/40"
+                >
+                  <img
+                    src={message.imageUrl}
+                    alt="Message attachment"
+                    className="max-h-[360px] max-w-full object-cover"
+                  />
+                </button>
+              )}
+
+              {message.text && (
+                <p className="whitespace-pre-wrap text-sm leading-6">
+                  {message.text}
+                </p>
+              )}
+            </>
+          )}
+
+          <p
+            className={[
+              "mt-1 text-right text-[0.65rem]",
+              isOwn ? "text-[#3b2a10]" : "text-[#7f89a6]",
+            ].join(" ")}
+          >
+            {formatTime(message.createdAt)}
+          </p>
+        </div>
       </div>
 
       {isOwn && isSeen && (

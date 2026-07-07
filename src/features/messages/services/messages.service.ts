@@ -1,6 +1,7 @@
-import { addDoc, collection, doc, getDoc, increment, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "@firebase/firestore"
-import { db } from "../../../firebase-config"
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, increment, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "@firebase/firestore"
+import { db, storage } from "../../../firebase-config"
 import { ChatMessage, Conversation } from "../types/messages.types"
+import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
 
 export function getDirectConversationId(currentUserId: string, targetUserId: string) {
   return [currentUserId, targetUserId].sort().join("_")
@@ -15,7 +16,7 @@ async function isBlockedBetweenUsers(currentUserId: string, targetUserId: string
     return currentBlockedTarget.exists() || targetBlockedCurrent.exists()
 }
 
-async function areUsersMutualFollowers(currentUserId: string, targetUserId: string) {
+export async function areUsersMutualFollowers(currentUserId: string, targetUserId: string) {
     const [currentFollowsTarget, targetFollowsCurrent] = await Promise.all([
         getDoc(doc(db, "users", currentUserId, "following", targetUserId)),
         getDoc(doc(db, "users", targetUserId, "following", currentUserId)),
@@ -24,25 +25,13 @@ async function areUsersMutualFollowers(currentUserId: string, targetUserId: stri
     return currentFollowsTarget.exists() && targetFollowsCurrent.exists()
 }
 
-async function canMessageUser(currentUserId: string, targetUserId: string) {
+export async function canMessageUser(currentUserId: string, targetUserId: string) {
     if (currentUserId === targetUserId) return false
 
     const isBlocked = await isBlockedBetweenUsers(currentUserId, targetUserId)
     if (isBlocked) return false
 
-    const targetSnap = await getDoc(doc(db, "users", targetUserId))
-    if (!targetSnap.exists()) return false
-
-    const targetData = targetSnap.data()
-    const allowMessagesFrom = targetData.allowMessagesFrom || "everyone"
-
-    if (allowMessagesFrom === "none") return false
-
-    const isMutualFollow = await areUsersMutualFollowers(
-        currentUserId,
-        targetUserId
-    )
-
+    const isMutualFollow = await areUsersMutualFollowers(currentUserId, targetUserId)
     if (!isMutualFollow) return false
 
     return true
@@ -129,6 +118,12 @@ export async function sendMessage({
 
     if (!conversationSnap.exists()) {
         throw new Error("Conversation not found.")
+    }
+
+    const allowed = await canMessageUser(senderId, receiverId)
+
+    if (!allowed) {
+        throw new Error("You can’t send messages unless you follow each other.")
     }
 
     const messageRef = await addDoc(
@@ -220,4 +215,184 @@ export async function markConversationAsRead({
         [`unreadCount.${userId}`]: 0,
         [`lastReadAt.${userId}`]: serverTimestamp(),
     })
+}
+
+export async function deleteMessage({
+    conversationId,
+    messageId,
+    currentUserId,
+}: {
+    conversationId: string
+    messageId: string
+    currentUserId: string
+}) {
+    const messageRef = doc(
+        db,
+        "conversations",
+        conversationId,
+        "messages",
+        messageId
+    )
+
+    const messageSnap = await getDoc(messageRef)
+
+    if (!messageSnap.exists()) {
+        throw new Error("Message not found.")
+    }
+
+    const messageData = messageSnap.data()
+
+    if (messageData.senderId !== currentUserId) {
+        throw new Error("You can only delete your own messages.")
+    }
+
+    if (messageData.type === "image" && messageData.imagePath) {
+        try {
+            await deleteObject(ref(storage, messageData.imagePath))
+        } catch (error: any) {
+            if (error?.code !== "storage/object-not-found") {
+                console.error("Failed to delete message image:", error)
+            }
+        }
+    }
+
+    await deleteDoc(messageRef)
+
+    const latestMessagesQuery = query(
+        collection(db, "conversations", conversationId, "messages"),
+        orderBy("createdAt", "desc"),
+        limit(1)
+    )
+
+    const latestMessagesSnap = await getDocs(latestMessagesQuery)
+    const conversationRef = doc(db, "conversations", conversationId)
+
+    if (latestMessagesSnap.empty) {
+        await updateDoc(conversationRef, {
+        lastMessage: null,
+        updatedAt: serverTimestamp(),
+        })
+
+        return
+    }
+
+    const latestMessage = latestMessagesSnap.docs[0].data()
+
+    await updateDoc(conversationRef, {
+        lastMessage: {
+            text:
+                latestMessage.text ||
+                (latestMessage.type === "image" ? "Sent an image" : ""),
+            type: latestMessage.type || "text",
+            senderId: latestMessage.senderId || "",
+            createdAt: latestMessage.createdAt || serverTimestamp(),
+        },
+        updatedAt: latestMessage.createdAt || serverTimestamp(),
+    })
+}
+
+function buildMessageImagePath({
+    conversationId,
+    senderId,
+    file,
+}: {
+    conversationId: string
+    senderId: string
+    file: File
+}) {
+    const extension = file.name.split(".").pop() || "jpg"
+    const fileName = `${Date.now()}_${crypto.randomUUID()}.${extension}`
+
+    return {
+        fileName,
+        path: `conversation_images/${conversationId}/${senderId}/${fileName}`,
+    }
+}
+
+function validateImageFile(file: File) {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"]
+
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error("Only JPG, PNG or WEBP images are allowed.")
+    }
+
+    const maxSizeMb = 8
+    const maxSizeBytes = maxSizeMb * 1024 * 1024
+
+    if (file.size > maxSizeBytes) {
+        throw new Error(`Image must be smaller than ${maxSizeMb}MB.`)
+    }
+}
+
+export async function sendImageMessage({
+    conversationId,
+    senderId,
+    receiverId,
+    file,
+    text = "",
+}: {
+    conversationId: string
+    senderId: string
+    receiverId: string
+    file: File
+    text?: string
+}) {
+    validateImageFile(file)
+
+    const conversationRef = doc(db, "conversations", conversationId)
+    const conversationSnap = await getDoc(conversationRef)
+
+    if (!conversationSnap.exists()) {
+        throw new Error("Conversation not found.")
+    }
+
+    const allowed = await canMessageUser(senderId, receiverId)
+
+    if (!allowed) {
+        throw new Error("You can’t send messages unless you follow each other.")
+    }
+
+    const { fileName, path } = buildMessageImagePath({
+        conversationId,
+        senderId,
+        file,
+    })
+
+    const storageRef = ref(storage, path)
+
+    await uploadBytes(storageRef, file, {
+        contentType: file.type,
+    })
+
+    const imageUrl = await getDownloadURL(storageRef)
+    const cleanText = text.trim()
+
+    const messageRef = await addDoc(
+        collection(db, "conversations", conversationId, "messages"),
+        {
+            conversationId,
+            senderId,
+            receiverId,
+            text: cleanText,
+            type: "image",
+            imageUrl,
+            imagePath: path,
+            imageFileName: fileName,
+            isDeleted: false,
+            createdAt: serverTimestamp(),
+        }
+    )
+
+    await updateDoc(conversationRef, {
+        lastMessage: {
+            text: cleanText || "Sent an image",
+            senderId,
+            type: "image",
+            createdAt: serverTimestamp(),
+        },
+        [`unreadCount.${receiverId}`]: increment(1),
+        updatedAt: serverTimestamp(),
+    })
+
+    return messageRef.id
 }

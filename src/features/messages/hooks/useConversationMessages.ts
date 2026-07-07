@@ -23,7 +23,7 @@ export function useConversationMessages({
         setIsLoading(true)
         setError(null)
 
-        markConversationAsRead({ conversationId, currentUserId }).catch(console.error)
+        markConversationAsRead({ conversationId, userId: currentUserId }).catch(console.error)
 
         const unsubscribe = subscribeToConversationMessages(
             conversationId,

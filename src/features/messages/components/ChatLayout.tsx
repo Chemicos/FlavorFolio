@@ -1,11 +1,13 @@
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useConversationMessages } from "../hooks/useConversationMessages"
 import { useConversations } from "../hooks/useConversations"
 import ChatHeader from "./ChatHeader"
 import ConversationList from "./ConversationList"
 import MessageBubble from "./MessageBubble"
 import MessageComposer from "./MessageComposer"
-import { markConversationAsRead } from "../services/messages.service"
+import { deleteMessage, markConversationAsRead } from "../services/messages.service"
+import { useCanMessageUser } from "../hooks/useCanMessageUser"
+import MessageImagePreviewModal from "./MessageImagePreviewModal"
 
 interface ChatLayoutProps {
   currentUserId: string
@@ -17,6 +19,7 @@ export default function ChatLayout({
   activeConversationId,
 }: ChatLayoutProps) {
   const { conversations, isLoading } = useConversations(currentUserId)
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
 
   const activeConversation =
     conversations.find((item) => item.conversationId === activeConversationId) ||
@@ -34,6 +37,11 @@ export default function ChatLayout({
   const otherUser = otherUserId
     ? activeConversation?.participants?.[otherUserId]
     : null
+
+  const { canMessage, isChecking } = useCanMessageUser(
+    currentUserId,
+    otherUserId || null
+  )
     
   const lastMessage = messages[messages.length - 1]
 
@@ -70,6 +78,20 @@ export default function ChatLayout({
 
     return seenOwnMessages.at(-1)?.messageId || null
   }, [messages, currentUserId, lastReadAtByOtherUserMs])
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!activeConversationId) return
+
+    try {
+      await deleteMessage({
+        conversationId: activeConversationId,
+        messageId,
+        currentUserId,
+      })
+    } catch (error) {
+      console.error("Failed to delete message:", error)
+    }
+  }
   return (
     <main className="min-h-[calc(100vh-64px)] bg-[#0d0e11] pt-16">
       <div className="grid h-[calc(100vh-64px)] w-full grid-cols-[360px_minmax(0,1fr)]">
@@ -93,6 +115,8 @@ export default function ChatLayout({
                       message={message}
                       isOwn={message.senderId === currentUserId}
                       isSeen={message.messageId === lastOwnMessageIdSeenByOtherUser}
+                      onDelete={message.senderId === currentUserId ? () => handleDeleteMessage(message.messageId) : undefined}
+                      onOpenImage={setPreviewImageUrl}
                     />
                   ))}
                 </div>
@@ -102,6 +126,8 @@ export default function ChatLayout({
                 conversationId={activeConversation.conversationId}
                 senderId={currentUserId}
                 receiverId={otherUserId}
+                disabled={!isChecking && !canMessage}
+                disabledReason="You can’t send messages unless you follow each other."
               />
             </>
           ) : (
@@ -121,6 +147,11 @@ export default function ChatLayout({
           )}
         </section>
       </div>
+
+      <MessageImagePreviewModal
+        imageUrl={previewImageUrl}
+        onClose={() => setPreviewImageUrl(null)}
+      />
     </main>
   )
 }

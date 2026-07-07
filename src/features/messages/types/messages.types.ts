@@ -1,7 +1,7 @@
 import { Timestamp } from "@firebase/firestore"
 
 export type ConversationType = "direct"
-export type MessageType = "text"
+export type MessageType = "text" | "image"
 
 export interface ConversationParticipant {
     userId: string
@@ -13,6 +13,7 @@ export interface ConversationLastMessage {
     text: string
     senderId: string
     createdAt: Timestamp
+    type?: MessageType
 }
 
 export interface Conversation {
@@ -33,6 +34,9 @@ export interface ChatMessage {
     receiverId: string
     text: string
     type: MessageType
+    imageUrl?: string
+    imagePath?: string
+    imageFileName?: string
     createdAt: Timestamp
     isDeleted: boolean
 }

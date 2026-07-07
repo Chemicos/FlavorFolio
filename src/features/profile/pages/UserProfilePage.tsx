@@ -62,6 +62,7 @@ export default function UserProfilePage() {
   const [currentUserProfile, setCurrentUserProfile] = useState<MyProfileData | null>(null)
   const [followingUserIds, setFollowingUserIds] = useState<string[]>([])
   const [isFollowLoading, setIsFollowLoading] = useState(false)
+  const [isMessageLoading, setIsMessageLoading] = useState(false)
 
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearchQuery = useDebounce(searchQuery, 1000)
@@ -468,9 +469,10 @@ export default function UserProfilePage() {
   }, [navigate, currentUserId])
 
   const handleSendMessage = async () => {
-    if (!currentUserId || !userId || isOwnProfile) return
+    if (!currentUserId || !userId || isOwnProfile || isMessageLoading) return
 
     try {
+      setIsMessageLoading(true)
       setIsProfileActionsMenuOpen(false)
 
       const conversationId = await createOrOpenDirectConversation({
@@ -485,6 +487,8 @@ export default function UserProfilePage() {
         "You can only message users who mutually follow you.",
         "error"
       )
+    } finally {
+      setIsMessageLoading(false)
     }
   }
 
@@ -560,28 +564,44 @@ export default function UserProfilePage() {
                 onFollowersClick={() => setConnectionsModalType("followers")}
                 onFollowingClick={() => setConnectionsModalType("following")}
                 rightAction={
-                 !isOwnProfile ? (
+                  !isOwnProfile ? (
                     <div ref={profileActionsMenuRef} className="relative flex items-center gap-2">
                       {!hasBlockedRelationship && (
-                        <button
-                          type="button"
-                          onClick={handleToggleFollow}
-                          disabled={isFollowLoading}
-                          className={[
-                            "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
-                            isFollowingProfile
-                              ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
-                              : "border-white/10 bg-[#0b0b0c]/80 text-white hover:bg-[#202429]/80",
-                          ].join(" ")}
-                        >
-                          {isFollowLoading ? (
-                            <CircularProgress size={15} thickness={5} sx={{ color: "#ffffff" }} />
-                          ) : isFollowingProfile ? (
-                            "Following"
-                          ) : (
-                            "Follow"
-                          )}
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleToggleFollow}
+                            disabled={isFollowLoading}
+                            className={[
+                              "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+                              isFollowingProfile
+                                ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                                : "border-white/10 bg-[#0b0b0c]/80 text-white hover:bg-[#202429]/80",
+                            ].join(" ")}
+                          >
+                            {isFollowLoading ? (
+                              <CircularProgress size={15} thickness={5} sx={{ color: "#ffffff" }} />
+                            ) : isFollowingProfile ? (
+                              "Following"
+                            ) : (
+                              "Follow"
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleSendMessage}
+                            disabled={isMessageLoading}
+                            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[#feaa2b]/20 bg-[#feaa2b]/10 px-4 text-sm font-semibold text-[#ffd28a] transition hover:bg-[#feaa2b]/15 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isMessageLoading ? (
+                              <CircularProgress size={15} thickness={5} sx={{ color: "#ffd28a" }} />
+                            ) : (
+                              <SendRoundedIcon sx={{ fontSize: 17 }} />
+                            )}
+                            Message
+                          </button>
+                        </>
                       )}
 
                       <button
@@ -602,17 +622,6 @@ export default function UserProfilePage() {
                             transition={{ duration: 0.16 }}
                             className="absolute right-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
                           >
-                            {isFollowingProfile && (
-                              <button
-                                type="button"
-                                onClick={handleSendMessage}
-                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-[#feaa2b]"
-                              >
-                                <SendRoundedIcon sx={{ fontSize: 18 }} />
-                                Send message
-                              </button>
-                            )}
-
                             <button
                               type="button"
                               onClick={handleToggleBlockUser}
