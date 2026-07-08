@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from "@firebase/firestore"
 import { db, storage } from "../../../firebase-config"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
+import { buildRecipeKeywords, buildUserKeywords } from "../../../utils/searchKeywords"
 
 export interface MyProfileData {
   uid: string
@@ -60,6 +61,17 @@ export async function updateMyProfile({
     userDescription: payload.bio.trim(),
     location: payload.location.trim(),
     website: payload.website.trim(),
+    searchKeywords: buildUserKeywords({
+      ...userData,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      username: payload.username,
+      bio: payload.bio,
+      userDescription: payload.bio,
+      location: payload.location,
+      website: payload.website,
+      email: userData.email || "",
+    }),
     updatedAt: serverTimestamp(),
   })
 
@@ -88,11 +100,16 @@ async function propagateUserProfileIdentity({
 
   for (const recipeDoc of recipesSnapshot.docs) {
     const batch = writeBatch(db)
+    const recipeData = recipeDoc.data()
 
     batch.update(recipeDoc.ref, {
       user: username,
       "author.username": username,
       ...(profileImage ? { "author.profileImage": profileImage } : {}),
+      searchKeywords: buildRecipeKeywords({
+        ...recipeData,
+        authorUsername: username,
+      }),
       updatedAt: serverTimestamp(),
     })
 

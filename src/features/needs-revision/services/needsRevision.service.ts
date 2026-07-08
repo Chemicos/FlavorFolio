@@ -3,6 +3,7 @@ import { NeedsRevisionRecipe } from "../types/needsRevision.types"
 import { db, storage } from "../../../firebase-config"
 import { PostRecipeIngredient, PostRecipeStep } from "../../home/types/postRecipe.types"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
+import { buildRecipeKeywords } from "../../../utils/searchKeywords"
 
 export interface UpdateNeedsRevisionRecipePayload {
   title: string
@@ -159,6 +160,13 @@ export async function updateNeedsRevisionRecipe({
     })
   )
 
+  const nextIngredients = payload.ingredients.map((ingredient) => ({
+    ingredient: ingredient.ingredient.trim(),
+    quantity: ingredient.quantity.trim(),
+    unit: ingredient.unit,
+  }))
+
+
   const nextRecipeData = {
     title: payload.title.trim(),
     description: payload.description.trim(),
@@ -170,13 +178,19 @@ export async function updateNeedsRevisionRecipe({
     visibility: payload.visibility,
     image: imageUrl,
     imageFileName,
-    ingredients: payload.ingredients.map((ingredient) => ({
-      ingredient: ingredient.ingredient.trim(),
-      quantity: ingredient.quantity.trim(),
-      unit: ingredient.unit,
-    })),
+    ingredients: nextIngredients,
     cookingSteps,
     status: "needs_revision",
+
+    searchKeywords: buildRecipeKeywords({
+      title: payload.title,
+      description: payload.description,
+      cuisine: payload.cuisine,
+      meal: payload.meal,
+      difficulty: payload.difficulty,
+      authorUsername: recipeData.author?.username || recipeData.user || "",
+      ingredients: nextIngredients,
+    }),
   }
 
   await updateDoc(recipeRef, {

@@ -3,18 +3,14 @@ import FilterDrawer, { defaultRecipeFilters, RecipeFilters } from "../components
 import Navigation from "../../../components/layout/Navigation"
 import Content from "../components/Content.js"
 
-// import Snackbar from "@mui/material/Snackbar"
-// import Alert from "@mui/material/Alert"
 import ScrollToTopButton from "../components/ScrollToTopButton"
 import FilterBar from "../components/FilterBar"
 import FeedTabs from "../components/FeedTabs"
 import { AnimatePresence } from "motion/react"
 import { useHomeData } from "../hooks/useHomeData"
-import FloatingSpeedDial from "../../../components/layout/FloatingSpeedDial"
 import { Recipe } from "../types"
 import ViewRecipeDrawer from "../components/recipe-view-drawer/ViewRecipeDrawer"
 import PostRecipeDrawer from "../components/post-recipe/PostRecipeDrawer"
-import RecipeSearchBar from "../components/search-recipe/RecipeSearchBar"
 import { useNavigate } from "react-router-dom"
 import { subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service"
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
@@ -26,10 +22,8 @@ export default function Home() {
   //Filtering
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
   const [filters, setFilters] = useState<RecipeFilters>(defaultRecipeFilters)
+
   const [searchQuery, setSearchQuery] = useState("")
-  // Auth Feedback
-  // const [snackbarOpen, setSnackbarOpen] = useState(false)
-  // const [snackbarMessage, setsnackbarMessage] = useState("")
   const { showSnackbar } = useSnackbar()
 
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
@@ -63,14 +57,6 @@ export default function Home() {
     handleCommentStateChange,
     handleRecipeDeleteStateChange
   } = useHomeData({activeTab, filters})
-  
-  // const handleSnackbarClose = (
-  //   _event?: React.SyntheticEvent | Event,
-  //   reason?: string
-  // ) => {
-  //   if (reason === "clickaway") return
-  //   setSnackbarOpen(false)
-  // }
   
   const handleResetFilters = () => {
     setFilters(defaultRecipeFilters)
@@ -264,7 +250,7 @@ export default function Home() {
     <div className="relative z-10">
       <Navigation onFeedbackClick={handleFeedbackClick} variant="solid" />
 
-      <div className="mx-auto mt-[8rem] w-full max-w-[1400px] 2xl-plus:max-w-[1800px] px-6 xl:px-10">
+      <div className="mx-auto mt-[6rem] w-full max-w-[1400px] 2xl-plus:max-w-[1800px] px-6 xl:px-10">
         <FeedTabs
           activeTab={activeTab}
           // onTabChange={setActiveTab}
@@ -272,12 +258,6 @@ export default function Home() {
             setActiveTab(tab)
             setSearchQuery("")
           }}
-        />
-
-        <RecipeSearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          resultCount={searchedRecipes.length}
         />
 
         <FilterBar
@@ -328,29 +308,6 @@ export default function Home() {
       </AnimatePresence>
 
       {/* {isFeedbackVisible && <Feedback onClose={handleClose} />} */}
-
-      {/* <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity="success"
-          variant="filled"
-          sx={{ 
-            width: "100%", 
-            backgroundColor: "rgba(0, 205, 6, 0.3)",
-            backdropFilter: "blur(20px)",
-            "& .MuiAlert-icon": {
-              color: "#00cd06",
-            },
-          }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar> */}
       
       <AnimatePresence>
         {isFilterDrawerOpen && (

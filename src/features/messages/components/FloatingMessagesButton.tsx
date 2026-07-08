@@ -10,7 +10,7 @@ import { useLocation } from "react-router-dom"
 const hiddenRoutes = [
   "/messages",
   "/needs-revision",
-  "/pending-recipes",
+  "/pending",
   "/admin/recipes",
   "/admin/users",
   "/admin/reports",

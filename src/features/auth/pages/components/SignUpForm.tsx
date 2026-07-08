@@ -11,6 +11,7 @@ import PasswordStrength from "./PasswordStrength.js"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { auth, db } from "../../../../firebase-config.js"
 import { doc, serverTimestamp, setDoc } from "@firebase/firestore"
+import { buildUserKeywords } from "../../../../utils/searchKeywords.js"
 
 const muiFieldSx = {
   "& .MuiInputLabel-root": {
@@ -94,6 +95,9 @@ export default function SignUpForm() {
                 username: username.trim(),
                 email: user.email,
                 admin: false,
+                searchKeywords: buildUserKeywords({
+                    username: username.trim()
+                }),
                 createdAt: serverTimestamp(),
             })
 

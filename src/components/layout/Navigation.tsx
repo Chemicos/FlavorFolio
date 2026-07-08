@@ -15,6 +15,7 @@ import UserDropdownMenu from './UserDropdownMenu'
 import { useNotifications } from '../../features/notifications/hooks/useNotifications'
 import NotificationsPopover from '../../features/notifications/components/NotificationsPopover'
 import FloatingMessagesButton from '../../features/messages/components/FloatingMessagesButton'
+import GlobalSearchBar from '../../features/search/components/GlobalSearchBar'
 
 interface NavigationProps {
   onFeedbackClick?: () => void
@@ -277,6 +278,8 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
                   alt='FlavorFolioLogo'
                 />
               </Link>
+
+              <GlobalSearchBar />
 
               <div className='flex items-center gap-2'>
                 <div ref={notificationRef} className="relative">

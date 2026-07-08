@@ -3,6 +3,7 @@ import { PostRecipeIngredient, PostRecipeStep } from "../types/postRecipe.types"
 import { CurrentUserCardData } from "../types/recipeCard.types"
 import { db, storage } from "../../../firebase-config"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
+import { buildRecipeKeywords } from "../../../utils/searchKeywords"
 
 interface CreateRecipePayload {
     title: string
@@ -151,6 +152,16 @@ export async function createPendingRecipe({
             denialReason: "",
         },
 
+        searchKeywords: buildRecipeKeywords({
+          title,
+          description,
+          cuisine,
+          meal,
+          difficulty,
+          authorUsername: currentUser.username,
+          ingredients,
+        }),
+
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     }
@@ -219,7 +230,7 @@ export async function updateRecipe({
     })
   )
 
-  await updateDoc(recipeRef, {
+  const nextRecipeData = {
     title: title.trim(),
     description: description.trim(),
     cuisine: cuisine.trim().toLowerCase(),
@@ -240,6 +251,16 @@ export async function updateRecipe({
 
     cookingSteps,
 
+    searchKeywords: buildRecipeKeywords({
+      title,
+      description,
+      cuisine,
+      meal,
+      difficulty,
+      authorUsername: currentUser.username,
+      ingredients,
+    }),
+
     status: "pending",
 
     moderation: {
@@ -251,7 +272,9 @@ export async function updateRecipe({
     },
 
     updatedAt: serverTimestamp(),
-  })
+  }
+
+  await updateDoc(recipeRef, nextRecipeData)
 
   return recipeId
 }

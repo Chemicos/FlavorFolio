@@ -56,23 +56,34 @@ function MenuActionItem({
       selected={selected}
       sx={{
         minHeight: 48,
-        borderRadius: "10px",
+        borderRadius: "12px",
         mx: 1,
-        py: 1,
+        my: 0.25,
         px: 1.5,
-        color: danger ? "#f87171" : "#d7def0",
+        color: danger ? "#fca5a5" : "#d7def0",
         "& .MuiListItemIcon-root": {
           minWidth: 34,
           color: danger ? "#f87171" : "#a8b3cf",
+          transition: "color 160ms ease",
         },
         "&:hover": {
-          backgroundColor: "#16181d",
+          backgroundColor: danger
+            ? "rgba(239,68,68,0.10)"
+            : "rgba(254,170,43,0.10)",
+          color: danger ? "#fecaca" : "#ffd28a",
+          borderColor: danger
+            ? "rgba(248,113,113,0.20)"
+            : "rgba(254,170,43,0.20)",
+        },
+        "&:hover .MuiListItemIcon-root": {
+          color: danger ? "#fca5a5" : "#feaa2b",
         },
         "&.Mui-selected": {
-          backgroundColor: "rgba(255,255,255,0.06)",
+          backgroundColor: "rgba(254,170,43,0.12)",
+          color: "#ffd28a",
         },
         "&.Mui-selected:hover": {
-          backgroundColor: "rgba(255,255,255,0.08)",
+          backgroundColor: "rgba(254,170,43,0.16)",
         },
       }}
     >
@@ -83,7 +94,7 @@ function MenuActionItem({
         primaryTypographyProps={{
           fontSize: 13,
           fontWeight: 500,
-          color: danger ? "#f87171" : "#a8b3cf"
+          color: "inherit",
         }}
       />
 
@@ -98,9 +109,10 @@ function MenuActionItem({
             alignItems: "center",
             justifyContent: "center",
             fontSize: 12,
-            fontWeight: 700,
-            color: "#111318",
-            backgroundColor: "#f2a533",
+            fontWeight: 500,
+            color: "#0d0e11",
+            backgroundColor: "#feaa2b",
+            boxShadow: "0 0 18px rgba(254,170,43,0.28)",
           }}
         >
           {badgeCount}
@@ -137,14 +149,15 @@ export default function UserDropdownMenu({
             paper: {
                 elevation: 0,
                 sx: {
-                    mt: 2,
+                    mt: 1.5,
                     width: 270,
                     overflow: "hidden",
-                    borderRadius: "10px",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    backgroundColor: "#0b0b0c",
-                    boxShadow: "0 20px 50px rgba(0,0,0,0.45)",
-                    py: 2,
+                    borderRadius: "18px",
+                    border: "1px solid rgba(255,255,255,0.10)",
+                    backgroundColor: "#1b1d22",
+                    boxShadow: "0 24px 90px rgba(0,0,0,0.65)",
+                    backdropFilter: "blur(18px)",
+                    py: 1.5,
                 }
             },
             list: {
@@ -202,7 +215,7 @@ export default function UserDropdownMenu({
             sx={{
               my: 1.25,
               mx: 2,
-              borderColor: "rgba(255,255,255,0.08)",
+              borderColor: "rgba(255,255,255,0.10)",
             }}
         />
 
