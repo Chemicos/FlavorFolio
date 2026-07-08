@@ -41,6 +41,7 @@ import { db } from "../../../../firebase-config"
 
 interface ViewRecipeDrawerProps {
     recipe: Recipe,
+    onShareRecipe?: (recipe: Recipe) => void
     currentUser: CurrentUserCardData | null
     savedRecipes: SavedRecipe[]
     followingUserIds: string[]
@@ -73,6 +74,7 @@ interface ViewRecipeDrawerProps {
 
 export default function ViewRecipeDrawer({
     recipe,
+    onShareRecipe,
     currentUser,
     savedRecipes,
     followingUserIds,
@@ -580,6 +582,7 @@ export default function ViewRecipeDrawer({
                                 {showInteractions && (
                                     <button
                                         type="button"
+                                        onClick={() => onShareRecipe?.(recipe)}
                                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
                                     >
                                         <ShareRoundedIcon sx={{ fontSize: 18 }} />

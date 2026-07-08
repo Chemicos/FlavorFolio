@@ -3,8 +3,8 @@ import FilterDrawer, { defaultRecipeFilters, RecipeFilters } from "../components
 import Navigation from "../../../components/layout/Navigation"
 import Content from "../components/Content.js"
 
-import Snackbar from "@mui/material/Snackbar"
-import Alert from "@mui/material/Alert"
+// import Snackbar from "@mui/material/Snackbar"
+// import Alert from "@mui/material/Alert"
 import ScrollToTopButton from "../components/ScrollToTopButton"
 import FilterBar from "../components/FilterBar"
 import FeedTabs from "../components/FeedTabs"
@@ -17,6 +17,8 @@ import PostRecipeDrawer from "../components/post-recipe/PostRecipeDrawer"
 import RecipeSearchBar from "../components/search-recipe/RecipeSearchBar"
 import { useNavigate } from "react-router-dom"
 import { subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service"
+import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
+import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 
 export default function Home() {
   const navigate = useNavigate()
@@ -26,14 +28,17 @@ export default function Home() {
   const [filters, setFilters] = useState<RecipeFilters>(defaultRecipeFilters)
   const [searchQuery, setSearchQuery] = useState("")
   // Auth Feedback
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setsnackbarMessage] = useState("")
+  // const [snackbarOpen, setSnackbarOpen] = useState(false)
+  // const [snackbarMessage, setsnackbarMessage] = useState("")
+  const { showSnackbar } = useSnackbar()
 
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
   const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [recipeToShare, setRecipeToShare] = useState<Recipe | null>(null)
 
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([])
   const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
@@ -59,13 +64,13 @@ export default function Home() {
     handleRecipeDeleteStateChange
   } = useHomeData({activeTab, filters})
   
-  const handleSnackbarClose = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") return
-    setSnackbarOpen(false)
-  }
+  // const handleSnackbarClose = (
+  //   _event?: React.SyntheticEvent | Event,
+  //   reason?: string
+  // ) => {
+  //   if (reason === "clickaway") return
+  //   setSnackbarOpen(false)
+  // }
   
   const handleResetFilters = () => {
     setFilters(defaultRecipeFilters)
@@ -114,8 +119,9 @@ export default function Home() {
 
     try {
       const parsed = JSON.parse(raw)
-      setsnackbarMessage(parsed.message || "Authentication successful.")
-      setSnackbarOpen(true)
+      showSnackbar(parsed.message || "Authentication successful.", "success")
+      // setsnackbarMessage(parsed.message || "Authentication successful.")
+      // setSnackbarOpen(true)
     } catch (error) {
       console.error("Failed to parse auth feedback:", error)
     } finally {
@@ -135,10 +141,11 @@ export default function Home() {
   }
 
   const handleRecipeSubmitSuccess = () => {
-    setsnackbarMessage(
-      "Recipe submitted successfully. You'll be notified once it has been reviewed by an administrator."
-    )
-    setSnackbarOpen(true)
+    showSnackbar("Recipe submitted successfully. You'll be notified once it has been reviewed by an administrator.", "success")
+    // setsnackbarMessage(
+    //   "Recipe submitted successfully. You'll be notified once it has been reviewed by an administrator."
+    // )
+    // setSnackbarOpen(true)
     setIsPostFormVisible(false)
   }
   
@@ -166,8 +173,9 @@ export default function Home() {
 
   const handleRecipeDeleteSuccess = (recipeId: string) => {
     handleRecipeDeleteStateChange(recipeId)
-    setsnackbarMessage("Recipe deleted successfully.")
-    setSnackbarOpen(true)
+    showSnackbar("Recipe deleted successfully.", "success")
+    // setsnackbarMessage("Recipe deleted successfully.")
+    // setSnackbarOpen(true)
     setSelectedRecipe(null)
   }
 
@@ -177,8 +185,9 @@ export default function Home() {
   }
 
   const handleRecipeUpdateSuccess = () => {
-    setsnackbarMessage("Recipe updated successfully. You'll be notified once it has been reviewed by an administrator.")
-    setSnackbarOpen(true)
+    showSnackbar("Recipe updated successfully. You'll be notified once it has been reviewed by an administrator.", "success")
+    // setsnackbarMessage("Recipe updated successfully. You'll be notified once it has been reviewed by an administrator.")
+    // setSnackbarOpen(true)
     setEditingRecipe(null)
     setIsPostFormVisible(false)
   }
@@ -217,6 +226,29 @@ export default function Home() {
       (recipe) => !blockedRelationshipUserIds.has(recipe.userId || "")
     )
   }, [searchedRecipes, blockedRelationshipUserIds])
+
+  const handleShareRecipe = (recipe: Recipe) => {
+    setSelectedRecipe(null)
+    setRecipeToShare(recipe)
+    setIsShareModalOpen(true)
+  }
+
+  const sharedRecipe = recipeToShare
+    ? {
+        recipeId: recipeToShare.recipeId || recipeToShare.id || "",
+        title: recipeToShare.title || "Untitled recipe",
+        image: recipeToShare.image || "",
+        authorUsername:
+          recipeToShare.authorUsername ||
+          recipeToShare.username ||
+          recipeToShare.user ||
+          "Unknown",
+        cuisine: recipeToShare.cuisine || "",
+        meal: recipeToShare.meal || "",
+        difficulty: recipeToShare.difficulty || "",
+        durationMinutes: Number(recipeToShare.durationMinutes || 0),
+      }
+    : null
   
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#101b16]">
@@ -230,7 +262,7 @@ export default function Home() {
     </div>
 
     <div className="relative z-10">
-      <Navigation onFeedbackClick={handleFeedbackClick} />
+      <Navigation onFeedbackClick={handleFeedbackClick} variant="solid" />
 
       <div className="mx-auto mt-[8rem] w-full max-w-[1400px] 2xl-plus:max-w-[1800px] px-6 xl:px-10">
         <FeedTabs
@@ -297,7 +329,7 @@ export default function Home() {
 
       {/* {isFeedbackVisible && <Feedback onClose={handleClose} />} */}
 
-      <Snackbar
+      {/* <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={handleSnackbarClose}
@@ -318,7 +350,7 @@ export default function Home() {
         >
           {snackbarMessage}
         </Alert>
-      </Snackbar>
+      </Snackbar> */}
       
       <AnimatePresence>
         {isFilterDrawerOpen && (
@@ -337,6 +369,7 @@ export default function Home() {
         {selectedRecipe && (
           <ViewRecipeDrawer 
             recipe={selectedRecipe}
+            onShareRecipe={handleShareRecipe}
             currentUser={currentUser}
             savedRecipes={savedRecipes}
             followingUserIds={followingUserIds}
@@ -357,6 +390,19 @@ export default function Home() {
           />
         )}
       </AnimatePresence>
+
+      <ShareRecipeModal
+          isOpen={isShareModalOpen}
+          currentUserId={currentUser?.uid || null}
+          recipe={sharedRecipe}
+          onClose={() => {
+              setIsShareModalOpen(false)
+              setRecipeToShare(null)
+          }}
+          onShared={(username) => {
+              showSnackbar(`Recipe shared with ${username}`, "success")
+          }}
+      />
     </div>
   </div>
   )

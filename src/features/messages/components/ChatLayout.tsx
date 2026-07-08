@@ -1,6 +1,6 @@
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useConversationMessages } from "../hooks/useConversationMessages"
 import { useConversations } from "../hooks/useConversations"
 import ChatHeader from "./ChatHeader"
@@ -21,6 +21,11 @@ export default function ChatLayout({
   activeConversationId,
 }: ChatLayoutProps) {
   const { conversations, isLoading } = useConversations(currentUserId)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
+  const [isNearBottom, setIsNearBottom] = useState(true)
+  const shouldForceBottomRef = useRef(false)
+
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
 
   const activeConversation =
@@ -44,6 +49,61 @@ export default function ChatLayout({
     currentUserId,
     otherUserId || null
   )
+
+  const scrollToBottom = (behavior: ScrollBehavior = "auto") => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({
+          behavior,
+          block: "end",
+        })
+      })
+    })
+  }
+
+  useEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      const distance =
+        container.scrollHeight -
+        container.scrollTop -
+        container.clientHeight
+
+      setIsNearBottom(distance < 150)
+    }
+
+    container.addEventListener("scroll", handleScroll)
+    handleScroll()
+
+    return () => container.removeEventListener("scroll", handleScroll)
+  }, [activeConversationId, activeConversation])
+
+  useLayoutEffect(() => {
+    shouldForceBottomRef.current = true
+    setIsNearBottom(true)
+    scrollToBottom("auto")
+  }, [activeConversationId])
+  
+  useEffect(() => {
+    if (!messages.length) return
+
+    if (shouldForceBottomRef.current) {
+      scrollToBottom("auto")
+
+      const timeout = window.setTimeout(() => {
+        scrollToBottom("auto")
+        shouldForceBottomRef.current = false
+      }, 150)
+
+      return () => window.clearTimeout(timeout)
+    }
+
+    if (isNearBottom) {
+      scrollToBottom("smooth")
+    }
+  }, [messages.length, activeConversationId])
     
   const lastMessage = messages[messages.length - 1]
 
@@ -95,8 +155,8 @@ export default function ChatLayout({
     }
   }
   return (
-    <main className="min-h-[calc(100vh-64px)] bg-[#0d0e11] pt-16">
-      <div className="grid h-[calc(100vh-64px)] w-full grid-cols-[360px_minmax(0,1fr)]">
+    <main className="fixed inset-x-0 bottom-0 top-16 overflow-hidden bg-[#0d0e11]">
+      <div className="grid h-full w-full grid-cols-[360px_minmax(0,1fr)] overflow-hidden">
         <ConversationList
           conversations={conversations}
           currentUserId={currentUserId}
@@ -104,12 +164,12 @@ export default function ChatLayout({
           isLoading={isLoading}
         />
 
-        <section className="flex min-w-0 flex-col border-l border-white/10 bg-[#111216]">
+        <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-white/10 bg-[#111216] overflow-hidden">
           {activeConversation && otherUserId && otherUser ? (
             <>
               <ChatHeader participant={otherUser} />
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+              <div ref={messagesContainerRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-6 [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
                 <div className="flex flex-col gap-3">
                   {messages.map((message) => (
                     <MessageBubble
@@ -121,6 +181,8 @@ export default function ChatLayout({
                       onOpenImage={setPreviewImageUrl}
                     />
                   ))}
+
+                  <div ref={bottomRef} />
                 </div>
               </div>
 

@@ -25,6 +25,8 @@ import ViewRecipeDrawer from "../../home/components/recipe-view-drawer/ViewRecip
 import { MyProfileData, subscribeToMyProfile } from "../services/profile.service"
 import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds, unblockUser } from "../../account-settings/services/blockedUsers.service"
 import { createOrOpenDirectConversation } from "../../messages/services/messages.service"
+import { SharedRecipeMessage } from "../../messages/types/messages.types"
+import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
 
 function ViewRecipeDrawerLoading({ width }: { width: number }) {
   return (
@@ -77,6 +79,42 @@ export default function UserProfilePage() {
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
+
+  const [recipeToShare, setRecipeToShare] = useState<SharedRecipeMessage | null>(null)
+
+  const buildSharedRecipeFromRecipe = (recipe: Recipe): SharedRecipeMessage => ({
+    recipeId: recipe.recipeId || recipe.id || "",
+    title: recipe.title || "Untitled recipe",
+    image: recipe.image || "",
+    authorUsername:
+      recipe.author?.username ||
+      recipe.user ||
+      profile?.username ||
+      "Unknown",
+    cuisine: recipe.cuisine || "",
+    meal: recipe.meal || "",
+    difficulty: recipe.difficulty || "",
+    durationMinutes: Number(recipe.durationMinutes || 0),
+  })
+
+  const buildSharedRecipeFromGridItem = (recipe: any): SharedRecipeMessage => ({
+    recipeId: recipe.id || recipe.recipeId || "",
+    title: recipe.title || "Untitled recipe",
+    image: recipe.image || "",
+    authorUsername: profile?.username || "Unknown",
+    cuisine: recipe.category || recipe.cuisine || "",
+    meal: recipe.meal || "",
+    difficulty: recipe.difficulty || "",
+    durationMinutes: Number(recipe.durationMinutes || 0),
+  })
+
+  const handleShareRecipeFromDrawer = (recipe: Recipe) => {
+    setRecipeToShare(buildSharedRecipeFromRecipe(recipe))
+  }
+
+  const handleShareRecipeFromGrid = (recipe: any) => {
+    setRecipeToShare(buildSharedRecipeFromGridItem(recipe))
+  }
 
   const isDrawerOpen = Boolean(selectedRecipe || isRecipeDrawerLoading)
 
@@ -683,6 +721,7 @@ export default function UserProfilePage() {
                     viewMode={viewMode}
                     currentUserId={null}
                     onRecipeClick={(recipe) => setSelectedRecipeId(recipe.id)}
+                    onRecipeShare={handleShareRecipeFromGrid}
                   />
                 )
               )}
@@ -705,6 +744,7 @@ export default function UserProfilePage() {
               followingUserIds={followingUserIds}
               authorFollowersCount={Number(selectedRecipe.author?.followersCount || 0)}
               onAuthorClick={handleAuthorProfileClick}
+              onShareRecipe={handleShareRecipeFromDrawer}
               onClose={() => {
                 setSelectedRecipeId(null)
                 setSelectedRecipe(null)
@@ -727,6 +767,17 @@ export default function UserProfilePage() {
           onClose={() => setConnectionsModalType(null)}
         />
       )}
+
+      <ShareRecipeModal
+        isOpen={Boolean(recipeToShare)}
+        currentUserId={currentUserId}
+        recipe={recipeToShare}
+        onClose={() => setRecipeToShare(null)}
+        onShared={(username) => {
+          showSnackbar(`Recipe shared with ${username}.`, "success")
+          setRecipeToShare(null)
+        }}
+      />
     </div>
   )
 }

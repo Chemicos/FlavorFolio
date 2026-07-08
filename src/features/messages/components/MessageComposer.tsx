@@ -44,7 +44,7 @@ export default function MessageComposer({
   }
 
   const handleSend = async () => {
-    if (!text.trim() || isSending || disabled) return
+    if (!canSend || isSending || disabled) return
 
     try {
       setIsSending(true)
@@ -141,7 +141,7 @@ export default function MessageComposer({
 
           <button
             type="button"
-            disabled={!text.trim() || isSending || disabled}
+            disabled={!canSend || isSending || disabled}
             onClick={handleSend}
             className="flex h-10 min-w-[86px] items-center justify-center gap-2 rounded-xl bg-[#feaa2b] px-4 text-sm font-semibold text-[#0d0e11] transition hover:bg-[#ffc15c] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >

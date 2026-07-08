@@ -18,7 +18,7 @@ export default function MessageImagePreviewModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 px-6 py-10 backdrop-blur-xl"
+          className="fixed inset-0 top-16 z-[80] flex items-center justify-center bg-black/80 px-6 py-10 backdrop-blur-xl"
           onClick={onClose}
         >
           <button

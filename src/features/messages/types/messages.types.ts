@@ -1,7 +1,7 @@
 import { Timestamp } from "@firebase/firestore"
 
 export type ConversationType = "direct"
-export type MessageType = "text" | "image"
+export type MessageType = "text" | "image" | "recipe"
 
 export interface ConversationParticipant {
     userId: string
@@ -27,6 +27,17 @@ export interface Conversation {
     updatedAt: Timestamp
 }
 
+export interface SharedRecipeMessage {
+    recipeId: string
+    title: string
+    image: string
+    authorUsername: string
+    cuisine: string
+    meal: string
+    difficulty: string
+    durationMinutes: number
+}
+
 export interface ChatMessage {
     messageId: string
     conversationId: string
@@ -36,9 +47,11 @@ export interface ChatMessage {
     type: MessageType
     imageUrl?: string
     imagePath?: string
+    recipe?:SharedRecipeMessage
     imageFileName?: string
     createdAt: Timestamp
     isDeleted: boolean
 }
+
 
 export type AllowMessagesFrom = "everyone" | "following" | "none" | ""

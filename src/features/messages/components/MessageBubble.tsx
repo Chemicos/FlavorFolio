@@ -1,7 +1,10 @@
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded"
+import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded"
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 
 import { Tooltip } from "@mui/material"
 import { ChatMessage } from "../types/messages.types"
+import { useNavigate } from "react-router-dom"
 
 interface MessageBubbleProps {
   message: ChatMessage
@@ -51,6 +54,9 @@ export default function MessageBubble({
   onDelete,
   onOpenImage,
 }: MessageBubbleProps) {
+  const navigate = useNavigate()
+  const isRecipeMessage = message.type === "recipe"
+  
   return (
     <div className={["group flex flex-col", isOwn ? "items-end" : "items-start"].join(" ")}>
       <div className="flex items-end gap-2">
@@ -68,10 +74,14 @@ export default function MessageBubble({
 
         <div
           className={[
-            "max-w-[450px] rounded-2xl px-4 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.18)]",
-            isOwn
-              ? "rounded-br-md bg-[#feaa2b] text-[#0d0e11]"
-              : "rounded-bl-md border border-white/10 bg-[#0b0b0c] text-[#d7def0]",
+            isRecipeMessage
+              ? "max-w-[360px] rounded-2xl p-2 shadow-[0_12px_30px_rgba(0,0,0,0.18)]"
+              : "max-w-[450px] rounded-2xl px-4 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.18)]",
+            isRecipeMessage
+              ? "border border-white/10 bg-[#16181d] text-[#d7def0]"
+              : isOwn
+                ? "rounded-br-md bg-[#feaa2b] text-[#0d0e11]"
+                : "rounded-bl-md border border-white/10 bg-[#0b0b0c] text-[#d7def0]",
           ].join(" ")}
         >
           {message.isDeleted ? (
@@ -99,14 +109,61 @@ export default function MessageBubble({
                   {message.text}
                 </p>
               )}
+
+              {message.type === "recipe" && message.recipe && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/profile?recipeId=${message.recipe?.recipeId}`)}
+                  className="mblock w-full overflow-hidden rounded-xl bg-[#0b0b0c] text-left transition hover:bg-[#202329] active:scale-[0.99]"
+                >
+                  <div className="h-36 w-full overflow-hidden bg-white/10">
+                    {message.recipe.image ? (
+                      <img
+                        src={message.recipe.image}
+                        alt={message.recipe.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[#8f97b1]">
+                        <RestaurantRoundedIcon />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-3">
+                    <div className="mb-2 inline-flex rounded-full bg-[#feaa2b]/15 px-2 py-1 text-[0.68rem] font-semibold text-[#ffd28a]">
+                      Shared recipe
+                    </div>
+
+                    <p className="line-clamp-2 text-sm font-bold text-white">
+                      {message.recipe.title}
+                    </p>
+
+                    <p className="mt-1 truncate text-xs text-[#8f97b1]">
+                      by {message.recipe.authorUsername || "Unknown"}
+                    </p>
+
+                    <div className="mt-3 flex items-center justify-between text-xs text-[#a8b3cf]">
+                      <span className="capitalize">
+                        {message.recipe.meal} · {message.recipe.difficulty}
+                      </span>
+
+                      <span className="inline-flex items-center gap-1 font-semibold">
+                        View
+                        <OpenInNewRoundedIcon sx={{ fontSize: 14 }} />
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              )}
             </>
           )}
 
           <p
-            className={[
-              "mt-1 text-right text-[0.65rem]",
-              isOwn ? "text-[#3b2a10]" : "text-[#7f89a6]",
-            ].join(" ")}
+           className={[
+            "mt-1 text-right text-[0.65rem]",
+            isRecipeMessage ? "text-[#7f89a6]" : isOwn ? "text-[#3b2a10]" : "text-[#7f89a6]",
+          ].join(" ")}
           >
             {formatTime(message.createdAt)}
           </p>

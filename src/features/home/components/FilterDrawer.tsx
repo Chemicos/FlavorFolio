@@ -305,7 +305,7 @@ export default function FilterDrawer({
                     damping: 28,
                     mass: 1,
                 }}
-                className="relative flex flex-col left-0 top-0 h-full w-full max-w-[360px]
+                className="relative flex flex-col left-0 top-0 h-full w-full max-w-[300px]
                 border-r border-white/10 
                 bg-[#050506]/70 backdrop-blur-2xl py-8 shadow-[20px_0_60px_rgba(0,0,0,0.35)]"
             >

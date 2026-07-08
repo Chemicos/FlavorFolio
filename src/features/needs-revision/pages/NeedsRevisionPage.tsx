@@ -160,10 +160,7 @@ export default function NeedsRevisionPage() {
 
       await deleteNeedsRevisionRecipes(recipeIds)
 
-      showSnackbar(
-        `${recipeIds.length} recipe${recipeIds.length === 1 ? "" : "s"} deleted.`,
-        "success"
-      )
+      showSnackbar(`${recipeIds.length} recipe${recipeIds.length === 1 ? "" : "s"} deleted.`,"success")
 
       setSelectedIds([])
       setSelectedRecipe((prev) =>

@@ -1,6 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, increment, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "@firebase/firestore"
 import { db, storage } from "../../../firebase-config"
-import { ChatMessage, Conversation } from "../types/messages.types"
+import { ChatMessage, Conversation, SharedRecipeMessage } from "../types/messages.types"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
 
 export function getDirectConversationId(currentUserId: string, targetUserId: string) {
@@ -395,4 +395,56 @@ export async function sendImageMessage({
     })
 
     return messageRef.id
+}
+
+export async function shareRecipeMessage({
+    senderId,
+    receiverId,
+    recipe,
+}: {
+    senderId: string
+    receiverId: string
+    recipe: SharedRecipeMessage
+}) {
+    const allowed = await canMessageUser(senderId, receiverId)
+
+    if (!allowed) {
+        throw new Error("You can’t share recipes unless you follow each other.")
+    }
+
+    const conversationId = await createOrOpenDirectConversation({
+        currentUserId: senderId,
+        targetUserId: receiverId,
+    })
+
+    const conversationRef = doc(db, "conversations", conversationId)
+
+    const messageRef = await addDoc(
+        collection(db, "conversations", conversationId, "messages"),
+        {
+            conversationId,
+            senderId,
+            receiverId,
+            text: "",
+            type: "recipe",
+            recipe,
+            isDeleted: false,
+            createdAt: serverTimestamp(),
+        }
+    )
+
+    await updateDoc(conversationRef, {
+        lastMessage: {
+        text: `Shared a recipe: ${recipe.title}`,
+        senderId,
+        createdAt: serverTimestamp(),
+        },
+        [`unreadCount.${receiverId}`]: increment(1),
+        updatedAt: serverTimestamp(),
+    })
+
+    return {
+        conversationId,
+        messageId: messageRef.id,
+    }
 }

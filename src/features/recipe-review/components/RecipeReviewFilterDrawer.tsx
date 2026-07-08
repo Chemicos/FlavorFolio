@@ -224,7 +224,7 @@ export default function RecipeReviewFilterDrawer({
         animate={{ x: 0 }}
         exit={{ x: "-110%" }}
         transition={{ type: "spring", stiffness: 240, damping: 28 }}
-        className="relative left-0 top-0 flex h-full w-full max-w-[360px] flex-col border-r border-white/10 bg-[#050506]/70 py-8 shadow-[20px_0_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+        className="relative left-0 top-0 flex h-full w-full max-w-[300px] flex-col border-r border-white/10 bg-[#050506]/70 py-8 shadow-[20px_0_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
       >
         <div className="px-6">
           <h2 className="text-[1.4rem] text-[#d7def0]">Review filters</h2>

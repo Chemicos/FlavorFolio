@@ -25,6 +25,8 @@ import MyProfileEditFormLoading from "../components/MyProfileEditFormLoading";
 import { ProfileConnectionType, subscribeToMyFollowingUserIds } from "../services/profileConnections.service";
 import ProfileConnectionsModal from "../components/ProfileConnectionsModal";
 import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service";
+import { SharedRecipeMessage } from "../../messages/types/messages.types";
+import ShareRecipeModal from "../../messages/components/ShareRecipeModal";
 
 function ViewRecipeDrawerLoading({ width }: { width: number }) {
   return (
@@ -77,37 +79,75 @@ export default function MyProfilePage() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
-
+  
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
   const [isRecipeEditLoading, setIsRecipeEditLoading] = useState(false)
   const isDrawerOpen = Boolean(
     selectedRecipe || editingRecipe || isRecipeDrawerLoading || isRecipeEditLoading
   )
-
+  
   const { showSnackbar } = useSnackbar()
-
+  
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearchQuery = useDebounce(searchQuery, 1000)
   const isSearching = searchQuery.trim() !== debouncedSearchQuery.trim()
-
+  
   const [searchParams, setSearchParams] = useSearchParams()
   const recipeIdFromUrl = searchParams.get("recipeId")
-
+  
   const [sortBy, setSortBy] = useState<ProfileRecipeSortValue>("latest")
   const [category, setCategory] = useState("all")
   const [viewMode, setViewMode] = useState<ProfileRecipeViewMode>("grid")
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [isProfileEditLoading, setIsProfileEditLoading] = useState(false)
-
+  
   const [recipeToDelete, setRecipeToDelete] = useState<ProfileRecipeGridItem | null>(null)
+  
+  const [recipeToShare, setRecipeToShare] = useState<SharedRecipeMessage | null>(null)
+  const buildSharedRecipeFromRecipe = (recipe: Recipe): SharedRecipeMessage => ({
+    recipeId: recipe.recipeId || recipe.id || "",
+    title: recipe.title || "Untitled recipe",
+    image: recipe.image || "",
+    authorUsername:
+      recipe.author?.username ||
+      recipe.user ||
+      profile?.username ||
+      "Unknown",
+    cuisine: recipe.cuisine || "",
+    meal: recipe.meal || "",
+    difficulty: recipe.difficulty || "",
+    durationMinutes: Number(recipe.durationMinutes || 0),
+  })
+
+  const buildSharedRecipeFromGridItem = (
+    recipe: ProfileRecipeGridItem
+  ): SharedRecipeMessage => ({
+    recipeId: recipe.id || "",
+    title: recipe.title || "Untitled recipe",
+    image: recipe.image || "",
+    authorUsername: profile?.username || "Unknown",
+    cuisine: recipe.category || "",
+    meal: recipe.meal || "",
+    difficulty: recipe.difficulty || "",
+    durationMinutes: Number(recipe.durationMinutes || 0),
+  })
+
+  const handleShareRecipeFromDrawer = (recipe: Recipe) => {
+    setRecipeToShare(buildSharedRecipeFromRecipe(recipe))
+  }
+
+  const handleShareRecipeFromGrid = (recipe: ProfileRecipeGridItem) => {
+    setRecipeToShare(buildSharedRecipeFromGridItem(recipe))
+  }
+
   const [followingUserIds, setFollowingUserIds] = useState<string[]>([])
-
+  
   const [connectionsModalType, setConnectionsModalType] = useState<ProfileConnectionType | null>(null)
-
+  
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([])
   const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
   const [isBlockLoading, setIsBlockLoading] = useState(false)
-
+  
   const recipeTabs = useMemo<ProfileRecipeTabItem[]>(
     () => [
       {
@@ -614,6 +654,7 @@ export default function MyProfilePage() {
                 onRecipeDelete={(recipe) => {
                   setRecipeToDelete(recipe)
                 }}
+                onRecipeShare={handleShareRecipeFromGrid}
               />
             )}
           </main>
@@ -660,6 +701,7 @@ export default function MyProfilePage() {
                 authorFollowersCount={
                   Number(selectedRecipe.author?.followersCount || 0)
                 }
+                onShareRecipe={handleShareRecipeFromDrawer}
                 onAuthorClick={handleAuthorProfileClick}
                 onClose={handleCloseRecipeDrawer}
                 onFollowStateChange={handleFollowStateChange}
@@ -728,6 +770,17 @@ export default function MyProfilePage() {
                 console.error("Failed to delete recipe:", error)
                 showSnackbar("Failed to delete recipe. Please try again.", "error")
               }
+            }}
+          />
+
+          <ShareRecipeModal
+            isOpen={Boolean(recipeToShare)}
+            currentUserId={userId}
+            recipe={recipeToShare}
+            onClose={() => setRecipeToShare(null)}
+            onShared={(username) => {
+              showSnackbar(`Recipe shared with ${username}.`, "success")
+              setRecipeToShare(null)
             }}
           />
         </div>
