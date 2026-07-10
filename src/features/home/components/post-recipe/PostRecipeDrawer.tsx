@@ -44,15 +44,22 @@ export default function PostRecipeDrawer({
     const isInlineVariant = variant === "inline"
     
   return (
-    <div 
-        style={isInlineVariant ? { width, flexShrink: 0 } : isSideVariant
-            ? { top: topOffset, height: `calc(100vh - ${topOffset}px)`, width } : undefined
+    <div
+        style={
+            isInlineVariant
+            ? { width: "100%" }
+            : isSideVariant
+                ? {
+                    top: topOffset,
+                    height: `calc(100vh - ${topOffset}px)`,
+                    width,
+                }
+                : undefined
         }
         className={[
             isInlineVariant
-                ? "sticky top-16 h-[calc(100vh-80px)] overflow-hidden"
-                : "fixed right-0 z-[90]",
-            isSideVariant ? "" : "",
+            ? "h-[calc(100vh-96px)] w-full overflow-hidden"
+            : "fixed right-0 z-[90]",
             !isSideVariant && !isInlineVariant ? "inset-0" : "",
         ].join(" ")}
     >
@@ -75,12 +82,12 @@ export default function PostRecipeDrawer({
                 ? { duration: 0.18, ease: "easeOut" }
                 : { type: "spring", stiffness: 240, damping: 30, mass: 1 }
             }
-            style={{ width }}
-             className={[
+            style={{ width: isInlineVariant ? "100%" : width, }}
+            className={[
                 "flex h-full flex-col overflow-hidden bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]",
                 isInlineVariant
-                ? "rounded-l-2xl border-l border-white/10"
-                : isSideVariant
+                    ? "w-full rounded-2xl border border-white/10"
+                    : isSideVariant
                     ? "absolute right-0 top-0 border-l border-white/10"
                     : "absolute right-0 top-0 w-full max-w-[580px]",
             ].join(" ")}
@@ -108,7 +115,7 @@ export default function PostRecipeDrawer({
         </motion.aside>
 
         <AnimatePresence>
-            {showSubmissionInfo && mode !== "edit" && !isSideVariant && !isInlineVariant && (
+            {showSubmissionInfo && mode !== "edit" && (
                 <PostRecipeSubmissionInfo onContinue={() => setShowSubmissionInfo(false)} />
             )}
         </AnimatePresence>

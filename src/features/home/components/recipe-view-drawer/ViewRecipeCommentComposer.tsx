@@ -49,7 +49,7 @@ export default function ViewRecipeCommentComposer({
             initial={false}
             animate={{height: isExpanded ? 320 : 84}}
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1]}}
-            className="rounded-[1rem] bg-[#0b0b0c]/75 p-4"
+            className="rounded-lg bg-[#0b0b0c]/75 p-4"
         >
             <div className="flex items-start gap-3">
                 <div className="h-11 w-11 overflow-hidden rounded-lg bg-white/10">

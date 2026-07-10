@@ -1,7 +1,7 @@
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded"
 import SendRoundedIcon from "@mui/icons-material/SendRounded"
 import BlockRoundedIcon from "@mui/icons-material/BlockRounded"
-import { CircularProgress } from "@mui/material"
+import { CircularProgress, useMediaQuery } from "@mui/material"
 
 import { useNavigate, useParams } from "react-router-dom"
 import { useUserProfile } from "../hooks/useUserProfile"
@@ -27,15 +27,20 @@ import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds, unbl
 import { createOrOpenDirectConversation } from "../../messages/services/messages.service"
 import { SharedRecipeMessage } from "../../messages/types/messages.types"
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
+import StickyProfileDrawer from "../components/StickyProfileDrawer"
 
-function ViewRecipeDrawerLoading({ width }: { width: number }) {
+function ViewRecipeDrawerLoading() {
   return (
-    <aside
-      style={{ width, flexShrink: 0 }}
-      className="sticky top-16 flex h-[calc(100vh-80px)] flex-col items-center justify-center overflow-hidden rounded-l-2xl border-l border-white/10 bg-gradient-to-b from-[#16181d]/80 via-[#16181d]/95 to-[#16181d]"
-    >
-      <CircularProgress size={34} thickness={4.5} sx={{ color: "#feaa2b" }} />
-      <p className="mt-4 text-sm font-medium text-[#a8b3cf]">Loading recipe...</p>
+    <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#16181d]/80 via-[#16181d]/95 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.28)]">
+      <CircularProgress
+        size={34}
+        thickness={4.5}
+        sx={{ color: "#feaa2b" }}
+      />
+
+      <p className="mt-4 text-sm font-medium text-[#a8b3cf]">
+        Loading recipe...
+      </p>
     </aside>
   )
 }
@@ -75,13 +80,26 @@ export default function UserProfilePage() {
   const [viewMode, setViewMode] = useState<ProfileRecipeViewMode>("grid")
 
   const [savedRecipeIds, setSavedRecipeIds] = useState<string[]>([])
-  const [recipeDrawerWidth] = useState(540)
+
+  
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
-
+  
   const [recipeToShare, setRecipeToShare] = useState<SharedRecipeMessage | null>(null)
 
+  const isLargeDesktop = useMediaQuery("(min-width:1930px)")
+  const RECIPE_DRAWER_WIDTH = 540
+  const LAYOUT_GAP = 24
+  const FLOATING_EDGE_GAP = 24
+  const DRAWER_TOP_OFFSET = 80
+  const recipeDrawerWidth = RECIPE_DRAWER_WIDTH
+  const isDrawerOpen = Boolean(selectedRecipe || isRecipeDrawerLoading)
+
+  const floatingActionsRightOffset = isDrawerOpen && !isLargeDesktop
+    ? RECIPE_DRAWER_WIDTH + LAYOUT_GAP + FLOATING_EDGE_GAP
+    : FLOATING_EDGE_GAP
+  
   const buildSharedRecipeFromRecipe = (recipe: Recipe): SharedRecipeMessage => ({
     recipeId: recipe.recipeId || recipe.id || "",
     title: recipe.title || "Untitled recipe",
@@ -116,7 +134,6 @@ export default function UserProfilePage() {
     setRecipeToShare(buildSharedRecipeFromGridItem(recipe))
   }
 
-  const isDrawerOpen = Boolean(selectedRecipe || isRecipeDrawerLoading)
 
   const categories = useMemo(() => ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],[])
 
@@ -571,7 +588,7 @@ export default function UserProfilePage() {
 
   return (
     <div className="relative min-h-screen bg-[#0d0e11] text-white">
-      <Navigation />
+      <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
       <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-28 xl:px-10">
         <main 
           className={[
@@ -731,29 +748,39 @@ export default function UserProfilePage() {
 
         <AnimatePresence mode="wait">
           {isRecipeDrawerLoading && (
-            <ViewRecipeDrawerLoading width={recipeDrawerWidth} />
+            <StickyProfileDrawer
+              key="user-recipe-drawer-loading"
+              width={recipeDrawerWidth}
+            >
+              <ViewRecipeDrawerLoading />
+            </StickyProfileDrawer>
           )}
 
           {!isRecipeDrawerLoading && selectedRecipe && currentUser && (
-            <ViewRecipeDrawer
-              presentation="inline"
+            <StickyProfileDrawer
+              key={`user-recipe-${selectedRecipe.recipeId || selectedRecipe.id}`}
               width={recipeDrawerWidth}
-              recipe={selectedRecipe}
-              currentUser={currentUser}
-              savedRecipes={savedRecipeIds.map((recipeId) => ({ recipeId }))}
-              followingUserIds={followingUserIds}
-              authorFollowersCount={Number(selectedRecipe.author?.followersCount || 0)}
-              onAuthorClick={handleAuthorProfileClick}
-              onShareRecipe={handleShareRecipeFromDrawer}
-              onClose={() => {
-                setSelectedRecipeId(null)
-                setSelectedRecipe(null)
-              }}
-              onFollowStateChange={handleFollowStateChange}
-              onFavoriteStateChange={handleFavoriteStateChange}
-              onRatingStateChange={handleRatingStateChange}
-              onCommentStateChange={handleCommentStateChange}
-            />
+            >
+              <ViewRecipeDrawer
+                presentation="inline"
+                width={recipeDrawerWidth}
+                recipe={selectedRecipe}
+                currentUser={currentUser}
+                savedRecipes={savedRecipeIds.map((recipeId) => ({ recipeId }))}
+                followingUserIds={followingUserIds}
+                authorFollowersCount={Number(selectedRecipe.author?.followersCount || 0)}
+                onAuthorClick={handleAuthorProfileClick}
+                onShareRecipe={handleShareRecipeFromDrawer}
+                onClose={() => {
+                  setSelectedRecipeId(null)
+                  setSelectedRecipe(null)
+                }}
+                onFollowStateChange={handleFollowStateChange}
+                onFavoriteStateChange={handleFavoriteStateChange}
+                onRatingStateChange={handleRatingStateChange}
+                onCommentStateChange={handleCommentStateChange}
+              />
+            </StickyProfileDrawer>
           )}
         </AnimatePresence>
       </div>

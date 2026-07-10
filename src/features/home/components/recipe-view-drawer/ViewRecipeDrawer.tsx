@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react"
 
 import MuiRating from "@mui/material/Rating"
 import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded"
@@ -97,8 +98,18 @@ export default function ViewRecipeDrawer({
 
     const isInline = presentation === "inline"
     const asideClassName = isInline
-    ? "sticky top-16 flex h-[calc(100vh-80px)] flex-col overflow-hidden rounded-l-2xl border-l border-white/10 bg-gradient-to-b from-[#16181d]/80 via-[#16181d]/95 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.28)]"
-    : "absolute right-0 top-0 flex h-full w-full max-w-[540px] flex-col overflow-hidden bg-gradient-to-b from-[#16181d]/40 via-[#16181d]/80 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.38)]"
+        ? [
+            "flex h-[calc(100vh-96px)] w-full flex-col overflow-hidden",
+            "rounded-2xl border border-white/10",
+            "bg-gradient-to-b from-[#16181d]/80 via-[#16181d]/95 to-[#16181d]",
+            "shadow-[-24px_0_80px_rgba(0,0,0,0.28)]",
+        ].join(" ")
+      : [
+            "absolute right-0 top-0",
+            "flex h-full w-full max-w-[540px] flex-col overflow-hidden",
+            "bg-gradient-to-b from-[#16181d]/40 via-[#16181d]/80 to-[#16181d]",
+            "shadow-[-24px_0_80px_rgba(0,0,0,0.38)]",
+        ].join(" ")
 
     const [isDeleteRecipeDialogOpen, setIsDeleteRecipeDialogOpen] = useState(false)
     const [isDeletingRecipe, setIsDeletingRecipe] = useState(false)
@@ -518,16 +529,7 @@ export default function ViewRecipeDrawer({
     }
 
     const drawer = (
-        <motion.aside
-            initial={isInline ? { opacity: 0 } : { x: "100%" }}
-            animate={isInline ? { opacity: 1 } : { x: 0 }}
-            exit={isInline ? { opacity: 0 } : { x: "105%" }}
-            transition={{
-            type: "spring",
-            stiffness: 240,
-            damping: 30,
-            mass: 1,
-            }}
+        <aside        
             style={isInline ? { width, flexShrink: 0 } : undefined}
             className={asideClassName}
         >
@@ -557,8 +559,8 @@ export default function ViewRecipeDrawer({
                         type="button"
                         onClick={onClose}
                         className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
-                        >
-                        <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+                    >
+                        <CloseRoundedIcon sx={{ fontSize: 20 }} />
                     </button>
 
                     <div className="absolute right-5 top-5 z-30">
@@ -852,8 +854,8 @@ export default function ViewRecipeDrawer({
                                         className={[
                                             "flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition active:scale-95",
                                             isActive
-                                                ? "bg-orange-600/80 text-white shadow-[0_8px_24px_rgba(255,140,0,0.35)]"
-                                                : "text-[#7f89a6] hover:bg-white/[0.04] hover:text-white",
+                                                ? "bg-orange-500/20 text-white"
+                                                : "text-[#7f89a6] hover:bg-white/[0.06] hover:text-white",
                                         ].join(" ")}
                                     >
                                         <span>{tab.label}</span>
@@ -943,7 +945,7 @@ export default function ViewRecipeDrawer({
                     </div>
                 </div>
             </div>
-        </motion.aside>
+        </aside>
     )
 
     if (isInline) {
@@ -988,7 +990,3 @@ export default function ViewRecipeDrawer({
         </div>
     )
 }
-function showSnackbar(arg0: string, arg1: string) {
-    throw new Error("Function not implemented.")
-}
-

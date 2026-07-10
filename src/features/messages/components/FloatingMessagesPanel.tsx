@@ -12,6 +12,7 @@ interface FloatingMessagesPanelProps {
   currentUserId: string
   conversations: Conversation[]
   onClose: () => void
+  rightOffset?: number
 }
 
 export default function FloatingMessagesPanel({
@@ -19,6 +20,7 @@ export default function FloatingMessagesPanel({
   currentUserId,
   conversations,
   onClose,
+  rightOffset = 24,
 }: FloatingMessagesPanelProps) {
   const navigate = useNavigate()
   const [search, setSearch] = useState("")
@@ -54,6 +56,7 @@ export default function FloatingMessagesPanel({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.96 }}
           transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          style={{right: rightOffset}}
           className="fixed bottom-24 right-6 z-50 flex h-[520px] w-[360px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#16181d]/95 shadow-[0_24px_90px_rgba(0,0,0,0.6)] backdrop-blur-xl"
         >
           <header className="border-b border-white/10 px-5 py-4">

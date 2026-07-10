@@ -63,7 +63,7 @@ export default function ReelCard({reel}: ReelCardProps) {
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
-            🍴 Dinner
+            Dinner
           </span>
 
           {reel.duration ? (

@@ -233,7 +233,7 @@ export default function RecipeReviewFilterDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-0 top-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] transition hover:bg-[#050506] hover:text-white"
+            className="absolute right-0 top-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 hover:bg-[#202429] text-[#a8b3cf] transition hover:text-white"
           >
             <KeyboardArrowLeftIcon sx={{ fontSize: 24 }} />
           </button>

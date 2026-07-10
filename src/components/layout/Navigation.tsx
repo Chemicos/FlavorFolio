@@ -20,16 +20,10 @@ import GlobalSearchBar from '../../features/search/components/GlobalSearchBar'
 
 interface NavigationProps {
   onFeedbackClick?: () => void
-  // variant?: "transparent" | "solid"
+  floatingMessagesRightOffset?: number
 }
 
-// interface FirestoreUser {
-//   username?: string
-//   admin?: boolean
-//   profileImage?: string
-// }
-
-export default function Navigation({ onFeedbackClick }: NavigationProps) {
+export default function Navigation({ onFeedbackClick, floatingMessagesRightOffset = 24, }: NavigationProps) {
     const navigate = useNavigate()
     const auth = getAuth()
     
@@ -369,7 +363,7 @@ export default function Navigation({ onFeedbackClick }: NavigationProps) {
           </nav>
       </div>
 
-      <FloatingMessagesButton />
+      <FloatingMessagesButton rightOffset={floatingMessagesRightOffset} />
     </>
 
   )

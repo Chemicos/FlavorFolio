@@ -7,6 +7,10 @@ import { useConversations } from "../hooks/useConversations"
 import FloatingMessagesPanel from "./FloatingMessagesPanel"
 import { useLocation } from "react-router-dom"
 
+interface FloatingMessagesButtonProps {
+  rightOffset?: number
+}
+
 const hiddenRoutes = [
   "/messages",
   "/needs-revision",
@@ -16,7 +20,7 @@ const hiddenRoutes = [
   "/admin/reports",
 ]
 
-export default function FloatingMessagesButton() {
+export default function FloatingMessagesButton({rightOffset = 24,}: FloatingMessagesButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const currentUserId = auth.currentUser?.uid || null
 
@@ -46,9 +50,10 @@ export default function FloatingMessagesButton() {
     <>
       <button
         type="button"
+        style={{right: rightOffset}}
         onClick={() => setIsOpen((prev) => !prev)}
         className={[
-          "fixed bottom-6 right-6 z-40 flex h-14 items-center gap-3 rounded-full border px-5 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition active:scale-95",
+          "fixed bottom-6 right-6 z-40 flex h-14 items-center gap-2 rounded-full border px-5 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-[right,background-color,border-color,transform] duration-300 active:scale-95",
           isOpen
             ? "border-[#feaa2b]/50 bg-[#feaa2b]/20 text-[#ffd28a]"
             : "border-white/10 bg-[#0b0b0c]/90 text-[#d7def0] hover:bg-[#16181d]",
@@ -78,6 +83,7 @@ export default function FloatingMessagesButton() {
         currentUserId={currentUserId}
         conversations={conversations}
         onClose={() => setIsOpen(false)}
+        rightOffset={rightOffset}
       />
     </>
   )

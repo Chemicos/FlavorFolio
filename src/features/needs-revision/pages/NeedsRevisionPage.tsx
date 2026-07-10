@@ -320,7 +320,7 @@ export default function NeedsRevisionPage() {
             updateMode="revision_draft"
             variant="side"
             width={detailsDrawerWidth}
-            topOffset={80}
+            topOffset={64}
             onResizeStart={handleDetailsResizeStart}
             recipeToEdit={editingRecipe as unknown as Recipe}
             onClose={() => setEditingRecipe(null)}

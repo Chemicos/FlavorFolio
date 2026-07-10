@@ -162,7 +162,7 @@ export default function RecipeReviewDetailsDrawer({
       exit={{ x: "100%" }}
       transition={{ type: "spring", stiffness: 260, damping: 32 }}
       style={{ width }}
-      className="fixed right-0 top-16 z-40 flex h-[calc(100vh-80px)] flex-col overflow-hidden border-l border-white/10 bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]"
+      className="fixed right-0 top-16 z-40 flex h-[calc(100vh-64px)] flex-col overflow-hidden border-l border-white/10 bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]"
     >
       <div
         onMouseDown={onResizeStart}

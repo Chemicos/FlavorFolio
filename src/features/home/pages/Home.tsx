@@ -6,18 +6,23 @@ import Content from "../components/Content.js"
 import ScrollToTopButton from "../components/ScrollToTopButton"
 import FilterBar from "../components/FilterBar"
 import FeedTabs from "../components/FeedTabs"
-import { AnimatePresence } from "motion/react"
+import { AnimatePresence, motion } from "motion/react"
 import { useHomeData } from "../hooks/useHomeData"
 import { Recipe } from "../types"
 import ViewRecipeDrawer from "../components/recipe-view-drawer/ViewRecipeDrawer"
 import PostRecipeDrawer from "../components/post-recipe/PostRecipeDrawer"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service"
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
 import { useSnackbar } from "../../../components/layout/SnackbarProvider"
+import { CircularProgress, useMediaQuery } from "@mui/material"
+import { fetchRecipeById } from "../services/recipes.service"
 
 export default function Home() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const recipeIdFromUrl = searchParams.get("recipeId")
+  
   const [activeTab, setActiveTab] = useState("For You")
   //Filtering
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
@@ -27,17 +32,27 @@ export default function Home() {
   const { showSnackbar } = useSnackbar()
 
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
-  const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
-
+  // const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
+  const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [recipeToShare, setRecipeToShare] = useState<Recipe | null>(null)
 
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([])
   const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
 
-  const isAnyOverlayOpen = isPostFormVisible || Boolean(editingRecipe) || Boolean(selectedRecipe) || isFilterDrawerOpen
+  const isAnyOverlayOpen = isFilterDrawerOpen
+
+  const isLargeDesktop = useMediaQuery("(min-width:1930px)")
+  const RECIPE_DRAWER_WIDTH = 540
+  const LAYOUT_GAP = 24
+  const isInlineDrawerOpen = Boolean(selectedRecipe) || isPostFormVisible || Boolean(editingRecipe) || isRecipeDrawerLoading
+
+  const floatingActionsRightOffset = isInlineDrawerOpen && !isLargeDesktop
+    ? RECIPE_DRAWER_WIDTH + LAYOUT_GAP + 24
+    : 24
+
 
   const {
     activeRecipes,
@@ -61,6 +76,78 @@ export default function Home() {
   const handleResetFilters = () => {
     setFilters(defaultRecipeFilters)
   }
+
+  useEffect(() => {
+    if (!recipeIdFromUrl) {
+      return
+    }
+
+    let isCancelled = false
+
+    async function openRecipeFromUrl() {
+      setIsPostFormVisible(false)
+      setEditingRecipe(null)
+
+      const localRecipe = activeRecipes.find((recipe) => {
+        const recipeId = recipe.recipeId || recipe.id
+
+        return recipeId === recipeIdFromUrl
+      })
+
+      if (localRecipe) {
+        setSelectedRecipe(localRecipe)
+        setIsRecipeDrawerLoading(false)
+        return
+      }
+
+      try {
+        setIsRecipeDrawerLoading(true)
+
+        const recipe = await fetchRecipeById(recipeIdFromUrl)
+
+        if (isCancelled) return
+
+        if (!recipe) {
+          showSnackbar("Recipe not found.", "error")
+
+          setSearchParams((currentParams) => {
+            const nextParams = new URLSearchParams(currentParams)
+            nextParams.delete("recipeId")
+            return nextParams
+          }, {
+            replace: true,
+          })
+
+          setSelectedRecipe(null)
+          return
+        }
+
+        setSelectedRecipe(recipe)
+      } catch (error) {
+        console.error("Failed to open recipe from search:", error)
+
+        if (!isCancelled) {
+          showSnackbar("Failed to load recipe.", "error")
+          setSelectedRecipe(null)
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsRecipeDrawerLoading(false)
+        }
+      }
+    }
+
+    openRecipeFromUrl()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [
+    recipeIdFromUrl,
+    activeRecipes,
+    setSearchParams,
+    showSnackbar,
+  ])
 
   useEffect(() => {
     if (!currentUser?.uid) {
@@ -136,33 +223,80 @@ export default function Home() {
   }
   
   const handlePostClick = () => {
+    setSelectedRecipe(null)
+    setEditingRecipe(null)
+    setIsRecipeDrawerLoading(false)
     setIsPostFormVisible(true)
+
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams)
+      nextParams.delete("recipeId")
+      return nextParams
+    }, {
+      replace: true,
+    })
   }
 
-  const handleFeedbackClick = () => {
-    setIsFeedbackVisible(true)
-  }
+  // const handleFeedbackClick = () => {
+  //   setIsFeedbackVisible(true)
+  // }
 
   const handleRecipeClick = (recipe: Recipe) => {
+    const recipeId = recipe.recipeId || recipe.id
+
+    if (!recipeId) return
+
+    setIsPostFormVisible(false)
+    setEditingRecipe(null)
     setSelectedRecipe(recipe)
+
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams)
+      nextParams.set("recipeId", recipeId)
+      return nextParams
+    })
   }
 
   const handleCloseRecipeDrawer = () => {
     setSelectedRecipe(null)
+    setIsRecipeDrawerLoading(false)
+
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams)
+      nextParams.delete("recipeId")
+      return nextParams
+    }, {
+      replace: true,
+    })
   }
 
   const handleEditRecipe = (recipe: Recipe) => {
     setSelectedRecipe(null)
     setEditingRecipe(recipe)
     setIsPostFormVisible(true)
+
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams)
+      nextParams.delete("recipeId")
+      return nextParams
+    }, {
+      replace: true,
+    })
   }
 
   const handleRecipeDeleteSuccess = (recipeId: string) => {
     handleRecipeDeleteStateChange(recipeId)
     showSnackbar("Recipe deleted successfully.", "success")
-    // setsnackbarMessage("Recipe deleted successfully.")
-    // setSnackbarOpen(true)
+
     setSelectedRecipe(null)
+
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams)
+      nextParams.delete("recipeId")
+      return nextParams
+    }, {
+      replace: true,
+    })
   }
 
   const handleClosePostRecipeDrawer = () => {
@@ -214,9 +348,26 @@ export default function Home() {
   }, [searchedRecipes, blockedRelationshipUserIds])
 
   const handleShareRecipe = (recipe: Recipe) => {
-    setSelectedRecipe(null)
+    // setSelectedRecipe(null)
     setRecipeToShare(recipe)
     setIsShareModalOpen(true)
+  }
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab)
+    setSearchQuery("")
+    setSelectedRecipe(null)
+    setEditingRecipe(null)
+    setIsPostFormVisible(false)
+    setIsRecipeDrawerLoading(false)
+
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams)
+      nextParams.delete("recipeId")
+      return nextParams
+    }, {
+      replace: true,
+    })
   }
 
   const sharedRecipe = recipeToShare
@@ -235,10 +386,29 @@ export default function Home() {
         durationMinutes: Number(recipeToShare.durationMinutes || 0),
       }
     : null
+
+    const handleRecipeDrawerFollowStateChange = (
+      authorId: string,
+      isNowFollowing: boolean
+    ) => {
+      handleFollowStateChange(authorId, isNowFollowing)
+
+      const authorUsername =
+        selectedRecipe?.author?.username ||
+        selectedRecipe?.user ||
+        "this user"
+
+      if (isNowFollowing) {
+        showSnackbar(`You are now following ${authorUsername}.`, "success")
+        return
+      }
+
+      showSnackbar(`You unfollowed ${authorUsername}.`, "info")
+    }
   
   return (
     <div 
-      className="relative min-h-screen w-full overflow-x-hidden bg-[#0d0e11]"
+      className="relative min-h-screen w-full overflow-x-clip bg-[#0d0e11]"
       style={{
         background: `
           radial-gradient(circle at 15% 0%, rgba(255,145,0,0.08), transparent 30%),
@@ -249,53 +419,195 @@ export default function Home() {
       }}
     >
     <div className="relative z-10">
-      <Navigation onFeedbackClick={handleFeedbackClick} />
+      <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
 
-      <div className="mx-auto mt-[6rem] w-full max-w-[1400px] px-6 xl:px-10">
-        <FeedTabs
-          activeTab={activeTab}
-          // onTabChange={setActiveTab}
-          onTabChange={(tab) => {
-            setActiveTab(tab)
-            setSearchQuery("")
-          }}
-        />
+      <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-24 xl:px-10">
+        <main
+          className={[
+            "min-w-0 flex-1 transition-[max-width,width] duration-300 ease-out",
+            isInlineDrawerOpen ? "max-w-none" : "mx-auto max-w-[1400px]",
+          ].join(" ")}
+        >
+          <div>
+            <FeedTabs
+              activeTab={activeTab}
+              // onTabChange={setActiveTab}
+              onTabChange={handleTabChange}
+            />
 
-        <FilterBar
-          filters={filters}
-          onChangeFilters={setFilters}
-          onResetFilters={handleResetFilters}
-        />
-      </div>
+            <FilterBar
+              filters={filters}
+              onChangeFilters={setFilters}
+              onResetFilters={handleResetFilters}
+            />  
+          </div>
 
-      <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center mt-8 gap-8 px-6 xl:px-10">        
-        <Content
-          // recipes={activeRecipes}
-          recipes={visibleSearchedRecipes}
-          isLoading={isLoading}
-          isFiltering={isFiltering}
-          title={activeTab}
-          onOpenFilters={() => setIsFilterDrawerOpen(true)}
-          currentUser={currentUser}
-          savedRecipes={savedRecipes}
-          followingUserIds={followingUserIds}
-          authorFollowersCountMap={authorFollowersCountMap}
-          onFollowStateChange={handleFollowStateChange}
-          onFavoriteStateChange={handleFavoriteStateChange}
-          activeTab={activeTab}
-          filters={filters}
-          onRecipeClick={handleRecipeClick}
-          onCreatePost={handlePostClick}
-          hasMoreRecipes={hasMoreRecipes}
-          isFetchingMoreRecipes={isFetchingMoreRecipes}
-          onFetchMoreRecipes={fetchMoreRecipes}
-        />
+          <div className="mt-8">        
+            <Content
+              // recipes={activeRecipes}
+              recipes={visibleSearchedRecipes}
+              isLoading={isLoading}
+              isFiltering={isFiltering}
+              title={activeTab}
+              onOpenFilters={() => setIsFilterDrawerOpen(true)}
+              currentUser={currentUser}
+              savedRecipes={savedRecipes}
+              followingUserIds={followingUserIds}
+              authorFollowersCountMap={authorFollowersCountMap}
+              onFollowStateChange={handleFollowStateChange}
+              onFavoriteStateChange={handleFavoriteStateChange}
+              activeTab={activeTab}
+              filters={filters}
+              onRecipeClick={handleRecipeClick}
+              onCreatePost={handlePostClick}
+              hasMoreRecipes={hasMoreRecipes}
+              isFetchingMoreRecipes={isFetchingMoreRecipes}
+              onFetchMoreRecipes={fetchMoreRecipes}
+            />
+          </div>
+        </main>
+
+        {/* <AnimatePresence mode="wait">
+          {selectedRecipe && (
+            <div
+              className="sticky top-20 self-start"
+              style={{
+                width: RECIPE_DRAWER_WIDTH,
+                flexShrink: 0,
+              }}
+            >
+              <ViewRecipeDrawer 
+                key={selectedRecipe.recipeId || selectedRecipe.id}
+                presentation="inline"
+                width={RECIPE_DRAWER_WIDTH}
+                recipe={selectedRecipe}
+                onShareRecipe={handleShareRecipe}
+                currentUser={currentUser}
+                savedRecipes={savedRecipes}
+                followingUserIds={followingUserIds}
+                authorFollowersCount={
+                  authorFollowersCountMap[selectedRecipe.userId || ""] ??
+                  Number(selectedRecipe?.author?.followersCount || 0)
+                }
+                onAuthorClick={handleAuthorProfileClick}
+                onClose={handleCloseRecipeDrawer}
+                onFavoriteStateChange={(recipeId, isNowSaved) => {
+                  handleFavoriteStateChange(recipeId, isNowSaved)
+  
+                  if (isNowSaved) {
+                    showSnackbar("Recipe saved.", "success")
+                    return
+                  }
+  
+                  showSnackbar(
+                    "Recipe removed from saved recipes.",
+                    "info"
+                  )
+                }}
+                onFollowStateChange={handleFollowStateChange}
+                onRatingStateChange={handleRatingStateChange}
+                onCommentStateChange={handleCommentStateChange}
+                onEditRecipe={handleEditRecipe}
+                onDeleteRecipe={handleRecipeDeleteSuccess}
+                blockedUserIds={blockedUserIds}
+                blockedByUserIds={blockedByUserIds}
+              />
+            </div>
+          )}
+        </AnimatePresence> */}
+
+        <AnimatePresence mode="wait">
+          {isInlineDrawerOpen && (
+            <motion.div
+              key={
+                isRecipeDrawerLoading
+                  ? `loading-${recipeIdFromUrl}`
+                  : editingRecipe
+                    ? `edit-${editingRecipe.recipeId || editingRecipe.id}`
+                    : isPostFormVisible
+                      ? "create-recipe"
+                      : `view-${selectedRecipe?.recipeId || selectedRecipe?.id}`
+              }
+              initial={{ opacity: 0, }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, }}
+              transition={{
+                duration: 0.22,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="sticky top-20 self-start"
+              style={{
+                width: RECIPE_DRAWER_WIDTH,
+                flexShrink: 0,
+              }}
+            >
+              {isRecipeDrawerLoading ? (
+                <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.28)]">
+                  <CircularProgress
+                    size={34}
+                    thickness={4.5}
+                    sx={{ color: "#feaa2b" }}
+                  />
+
+                  <p className="mt-4 text-sm font-medium text-[#a8b3cf]">
+                    Loading recipe...
+                  </p>
+                </aside>
+              ) : isPostFormVisible ? (
+                <PostRecipeDrawer
+                  variant="inline"
+                  width={RECIPE_DRAWER_WIDTH}
+                  onClose={handleClosePostRecipeDrawer}
+                  currentUser={currentUser}
+                  onSubmitSuccess={handleRecipeSubmitSuccess}
+                  mode={editingRecipe ? "edit" : "create"}
+                  recipeToEdit={editingRecipe}
+                  onUpdateSuccess={handleRecipeUpdateSuccess}
+                />
+              ) : selectedRecipe ? (
+                <ViewRecipeDrawer
+                  presentation="inline"
+                  width={RECIPE_DRAWER_WIDTH}
+                  recipe={selectedRecipe}
+                  onShareRecipe={handleShareRecipe}
+                  currentUser={currentUser}
+                  savedRecipes={savedRecipes}
+                  followingUserIds={followingUserIds}
+                  authorFollowersCount={
+                    authorFollowersCountMap[selectedRecipe.userId || ""] ??
+                    Number(selectedRecipe.author?.followersCount || 0)
+                  }
+                  onAuthorClick={handleAuthorProfileClick}
+                  onClose={handleCloseRecipeDrawer}
+                  onFavoriteStateChange={(recipeId, isNowSaved) => {
+                    handleFavoriteStateChange(recipeId, isNowSaved)
+
+                    showSnackbar(
+                      isNowSaved
+                        ? "Recipe saved."
+                        : "Recipe removed from saved recipes.",
+                      isNowSaved ? "success" : "info"
+                    )
+                  }}
+                  onFollowStateChange={handleRecipeDrawerFollowStateChange}
+                  onRatingStateChange={handleRatingStateChange}
+                  onCommentStateChange={handleCommentStateChange}
+                  onEditRecipe={handleEditRecipe}
+                  onDeleteRecipe={handleRecipeDeleteSuccess}
+                  blockedUserIds={blockedUserIds}
+                  blockedByUserIds={blockedByUserIds}
+                />
+              ) : null}
+            </motion.div>
+          )}
+          
+        </AnimatePresence>
       </div>
 
       {/* <FloatingSpeedDial /> */}
-      <ScrollToTopButton />
+      <ScrollToTopButton rightOffset={floatingActionsRightOffset} />
 
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {isPostFormVisible && (
           <PostRecipeDrawer 
             onClose={handleClosePostRecipeDrawer} 
@@ -306,7 +618,7 @@ export default function Home() {
             onUpdateSuccess={handleRecipeUpdateSuccess}
           />
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       {/* {isFeedbackVisible && <Feedback onClose={handleClose} />} */}
       
@@ -323,31 +635,6 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {selectedRecipe && (
-          <ViewRecipeDrawer 
-            recipe={selectedRecipe}
-            onShareRecipe={handleShareRecipe}
-            currentUser={currentUser}
-            savedRecipes={savedRecipes}
-            followingUserIds={followingUserIds}
-            authorFollowersCount={
-              authorFollowersCountMap[selectedRecipe.userId || ""] ??
-              Number(selectedRecipe?.author?.followersCount || 0)
-            }
-            onAuthorClick={handleAuthorProfileClick}
-            onClose={handleCloseRecipeDrawer}
-            onFavoriteStateChange={handleFavoriteStateChange}
-            onFollowStateChange={handleFollowStateChange}
-            onRatingStateChange={handleRatingStateChange}
-            onCommentStateChange={handleCommentStateChange}
-            onEditRecipe={handleEditRecipe}
-            onDeleteRecipe={handleRecipeDeleteSuccess}
-            blockedUserIds={blockedUserIds}
-            blockedByUserIds={blockedByUserIds}
-          />
-        )}
-      </AnimatePresence>
 
       <ShareRecipeModal
           isOpen={isShareModalOpen}

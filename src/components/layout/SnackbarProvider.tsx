@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react"
+import { createContext, useCallback, useContext, useMemo, useState } from "react"
 import AppSnackbar, { SnackbarType } from "./AppSnackbar"
 
 interface SnackbarContextValue {
@@ -13,18 +13,22 @@ export default function SnackbarProvider({children}: {children: React.ReactNode}
     const [type, setType] = useState<SnackbarType>("success")
     const [snackbarKey, setSnackbarKey] = useState(0)
 
-    const showSnackbar = (
+    const showSnackbar = useCallback(
+      (
         nextMessage: string,
         nextType: SnackbarType = "success"
-    ) => {
+      ) => {
         setSnackbarKey((prev) => prev + 1)
         setMessage(nextMessage)
         setType(nextType)
         setOpen(true)
-    }
+      },
+    [])
+
+    const contextValue = useMemo(() => ({ showSnackbar }), [showSnackbar])
 
   return (
-    <SnackbarContext.Provider value={{ showSnackbar }}>
+    <SnackbarContext.Provider value={contextValue}>
       {children}
 
       <AppSnackbar

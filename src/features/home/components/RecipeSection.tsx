@@ -1,4 +1,4 @@
-import CircularProgress from '@mui/material/CircularProgress'
+// import CircularProgress from '@mui/material/CircularProgress'
 // import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import PostAddRoundedIcon from "@mui/icons-material/PostAddRounded"
 import TuneIcon from '@mui/icons-material/Tune'
@@ -8,9 +8,10 @@ import { motion } from "motion/react"
 import { useWindowVirtualizer } from "@tanstack/react-virtual"
 
 import type { Recipe, SavedRecipe } from "../types"
-import RecipeCard from "./RecipeCard"
+// import RecipeCard from "./RecipeCard"
 import { CurrentUserCardData } from "../types/recipeCard.types"
 import RecipeGridCard from './RecipeGridCard'
+import RecipeGridSkeleton from './RecipeGridSkeleton'
 
 interface RecipeSectionProps {
   title: string
@@ -166,15 +167,7 @@ export default function RecipeSection({
         </div>
 
         {isLoading ? (
-            <div className="flex min-h-[320px] w-full items-center justify-center">
-                <CircularProgress
-                    size={42}
-                    thickness={4.2}
-                    sx={{
-                    color: "#fff",
-                    }}
-                />
-            </div>
+            <RecipeGridSkeleton count={8} />
         ) : (
             <div ref={gridRef} className="relative w-full">
                 <div
@@ -237,11 +230,11 @@ export default function RecipeSection({
                 </div>
         )}
 
-        {isFetchingMore && (
+        {/* {isFetchingMore && (
             <div className="flex w-full justify-center py-8">
                 <CircularProgress size={32} thickness={4} sx={{ color: "#fff" }} />
             </div>
-        )}
+        )} */}
     </section>
   )
 }

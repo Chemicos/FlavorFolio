@@ -4,6 +4,7 @@ import { CurrentUserCardData } from "../types/recipeCard.types"
 import { db, storage } from "../../../firebase-config"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { buildRecipeKeywords } from "../../../utils/searchKeywords"
+import { Recipe } from "../types"
 
 interface CreateRecipePayload {
     title: string
@@ -323,4 +324,26 @@ export async function deleteRecipe({recipeId, currentUser}: DeleteRecipePayload)
     await deleteDoc(recipeRef)
 
     return recipeId
+}
+
+export async function fetchRecipeById(
+  recipeId: string
+): Promise<Recipe | null> {
+  if (!recipeId) return null
+
+  const recipeSnap = await getDoc(
+    doc(db, "recipes", recipeId)
+  )
+
+  if (!recipeSnap.exists()) {
+    return null
+  }
+
+  const data = recipeSnap.data()
+
+  return {
+    ...(data as Recipe),
+    id: recipeSnap.id,
+    recipeId: data.recipeId || recipeSnap.id,
+  }
 }
