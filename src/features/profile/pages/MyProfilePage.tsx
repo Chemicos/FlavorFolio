@@ -562,7 +562,7 @@ export default function MyProfilePage() {
   return (
     <div className="relative min-h-screen bg-[#0d0e11] text-white">
       <div className="relative z-10">
-        <Navigation variant="solid" />
+        <Navigation />
 
         <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-28 xl:px-10">
           <main 

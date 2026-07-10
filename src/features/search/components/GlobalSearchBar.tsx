@@ -47,7 +47,7 @@ export default function GlobalSearchBar() {
     return (
         <div
             ref={wrapperRef}
-            className="relative hidden w-full max-w-[620px] lg:block"
+            className="relative w-full max-w-[620px]"
             onBlur={(event) => {
                 if (!wrapperRef.current?.contains(event.relatedTarget as Node)) {
                 setIsFocused(false)

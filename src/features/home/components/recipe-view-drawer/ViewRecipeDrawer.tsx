@@ -628,8 +628,8 @@ export default function ViewRecipeDrawer({
                             >
                             <BookmarkRoundedIcon
                                 sx={{
-                                color: isFavorite ? "#feaa2b" : "#ffffff",
-                                fontSize: 20,
+                                    color: isFavorite ? "#feaa2b" : "#ffffff",
+                                    fontSize: 20,
                                 }}
                             />
                         </button>
@@ -988,3 +988,7 @@ export default function ViewRecipeDrawer({
         </div>
     )
 }
+function showSnackbar(arg0: string, arg1: string) {
+    throw new Error("Function not implemented.")
+}
+

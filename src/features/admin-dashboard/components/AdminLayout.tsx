@@ -21,7 +21,7 @@ export default function AdminLayout({
       className="min-h-screen bg-[#0d0e11] text-white transition-[padding] duration-300"
       style={{ paddingRight: rightOffset }}
     >
-      <Navigation variant="solid" />
+      <Navigation />
 
       <AdminDashboardSidebar
         isCollapsed={isCollapsed}

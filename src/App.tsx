@@ -24,6 +24,7 @@ import AdminRecipesPage from './features/admin-dashboard/pages/AdminRecipesPage'
 import AdminUsersPage from './features/admin-dashboard/pages/AdminUsersPage'
 import AdminReportsPage from './features/admin-dashboard/pages/AdminReportsPage'
 import MessagesPage from './features/messages/pages/MessagesPage'
+import ReelsPage from './features/reels/pages/ReelsPage'
 
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -46,6 +47,7 @@ function App() {
         <Routes>
           <Route path="/" element={user ? <Navigate replace to="/home" /> : <Login />} />
           <Route path="/home" element={user ? <Home /> : <Navigate replace to="/" />} />
+          <Route path="/reels" element={user ? <ReelsPage /> : <Navigate replace to="/" />} />
           <Route path='/pending' element={user ? <PendingRecipesPage /> : <Navigate replace to="/" />} />
           <Route path='/needs-revision' element={user ? <NeedsRevisionPage /> : <Navigate replace to="/" />} />
           <Route path='/profile' element={user ? <MyProfilePage /> : <Navigate replace to="/" />} />

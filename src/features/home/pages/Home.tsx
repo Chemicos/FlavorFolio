@@ -237,20 +237,21 @@ export default function Home() {
     : null
   
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-[#101b16]">
-      <div className="pointer-events-none absolute inset-0">
-        <div
-          className="absolute left-1/2 top-0 h-[1000px] w-[1000px] -translate-x-1/2 rounded-full blur-[100px]"
-          style={{
-            background: "rgba(254,170,43,0.05)",
-          }}
-        />
-    </div>
-
+    <div 
+      className="relative min-h-screen w-full overflow-x-hidden bg-[#0d0e11]"
+      style={{
+        background: `
+          radial-gradient(circle at 15% 0%, rgba(255,145,0,0.08), transparent 30%),
+          radial-gradient(circle at 90% 10%, rgba(255,255,255,0.025), transparent 25%),
+          radial-gradient(circle at 50% 100%, rgba(255,170,60,0.04), transparent 45%),
+          linear-gradient(180deg, #0d0e11 0%, #090909 100%)
+        `,
+      }}
+    >
     <div className="relative z-10">
-      <Navigation onFeedbackClick={handleFeedbackClick} variant="solid" />
+      <Navigation onFeedbackClick={handleFeedbackClick} />
 
-      <div className="mx-auto mt-[6rem] w-full max-w-[1400px] 2xl-plus:max-w-[1800px] px-6 xl:px-10">
+      <div className="mx-auto mt-[6rem] w-full max-w-[1400px] px-6 xl:px-10">
         <FeedTabs
           activeTab={activeTab}
           // onTabChange={setActiveTab}
@@ -267,7 +268,7 @@ export default function Home() {
         />
       </div>
 
-      <div className="mx-auto flex w-full max-w-[1400px] 2xl-plus:max-w-[1800px] flex-col items-center mt-8 gap-8 px-6 xl:px-10">        
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center mt-8 gap-8 px-6 xl:px-10">        
         <Content
           // recipes={activeRecipes}
           recipes={visibleSearchedRecipes}

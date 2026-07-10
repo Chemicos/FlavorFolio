@@ -1,13 +1,14 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from 'react'
 import FlavorFolioLogo from '../../assets/FF_logo.png'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 import { collection, doc, getCountFromServer, getDoc, getDocs, onSnapshot, query, where } from '@firebase/firestore'
 import { db } from "../../firebase-config"
 
 import {motion} from "motion/react"
 import DarkModeIcon from '@mui/icons-material/DarkMode'
+import SmartDisplayRoundedIcon from "@mui/icons-material/SmartDisplayRounded"
 import LightModeIcon from '@mui/icons-material/LightMode'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import NotificationsIcon from '@mui/icons-material/Notifications'
@@ -19,7 +20,7 @@ import GlobalSearchBar from '../../features/search/components/GlobalSearchBar'
 
 interface NavigationProps {
   onFeedbackClick?: () => void
-  variant?: "transparent" | "solid"
+  // variant?: "transparent" | "solid"
 }
 
 // interface FirestoreUser {
@@ -28,7 +29,7 @@ interface NavigationProps {
 //   profileImage?: string
 // }
 
-export default function Navigation({ onFeedbackClick, variant = "transparent" }: NavigationProps) {
+export default function Navigation({ onFeedbackClick }: NavigationProps) {
     const navigate = useNavigate()
     const auth = getAuth()
     
@@ -45,8 +46,8 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
     
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const menuOpen = Boolean(anchorEl)
-    const [isScrolled, setIsScrolled] = useState(false)
-    const shouldUseSolidNav = variant === "solid" || isScrolled
+    // const [isScrolled, setIsScrolled] = useState(false)
+    // const shouldUseSolidNav = variant === "solid" || isScrolled
 
     const notificationRef = useRef<HTMLDivElement | null>(null)
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
@@ -136,16 +137,16 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
   }, [navigate, auth])
   // <<
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY !== 0)
-    }
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     setIsScrolled(window.scrollY !== 0)
+  //   }
 
-    handleScroll()
-    window.addEventListener("scroll", handleScroll)
+  //   handleScroll()
+  //   window.addEventListener("scroll", handleScroll)
 
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  //   return () => window.removeEventListener("scroll", handleScroll)
+  // }, [])
 
   useEffect(() => {
     const darkMode = localStorage.getItem('darkMode') === 'true'
@@ -241,146 +242,131 @@ export default function Navigation({ onFeedbackClick, variant = "transparent" }:
   return (
     <>
       <div className='fixed left-0 top-0 z-50 w-full'>
-          <motion.nav 
-            initial={false}
-            animate={
-              shouldUseSolidNav
-              ? {
-                width: "100%",
-                marginTop: 0,
-                borderRadius: "0px",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
-              }
-              : {
-                width: "90%",
-                marginTop: 16,
-              }
-            }
-            transition={{
-              duration: 0.45,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className={[
-              "mx-auto flex h-16 items-center justify-between px-6 transition-colors duration-200",
-              shouldUseSolidNav
-                ? "bg-[#0b0b0c] border-b border-white/10"
-                : "",
-            ].join(" ")}
-          >
-            
-              <Link
-                to="/home"
-                className='flex items-center transition duration-200 hover:scale-105'
+          <nav className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-white/10 bg-[#0b0b0c] px-6">    
+            <Link
+              to="/home"
+              className='flex items-center transition duration-200 hover:scale-105'
+            >
+              <img 
+                className='h-9 w-auto object-contain'
+                src={FlavorFolioLogo}
+                alt='FlavorFolioLogo'
+              />
+            </Link>
+
+            <div className="hidden flex-1 items-center justify-center gap-3 lg:flex">
+              <button
+                type="button"
+                onClick={() => navigate("/reels")}
+                className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-[#111216]/90 px-4 text-sm font-semibold text-[#d7def0] backdrop-blur-xl transition hover:border-[#feaa2b]/30 hover:bg-[#feaa2b]/10 hover:text-[#ffd28a] active:scale-95"
               >
-                <img 
-                  className='h-9 w-auto object-contain'
-                  src={FlavorFolioLogo}
-                  alt='FlavorFolioLogo'
-                />
-              </Link>
+                <SmartDisplayRoundedIcon sx={{ fontSize: 20 }} />
+                Reels
+              </button>
 
               <GlobalSearchBar />
+            </div>
 
-              <div className='flex items-center gap-2'>
-                <div ref={notificationRef} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsNotificationsOpen((prev) => !prev)}
-                    className="relative flex h-10 w-10 items-center justify-center rounded-lg text-[#a8b3cf] transition hover:bg-white/[0.06] hover:text-white active:scale-95"
-                    aria-label="Notifications"
-                  >
-                    <NotificationsIcon sx={{ fontSize: 25 }} />
+            <div className='flex items-center gap-2'>
+              <div ref={notificationRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsNotificationsOpen((prev) => !prev)}
+                  className="relative flex h-10 w-10 items-center justify-center rounded-lg text-[#a8b3cf] transition hover:bg-white/[0.06] hover:text-white active:scale-95"
+                  aria-label="Notifications"
+                >
+                  <NotificationsIcon sx={{ fontSize: 25 }} />
 
-                    {unreadCount > 0 && (
-                      <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-400 px-1 text-[10px] font-bold text-[#0b0b0c] shadow-[0_0_14px_rgba(251,146,60,0.65)]">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                  </button>
+                  {unreadCount > 0 && (
+                    <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-400 px-1 text-[10px] font-bold text-[#0b0b0c] shadow-[0_0_14px_rgba(251,146,60,0.65)]">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
 
-                  <NotificationsPopover
-                    isOpen={isNotificationsOpen}
-                    notifications={notifications}
-                    unreadCount={unreadCount}
-                    isLoading={isLoadingNotifications}
-                    onClose={() => setIsNotificationsOpen(false)}
-                    onMarkAsRead={markAsRead}
-                    onMarkAllAsRead={markAllAsRead}
-                    onDelete={deleteNotification}
-                    onNotificationClick={(notification) => {
-                      if (notification.recipeId) {
-                        setIsNotificationsOpen(false)
-                        // momentan doar închidem; mai târziu putem deschide recipe drawer / navigate.
-                      }
-                    }}
-                  />
-                </div>
-
-                <div className='relative'>
-                  <button
-                    type='button'
-                    id='user-menu-button'
-                    aria-expanded={menuOpen}
-                    aria-haspopup="true"
-                    onClick={handleMenuOpen}
-                    className='flex items-center gap-3 rounded-lg px-3 py-1 pr-4 transition hover:bg-white/[0.06]'
-                  >
-                    <div className='relative h-8 w-8 overflow-hidden rounded-lg bg-white/10'>
-                      {userPhoto ? (
-                        <img
-                          ref={avatarImageRef}
-                          src={userPhoto}
-                          alt="profile"
-                          onLoad={() => setAvatarLoaded(true)}
-                          onError={() => setAvatarLoaded(true)}
-                          className={[
-                            'h-full w-full rounded-md object-cover transition-opacity duration-300',
-                            avatarLoaded ? 'opacity-100' : 'opacity-0',
-                          ].join(' ')}
-                        />
-                      ) : (
-                        <div className='absolute inset-0 animate-pulse bg-white/10' />
-                      )}
-                    </div>
-
-                    <div className='hidden min-w-[110px] text-left md:flex flex-col gap-[2px]'>
-                      <p className='truncate text-sm font-semibold text-[#a8b3cf]'>{username}</p>
-                      <p className='text-[11px] text-[#a8b3cf]/50'>
-                        {isAdmin ? "Admin" : "Member"}
-                      </p>
-                    </div>
-                    
-                    <motion.div
-                      animate={{rotate: menuOpen ? 180 : 0}}
-                      transition={{
-                        duration: 0.22,
-                        ease: [0.22, 1, 0.36, 1]
-                      }}
-                      className='flex items-center justify-center'
-                    >
-                      <ExpandMoreIcon sx={{fontSize: 24, color: "#a8b3cf"}} />
-                    </motion.div>
-                  </button>
-
-                  <UserDropdownMenu
-                    anchorEl={anchorEl}
-                    open={menuOpen}
-                    onClose={handleMenuClose}
-                    onProfile={() => handleNavigate("/profile")}
-                    onPending={() => handleNavigate("/pending")}
-                    onNeedsRevision={() => handleNavigate("/needs-revision")}
-                    onDashboard={() => handleNavigate("/admin/dashboard")}
-                    onFeedbacks={handleFeedbackMenuClick}
-                    onSettings={() => handleNavigate("/settings")}
-                    onSignOut={handleSignOut}
-                    isAdmin={isAdmin}
-                    pendingCount={pendingCount}
-                    feedbackCount={feedbackCount}
-                    needsRevisionCount={needsRevisionCount}
-                  />
-                </div>
+                <NotificationsPopover
+                  isOpen={isNotificationsOpen}
+                  notifications={notifications}
+                  unreadCount={unreadCount}
+                  isLoading={isLoadingNotifications}
+                  onClose={() => setIsNotificationsOpen(false)}
+                  onMarkAsRead={markAsRead}
+                  onMarkAllAsRead={markAllAsRead}
+                  onDelete={deleteNotification}
+                  onNotificationClick={(notification) => {
+                    if (notification.recipeId) {
+                      setIsNotificationsOpen(false)
+                      // momentan doar închidem; mai târziu putem deschide recipe drawer / navigate.
+                    }
+                  }}
+                />
               </div>
-          </motion.nav>
+
+              <div className='relative'>
+                <button
+                  type='button'
+                  id='user-menu-button'
+                  aria-expanded={menuOpen}
+                  aria-haspopup="true"
+                  onClick={handleMenuOpen}
+                  className='flex items-center gap-3 rounded-lg px-3 py-1 pr-4 transition hover:bg-white/[0.06]'
+                >
+                  <div className='relative h-8 w-8 overflow-hidden rounded-lg bg-white/10'>
+                    {userPhoto ? (
+                      <img
+                        ref={avatarImageRef}
+                        src={userPhoto}
+                        alt="profile"
+                        onLoad={() => setAvatarLoaded(true)}
+                        onError={() => setAvatarLoaded(true)}
+                        className={[
+                          'h-full w-full rounded-md object-cover transition-opacity duration-300',
+                          avatarLoaded ? 'opacity-100' : 'opacity-0',
+                        ].join(' ')}
+                      />
+                    ) : (
+                      <div className='absolute inset-0 animate-pulse bg-white/10' />
+                    )}
+                  </div>
+
+                  <div className='hidden min-w-[110px] text-left md:flex flex-col gap-[2px]'>
+                    <p className='truncate text-sm font-semibold text-[#a8b3cf]'>{username}</p>
+                    <p className='text-[11px] text-[#a8b3cf]/50'>
+                      {isAdmin ? "Admin" : "Member"}
+                    </p>
+                  </div>
+                  
+                  <motion.div
+                    animate={{rotate: menuOpen ? 180 : 0}}
+                    transition={{
+                      duration: 0.22,
+                      ease: [0.22, 1, 0.36, 1]
+                    }}
+                    className='flex items-center justify-center'
+                  >
+                    <ExpandMoreIcon sx={{fontSize: 24, color: "#a8b3cf"}} />
+                  </motion.div>
+                </button>
+
+                <UserDropdownMenu
+                  anchorEl={anchorEl}
+                  open={menuOpen}
+                  onClose={handleMenuClose}
+                  onProfile={() => handleNavigate("/profile")}
+                  onPending={() => handleNavigate("/pending")}
+                  onNeedsRevision={() => handleNavigate("/needs-revision")}
+                  onDashboard={() => handleNavigate("/admin/dashboard")}
+                  onFeedbacks={handleFeedbackMenuClick}
+                  onSettings={() => handleNavigate("/settings")}
+                  onSignOut={handleSignOut}
+                  isAdmin={isAdmin}
+                  pendingCount={pendingCount}
+                  feedbackCount={feedbackCount}
+                  needsRevisionCount={needsRevisionCount}
+                />
+              </div>
+            </div>
+          </nav>
       </div>
 
       <FloatingMessagesButton />

@@ -10,6 +10,7 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual"
 import type { Recipe, SavedRecipe } from "../types"
 import RecipeCard from "./RecipeCard"
 import { CurrentUserCardData } from "../types/recipeCard.types"
+import RecipeGridCard from './RecipeGridCard'
 
 interface RecipeSectionProps {
   title: string
@@ -46,12 +47,14 @@ export default function RecipeSection({
     isFetchingMore,
     onFetchMore,
 }: RecipeSectionProps) {
-    const ROW_GAP = 64
-    const MIN_CARD_WIDTH = 300
+    const MAX_COLUMNS = 4
+    const GRID_GAP = 24
+
+    const MIN_CARD_WIDTH = 280
     const MAX_CARD_WIDTH = 350
-    const COLUMN_GAP = 25
-    const ESTIMATED_CARD_HEIGHT = 430
-    const ESTIMATED_ROW_HEIGHT = ESTIMATED_CARD_HEIGHT + ROW_GAP
+    const CARD_HEIGHT = 370
+
+    const ESTIMATED_ROW_HEIGHT = CARD_HEIGHT + GRID_GAP
 
     const sectionRef = useRef<HTMLElement | null>(null)
     const gridRef = useRef<HTMLDivElement | null>(null)
@@ -68,15 +71,14 @@ export default function RecipeSection({
         const updateGridSize = () => {
             const width = element.getBoundingClientRect().width
 
-            const nextColumns = Math.max(
-            1,
-            Math.floor((width + COLUMN_GAP) / (MIN_CARD_WIDTH + COLUMN_GAP))
-            )
+            const availableColumns = Math.floor((width + GRID_GAP) / (MIN_CARD_WIDTH + GRID_GAP))
+            const nextColumns = Math.max(1, Math.min(MAX_COLUMNS, availableColumns))
 
-            const totalGap = (nextColumns - 1) * COLUMN_GAP
+            const totalGap = (nextColumns - 1) * GRID_GAP
+
             const nextCardWidth = Math.min(
-            MAX_CARD_WIDTH,
-            Math.floor((width - totalGap) / nextColumns)
+                MAX_CARD_WIDTH,
+                Math.floor((width - totalGap) / nextColumns)
             )
 
             setColumns(nextColumns)
@@ -156,7 +158,7 @@ export default function RecipeSection({
                     type="button"
                     onClick={onOpenFilters}
                     aria-label="Open filters"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0b0b0c]/40 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg text-[#a8b3cf] transition hover:bg-white/[0.06] hover:text-white active:scale-95"
                 >
                     <TuneIcon sx={{ fontSize: 20 }} />
                 </button>
@@ -198,25 +200,33 @@ export default function RecipeSection({
                                         virtualRow.start - rowVirtualizer.options.scrollMargin
                                     }px)`,
                                     gridTemplateColumns: `repeat(${columns}, ${cardWidth}px)`,
-                                    columnGap: `${COLUMN_GAP}px`,
-                                    paddingBottom: `${ROW_GAP}px`,
+                                    columnGap: `${GRID_GAP}px`,
+                                    paddingBottom: `${GRID_GAP}px`,
                                 }}
                             >
                                 {rowRecipes.map((recipe) => (
                                     <div key={recipe.recipeId}>
-                                        <RecipeCard
-                                        key={recipe.recipeId}
-                                        recipe={recipe}
-                                        onClick={() => onRecipeClick(recipe)}
-                                        currentUser={currentUser}
-                                        followingUserIds={followingUserIds}
-                                        authorFollowersCount={
-                                            authorFollowersCountMap[recipe.userId || ""] ??
-                                            Number(recipe?.author?.followersCount || 0)
-                                        }
-                                        onFollowStateChange={onFollowStateChange}
-                                        onFavoriteStateChange={onFavoriteStateChange}
-                                        savedRecipes={savedRecipes}
+                                        {/* <RecipeCard
+                                            key={recipe.recipeId}
+                                            recipe={recipe}
+                                            onClick={() => onRecipeClick(recipe)}
+                                            currentUser={currentUser}
+                                            followingUserIds={followingUserIds}
+                                            authorFollowersCount={
+                                                authorFollowersCountMap[recipe.userId || ""] ??
+                                                Number(recipe?.author?.followersCount || 0)
+                                            }
+                                            onFollowStateChange={onFollowStateChange}
+                                            onFavoriteStateChange={onFavoriteStateChange}
+                                            savedRecipes={savedRecipes}
+                                        /> */}
+
+                                        <RecipeGridCard 
+                                            recipe={recipe} 
+                                            onClick={() => onRecipeClick(recipe)} 
+                                            currentUser={currentUser}
+                                            savedRecipes={savedRecipes}
+                                            onFavoriteStateChange={onFavoriteStateChange}
                                         />
                                     </div>
                                 ))}

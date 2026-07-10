@@ -237,7 +237,7 @@ export default function SecuritySettingsSection() {
         isOpen={isDeleteDialogOpen}
         isDeleting={isDeletingAccount}
         title="Delete account?"
-        description="Are you sure you want to permanently delete your account, profile, recipes, saved recipes, followers, following, notifications, and related data? This action cannot be undone."
+        description="Are you sure you want to permanently delete your account, recipes, saved recipes, followers, following, notifications, and any other related data? This action cannot be undone."
         confirmLabel="Delete account"
         onCancel={() => {
           if (isDeletingAccount) return

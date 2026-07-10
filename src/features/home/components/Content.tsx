@@ -31,7 +31,7 @@ export default function Content({
     const showLoading = isLoading || isFiltering
 
   return (
-    <div className="flex w-full flex-col sm:mb-6">
+    <div className="flex w-full sm:mb-6">
         <RecipeSection
             title={title}
             recipes={recipes}

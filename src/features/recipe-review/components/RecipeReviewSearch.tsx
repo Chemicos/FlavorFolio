@@ -41,7 +41,7 @@ export default function RecipeReviewSearch({
           <button
             type="button"
             onClick={() => onChange("")}
-            className="absolute right-3 flex h-7 w-7 items-center justify-center rounded-lg text-[#7f89a6] transition hover:bg-white/[0.04] hover:text-white active:scale-95"
+            className="absolute right-3 flex h-7 w-7 items-center justify-center rounded-lg text-[#7f89a6] transition hover:bg-white/[0.06] hover:text-white active:scale-95"
           >
             <CloseRoundedIcon sx={{ fontSize: 17 }} />
           </button>

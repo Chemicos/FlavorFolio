@@ -93,7 +93,7 @@ export default function MyProfileHeader({
         )}
 
         <div className="absolute bottom-8 left-8 right-8 flex items-end gap-6">
-          <div className="relative h-36 w-36 shrink-0 rounded-full border-4 border-[#0b0b0c] bg-[#16181d] p-1 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+          <div className="relative h-36 w-36 shrink-0 rounded-full border-1 border-[#0b0b0c] bg-[#16181d] p-1 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
             {profileImage ? (
               <img
                 src={profileImage}

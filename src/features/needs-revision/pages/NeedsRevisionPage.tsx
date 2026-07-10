@@ -236,7 +236,7 @@ export default function NeedsRevisionPage() {
       className="min-h-screen bg-[#16181d] text-white transition-[padding] duration-300"
       style={{paddingRight: selectedRecipe || editingRecipe || previewRecipe ? detailsDrawerWidth : 0}}
     >
-      <Navigation variant="solid" />
+      <Navigation />
 
       <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-28">
         <NeedsRevisionPageHeader 
