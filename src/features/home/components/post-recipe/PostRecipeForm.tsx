@@ -1,5 +1,5 @@
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded"
-import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded"
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 
 import { useMemo, useState } from "react"
 import PostRecipeSteps from "./PostRecipeSteps"
@@ -308,7 +308,7 @@ export default function PostRecipeForm({
           onClick={onClose}
           className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
         >
-          <ChevronLeftRoundedIcon sx={{ fontSize: 26 }} />
+          <CloseRoundedIcon sx={{ fontSize: 20 }} />
         </button>
       </div>
 

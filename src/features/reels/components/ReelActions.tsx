@@ -39,7 +39,6 @@ export default function ReelActions({reel}: ReelActionsProps) {
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 backdrop-blur-md transition group-hover:bg-[#feaa2b]/20 group-hover:text-[#ffd28a]">
           <BookmarkRoundedIcon sx={{ fontSize: 25 }} />
         </span>
-        <span className="text-xs font-semibold">Save</span>
       </button>
 
       <button className="group flex flex-col items-center gap-1 text-white">

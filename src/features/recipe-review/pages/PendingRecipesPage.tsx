@@ -275,7 +275,7 @@ export default function PendingRecipesPage() {
         }
     }
 
-     const handleConfirmDeny = async ({
+    const handleConfirmDeny = async ({
         recipeIds,
         reason,
         message,

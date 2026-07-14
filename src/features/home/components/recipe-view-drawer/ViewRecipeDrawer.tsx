@@ -6,8 +6,7 @@ import { useImageLoaded } from "../../hooks/useImageLoaded"
 import { AnimatePresence, motion } from "motion/react"
 
 import MuiRating from "@mui/material/Rating"
-import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded'
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded"

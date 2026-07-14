@@ -205,7 +205,7 @@ export default function PrivacySettingsSection() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10  p-6">
+          {/* <div className="rounded-2xl border border-white/10  p-6">
             <h3 className="text-base font-bold text-white">Interactions - WIP</h3>
             <p className="mt-1 text-sm text-[#8f97b1]">
               Who can send you messages?
@@ -229,7 +229,7 @@ export default function PrivacySettingsSection() {
                 onChange={() => setMessagePrivacy("only_me")}
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="rounded-2xl border border-white/10 p-6">
             <h3 className="text-base font-bold text-white">Discoverability</h3>
