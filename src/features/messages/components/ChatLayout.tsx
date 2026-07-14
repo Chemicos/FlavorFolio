@@ -10,6 +10,7 @@ import MessageComposer from "./MessageComposer"
 import { deleteMessage, markConversationAsRead } from "../services/messages.service"
 import { useCanMessageUser } from "../hooks/useCanMessageUser"
 import MessageImagePreviewModal from "./MessageImagePreviewModal"
+import { useUserPresence } from "../hooks/useUserPresence"
 
 interface ChatLayoutProps {
   currentUserId: string
@@ -41,9 +42,13 @@ export default function ChatLayout({
     (id) => id !== currentUserId
   )
 
-  const otherUser = otherUserId
-    ? activeConversation?.participants?.[otherUserId]
-    : null
+  const otherUser = otherUserId ? activeConversation?.participants?.[otherUserId] : null
+
+  const {
+    isOnline: isOtherUserOnline,
+    statusLabel: otherUserStatusLabel,
+    isLoading: isPresenceLoading,
+  } = useUserPresence(otherUserId)
 
   const { canMessage, isChecking } = useCanMessageUser(
     currentUserId,
@@ -167,7 +172,15 @@ export default function ChatLayout({
         <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-white/10 bg-[#111216] overflow-hidden">
           {activeConversation && otherUserId && otherUser ? (
             <>
-              <ChatHeader participant={otherUser} />
+              <ChatHeader 
+                participant={otherUser} 
+                isOnline={isOtherUserOnline}
+                statusLabel={
+                  isPresenceLoading
+                    ? "Checking status..."
+                    : otherUserStatusLabel
+                }
+              />
 
               <div ref={messagesContainerRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-6 [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
                 <div className="flex flex-col gap-3">

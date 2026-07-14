@@ -5,6 +5,7 @@ import Tooltip from "@mui/material/Tooltip"
 
 import { ReviewRecipe } from "../types/recipeReview.types"
 import { RecipeReviewTableColumn } from './RecipeReviewTable'
+import { useEffect, useRef, useState } from 'react'
 
 interface RecipeReviewTableRowProps {
   recipe: ReviewRecipe
@@ -48,6 +49,65 @@ function formatCreatedAt(value: any) {
   }).format(new Date(value.seconds * 1000))
 }
 
+function TruncatedTooltipText({
+  children,
+  className = "",
+}: {
+  children: string
+  className?: string
+}) {
+  const textRef = useRef<HTMLSpanElement | null>(null)
+  const [isTruncated, setIsTruncated] = useState(false)
+
+  useEffect(() => {
+    const element = textRef.current
+    if (!element) return
+
+    const checkTruncation = () => {
+      setIsTruncated(element.scrollWidth > element.clientWidth)
+    }
+
+    checkTruncation()
+
+    const resizeObserver = new ResizeObserver(checkTruncation)
+    resizeObserver.observe(element)
+
+    return () => resizeObserver.disconnect()
+  }, [children])
+
+  return (
+    <Tooltip
+      title={isTruncated ? children : ""}
+      arrow
+      placement="top"
+      disableHoverListener={!isTruncated}
+      slotProps={{
+        tooltip: {
+          sx: {
+            maxWidth: 360,
+            bgcolor: "#0b0b0c",
+            color: "#d7def0",
+            fontSize: "0.75rem",
+            lineHeight: 1.6,
+            border: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(12px)",
+            padding: "0.5rem"
+          },
+        },
+        arrow: {
+          sx: {
+            color: "#0b0b0c",
+          },
+        },
+      }}
+    >
+      <span ref={textRef} className={`block truncate ${className}`}>
+        {children}
+      </span>
+    </Tooltip>
+  )
+}
+
 export default function RecipeReviewTableRow({
   recipe,
   columns,
@@ -86,16 +146,16 @@ export default function RecipeReviewTableRow({
 
       case "title":
         return (
-          <p className="truncate text-sm font-medium text-[#d7def0]">
+          <TruncatedTooltipText className="truncate text-sm font-medium text-[#d7def0]">
             {recipe.title || "Untitled recipe"}
-          </p>
+          </TruncatedTooltipText>
         )
 
       case "description":
         return (
-          <p className="truncate text-sm text-[#a8b3cf]">
+          <TruncatedTooltipText className="truncate text-sm text-[#a8b3cf]">
             {recipe.description || "No description"}
-          </p>
+          </TruncatedTooltipText>
         )
 
       case "createdAt":

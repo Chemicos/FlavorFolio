@@ -25,6 +25,7 @@ import AdminUsersPage from './features/admin-dashboard/pages/AdminUsersPage'
 import AdminReportsPage from './features/admin-dashboard/pages/AdminReportsPage'
 import MessagesPage from './features/messages/pages/MessagesPage'
 import ReelsPage from './features/reels/pages/ReelsPage'
+import PresenceHeartbeat from './features/messages/components/PresenceHeartbeat'
 
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -43,7 +44,9 @@ function App() {
 
   return (
     <Router>
-      <div>
+      <PresenceHeartbeat currentUserId={user?.uid} />
+      
+      {/* <div> */}
         <Routes>
           <Route path="/" element={user ? <Navigate replace to="/home" /> : <Login />} />
           <Route path="/home" element={user ? <Home /> : <Navigate replace to="/" />} />
@@ -58,10 +61,10 @@ function App() {
           <Route path="/admin/users" element={user ? <AdminUsersPage /> : <Navigate replace to="/" />} />
           <Route path="/admin/reports" element={user ? <AdminReportsPage /> : <Navigate replace to="/" />} />
           <Route path="/messages" element={user ? <MessagesPage /> : <Navigate replace to="/" />} />
-          <Route path="/messages/:conversationId" element={<MessagesPage />} />
+          <Route path="/messages/:conversationId" element={user ? <MessagesPage /> : <Navigate replace to="/" /> } />
           {/* <Route path='/manage-feedback' element={user ? <ManageFeedback /> : <Navigate replace to="/" />} /> */}
         </Routes>
-      </div>
+      {/* </div> */}
     </Router>
   )
 }
