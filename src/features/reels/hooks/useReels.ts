@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Reel } from "../types/reel.types"
 import { fetchPublicReels } from "../services/reels.service"
 
@@ -15,20 +15,20 @@ export function useReels(limitCount = 20) {
             setIsLoading(true)
             setError(null)
 
-            const data = await fetchPublicReels(limitCount)
+            const data = await fetchPublicReels(
+                limitCount
+            )
 
             if (isMounted) {
-            setReels(data)
+                setReels(data)
             }
         } catch (error) {
             console.error("Failed to fetch reels:", error)
 
-            if (isMounted) {
-            setError("Failed to load reels.")
-            }
+            if (isMounted) {setError("Failed to load reels.")}
         } finally {
             if (isMounted) {
-            setIsLoading(false)
+                setIsLoading(false)
             }
         }
         }
@@ -36,13 +36,35 @@ export function useReels(limitCount = 20) {
         loadReels()
 
         return () => {
-        isMounted = false
+            isMounted = false
         }
     }, [limitCount])
+
+    const updateReelCommentsCount = useCallback(
+        (reelId: string,commentsCount: number) => {
+            setReels((currentReels) =>
+                currentReels.map((reel) => {
+                if (reel.reelId !== reelId) {
+                    return reel
+                }
+
+                return {
+                    ...reel,
+                    stats: {
+                    ...reel.stats,
+                    commentsCount,
+                    },
+                }
+                })
+            )
+        },
+        []
+    )
 
     return {
         reels,
         isLoading,
         error,
+        updateReelCommentsCount,
     }
 }

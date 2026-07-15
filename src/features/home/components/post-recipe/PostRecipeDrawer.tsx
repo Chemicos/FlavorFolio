@@ -6,11 +6,18 @@ import { useState } from "react"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
 import PostRecipeSubmissionInfo from "./PostRecipeSubmissionInfo"
 import { Recipe } from "../../types"
+import { CreatePostType } from "../../pages/Home"
+import PostReelForm from "./PostReelForm"
 
 interface PostRecipeDrawerProps {
     currentUser: CurrentUserCardData | null
     onClose: () => void
+
+    postType?: CreatePostType
+
     onSubmitSuccess: () => void
+    onReelSubmitSuccess?: () => void
+
     mode?: "create" | "edit"
     recipeToEdit?: Recipe | null
     onUpdateSuccess?: () => void
@@ -28,7 +35,9 @@ interface PostRecipeDrawerProps {
 export default function PostRecipeDrawer({
     currentUser, 
     onClose, 
+    postType = "recipe",
     onSubmitSuccess, 
+    onReelSubmitSuccess,
     mode, 
     recipeToEdit, 
     onUpdateSuccess,
@@ -39,7 +48,7 @@ export default function PostRecipeDrawer({
     updateMode = "default",
     onRevisionDraftUpdate,
 }: PostRecipeDrawerProps) {
-    const [showSubmissionInfo, setShowSubmissionInfo] = useState(mode !== "edit")
+    const [showSubmissionInfo, setShowSubmissionInfo] = useState(mode !== "edit" && postType === "recipe")
     const isSideVariant = variant === "side"
     const isInlineVariant = variant === "inline"
     
@@ -101,22 +110,33 @@ export default function PostRecipeDrawer({
             )}
 
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
-                <PostRecipeForm 
-                    currentUser={currentUser} 
-                    onClose={onClose} 
-                    onSubmitSuccess={onSubmitSuccess}
-                    mode={mode}
-                    recipeToEdit={recipeToEdit}
-                    onUpdateSuccess={onUpdateSuccess}
-                    updateMode={updateMode}
-                    onRevisionDraftUpdate={onRevisionDraftUpdate}
-                />
+                {postType === "reel" && mode !== "edit" ? (
+                    <PostReelForm 
+                        currentUser={currentUser}
+                        onClose={onClose}
+                        onSubmitSuccess={onReelSubmitSuccess || onSubmitSuccess}
+                    />
+                ): (
+                    <PostRecipeForm 
+                        currentUser={currentUser} 
+                        onClose={onClose} 
+                        onSubmitSuccess={onSubmitSuccess}
+                        mode={mode}
+                        recipeToEdit={recipeToEdit}
+                        onUpdateSuccess={onUpdateSuccess}
+                        updateMode={updateMode}
+                        onRevisionDraftUpdate={onRevisionDraftUpdate}
+                    />
+                )}
+                
             </div>
         </motion.aside>
 
         <AnimatePresence>
-            {showSubmissionInfo && mode !== "edit" && (
-                <PostRecipeSubmissionInfo onContinue={() => setShowSubmissionInfo(false)} />
+            {showSubmissionInfo && mode !== "edit" && postType === "recipe" && (
+                <PostRecipeSubmissionInfo
+                    onContinue={() => setShowSubmissionInfo(false)}
+                />
             )}
         </AnimatePresence>
     </div>

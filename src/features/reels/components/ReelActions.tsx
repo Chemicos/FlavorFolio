@@ -7,14 +7,22 @@ import { Reel } from "../types/reel.types"
 
 interface ReelActionsProps {
   reel: Reel
+  onCommentsClick: (reel: Reel) => void
 }
 
 function formatCount(value: number) {
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M`
+  }
+
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1)}K`
+  }
+
   return String(value)
 }
 
-export default function ReelActions({reel}: ReelActionsProps) {
+export default function ReelActions({reel, onCommentsClick}: ReelActionsProps) {
   return (
     <div className="absolute bottom-24 right-5 z-10 flex flex-col items-center gap-5">
       <button className="group flex flex-col items-center gap-1 text-white">
@@ -26,7 +34,12 @@ export default function ReelActions({reel}: ReelActionsProps) {
         </span>
       </button>
 
-      <button className="group flex flex-col items-center gap-1 text-white">
+      <button 
+        type="button"
+        onClick={() => onCommentsClick(reel)}
+        aria-label={`Open ${reel.stats.commentsCount} comments`}
+        className="group flex flex-col items-center gap-1 text-white"
+      >
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 backdrop-blur-md transition group-hover:bg-[#feaa2b]/20 group-hover:text-[#ffd28a]">
           <ChatBubbleRoundedIcon sx={{ fontSize: 25 }} />
         </span>

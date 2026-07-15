@@ -13,6 +13,8 @@ export interface ReelStats {
     viewsCount: number
 }
 
+export type ReelVisibility = "public" | "private"
+
 export interface Reel {
     reelId: string
     userId: string
@@ -22,8 +24,23 @@ export interface Reel {
     videoFileName: string
     thumbnail?: string
     duration?: number
-    visibility: "public" | "private"
+    visibility: ReelVisibility
     stats: ReelStats
     createdAt?: Timestamp
     updatedAt?: Timestamp
+}
+
+export interface CreateReelInput {
+  userId: string
+  username: string
+  userProfileImage?: string
+  description: string
+  visibility: ReelVisibility
+  videoFile: File
+  durationSeconds: number
+}
+
+export interface CreateReelResult {
+  reelId: string
+  videoUrl: string
 }

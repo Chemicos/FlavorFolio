@@ -18,6 +18,8 @@ import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 import { CircularProgress, useMediaQuery } from "@mui/material"
 import { fetchRecipeById } from "../services/recipes.service"
 
+export type CreatePostType = "recipe" | "reel"
+
 export default function Home() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -33,6 +35,7 @@ export default function Home() {
 
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
   // const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
+  const [selectedPostType, setSelectedPostType] = useState<CreatePostType>("recipe")
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
   const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
@@ -221,11 +224,19 @@ export default function Home() {
     // setSnackbarOpen(true)
     setIsPostFormVisible(false)
   }
+
+  const handleReelSubmitSuccess = () => {
+    showSnackbar("Reel published successfully.", "success")
+    setIsPostFormVisible(false)
+    setSelectedPostType("recipe")
+  }
   
-  const handlePostClick = () => {
+  const handlePostClick = (postType: CreatePostType) => {
     setSelectedRecipe(null)
     setEditingRecipe(null)
     setIsRecipeDrawerLoading(false)
+
+    setSelectedPostType(postType)
     setIsPostFormVisible(true)
 
     setSearchParams((currentParams) => {
@@ -273,6 +284,7 @@ export default function Home() {
   const handleEditRecipe = (recipe: Recipe) => {
     setSelectedRecipe(null)
     setEditingRecipe(recipe)
+    setSelectedPostType("recipe")
     setIsPostFormVisible(true)
 
     setSearchParams((currentParams) => {
@@ -302,12 +314,11 @@ export default function Home() {
   const handleClosePostRecipeDrawer = () => {
     setIsPostFormVisible(false)
     setEditingRecipe(null)
+    setSelectedPostType("recipe")
   }
 
   const handleRecipeUpdateSuccess = () => {
     showSnackbar("Recipe updated successfully. You'll be notified once it has been reviewed by an administrator.", "success")
-    // setsnackbarMessage("Recipe updated successfully. You'll be notified once it has been reviewed by an administrator.")
-    // setSnackbarOpen(true)
     setEditingRecipe(null)
     setIsPostFormVisible(false)
   }
@@ -525,7 +536,7 @@ export default function Home() {
                   : editingRecipe
                     ? `edit-${editingRecipe.recipeId || editingRecipe.id}`
                     : isPostFormVisible
-                      ? "create-recipe"
+                      ? `create-${selectedPostType}`
                       : `view-${selectedRecipe?.recipeId || selectedRecipe?.id}`
               }
               initial={{ opacity: 0, }}
@@ -557,6 +568,7 @@ export default function Home() {
                 <PostRecipeDrawer
                   variant="inline"
                   width={RECIPE_DRAWER_WIDTH}
+                  postType={editingRecipe ? "recipe" : selectedPostType}
                   onClose={handleClosePostRecipeDrawer}
                   currentUser={currentUser}
                   onSubmitSuccess={handleRecipeSubmitSuccess}

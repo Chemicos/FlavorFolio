@@ -2,10 +2,22 @@ import { CircularProgress } from "@mui/material"
 import { useReels } from "../hooks/useReels"
 import ReelsEmptyState from "./ReelsEmptyState"
 import ReelCard from "./ReelCard"
+import { Reel } from "../types/reel.types"
 
+interface ReelsFeedProps {
+  reels: Reel[]
+  isLoading: boolean
+  error: string | null
+  onCommentsClick: (reel: Reel) => void
+}
 
-export default function ReelsFeed() {
-    const { reels, isLoading, error } = useReels()
+export default function ReelsFeed({
+    reels,
+    isLoading,
+    error,
+    onCommentsClick,
+}: ReelsFeedProps) {
+    // const { reels, isLoading, error } = useReels()
 
     if (isLoading) {
         return (
@@ -34,7 +46,7 @@ export default function ReelsFeed() {
                     key={reel.reelId}
                     className="flex h-full snap-start items-center justify-center px-4 py-6"
                 >
-                    <ReelCard reel={reel} />
+                    <ReelCard reel={reel} onCommentsClick={onCommentsClick} />
                 </div>
             ))}
         </section>

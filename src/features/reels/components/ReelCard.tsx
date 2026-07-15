@@ -7,9 +7,10 @@ import ReelActions from "./ReelActions"
 
 interface ReelCardProps {
   reel: Reel
+  onCommentsClick: (reel: Reel) => void
 }
 
-export default function ReelCard({reel}: ReelCardProps) {
+export default function ReelCard({reel, onCommentsClick}: ReelCardProps) {
   const authorUsername = reel.author?.username || "Unknown"
   const authorProfileImage = reel.author?.profileImage || ""
 
@@ -54,7 +55,7 @@ export default function ReelCard({reel}: ReelCardProps) {
         </div>
       </header>
 
-      <ReelActions reel={reel} />
+      <ReelActions onCommentsClick={onCommentsClick}  reel={reel} />
 
       <footer className="absolute bottom-6 left-5 right-20 z-10">
         <h2 className="text-2xl font-extrabold leading-tight text-white drop-shadow">

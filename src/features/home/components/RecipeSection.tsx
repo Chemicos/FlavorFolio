@@ -12,6 +12,8 @@ import type { Recipe, SavedRecipe } from "../types"
 import { CurrentUserCardData } from "../types/recipeCard.types"
 import RecipeGridCard from './RecipeGridCard'
 import RecipeGridSkeleton from './RecipeGridSkeleton'
+import { CreatePostType } from "../pages/Home"
+import CreatePostDropdown from "./CreatePostDropdown"
 
 interface RecipeSectionProps {
   title: string
@@ -28,7 +30,7 @@ interface RecipeSectionProps {
   onRecipeClick: (recipe: Recipe) => void
   isLoading: boolean
   onOpenFilters: () => void
-  onCreatePost: () => void
+  onCreatePost: (postType: CreatePostType) => void
 }
 
 export default function RecipeSection({
@@ -145,7 +147,7 @@ export default function RecipeSection({
             </h2>
 
             <div className="flex items-center gap-4">
-                <button 
+                {/* <button 
                     type="button"
                     onClick={onCreatePost}
                     className="flex items-center gap-2 rounded-lg bg-orange-500/10 border border-orange-400/20 px-3 sm:px-4 py-2.5 text-sm font-medium text-orange-200
@@ -153,7 +155,8 @@ export default function RecipeSection({
                 >
                     <PostAddRoundedIcon sx={{fontSize: 20}} />
                     <span className='hidden sm:inline'>New post</span>
-                </button>
+                </button> */}
+                <CreatePostDropdown onSelect={onCreatePost} />
 
                 <button
                     type="button"
@@ -199,21 +202,6 @@ export default function RecipeSection({
                             >
                                 {rowRecipes.map((recipe) => (
                                     <div key={recipe.recipeId}>
-                                        {/* <RecipeCard
-                                            key={recipe.recipeId}
-                                            recipe={recipe}
-                                            onClick={() => onRecipeClick(recipe)}
-                                            currentUser={currentUser}
-                                            followingUserIds={followingUserIds}
-                                            authorFollowersCount={
-                                                authorFollowersCountMap[recipe.userId || ""] ??
-                                                Number(recipe?.author?.followersCount || 0)
-                                            }
-                                            onFollowStateChange={onFollowStateChange}
-                                            onFavoriteStateChange={onFavoriteStateChange}
-                                            savedRecipes={savedRecipes}
-                                        /> */}
-
                                         <RecipeGridCard 
                                             recipe={recipe} 
                                             onClick={() => onRecipeClick(recipe)} 

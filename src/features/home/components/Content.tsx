@@ -2,6 +2,7 @@ import type { Recipe, SavedRecipe } from "../types"
 import RecipeSection from "./RecipeSection";
 import { RecipeFilters } from "./FilterDrawer";
 import { CurrentUserCardData } from "../types/recipeCard.types";
+import { CreatePostType } from "../pages/Home";
 
 interface ContentProps {
     recipes: Recipe[]
@@ -21,7 +22,7 @@ interface ContentProps {
     activeTab: string
     filters: RecipeFilters
     onRecipeClick: (recipe: Recipe) => void
-    onCreatePost: () => void 
+    onCreatePost: (postType: CreatePostType) => void
 }
 
 export default function Content({ 
