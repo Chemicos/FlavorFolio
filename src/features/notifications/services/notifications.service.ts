@@ -10,12 +10,14 @@ export type NotificationType =
     | "unfollow"
     | "user_followed"
     | "needs_revision"
+    | "recipe_approved"
+    | "recipe_pending"
+    | "recipe_resubmitted"
     | "rating"
     | "comment_like"
     | "comment_dislike"
     | "reply_like"
     | "reply_dislike"
-    | "recipe_approved"
 
 export interface FlavorFolioNotification {
     id: string
@@ -31,6 +33,24 @@ export interface FlavorFolioNotification {
         seconds: number
         nanoseconds: number
     }
+}
+
+// interface CreateRecipePendingNotificationParams {
+//     recipientUserId: string
+//     actorUserId: string
+//     actorUsername: string
+//     actorProfileImage: string
+//     recipeId: string
+//     recipeTitle: string
+// }
+
+export interface CreateRecipeModerationNotificationParams {
+  recipientUserId: string
+  actorUserId: string
+  actorUsername: string
+  actorProfileImage: string
+  recipeId: string
+  recipeTitle: string
 }
 
 export interface CreateFollowNotificationParams {
@@ -184,4 +204,70 @@ export function deleteFollowNotificationFromBatch(
   )
 
   batch.delete(notificationRef)
+}
+
+export function addRecipePendingNotificationToBatch(
+    batch: WriteBatch,
+    {
+        recipientUserId,
+        actorUserId,
+        actorUsername,
+        actorProfileImage,
+        recipeId,
+        recipeTitle,
+    }: CreateRecipeModerationNotificationParams
+) {
+    const notificationRef = doc( db, "users", recipientUserId, "notifications", `recipe_pending_${recipeId}`)
+
+    batch.set(notificationRef, {
+        type: "recipe_pending",
+        recipientUserId,
+        actorUserId,
+        actorUsername,
+        actorProfileImage,
+        recipeId,
+        recipeTitle,
+        title: "Recipe pending review",
+        message: `A creator submitted a new recipe for review.`,
+        read: false,
+        createdAt: serverTimestamp(),
+    })
+}
+
+export function addRecipeResubmittedNotificationToBatch(
+  batch: WriteBatch,
+  {
+    recipientUserId,
+    actorUserId,
+    actorUsername,
+    actorProfileImage,
+    recipeId,
+    recipeTitle,
+  }: CreateRecipeModerationNotificationParams
+) {
+  const notificationRef = doc(
+    db,
+    "users",
+    recipientUserId,
+    "notifications",
+    `recipe_resubmitted_${recipeId}`
+  )
+
+  batch.set(
+    notificationRef,
+    {
+      type: "recipe_resubmitted",
+      recipientUserId,
+      actorUserId,
+      actorUsername,
+      actorProfileImage,
+      recipeId,
+      recipeTitle,
+      title: "Recipe resubmitted",
+      message: `A creator revised and resubmitted this recipe for review.`,
+      read: false,
+      createdAt: serverTimestamp(),
+    },
+    { merge: true }
+  )
 }

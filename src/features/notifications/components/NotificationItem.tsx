@@ -7,6 +7,7 @@ import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded"
 import ReportProblemRoundedIcon from "@mui/icons-material/ReportProblemRounded"
 import ThumbUpRoundedIcon from "@mui/icons-material/ThumbUpRounded"
 import ThumbDownRoundedIcon from "@mui/icons-material/ThumbDownRounded"
+import PendingActionsRoundedIcon from "@mui/icons-material/PendingActionsRounded"
 
 import { FlavorFolioNotification, NotificationType } from "../services/notifications.service"
 import { useNavigate } from "react-router-dom"
@@ -45,6 +46,10 @@ function getNotificationIcon(type: NotificationType) {
       return <PersonAddAltRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
     case "needs_revision":
       return <ReportProblemRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "recipe_pending":
+      return <PendingActionsRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "recipe_resubmitted":
+      return <ReplayRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
     case "rating":
       return <StarRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
     case "comment_like":
@@ -83,6 +88,15 @@ function getNotificationAction(notification: FlavorFolioNotification) {
       return {
         label: "View recipe",
         to: `/profile?recipeId=${notification.recipeId}`,
+      }
+
+    case "recipe_pending":
+    case "recipe_resubmitted":
+      if (!notification.recipeId) return null
+
+      return {
+        label: "Review recipe",
+        to: `/pending?recipeId=${notification.recipeId}`,
       }
 
     case "needs_revision":

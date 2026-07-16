@@ -4,6 +4,7 @@ import { db, storage } from "../../../firebase-config"
 import { PostRecipeIngredient, PostRecipeStep } from "../../home/types/postRecipe.types"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { buildRecipeKeywords } from "../../../utils/searchKeywords"
+import { addRecipeResubmittedNotificationToBatch } from "../../notifications/services/notifications.service"
 
 export interface UpdateNeedsRevisionRecipePayload {
   title: string
@@ -32,6 +33,17 @@ async function deleteStorageFile(path: string) {
     if (error?.code === "storage/object-not-found") return
     console.error(`Failed to delete storage file: ${path}`, error)
   }
+}
+
+async function getAdminUserIds(): Promise<string[]> {
+  const adminsQuery = query(
+    collection(db, "users"),
+    where("admin", "==", true)
+  )
+
+  const snapshot = await getDocs(adminsQuery)
+
+  return snapshot.docs.map((adminDoc) => adminDoc.id)
 }
 
 async function uploadRecipeImage(file: File) {
@@ -202,6 +214,69 @@ export async function updateNeedsRevisionRecipe({
 }
 
 export async function submitNeedsRevisionRecipe(recipeId: string) {
+  // const recipeRef = doc(db, "recipes", recipeId)
+  // const recipeSnap = await getDoc(recipeRef)
+
+  // if (!recipeSnap.exists()) {
+  //   throw new Error("Recipe not found.")
+  // }
+
+  // const recipeData = recipeSnap.data()
+
+  // const recipeTitle = recipeData.title || "Untitled recipe"
+  // const recipeOwnerId = recipeData.userId || ""
+  // const recipeOwnerUsername =
+  //   recipeData.author?.username || recipeData.user || "Creator"
+  // const recipeOwnerProfileImage =
+  //   recipeData.author?.profileImage || ""
+
+  // const batch = writeBatch(db)
+
+  // batch.update(recipeRef, {
+  //   status: "pending",
+  //   updatedAt: serverTimestamp(),
+  //   "moderation.submittedAt": serverTimestamp(),
+  //   "moderation.reviewedAt": null,
+  //   "moderation.reviewedBy": null,
+  // })
+
+  // const adminNotificationRef = doc(
+  //   db,
+  //   "adminNotifications",
+  //   getRecipeResubmittedNotificationId(recipeId)
+  // )
+
+  // batch.set(
+  //   adminNotificationRef,
+  //   {
+  //     type: "recipe_resubmitted",
+  //     recipeId,
+  //     recipeTitle,
+  //     actorUserId: recipeOwnerId,
+  //     actorUsername: recipeOwnerUsername,
+  //     actorProfileImage: recipeOwnerProfileImage,
+  //     message: `${recipeOwnerUsername} resubmitted "${recipeTitle}" for review.`,
+  //     read: false,
+  //     createdAt: serverTimestamp(),
+  //   },
+  //   { merge: true }
+  // )
+
+  // const activityRef = doc(collection(db, "adminModerationActivity"))
+
+  // batch.set(activityRef, {
+  //   type: "resubmitted",
+  //   recipeId,
+  //   recipeTitle,
+  //   recipeOwnerId,
+  //   recipeOwnerUsername,
+  //   adminUserId: "",
+  //   adminUsername: recipeOwnerUsername,
+  //   createdAt: serverTimestamp(),
+  // })
+
+  // await batch.commit()
+
   const recipeRef = doc(db, "recipes", recipeId)
   const recipeSnap = await getDoc(recipeRef)
 
@@ -211,18 +286,44 @@ export async function submitNeedsRevisionRecipe(recipeId: string) {
 
   const recipeData = recipeSnap.data()
 
-  const recipeTitle = recipeData.title || "Untitled recipe"
-  const recipeOwnerId = recipeData.userId || ""
+  if (recipeData.status !== "needs_revision") {
+    throw new Error("This recipe is no longer awaiting revision.")
+  }
+
+  const recipeTitle =
+    typeof recipeData.title === "string" && recipeData.title.trim()
+      ? recipeData.title.trim()
+      : "Untitled recipe"
+
+  const recipeOwnerId =
+    typeof recipeData.userId === "string"
+      ? recipeData.userId
+      : ""
+
+  if (!recipeOwnerId) {
+    throw new Error("Recipe owner could not be determined.")
+  }
+
   const recipeOwnerUsername =
-    recipeData.author?.username || recipeData.user || "Creator"
+    recipeData.author?.username ||
+    recipeData.user ||
+    "Creator"
+
   const recipeOwnerProfileImage =
     recipeData.author?.profileImage || ""
+
+  const adminUserIds = await getAdminUserIds()
+
+  if (adminUserIds.length === 0) {
+    throw new Error("No administrator account is available.")
+  }
 
   const batch = writeBatch(db)
 
   batch.update(recipeRef, {
     status: "pending",
     updatedAt: serverTimestamp(),
+
     "moderation.submittedAt": serverTimestamp(),
     "moderation.reviewedAt": null,
     "moderation.reviewedBy": null,
@@ -238,28 +339,55 @@ export async function submitNeedsRevisionRecipe(recipeId: string) {
     adminNotificationRef,
     {
       type: "recipe_resubmitted",
+
       recipeId,
       recipeTitle,
+
       actorUserId: recipeOwnerId,
       actorUsername: recipeOwnerUsername,
       actorProfileImage: recipeOwnerProfileImage,
+
       message: `${recipeOwnerUsername} resubmitted "${recipeTitle}" for review.`,
+
       read: false,
       createdAt: serverTimestamp(),
     },
     { merge: true }
   )
 
-  const activityRef = doc(collection(db, "adminModerationActivity"))
+  adminUserIds.forEach((adminUserId) => {
+    addRecipeResubmittedNotificationToBatch(batch, {
+      recipientUserId: adminUserId,
+
+      actorUserId: recipeOwnerId,
+      actorUsername: recipeOwnerUsername,
+      actorProfileImage: recipeOwnerProfileImage,
+
+      recipeId,
+      recipeTitle,
+    })
+  })
+
+
+  const activityRef = doc(
+    collection(db, "adminModerationActivity")
+  )
 
   batch.set(activityRef, {
     type: "resubmitted",
+
     recipeId,
     recipeTitle,
+
     recipeOwnerId,
     recipeOwnerUsername,
+
+    actorUserId: recipeOwnerId,
+    actorUsername: recipeOwnerUsername,
+
     adminUserId: "",
-    adminUsername: recipeOwnerUsername,
+    adminUsername: "",
+
     createdAt: serverTimestamp(),
   })
 

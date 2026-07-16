@@ -40,11 +40,11 @@ export default function NeedsRevisionPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const activeRecipeId = selectedRecipe?.recipeId || editingRecipe?.recipeId || previewRecipe?.recipeId || null
 
-  const [searchParams] = useSearchParams()
-  const openedRecipeFromUrlRef = useRef(false)
+  const [searchParams, setSearchParams] = useSearchParams()
   const recipeIdFromUrl = searchParams.get("recipeId")
 
   const [detailsDrawerWidth, setDetailsDrawerWidth] = useState(540)
+  const handledUnavailableRecipeIdRef = useRef<string | null>(null)
 
   const filteredRecipes = useMemo(() => {
     const query = debouncedSearch.trim().toLowerCase()
@@ -92,21 +92,85 @@ export default function NeedsRevisionPage() {
     )
   }
 
-  useEffect(() => {
-    if (!recipeIdFromUrl || openedRecipeFromUrlRef.current || isLoading) return
+  // useEffect(() => {
+  //   if (!recipeIdFromUrl || openedRecipeFromUrlRef.current || isLoading) return
 
-    const recipeToEdit = recipes.find(
+  //   const recipeToEdit = recipes.find(
+  //     (recipe) => recipe.recipeId === recipeIdFromUrl
+  //   )
+
+  //   if (!recipeToEdit) return
+
+  //   setEditingRecipe(null)
+  //   setPreviewRecipe(null)
+  //   setSelectedRecipe(recipeToEdit)
+
+  //   openedRecipeFromUrlRef.current = true
+  // }, [recipeIdFromUrl, recipes, isLoading])
+
+  useEffect(() => {
+    if (!recipeIdFromUrl || isLoading) return
+
+    const targetRecipe = recipes.find(
       (recipe) => recipe.recipeId === recipeIdFromUrl
     )
 
-    if (!recipeToEdit) return
+    if (!targetRecipe) {
+      if (
+        handledUnavailableRecipeIdRef.current !== recipeIdFromUrl
+      ) {
+        handledUnavailableRecipeIdRef.current = recipeIdFromUrl
+
+        showSnackbar(
+          "This recipe is no longer available for revision.",
+          "info"
+        )
+      }
+
+      setSelectedRecipe(null)
+      setEditingRecipe(null)
+      setPreviewRecipe(null)
+
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.delete("recipeId")
+
+      setSearchParams(nextParams, { replace: true })
+
+      return
+    }
+
+    handledUnavailableRecipeIdRef.current = null
+
+    const targetIndex = filteredRecipes.findIndex(
+      (recipe) => recipe.recipeId === recipeIdFromUrl
+    )
+
+    if (targetIndex >= 0) {
+      setCurrentPage(
+        Math.floor(targetIndex / rowsPerPage) + 1
+      )
+    }
 
     setEditingRecipe(null)
     setPreviewRecipe(null)
-    setSelectedRecipe(recipeToEdit)
 
-    openedRecipeFromUrlRef.current = true
-  }, [recipeIdFromUrl, recipes, isLoading])
+    setSelectedRecipe((currentRecipe) => {
+      if (currentRecipe?.recipeId === targetRecipe.recipeId) {
+        return currentRecipe
+      }
+
+      return targetRecipe
+    })
+  }, [
+    recipeIdFromUrl,
+    isLoading,
+    recipes,
+    filteredRecipes,
+    rowsPerPage,
+    searchParams,
+    setSearchParams,
+    showSnackbar,
+  ])
 
   const selectedRecipes = useMemo(() => {
     return recipes.filter((recipe) => selectedIds.includes(recipe.recipeId))
@@ -169,6 +233,9 @@ export default function NeedsRevisionPage() {
       setEditingRecipe((prev) =>
         prev && recipeIds.includes(prev.recipeId) ? null : prev
       )
+      if (recipeIdFromUrl && recipeIds.includes(recipeIdFromUrl)) {
+        clearRecipeFromUrl()
+      }
 
       setIsDeleteWindowOpen(false)
       setRecipesToDelete([])
@@ -178,6 +245,20 @@ export default function NeedsRevisionPage() {
     } finally {
       setIsDeleting(false)
     }
+  }
+
+  const clearRecipeFromUrl = () => {
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete("recipeId")
+
+    setSearchParams(nextParams, { replace: true })
+  }
+  const handleCloseRecipeDrawer = () => {
+    setSelectedRecipe(null)
+    setEditingRecipe(null)
+    setPreviewRecipe(null)
+
+    clearRecipeFromUrl()
   }
 
   const handleSubmitRevision = async (recipeId: string) => {
@@ -192,6 +273,8 @@ export default function NeedsRevisionPage() {
       setSelectedRecipe(null)
       setEditingRecipe(null)
       setPreviewRecipe(null)
+
+      clearRecipeFromUrl()
     } catch (error) {
       console.error("Failed to send recipe for review:", error)
       showSnackbar("Failed to send recipe for review.", "error")
@@ -218,6 +301,17 @@ export default function NeedsRevisionPage() {
         ? { ...prev, ...updatedRecipe }
         : prev
     )
+  }
+
+  const handleOpenRecipe = (recipe: NeedsRevisionRecipe) => {
+    setSelectedRecipe(recipe)
+    setEditingRecipe(null)
+    setPreviewRecipe(null)
+
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set("recipeId", recipe.recipeId)
+
+    setSearchParams(nextParams)
   }
 
   const handleOpenDeleteSelected = () => {
@@ -262,7 +356,7 @@ export default function NeedsRevisionPage() {
                 isLoading={isLoading}
                 activeRecipeId={activeRecipeId}
                 onToggleRecipe={handleToggleRecipe}
-                onViewRecipe={setSelectedRecipe}
+                onViewRecipe={handleOpenRecipe}
             />
         </div>
 
@@ -301,7 +395,7 @@ export default function NeedsRevisionPage() {
             mode="revision"
             width={detailsDrawerWidth}
             isRevisionActionLoading={isRevisionActionLoading}
-            onClose={() => setSelectedRecipe(null)}
+            onClose={handleCloseRecipeDrawer}
             onResizeStart={handleDetailsResizeStart}
             onDeleteRecipe={handleOpenDeleteRecipe}
             onSubmitRevision={handleSubmitRevision}

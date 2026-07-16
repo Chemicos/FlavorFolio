@@ -1,6 +1,6 @@
 import { ReviewRecipe } from "../types/recipeReview.types"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePendingRecipes } from "../hooks/usePendingRecipes"
 import Navigation from "../../../components/layout/Navigation"
 import RecipeReviewPageHeader from "../components/RecipeReviewPageHeader"
@@ -44,6 +44,7 @@ export default function PendingRecipesPage() {
     } = usePendingRecipes()
 
     const [detailsDrawerWidth, setDetailsDrawerWidth] = useState(540)
+    const handledMissingRecipeIdRef = useRef<string | null>(null)
 
     const filteredRecipes = useMemo(() => {
         const query = debouncedSearch.trim().toLowerCase()
@@ -135,25 +136,85 @@ export default function PendingRecipesPage() {
     }, [filteredRecipes, currentPage, rowsPerPage])
 
     useEffect(() => {
-        if (!targetRecipeId || isLoading || !recipes.length) return
+        // if (!targetRecipeId || isLoading || !recipes.length) return
+
+        // const targetRecipe = recipes.find(
+        //     (recipe) => recipe.recipeId === targetRecipeId
+        // )
+
+        // if (!targetRecipe) {
+        //     setSelectedRecipe(null)
+
+        //     const nextParams = new URLSearchParams(searchParams)
+        //     nextParams.delete("recipeId")
+        //     setSearchParams(nextParams, { replace: true })
+
+        //     return
+        // }
+
+        // const targetIndex = filteredRecipes.findIndex(
+        //     (recipe) => recipe.recipeId === targetRecipeId
+        // )
+
+        // if (targetIndex >= 0) {
+        //     setCurrentPage(Math.floor(targetIndex / rowsPerPage) + 1)
+        // }
+
+        // setSelectedRecipe((currentRecipe) => {
+        //     if (currentRecipe?.recipeId === targetRecipe.recipeId) {
+        //         return currentRecipe
+        //     }
+
+        //     return targetRecipe
+        // })
+        if (!targetRecipeId || isLoading) return
 
         const targetRecipe = recipes.find(
             (recipe) => recipe.recipeId === targetRecipeId
         )
 
-        if (!targetRecipe) return
+        if (!targetRecipe) {
+            if (handledMissingRecipeIdRef.current !== targetRecipeId) {
+                handledMissingRecipeIdRef.current = targetRecipeId
 
-        setSelectedRecipe(targetRecipe)
+                showSnackbar(
+                    "This recipe is no longer pending review.",
+                    "info"
+                )
+            }
+
+            setSelectedRecipe(null)
+
+            const nextParams = new URLSearchParams(searchParams)
+            nextParams.delete("recipeId")
+
+            setSearchParams(nextParams, { replace: true })
+
+            return
+        }
+
+        handledMissingRecipeIdRef.current = null
 
         const targetIndex = filteredRecipes.findIndex(
             (recipe) => recipe.recipeId === targetRecipeId
         )
 
         if (targetIndex >= 0) {
-            setCurrentPage(Math.floor(targetIndex / rowsPerPage) + 1)
+            setCurrentPage(
+                Math.floor(targetIndex / rowsPerPage) + 1
+            )
         }
 
-        setSearchParams({}, { replace: true })
+        setSelectedRecipe((currentRecipe) => {
+            if (
+                currentRecipe?.recipeId ===
+                targetRecipe.recipeId
+            ) {
+                return currentRecipe
+            }
+
+            return targetRecipe
+        })
     }, [targetRecipeId, isLoading, recipes, filteredRecipes, rowsPerPage, setSearchParams,])
 
     useEffect(() => {
@@ -175,6 +236,27 @@ export default function PendingRecipesPage() {
         )
     }
 
+    const handleOpenRecipeDetails = useCallback(
+        (recipe: ReviewRecipe) => {
+            setSelectedRecipe(recipe)
+
+            const nextParams = new URLSearchParams(searchParams)
+            nextParams.set("recipeId", recipe.recipeId)
+
+            setSearchParams(nextParams)
+        },
+        [searchParams, setSearchParams]
+    )
+
+    const handleCloseRecipeDetails = useCallback(() => {
+        setSelectedRecipe(null)
+
+        const nextParams = new URLSearchParams(searchParams)
+        nextParams.delete("recipeId")
+
+        setSearchParams(nextParams, { replace: true })
+    }, [searchParams, setSearchParams])
+
     const handleApproveSelected = async () => {
         try {
             await approveSelectedRecipes(selectedIds)
@@ -187,7 +269,7 @@ export default function PendingRecipesPage() {
             )
 
             setSelectedIds([])
-            setSelectedRecipe(null)
+            handleCloseRecipeDetails()
         } catch {
             showSnackbar(
                 "Failed to approve recipes.",
@@ -269,7 +351,7 @@ export default function PendingRecipesPage() {
             showSnackbar("Recipe approved successfully.", "success")
 
             setSelectedIds((prev) => prev.filter((id) => id !== recipeId))
-            setSelectedRecipe(null)
+            handleCloseRecipeDetails()
         } catch {
             showSnackbar("Failed to approve recipe.", "error")
         }
@@ -295,7 +377,7 @@ export default function PendingRecipesPage() {
             )
 
             setSelectedIds([])
-            setSelectedRecipe(null)
+            handleCloseRecipeDetails()
             setIsDenyWindowOpen(false)
             setDenyRecipes([])
         } catch {
@@ -343,7 +425,7 @@ export default function PendingRecipesPage() {
                             activeRecipeId={selectedRecipe?.recipeId || null}
                             isLoading={isLoading}
                             onToggleRecipe={handleToggleRecipe}
-                            onViewRecipe={setSelectedRecipe}
+                            onViewRecipe={handleOpenRecipeDetails}
                         />
                     </div>
 
@@ -380,7 +462,7 @@ export default function PendingRecipesPage() {
                         key={selectedRecipe.recipeId}
                         recipe={selectedRecipe}
                         width={detailsDrawerWidth}
-                        onClose={() => setSelectedRecipe(null)}
+                        onClose={handleCloseRecipeDetails}
                         onResizeStart={handleDetailsResizeStart}
                         onFeedbackSaved={handleFeedbackSaved}
                         isReviewActionLoading={isReviewActionLoading}

@@ -1,10 +1,11 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, serverTimestamp, updateDoc } from "@firebase/firestore"
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, updateDoc, where, writeBatch } from "@firebase/firestore"
 import { PostRecipeIngredient, PostRecipeStep } from "../types/postRecipe.types"
 import { CurrentUserCardData } from "../types/recipeCard.types"
 import { db, storage } from "../../../firebase-config"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { buildRecipeKeywords } from "../../../utils/searchKeywords"
 import { Recipe } from "../types"
+import { addRecipePendingNotificationToBatch } from "../../notifications/services/notifications.service"
 
 interface CreateRecipePayload {
     title: string
@@ -66,6 +67,17 @@ async function uploadStepImage(file: File, index: number) {
     imageUrl: await getDownloadURL(imageRef),
     imageFileName,
   }
+}
+
+export async function getAdminUserIds(): Promise<string[]> {
+  const snapshot = await getDocs(
+    query(
+      collection(db, "users"),
+      where("admin", "==", true)
+    )
+  )
+
+  return snapshot.docs.map((doc) => doc.id)
 }
 
 export async function createPendingRecipe({
@@ -168,6 +180,23 @@ export async function createPendingRecipe({
     }
 
     const docRef = await addDoc(collection(db, "recipes"), recipeData)
+    const adminIds = await getAdminUserIds()
+
+    const batch = writeBatch(db)
+
+    adminIds.forEach((adminUserId) => {
+        addRecipePendingNotificationToBatch(batch, {
+            recipientUserId: adminUserId,
+            actorUserId: currentUser.uid,
+            actorUsername: currentUser.username,
+            actorProfileImage: currentUser.profileImage || "",
+            recipeId: docRef.id,
+            recipeTitle: title.trim(),
+        })
+    })
+
+    await batch.commit()
+
     return docRef.id
 }
 
