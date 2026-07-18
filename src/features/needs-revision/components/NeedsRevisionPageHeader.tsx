@@ -25,7 +25,7 @@ export default function NeedsRevisionPageHeader({
   const allSelected = totalCount > 0 && selectedCount === totalCount
 
   return (
-    <section className="mb-8">
+    <section>
       <div>
         <div className="flex items-center gap-3">
           <h1 className="text-[1.6rem] font-semibold text-white">

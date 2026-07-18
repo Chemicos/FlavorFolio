@@ -42,6 +42,7 @@ export function useGlobalSearch(searchValue: string) {
           getDocs(
             query(
               collection(db, "recipes"),
+              where("status", "==", "published"),
               where("searchKeywords", "array-contains", cleanSearch),
               limit(6)
             )
@@ -99,8 +100,4 @@ export function useGlobalSearch(searchValue: string) {
     isLoading,
     debouncedSearch,
   }
-}
-
-function useDebouncedValue(searchValue: string, arg1: number) {
-    throw new Error("Function not implemented.")
 }

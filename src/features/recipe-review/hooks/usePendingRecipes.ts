@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ReviewRecipe } from "../types/recipeReview.types";
-import { approveRecipes, denyRecipes, fetchPendingRecipes, ReviewSectionKey } from "../services/recipeReview.service";
+import { approveRecipes, denyRecipes, ReviewSectionKey, subscribeToPendingRecipes } from "../services/recipeReview.service";
 import { ReviewSectionFeedback } from "../components/RecipeReviewSectionHeader";
 
 export function usePendingRecipes() {
@@ -9,31 +9,50 @@ export function usePendingRecipes() {
     const [isReviewActionLoading, setIsReviewActionLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
+    // useEffect(() => {
+    //     let isMounted = true
+
+    //     async function loadRecipes() {
+    //         try {
+    //             setIsLoading(true)
+    //             setError(null)
+
+    //             const result = await fetchPendingRecipes()
+
+    //             if (isMounted) {setRecipes(result)}
+    //         } catch (err) {
+    //             console.error("Failed to fetch pending recipes:", err)
+
+    //             if (isMounted) {setError("Failed to load pending recipes.")}
+    //         } finally {
+    //             if (isMounted) {setIsLoading(false)}
+    //         }
+    //     }
+
+    //     loadRecipes()
+
+    //     return () => {
+    //         isMounted = false
+    //     }
+    // }, [])
+
     useEffect(() => {
-        let isMounted = true
+        setIsLoading(true)
 
-        async function loadRecipes() {
-            try {
-                setIsLoading(true)
-                setError(null)
+        const unsubscribe = subscribeToPendingRecipes({
+            onChange: (recipes) => {
+                setRecipes(recipes)
+                setIsLoading(false)
+            },
 
-                const result = await fetchPendingRecipes()
+            onError: (error) => {
+                console.error(error)
+                setError("Failed to load pending recipes.")
+                setIsLoading(false)
+            },
+        })
 
-                if (isMounted) {setRecipes(result)}
-            } catch (err) {
-                console.error("Failed to fetch pending recipes:", err)
-
-                if (isMounted) {setError("Failed to load pending recipes.")}
-            } finally {
-                if (isMounted) {setIsLoading(false)}
-            }
-        }
-
-        loadRecipes()
-
-        return () => {
-            isMounted = false
-        }
+        return () => unsubscribe()
     }, [])
 
     const handleReviewFeedbackStateChange = (

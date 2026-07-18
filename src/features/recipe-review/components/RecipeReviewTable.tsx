@@ -75,7 +75,6 @@ type SortState = {
   direction: SortDirection
 }
 
-
 export default function RecipeReviewTable({
   recipes,
   selectedIds,

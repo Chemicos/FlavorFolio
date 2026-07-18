@@ -147,15 +147,6 @@ export default function RecipeSection({
             </h2>
 
             <div className="flex items-center gap-4">
-                {/* <button 
-                    type="button"
-                    onClick={onCreatePost}
-                    className="flex items-center gap-2 rounded-lg bg-orange-500/10 border border-orange-400/20 px-3 sm:px-4 py-2.5 text-sm font-medium text-orange-200
-                    transition hover:border-orange-300/30 hover:bg-orange-500/20 hover:text-orange-100 active:scale-95"
-                >
-                    <PostAddRoundedIcon sx={{fontSize: 20}} />
-                    <span className='hidden sm:inline'>New post</span>
-                </button> */}
                 <CreatePostDropdown onSelect={onCreatePost} />
 
                 <button

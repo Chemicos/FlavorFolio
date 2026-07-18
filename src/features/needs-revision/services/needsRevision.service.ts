@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from "@firebase/firestore"
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from "@firebase/firestore"
 import { NeedsRevisionRecipe } from "../types/needsRevision.types"
 import { db, storage } from "../../../firebase-config"
 import { PostRecipeIngredient, PostRecipeStep } from "../../home/types/postRecipe.types"
@@ -420,4 +420,44 @@ export async function fetchNeedsRevisionRecipes(
       recipeId: data.recipeId || docSnap.id,
     }
   })
+}
+
+export function subscribeToNeedsRevisionRecipes({
+  userId,
+  onChange,
+  onError,
+}: {
+  userId: string
+  onChange: (recipes: NeedsRevisionRecipe[]) => void
+  onError: (error: Error) => void
+}) {
+  if (!userId) {
+    throw new Error("User id is required.")
+  }
+
+  const recipesQuery = query(
+    collection(db, "recipes"),
+    where("userId", "==", userId),
+    where("status", "==", "needs_revision"),
+    orderBy("updatedAt", "desc"),
+    limit(50)
+  )
+
+  return onSnapshot(
+    recipesQuery,
+    (snapshot) => {
+      const recipes = snapshot.docs.map((docSnap) => {
+        const data = docSnap.data() as NeedsRevisionRecipe
+
+        return {
+          ...data,
+          id: docSnap.id,
+          recipeId: data.recipeId || docSnap.id,
+        }
+      })
+
+      onChange(recipes)
+    },
+    onError
+  )
 }

@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from "@firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from "@firebase/firestore";
 import { ReviewRecipe } from "../types/recipeReview.types";
 import { db } from "../../../firebase-config";
 import { ReviewSectionFeedback } from "../components/RecipeReviewSectionHeader";
@@ -225,4 +225,37 @@ function getModerationNotificationId(recipeId: string, type: "approved" | "needs
 
 function getRecipeOwnerId(data: any) {
   return data.userId || data.author?.uid || ""
+}
+
+export function subscribeToPendingRecipes({
+  onChange,
+  onError,
+}: {
+  onChange: (recipes: ReviewRecipe[]) => void
+  onError: (error: Error) => void
+}) {
+  const recipesQuery = query(
+    collection(db, "recipes"),
+    where("status", "==", "pending"),
+    orderBy("moderation.submittedAt", "desc"),
+    limit(100)
+  )
+
+  return onSnapshot(
+    recipesQuery,
+    (snapshot) => {
+      onChange(
+        snapshot.docs.map((docSnap) => {
+          const data = docSnap.data()
+
+          return {
+            ...(data as ReviewRecipe),
+            id: docSnap.id,
+            recipeId: data.recipeId || docSnap.id,
+          }
+        })
+      )
+    },
+    onError
+  )
 }

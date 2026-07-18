@@ -34,7 +34,6 @@ export default function Home() {
   const { showSnackbar } = useSnackbar()
 
   const [isPostFormVisible, setIsPostFormVisible] = useState(false)
-  // const [isFeedbackVisible, setIsFeedbackVisible] = useState(false)
   const [selectedPostType, setSelectedPostType] = useState<CreatePostType>("recipe")
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
@@ -196,8 +195,6 @@ export default function Home() {
     try {
       const parsed = JSON.parse(raw)
       showSnackbar(parsed.message || "Authentication successful.", "success")
-      // setsnackbarMessage(parsed.message || "Authentication successful.")
-      // setSnackbarOpen(true)
     } catch (error) {
       console.error("Failed to parse auth feedback:", error)
     } finally {

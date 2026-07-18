@@ -42,10 +42,10 @@ const viewTooltipProps = {
 function formatCreatedAt(value: any) {
   if (!value?.seconds) return "-"
 
-  return new Intl.DateTimeFormat("en", {
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
   }).format(new Date(value.seconds * 1000))
 }
 
