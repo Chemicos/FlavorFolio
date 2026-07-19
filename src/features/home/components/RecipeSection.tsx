@@ -31,6 +31,7 @@ interface RecipeSectionProps {
   isLoading: boolean
   onOpenFilters: () => void
   onCreatePost: (postType: CreatePostType) => void
+  hasActiveFilters: boolean
 }
 
 export default function RecipeSection({
@@ -49,6 +50,7 @@ export default function RecipeSection({
     hasMore,
     isFetchingMore,
     onFetchMore,
+    hasActiveFilters,
 }: RecipeSectionProps) {
     const MAX_COLUMNS = 4
     const GRID_GAP = 24
@@ -137,7 +139,7 @@ export default function RecipeSection({
         }
     }, [virtualRows, rows.length, hasMore, isFetchingMore, isLoading, onFetchMore])
 
-    if (!isLoading && !recipes.length) return null
+    // if (!isLoading && !recipes.length) return null
 
   return (
     <section ref={sectionRef} className="w-full min-h-[calc(100vh-140px)]">
@@ -162,6 +164,26 @@ export default function RecipeSection({
 
         {isLoading ? (
             <RecipeGridSkeleton count={8} />
+        ) : recipes.length === 0 ? (
+            <div className="flex min-h-[360px] w-full items-center justify-center">
+                <div className="w-full max-w-[520px] rounded-2xl border border-white/10 bg-white/[0.025] px-8 py-12 text-center shadow-[0_18px_55px_rgba(0,0,0,0.16)]">
+                <h3 className="text-base font-bold text-white">
+                    {hasActiveFilters
+                    ? "No recipes match your filters"
+                    : title === "Following"
+                        ? "No recipes from followed creators"
+                        : "No recipes available"}
+                </h3>
+
+                <p className="mx-auto mt-2 max-w-[390px] text-sm leading-6 text-[#8f97b1]">
+                    {hasActiveFilters
+                    ? "Try removing or adjusting some filters to discover more recipes."
+                    : title === "Following"
+                        ? "Follow more creators to see their latest published recipes here."
+                        : "New recipes will appear here when they become available."}
+                </p>
+                </div>
+            </div>
         ) : (
             <div ref={gridRef} className="relative w-full">
                 <div

@@ -7,6 +7,8 @@ import { collection, doc, DocumentSnapshot, getDoc, getDocs, limit, onSnapshot, 
 import { db } from "../../../firebase-config"
 import { applyRecipeFilters, getAvailableCuisines } from "../utils/recipeFilters"
 import { sortByMostSaved, sortByNewest, sortForYou, sortTrending } from "../utils/recipeSorters"
+import { fetchRecipesByIds, fetchRecommendationCandidates, subscribeToFollowingRecipes, subscribeToFollowingUserIds } from "../services/feed.service"
+import { buildRecipePreferenceProfile, RecipePreferenceProfile, sortRecipesForYou } from "../utils/recipeRecommendations"
 
 interface UseHomeDataParams {
   activeTab: string
@@ -30,6 +32,16 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFiltering, setIsFiltering] = useState(false)
+
+  // const [followingRecipes, setFollowingRecipes] = useState<Recipe[]>([])
+  const [followingFeedRecipes, setFollowingFeedRecipes] = useState<Recipe[]>([])
+  const [recommendationCandidates, setRecommendationCandidates] = useState<Recipe[]>([])
+
+  const [preferenceRecipes, setPreferenceRecipes] = useState<Recipe[]>([])
+
+  const [isFollowingFeedLoading, setIsFollowingFeedLoading] = useState(false)
+
+  const [isForYouFeedLoading, setIsForYouFeedLoading] = useState(false)
 
   useEffect(() => {
     const auth = getAuth()
@@ -156,30 +168,154 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     fetchInitialRecipes()
   }, [fetchInitialRecipes])
 
+  // useEffect(() => {
+  //   const fetchFollowing = async () => {
+  //     if (!currentUserId) {
+  //         setFollowingUserIds([])
+  //         return
+  //     }
+
+  //     try {
+  //         const followingCollection = collection(db, "users", currentUserId, "following")
+  //         const followingSnapshot = await getDocs(followingCollection)
+
+  //         const ids = followingSnapshot.docs.map((docSnap) => {
+  //             const data = docSnap.data()
+  //             return String(data.userId || docSnap.id)
+  //         })
+
+  //         setFollowingUserIds(ids)
+  //     } catch (error) {
+  //         console.error("Error fetching following users:", error)
+  //     }
+  //   }
+
+  //   fetchFollowing()
+  // }, [currentUserId])
+
   useEffect(() => {
-    const fetchFollowing = async () => {
-      if (!currentUserId) {
-          setFollowingUserIds([])
-          return
-      }
+    if (!currentUserId) {
+      setFollowingUserIds([])
+      return
+    }
 
+    const unsubscribe = subscribeToFollowingUserIds({
+      currentUserId,
+
+      onChange: setFollowingUserIds,
+
+      onError: (error) => {
+        console.error(
+          "Failed to subscribe to following users:",
+          error
+        )
+      },
+    })
+
+    return () => unsubscribe()
+  }, [currentUserId])
+
+  useEffect(() => {
+    if (activeTab !== "Following") return
+
+    if (!followingUserIds.length) {
+      setFollowingFeedRecipes([])
+      setIsFollowingFeedLoading(false)
+      return
+    }
+
+    setIsFollowingFeedLoading(true)
+
+    const unsubscribe = subscribeToFollowingRecipes({
+      followingUserIds,
+
+      onChange: (nextRecipes) => {
+        setFollowingFeedRecipes(nextRecipes)
+        setIsFollowingFeedLoading(false)
+      },
+
+      onError: (error) => {
+        console.error(
+          "Failed to subscribe to following recipes:",
+          error
+        )
+
+        setFollowingFeedRecipes([])
+        setIsFollowingFeedLoading(false)
+      },
+    })
+
+    return () => unsubscribe()
+  }, [activeTab, followingUserIds])
+
+  useEffect(() => {
+    if (activeTab !== "For You") return
+
+    let isMounted = true
+
+    async function loadRecommendationCandidates() {
       try {
-          const followingCollection = collection(db, "users", currentUserId, "following")
-          const followingSnapshot = await getDocs(followingCollection)
+        setIsForYouFeedLoading(true)
 
-          const ids = followingSnapshot.docs.map((docSnap) => {
-              const data = docSnap.data()
-              return String(data.userId || docSnap.id)
-          })
+        const candidates = await fetchRecommendationCandidates()
 
-          setFollowingUserIds(ids)
+        if (isMounted) {
+          setRecommendationCandidates(candidates)
+        }
       } catch (error) {
-          console.error("Error fetching following users:", error)
+        console.error(
+          "Failed to load recommendation candidates:",
+          error
+        )
+      } finally {
+        if (isMounted) {
+          setIsForYouFeedLoading(false)
+        }
       }
     }
 
-    fetchFollowing()
-  }, [currentUserId])
+    void loadRecommendationCandidates()
+
+    return () => {
+      isMounted = false
+    }
+  }, [activeTab])
+
+  useEffect(() => {
+    const savedRecipeIds = savedRecipes
+      .map((savedRecipe) => savedRecipe.recipeId || savedRecipe.id)
+      .filter((recipeId): recipeId is string => Boolean(recipeId))
+
+    if (!savedRecipeIds.length) {
+      setPreferenceRecipes([])
+      return
+    }
+
+    let isMounted = true
+
+    async function loadPreferenceRecipes() {
+      try {
+        const recipes = await fetchRecipesByIds(
+          savedRecipeIds.slice(0, 60)
+        )
+
+        if (isMounted) {
+          setPreferenceRecipes(recipes)
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load preference recipes:",
+          error
+        )
+      }
+    }
+
+    void loadPreferenceRecipes()
+
+    return () => {
+      isMounted = false
+    }
+  }, [savedRecipes])
 
   useEffect(() => {
     const fetchAuthorFollowerCounts = async () => {
@@ -247,6 +383,12 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     return () => unsubscribe()
   }, [currentUserId])
 
+  const preferenceProfile = useMemo<RecipePreferenceProfile>(() => {
+      return buildRecipePreferenceProfile(
+        preferenceRecipes
+      )
+    }, [preferenceRecipes])
+
   const currentUser = useMemo<CurrentUserCardData | null>(() => {
     if (!currentUserId || !currentUserProfile) return null
 
@@ -273,13 +415,54 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     )
   }, [publishedPublicRecipes, filters, savedRecipes, currentUserId])
 
+  // const forYouRecipes = useMemo(() => {
+  //   if (filters.saved.mostSaved) {
+  //     return sortByMostSaved(filteredRecipes)
+  //   }
+
+  //   return sortForYou(filteredRecipes)
+  // }, [filteredRecipes, filters.saved.mostSaved])
+
+  const filteredRecommendationCandidates = useMemo(() => {
+    return recommendationCandidates.filter((recipe) =>
+      applyRecipeFilters(
+        recipe,
+        filters,
+        savedRecipes,
+        currentUserId
+      )
+    )
+  }, [
+    recommendationCandidates,
+    filters,
+    savedRecipes,
+    currentUserId,
+  ])
+
   const forYouRecipes = useMemo(() => {
     if (filters.saved.mostSaved) {
-      return sortByMostSaved(filteredRecipes)
+      return sortByMostSaved(
+        filteredRecommendationCandidates
+      )
     }
 
-    return sortForYou(filteredRecipes)
-  }, [filteredRecipes, filters.saved.mostSaved])
+    return sortRecipesForYou({
+      recipes: filteredRecommendationCandidates,
+      preferenceProfile,
+      followingUserIds,
+      savedRecipeIds: savedRecipes
+        .map((savedRecipe) => savedRecipe.recipeId || savedRecipe.id)
+        .filter((recipeId): recipeId is string => Boolean(recipeId)),
+      currentUserId,
+    })
+  }, [
+    filteredRecommendationCandidates,
+    preferenceProfile,
+    followingUserIds,
+    savedRecipes,
+    currentUserId,
+    filters.saved.mostSaved,
+  ])  
 
   const trendingRecipes = useMemo(() => {
     if (filters.saved.mostSaved) {
@@ -289,13 +472,42 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     return sortTrending(filteredRecipes)
   }, [filteredRecipes, filters.saved.mostSaved])
 
+  // const followingRecipes = useMemo(() => {
+  //   if (filters.saved.mostSaved) {
+  //     return sortByMostSaved(filteredRecipes)
+  //   }
+
+  //   return sortByNewest(filteredRecipes)
+  // }, [filteredRecipes, filters.saved.mostSaved])
+
+  const filteredFollowingRecipes = useMemo(() => {
+    return followingFeedRecipes.filter((recipe) =>
+      applyRecipeFilters(
+        recipe,
+        filters,
+        savedRecipes,
+        currentUserId
+      )
+    )
+  }, [
+    followingFeedRecipes,
+    filters,
+    savedRecipes,
+    currentUserId,
+  ])
+
   const followingRecipes = useMemo(() => {
     if (filters.saved.mostSaved) {
-      return sortByMostSaved(filteredRecipes)
+      return sortByMostSaved(
+        filteredFollowingRecipes
+      )
     }
 
-    return sortByNewest(filteredRecipes)
-  }, [filteredRecipes, filters.saved.mostSaved])
+    return sortByNewest(filteredFollowingRecipes)
+  }, [
+    filteredFollowingRecipes,
+    filters.saved.mostSaved,
+  ])
 
   const newRecipes = useMemo(() => {
     if (filters.saved.mostSaved) {
@@ -305,104 +517,335 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     return sortByNewest(filteredRecipes)
   }, [filteredRecipes, filters.saved.mostSaved])
 
-  const activeRecipes = useMemo(() => {
+  const activeFeedSource = useMemo<Recipe[]>(() => {
     switch (activeTab) {
+      case "For You":
+        return forYouRecipes
+
       case "Trending":
         return trendingRecipes
+
       case "Following":
-        return followingRecipes
+        return followingFeedRecipes
+
       case "New":
         return newRecipes
-      case "For You":
+
       default:
         return forYouRecipes
     }
-  }, [activeTab, forYouRecipes, trendingRecipes, followingRecipes, newRecipes])
+  }, [activeTab, forYouRecipes, trendingRecipes, followingFeedRecipes, newRecipes,])
 
+  
+  const filteredActiveRecipes = useMemo(() => {
+    return activeFeedSource.filter((recipe) =>
+      applyRecipeFilters(
+        recipe,
+        filters,
+        savedRecipes,
+        currentUserId
+      )
+    )
+  }, [
+    activeFeedSource,
+    filters,
+    savedRecipes,
+    currentUserId,
+  ])
+  
   const handleFollowStateChange = (authorId: string, isNowFollowing: boolean) => {
     setFollowingUserIds((prev) => {
-        if (isNowFollowing) {
-            return prev.includes(authorId) ? prev : [...prev, authorId]
-        }
-
-        return prev.filter((id) => id !== authorId)
+      if (isNowFollowing) {
+        return prev.includes(authorId) ? prev : [...prev, authorId]
+      }
+      
+      return prev.filter((id) => id !== authorId)
     })
-
+    
     setAuthorFollowersCountMap((prev) => ({
-        ...prev,
-        [authorId]: Math.max(0, Number(prev[authorId] || 0) + (isNowFollowing ? 1 : -1))
+      ...prev,
+      [authorId]: Math.max(0, Number(prev[authorId] || 0) + (isNowFollowing ? 1 : -1))
     }))
   }
 
-  const handleFavoriteStateChange = (recipeId: string, isNowSaved: boolean) => {
-    setRecipes((prev) =>
-      prev.map((recipe) => {
-        if (recipe.recipeId !== recipeId) return recipe
+  // const activeRecipes = useMemo(() => {
+  //   switch (activeTab) {
+  //     case "Trending":
+  //       return trendingRecipes
+  //     case "Following":
+  //       return followingFeedRecipes
+  //     case "New":
+  //       return newRecipes
+  //     case "For You":
+  //     default:
+  //       return forYouRecipes
+  //   }
+  // }, [activeTab, forYouRecipes, trendingRecipes, followingFeedRecipes, newRecipes])
 
-        const currentSavesCount = Number(recipe?.stats?.savesCount || 0)
+  const activeRecipes = useMemo(() => {
+    if (filters.saved.mostSaved) {
+      return [...filteredActiveRecipes].sort((a, b) => {
+        const firstSavesCount = Number(
+          a.stats?.savesCount ?? a.savesCount ?? 0
+        )
 
-        return {
-          ...recipe,
-          stats: {
-            ...recipe.stats,
-            savesCount: Math.max(0, currentSavesCount + (isNowSaved ? 1 : -1)),
-          },
-        }
+        const secondSavesCount = Number(
+          b.stats?.savesCount ?? b.savesCount ?? 0
+        )
+
+        return secondSavesCount - firstSavesCount
       })
-    )
-  }
-
-  const handleRatingStateChange = (
-    recipeId: string,
-    stats: {
-      averageRating: number,
-      ratingsCount: number,
-      ratingsSum?: number
     }
-  ) => {
-    setRecipes((prev) =>
-      prev.map((recipe) => {
-        if (recipe.recipeId !== recipeId) return recipe
 
-        return {
-          ...recipe,
-          stats: {
-            ...recipe.stats,
-            averageRating: stats.averageRating,
-            ratingsCount: stats.ratingsCount,
-            ratingsSum: stats.ratingsSum ?? recipe.stats?.ratingsSum,
-          },
-        }
-      })
-    )
-  }
+    return filteredActiveRecipes
+  }, [
+    filteredActiveRecipes,
+    filters.saved.mostSaved,
+  ])
+
+  const updateRecipeAcrossFeeds = useCallback(
+    (
+      recipeId: string,
+      updater: (recipe: Recipe) => Recipe
+    ) => {
+      const updateCollection = (
+        currentRecipes: Recipe[]
+      ) =>
+        currentRecipes.map((recipe) => {
+          const currentRecipeId =
+            recipe.recipeId || recipe.id || ""
+
+          if (currentRecipeId !== recipeId) {
+            return recipe
+          }
+
+          return updater(recipe)
+        })
+
+      setRecipes(updateCollection)
+      setFollowingFeedRecipes(updateCollection)
+      setRecommendationCandidates(updateCollection)
+      setPreferenceRecipes(updateCollection)
+    },
+    []
+  )
   
-  const handleRecipeDeleteStateChange = (recipeId: string) => {
-    setRecipes((prev) =>
-      prev.filter((recipe) => {
-        const id = recipe.recipeId || recipe.id
-        return id !== recipeId
-      })
+  // const handleFavoriteStateChange = (recipeId: string, isNowSaved: boolean) => {
+  //   setRecipes((prev) =>
+  //     prev.map((recipe) => {
+  //       if (recipe.recipeId !== recipeId) return recipe
+
+  //       const currentSavesCount = Number(recipe?.stats?.savesCount || 0)
+
+  //       return {
+  //         ...recipe,
+  //         stats: {
+  //           ...recipe.stats,
+  //           savesCount: Math.max(0, currentSavesCount + (isNowSaved ? 1 : -1)),
+  //         },
+  //       }
+  //     })
+  //   )
+  // }
+
+  const handleFavoriteStateChange = useCallback(
+    (
+      recipeId: string,
+      isNowSaved: boolean
+    ) => {
+      updateRecipeAcrossFeeds(
+        recipeId,
+        (recipe) => {
+          const currentSavesCount = Number(
+            recipe.stats?.savesCount ??
+              recipe.savesCount ??
+              0
+          )
+
+          const nextSavesCount = Math.max(
+            0,
+            currentSavesCount +
+              (isNowSaved ? 1 : -1)
+          )
+
+          return {
+            ...recipe,
+
+            savesCount: nextSavesCount,
+
+            stats: {
+              ...recipe.stats,
+              savesCount: nextSavesCount,
+            },
+          }
+        }
+      )
+    },
+    [updateRecipeAcrossFeeds]
+  )
+
+  // const handleRatingStateChange = (
+  //   recipeId: string,
+  //   stats: {
+  //     averageRating: number,
+  //     ratingsCount: number,
+  //     ratingsSum?: number
+  //   }
+  // ) => {
+  //   setRecipes((prev) =>
+  //     prev.map((recipe) => {
+  //       if (recipe.recipeId !== recipeId) return recipe
+
+  //       return {
+  //         ...recipe,
+  //         stats: {
+  //           ...recipe.stats,
+  //           averageRating: stats.averageRating,
+  //           ratingsCount: stats.ratingsCount,
+  //           ratingsSum: stats.ratingsSum ?? recipe.stats?.ratingsSum,
+  //         },
+  //       }
+  //     })
+  //   )
+  // }
+
+  const handleRatingStateChange = useCallback(
+    (
+      recipeId: string,
+      stats: {
+        averageRating: number
+        ratingsCount: number
+        ratingsSum?: number
+      }
+    ) => {
+      updateRecipeAcrossFeeds(
+        recipeId,
+        (recipe) => {
+          const nextRatingsSum =
+            stats.ratingsSum ??
+            recipe.stats?.ratingsSum ??
+            recipe.ratingsSum ??
+            0
+
+          return {
+            ...recipe,
+
+            averageRating: stats.averageRating,
+            rating: stats.averageRating,
+            ratingsCount: stats.ratingsCount,
+            ratingsSum: nextRatingsSum,
+
+            stats: {
+              ...recipe.stats,
+              averageRating: stats.averageRating,
+              ratingsCount: stats.ratingsCount,
+              ratingsSum: nextRatingsSum,
+            },
+          }
+        }
+      )
+    },
+    [updateRecipeAcrossFeeds]
+  )
+  
+  // const handleRecipeDeleteStateChange = (recipeId: string) => {
+  //   setRecipes((prev) =>
+  //     prev.filter((recipe) => {
+  //       const id = recipe.recipeId || recipe.id
+  //       return id !== recipeId
+  //     })
+  //   )
+  // }
+
+  // const handleCommentStateChange = useCallback((recipeId: string, commentsCount: number) => {
+  //   setRecipes((prev) =>
+  //     prev.map((recipe) => {
+  //       if (recipe.recipeId !== recipeId) return recipe
+
+  //       return {
+  //         ...recipe,
+  //         stats: {
+  //           ...recipe.stats,
+  //           commentsCount,
+  //         },
+  //       }
+  //     })
+  //   )
+  // }, [])
+
+  const handleRecipeDeleteStateChange =
+    useCallback(
+      (recipeId: string) => {
+        const removeRecipe = (
+          currentRecipes: Recipe[]
+        ) =>
+          currentRecipes.filter((recipe) => {
+            const currentRecipeId =
+              recipe.recipeId || recipe.id || ""
+
+            return currentRecipeId !== recipeId
+          })
+
+        setRecipes(removeRecipe)
+        setFollowingFeedRecipes(removeRecipe)
+        setRecommendationCandidates(removeRecipe)
+        setPreferenceRecipes(removeRecipe)
+      },
+      []
     )
-  }
 
-  const handleCommentStateChange = useCallback((recipeId: string, commentsCount: number) => {
-    setRecipes((prev) =>
-      prev.map((recipe) => {
-        if (recipe.recipeId !== recipeId) return recipe
+  const handleCommentStateChange = useCallback(
+    (
+      recipeId: string,
+      commentsCount: number
+    ) => {
+      const normalizedCommentsCount = Math.max(
+        0,
+        Number(commentsCount || 0)
+      )
 
-        return {
+      updateRecipeAcrossFeeds(
+        recipeId,
+        (recipe) => ({
           ...recipe,
+
+          commentsCount: normalizedCommentsCount,
+
           stats: {
             ...recipe.stats,
-            commentsCount,
+            commentsCount: normalizedCommentsCount,
           },
-        }
-      })
-    )
-  }, [])
+        })
+      )
+    },
+    [updateRecipeAcrossFeeds]
+  )
+
+  const activeFeedIsLoading =
+    isLoading ||
+    (activeTab === "Following" &&
+      isFollowingFeedLoading) ||
+    (activeTab === "For You" &&
+      isForYouFeedLoading)
 
   return {
+    // activeRecipes,
+    // availableCuisines,
+    // currentUser,
+    // currentUserId,
+    // savedRecipes,
+    // followingUserIds,
+    // authorFollowersCountMap,
+    // isLoading,
+    // isFiltering,
+    // handleFavoriteStateChange,
+    // handleFollowStateChange,
+    // handleRatingStateChange,
+    // handleCommentStateChange,
+    // hasMoreRecipes,
+    // isFetchingMoreRecipes,
+    // fetchMoreRecipes,
+    // handleRecipeDeleteStateChange
     activeRecipes,
     availableCuisines,
     currentUser,
@@ -410,15 +853,32 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     savedRecipes,
     followingUserIds,
     authorFollowersCountMap,
-    isLoading,
+
+    isLoading: activeFeedIsLoading,
     isFiltering,
+
     handleFavoriteStateChange,
     handleFollowStateChange,
     handleRatingStateChange,
     handleCommentStateChange,
-    hasMoreRecipes,
-    isFetchingMoreRecipes,
-    fetchMoreRecipes,
-    handleRecipeDeleteStateChange
+    handleRecipeDeleteStateChange,
+
+    hasMoreRecipes:
+      activeTab === "Following" ||
+      activeTab === "For You"
+        ? false
+        : hasMoreRecipes,
+
+    isFetchingMoreRecipes:
+      activeTab === "Following" ||
+      activeTab === "For You"
+        ? false
+        : isFetchingMoreRecipes,
+
+    fetchMoreRecipes:
+      activeTab === "Following" ||
+      activeTab === "For You"
+        ? () => undefined
+        : fetchMoreRecipes, 
   }
 }

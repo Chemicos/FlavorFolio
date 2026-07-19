@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { Conversation } from "../types/messages.types"
+import { useEffect, useState } from "react"
 
 interface ConversationListItemProps {
   conversation: Conversation
@@ -8,22 +9,95 @@ interface ConversationListItemProps {
   isActive?: boolean
 }
 
-function formatTime(value: any) {
-  if (!value) return ""
+function getDateFromValue(value: unknown): Date | null {
+  if (!value) return null
 
-  const date =
-    typeof value?.toDate === "function"
-      ? value.toDate()
-      : value instanceof Date
-        ? value
-        : null
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof (value as { toDate?: unknown }).toDate === "function"
+  ) {
+    return (value as { toDate: () => Date }).toDate()
+  }
+
+  if (value instanceof Date) {
+    return value
+  }
+
+  return null
+}
+
+function getCalendarDayDifference(
+  targetDate: Date,
+  currentDate: Date
+) {
+  const targetDay = new Date(
+    targetDate.getFullYear(),
+    targetDate.getMonth(),
+    targetDate.getDate()
+  )
+
+  const currentDay = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    currentDate.getDate()
+  )
+
+  return Math.round(
+    (targetDay.getTime() - currentDay.getTime()) /
+      86_400_000
+  )
+}
+
+// function formatTime(value: any) {
+//   if (!value) return ""
+
+//   const date =
+//     typeof value?.toDate === "function"
+//       ? value.toDate()
+//       : value instanceof Date
+//         ? value
+//         : null
+
+//   if (!date) return ""
+
+//   return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
+//     Math.ceil((date.getTime() - Date.now()) / 86_400_000),
+//     "day"
+//   )
+// }
+
+function formatTime(value: unknown) {
+  const date = getDateFromValue(value)
 
   if (!date) return ""
 
-  return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
-    Math.ceil((date.getTime() - Date.now()) / 86_400_000),
-    "day"
+  const now = new Date()
+
+  const dayDifference = Math.min(
+    0,
+    getCalendarDayDifference(date, now)
   )
+
+  if (dayDifference === 0) {
+    return "Today"
+  }
+
+  if (dayDifference === -1) {
+    return "Yesterday"
+  }
+
+  if (dayDifference > -7) {
+    return new Intl.RelativeTimeFormat("en", {
+      numeric: "auto",
+    }).format(dayDifference, "day")
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+  }).format(date)
 }
 
 export default function ConversationListItem({
@@ -42,7 +116,17 @@ export default function ConversationListItem({
     ? conversation.participants?.[otherUserId]
     : null
 
-  const unreadCount = Number(conversation.unreadCount?.[currentUserId] || 0)
+  const [hasImageError, setHasImageError] = useState(false)
+
+  useEffect(() => {
+    setHasImageError(false)
+  }, [participant?.profileImage])
+
+  const unreadCount = isActive ? 0 : Number(
+    conversation.unreadCount?.[
+      currentUserId
+    ] || 0
+  )
 
   return (
     <button
@@ -59,15 +143,24 @@ export default function ConversationListItem({
       ].join(" ")}
     >
       <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white/10">
-        {participant?.profileImage ? (
+        {participant?.profileImage &&
+        !hasImageError ? (
           <img
             src={participant.profileImage}
-            alt={participant.username}
+            alt={
+              participant.username ||
+              "Conversation participant"
+            }
+            onError={() =>
+              setHasImageError(true)
+            }
             className="h-full w-full object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white/70">
-            {(participant?.username || "U").charAt(0).toUpperCase()}
+            {(participant?.username || "U")
+              .charAt(0)
+              .toUpperCase()}
           </div>
         )}
       </div>

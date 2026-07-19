@@ -26,8 +26,9 @@ export interface RecipeCookingSteps {
     error?: boolean
 }
 
-export interface RecipePublishedAt {
-    seconds?: number
+export interface RecipeTimestamp {
+  seconds?: number
+  nanoseconds?: number
 }
 
 export interface Recipe {
@@ -48,9 +49,18 @@ export interface Recipe {
     visibility?: string
     ingredients?: RecipeIngredient[]
     cookingSteps?: RecipeCookingSteps[]
-    publishedAt?: RecipePublishedAt
+    publishedAt?: RecipeTimestamp
+    createdAt?: RecipeTimestamp
+    updatedAt?: RecipeTimestamp
     author?: RecipeAuthor
     stats?: RecipeStats
+
+    averageRating?: number
+    rating?: number
+    ratingsCount?: number
+    ratingsSum?: number
+    commentsCount?: number
+    savesCount?: number
 }
 
 export interface SavedRecipe {

@@ -66,19 +66,13 @@ export default function RecipeGridCard({
         0
     )
 
-    const commentsCount = Number(
-        recipe.stats?.commentsCount ?? recipe.commentsCount ?? 0
-    )
+    const commentsCount = Number(recipe.stats?.commentsCount ?? recipe.commentsCount ?? 0)
 
-    const savesCount = Number(
-        recipe.stats?.savesCount ?? recipe.savesCount ?? 0
-    )
+    const savesCount = Number(recipe.stats?.savesCount ?? recipe.savesCount ?? 0)
 
-    const authorUsername =
-        recipe.author?.username || recipe.user || recipe.username || "Unknown"
+    const authorUsername = recipe.author?.username || recipe.user || recipe.username || "Unknown"
 
-    const authorImage =
-        recipe.author?.profileImage || recipe.userProfileImage || ""
+    const authorImage = recipe.author?.profileImage || recipe.userProfileImage || ""
 
     const handleFavoriteClick = async (
         event: React.MouseEvent<HTMLButtonElement>

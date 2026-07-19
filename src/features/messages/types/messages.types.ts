@@ -24,6 +24,7 @@ export interface Conversation {
     lastMessage: ConversationLastMessage | null
     unreadCount: Record<string, number>
     createdAt: Timestamp
+    lastReadAt?: Record<string, any>
     updatedAt: Timestamp
 }
 

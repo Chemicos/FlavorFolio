@@ -56,7 +56,7 @@ export async function updateMyProfile({
   await updateDoc(userRef, {
     firstName: payload.firstName.trim(),
     lastName: payload.lastName.trim(),
-    username: payload.username.trim(),
+    username: nextUsername,
     bio: payload.bio.trim(),
     userDescription: payload.bio.trim(),
     location: payload.location.trim(),
@@ -102,15 +102,33 @@ async function propagateUserProfileIdentity({
     const batch = writeBatch(db)
     const recipeData = recipeDoc.data()
 
+    // batch.update(recipeDoc.ref, {
+    //   user: username,
+    //   "author.username": username,
+    //   ...(profileImage ? { "author.profileImage": profileImage } : {}),
+    //   searchKeywords: buildRecipeKeywords({
+    //     ...recipeData,
+    //     authorUsername: username,
+    //   }),
+    //   updatedAt: serverTimestamp(),
+    // })
+
     batch.update(recipeDoc.ref, {
       user: username,
       "author.username": username,
-      ...(profileImage ? { "author.profileImage": profileImage } : {}),
+
+      ...(profileImage
+        ? {
+            "author.profileImage": profileImage,
+          }
+        : {}),
+
       searchKeywords: buildRecipeKeywords({
         ...recipeData,
         authorUsername: username,
       }),
-      updatedAt: serverTimestamp(),
+
+      authorIdentityUpdatedAt: serverTimestamp(),
     })
 
     const commentsRef = collection(db, "recipes", recipeDoc.id, "comments")
@@ -118,10 +136,22 @@ async function propagateUserProfileIdentity({
     const commentsSnapshot = await getDocs(commentsQuery)
 
     commentsSnapshot.docs.forEach((commentDoc) => {
+      // batch.update(commentDoc.ref, {
+      //   username,
+      //   ...(profileImage ? { profileImage } : {}),
+      //   updatedAt: serverTimestamp(),
+      // })
+
       batch.update(commentDoc.ref, {
         username,
-        ...(profileImage ? { profileImage } : {}),
-        updatedAt: serverTimestamp(),
+
+        ...(profileImage
+          ? {
+              profileImage,
+            }
+          : {}),
+
+        authorIdentityUpdatedAt: serverTimestamp(),
       })
     })
 

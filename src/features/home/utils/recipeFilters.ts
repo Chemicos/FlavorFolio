@@ -139,3 +139,18 @@ export function getAvailableCuisines(recipes: Recipe[]) {
     ),
   ].sort((a, b) => a.localeCompare(b))
 }
+
+export function hasActiveRecipeFilters(
+  filters: RecipeFilters
+) {
+  return (
+    filters.durations.length > 0 ||
+    filters.difficulties.length > 0 ||
+    filters.cuisines.length > 0 ||
+    filters.meals.length > 0 ||
+    filters.ratings.length > 0 ||
+    filters.servings.length > 0 ||
+    filters.saved.onlySavedByMe ||
+    filters.saved.mostSaved
+  )
+}

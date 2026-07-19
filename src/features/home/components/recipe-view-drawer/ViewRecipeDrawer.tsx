@@ -6,9 +6,9 @@ import { useImageLoaded } from "../../hooks/useImageLoaded"
 import { AnimatePresence, motion } from "motion/react"
 
 import MuiRating from "@mui/material/Rating"
+import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded"
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
-import FavoriteIcon from '@mui/icons-material/Favorite'
 import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded"
 import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded'
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
@@ -72,6 +72,32 @@ interface ViewRecipeDrawerProps {
     blockedByUserIds?: string[]
 }
 
+function getDateFromRecipeTimestamp(
+  value?: Recipe["publishedAt"] | Recipe["createdAt"]
+) {
+  if (!value) return null
+
+  if (typeof value.seconds === "number") {
+    return new Date(value.seconds * 1000)
+  }
+
+  return null
+}
+
+function formatRecipeDate(
+  value?: Recipe["publishedAt"] | Recipe["createdAt"]
+) {
+  const date = getDateFromRecipeTimestamp(value)
+
+  if (!date) return null
+
+  return new Intl.DateTimeFormat("en", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date)
+}
+
 export default function ViewRecipeDrawer({
     recipe,
     onShareRecipe,
@@ -131,6 +157,9 @@ export default function ViewRecipeDrawer({
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
     const [liveAuthorFollowersCount, setLiveAuthorFollowersCount] = useState(Number(authorFollowersCount || 0))
+
+    const recipeDate = formatRecipeDate(recipe.publishedAt || recipe.createdAt)
+    const recipeDateLabel = recipe.status === "published" ? "Published" : "Submitted"
 
     const {
         isOwner,
@@ -655,8 +684,15 @@ export default function ViewRecipeDrawer({
                         {recipe.title}
                     </h1>
 
-                    {showInteractions && (
+                    {recipeDate && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-[#7f89a6]">
+                            <CalendarTodayRoundedIcon sx={{ fontSize: 14 }} />
 
+                            <span>{recipeDateLabel} {recipeDate}</span>
+                        </div>
+                    )}
+
+                    {showInteractions && (
                         <div className="mt-3 flex items-center gap-2 text-[#d9dde9]">
                             <MuiRating
                                 value={userRating ?? averageRating}

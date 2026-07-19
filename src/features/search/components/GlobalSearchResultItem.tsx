@@ -40,7 +40,7 @@ export default function GlobalSearchResultItem({result, onClick}: GlobalSearchRe
                 </p>
             </div>
 
-            <span className="rounded-full bg-[#feaa2b]/10 px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-wide text-[#ffd28a]">
+            <span className="rounded-full border border-[#feaa2b]/10 bg-[#feaa2b]/[0.07] px-2 py-1 text-[0.62rem] font-semibold uppercase tracking-wide text-[#d7b474]">
                 {result.type}
             </span>
         </button>

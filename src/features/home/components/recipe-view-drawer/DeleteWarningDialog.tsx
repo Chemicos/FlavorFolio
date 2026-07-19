@@ -1,5 +1,7 @@
 import { CircularProgress } from "@mui/material"
 import { AnimatePresence, motion } from "motion/react"
+import { useEffect } from "react"
+import { createPortal } from "react-dom"
 
 interface DeleteWarningDialogProps {
   isOpen: boolean
@@ -20,27 +22,124 @@ export default function DeleteWarningDialog({
   onCancel,
   onConfirm,
 }: DeleteWarningDialogProps) {
-  return (
+  useEffect(() => {
+    if (!isOpen) return
+
+    const body = document.body
+    const scrollY = window.scrollY
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth
+
+    const previousStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      paddingRight: body.style.paddingRight,
+    }
+
+    const currentPaddingRight =
+      Number.parseFloat(
+        window.getComputedStyle(body).paddingRight
+      ) || 0
+
+    body.style.position = "fixed"
+    body.style.top = `-${scrollY}px`
+    body.style.left = "0"
+    body.style.right = "0"
+    body.style.width = "100%"
+    body.style.overflow = "hidden"
+
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${
+        currentPaddingRight + scrollbarWidth
+      }px`
+    }
+
+    return () => {
+      body.style.position = previousStyles.position
+      body.style.top = previousStyles.top
+      body.style.left = previousStyles.left
+      body.style.right = previousStyles.right
+      body.style.width = previousStyles.width
+      body.style.overflow = previousStyles.overflow
+      body.style.paddingRight = previousStyles.paddingRight
+
+      window.scrollTo({
+        top: scrollY,
+        left: 0,
+        behavior: "auto",
+      })
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return
+      if (isDeleting) return
+
+      onCancel()
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      )
+    }
+  }, [isOpen, isDeleting, onCancel])
+
+  if (typeof document === "undefined") {
+    return null
+  }
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/15 px-4 backdrop-blur-[1px]"
+          role="presentation"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/45 px-4 backdrop-blur-[3px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onCancel}
+          transition={{
+            duration: 0.18,
+            ease: "easeOut",
+          }}
+          onClick={() => {
+            if (isDeleting) return
+            onCancel()
+          }}
         >
           <motion.div
-            initial={{ opacity: 0, y: 12, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.96 }}
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-warning-title"
+            aria-describedby="delete-warning-description"
+            initial={{opacity: 0,y: 12,scale: 0.96,}}
+            animate={{opacity: 1, y: 0, scale: 1,}}
+            exit={{opacity: 0, y: 12, scale: 0.96,}}
+            transition={{duration: 0.2, ease: [0.22, 1, 0.36, 1],}}
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[450px] rounded-2xl border border-white/10 bg-[#0b0b0c] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.65)]"
+            className="w-full max-w-[450px] rounded-2xl border border-white/10 bg-[#0b0b0c] p-6 shadow-[0_24px_90px_rgba(0,0,0,0.75)]"
           >
-            <h3 className="text-lg font-bold text-white">{title}</h3>
+            <h3
+              id="delete-warning-title"
+              className="text-lg font-bold text-white"
+            >
+              {title}
+            </h3>
 
-            <p className="mt-2 text-sm leading-6 text-[#a8b3cf]">
+            <p
+              id="delete-warning-description"
+              className="mt-2 text-sm leading-6 text-[#a8b3cf]"
+            >
               {description}
             </p>
 
@@ -61,7 +160,11 @@ export default function DeleteWarningDialog({
                 className="inline-flex min-w-[82px] items-center justify-center rounded-lg bg-[#db4633]/15 px-4 py-2 text-sm font-medium text-[#ff8b7d] transition hover:bg-[#db4633]/25 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isDeleting ? (
-                  <CircularProgress size={16} thickness={5} sx={{ color: "#ff8b7d" }} />
+                  <CircularProgress
+                    size={16}
+                    thickness={5}
+                    sx={{ color: "#ff8b7d" }}
+                  />
                 ) : (
                   confirmLabel
                 )}
@@ -70,6 +173,7 @@ export default function DeleteWarningDialog({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }

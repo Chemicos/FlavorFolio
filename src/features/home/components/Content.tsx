@@ -3,6 +3,7 @@ import RecipeSection from "./RecipeSection";
 import { RecipeFilters } from "./FilterDrawer";
 import { CurrentUserCardData } from "../types/recipeCard.types";
 import { CreatePostType } from "../pages/Home";
+import { hasActiveRecipeFilters } from "../utils/recipeFilters";
 
 interface ContentProps {
     recipes: Recipe[]
@@ -27,8 +28,9 @@ interface ContentProps {
 
 export default function Content({ 
     recipes, isLoading, isFiltering, title, onOpenFilters, currentUser, savedRecipes, followingUserIds, authorFollowersCountMap, onFavoriteStateChange,
-    onFollowStateChange, onRecipeClick, onCreatePost, hasMoreRecipes, isFetchingMoreRecipes, onFetchMoreRecipes
+    onFollowStateChange, filters, onRecipeClick, onCreatePost, hasMoreRecipes, isFetchingMoreRecipes, onFetchMoreRecipes
 }: ContentProps) {
+    const hasActiveFilters = hasActiveRecipeFilters(filters)
     const showLoading = isLoading || isFiltering
 
   return (
@@ -49,6 +51,7 @@ export default function Content({
             hasMore={hasMoreRecipes}
             isFetchingMore={isFetchingMoreRecipes}
             onFetchMore={onFetchMoreRecipes}
+            hasActiveFilters={hasActiveFilters}
         />
     </div>
   )

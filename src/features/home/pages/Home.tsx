@@ -413,6 +413,27 @@ export default function Home() {
 
       showSnackbar(`You unfollowed ${authorUsername}.`, "info")
     }
+
+    const handleRecipeDrawerRatingStateChange = (
+      recipeId: string,
+      stats: {
+        averageRating: number
+        ratingsCount: number
+        ratingsSum?: number
+        ratingSum?: number
+      }
+    ) => {
+      handleRatingStateChange(recipeId, {
+        averageRating: stats.averageRating,
+        ratingsCount: stats.ratingsCount,
+        ratingsSum:
+          stats.ratingsSum ??
+          stats.ratingSum ??
+          0,
+      })
+
+      showSnackbar("Recipe rating updated successfully.", "success")
+    }
   
   return (
     <div 
@@ -474,55 +495,6 @@ export default function Home() {
             />
           </div>
         </main>
-
-        {/* <AnimatePresence mode="wait">
-          {selectedRecipe && (
-            <div
-              className="sticky top-20 self-start"
-              style={{
-                width: RECIPE_DRAWER_WIDTH,
-                flexShrink: 0,
-              }}
-            >
-              <ViewRecipeDrawer 
-                key={selectedRecipe.recipeId || selectedRecipe.id}
-                presentation="inline"
-                width={RECIPE_DRAWER_WIDTH}
-                recipe={selectedRecipe}
-                onShareRecipe={handleShareRecipe}
-                currentUser={currentUser}
-                savedRecipes={savedRecipes}
-                followingUserIds={followingUserIds}
-                authorFollowersCount={
-                  authorFollowersCountMap[selectedRecipe.userId || ""] ??
-                  Number(selectedRecipe?.author?.followersCount || 0)
-                }
-                onAuthorClick={handleAuthorProfileClick}
-                onClose={handleCloseRecipeDrawer}
-                onFavoriteStateChange={(recipeId, isNowSaved) => {
-                  handleFavoriteStateChange(recipeId, isNowSaved)
-  
-                  if (isNowSaved) {
-                    showSnackbar("Recipe saved.", "success")
-                    return
-                  }
-  
-                  showSnackbar(
-                    "Recipe removed from saved recipes.",
-                    "info"
-                  )
-                }}
-                onFollowStateChange={handleFollowStateChange}
-                onRatingStateChange={handleRatingStateChange}
-                onCommentStateChange={handleCommentStateChange}
-                onEditRecipe={handleEditRecipe}
-                onDeleteRecipe={handleRecipeDeleteSuccess}
-                blockedUserIds={blockedUserIds}
-                blockedByUserIds={blockedByUserIds}
-              />
-            </div>
-          )}
-        </AnimatePresence> */}
 
         <AnimatePresence mode="wait">
           {isInlineDrawerOpen && (
@@ -599,7 +571,7 @@ export default function Home() {
                     )
                   }}
                   onFollowStateChange={handleRecipeDrawerFollowStateChange}
-                  onRatingStateChange={handleRatingStateChange}
+                  onRatingStateChange={handleRecipeDrawerRatingStateChange}
                   onCommentStateChange={handleCommentStateChange}
                   onEditRecipe={handleEditRecipe}
                   onDeleteRecipe={handleRecipeDeleteSuccess}
