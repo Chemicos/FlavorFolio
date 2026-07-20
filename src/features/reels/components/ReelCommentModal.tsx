@@ -71,15 +71,9 @@ export default function ReelCommentModal({
     try {
       await removeComment(commentId)
 
-      showSnackbar(
-        "Comment deleted.",
-        "success"
-      )
+      showSnackbar("Comment deleted.", "success")
     } catch {
-      showSnackbar(
-        "Failed to delete comment.",
-        "error"
-      )
+      showSnackbar("Failed to delete comment.", "error")
     }
   }
 

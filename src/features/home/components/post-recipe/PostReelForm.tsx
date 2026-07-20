@@ -10,6 +10,7 @@ import { CurrentUserCardData } from "../../types/recipeCard.types"
 import { ReelVisibility } from "../../../reels/types/reel.types"
 import { createReel } from "../../../reels/services/reels.service"
 import { CircularProgress } from "@mui/material"
+import PostRecipeSelectDropdown from "./PostRecipeSelectDropdown"
 
 interface PostReelFormProps {
   currentUser: CurrentUserCardData | null
@@ -62,6 +63,17 @@ export default function PostReelForm({
 
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [formError, setFormError] = useState<string | null>(null)
+
+    const fieldClassName = [
+      "w-full rounded-md border border-white/10 bg-[#0b0b0c]",
+      "px-4 py-3 text-sm text-white outline-none transition",
+      "placeholder:text-[#6f7892]",
+      "hover:border-white/20",
+      "focus:border-orange-400/50",
+      "focus:ring-2 focus:ring-orange-500/10",
+      "disabled:cursor-not-allowed disabled:opacity-60",
+    ].join(" ")
+    const labelClassName = "mb-2 block text-xs font-medium text-[#a8b3cf]"
 
     useEffect(() => {
         return () => {
@@ -173,208 +185,273 @@ export default function PostReelForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex min-h-full flex-col"
+      className="flex min-h-full flex-col bg-[#16181d]"
     >
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[#16181d]/95 px-5 py-4 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-[#16181d]/95 px-6 py-5 backdrop-blur-xl">
         <div className="flex min-w-0 items-center gap-3">
           {onBackToRecipe && (
             <button
               type="button"
               onClick={onBackToRecipe}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-white/[0.06] hover:text-white"
+              disabled={isSubmitting}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-[#0b0b0c]/70 text-[#a8b3cf] transition hover:border-white/20 hover:bg-[#0b0b0c] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Back to recipe form"
             >
-              <ArrowBackRoundedIcon sx={{ fontSize: 20 }} />
+              <ArrowBackRoundedIcon
+                sx={{ fontSize: 20 }}
+              />
             </button>
           )}
 
-          <div>
-            <h2 className="text-lg font-bold text-white">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-[#a8b3cf]">
               Create reel
-            </h2>
-
-            <p className="mt-0.5 text-xs text-[#8f97b1]">
-              Share a short cooking video
             </p>
+
+            <h2 className="mt-0.5 truncate text-[1.35rem] font-medium text-white">
+              New post
+            </h2>
           </div>
         </div>
 
         <button
           type="button"
           onClick={onClose}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-white/[0.06] hover:text-white"
+          disabled={isSubmitting}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-[#0b0b0c]/70 text-[#a8b3cf] transition hover:border-white/20 hover:bg-[#0b0b0c] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Close reel form"
         >
           <CloseRoundedIcon sx={{ fontSize: 20 }} />
         </button>
       </header>
 
-      <div className="flex-1 space-y-6 p-5">
-        <section>
-          <div className="mb-3">
-            <h3 className="text-sm font-semibold text-white">
-              Reel video
-            </h3>
+      <div className="flex-1 px-6 py-7">
+        <div className="rounded-[2rem] border border-white/[0.08] bg-[#17181d] p-6 shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+          <section>
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-white">
+                Reel video
+              </h3>
 
-            <p className="mt-1 text-xs leading-5 text-[#8f97b1]">
-              Vertical videos work best. Maximum file size: 200 MB.
-            </p>
-          </div>
+              <p className="mt-1 text-xs leading-5 text-[#8f97b1]">
+                Vertical videos work best. MP4, WebM or MOV,
+                maximum 200 MB.
+              </p>
+            </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="video/mp4,video/webm,video/quicktime"
-            onChange={handleVideoChange}
-            className="hidden"
-          />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime"
+              onChange={handleVideoChange}
+              disabled={isSubmitting}
+              className="hidden"
+            />
 
-          {videoPreviewUrl && videoFile ? (
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0e11]">
-              <div className="relative mx-auto aspect-[9/16] max-h-[520px] max-w-[292px] overflow-hidden bg-black">
-                <video
-                  src={videoPreviewUrl}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  onLoadedMetadata={(event) => {
-                    const duration = event.currentTarget.duration
+            {videoPreviewUrl && videoFile ? (
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0c]">
+                <div className="relative mx-auto aspect-[9/16] max-h-[520px] max-w-[292px] overflow-hidden bg-black">
+                  <video
+                    src={videoPreviewUrl}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    onLoadedMetadata={(event) => {
+                      const duration =
+                        event.currentTarget.duration
 
-                    setDurationSeconds(
-                      Number.isFinite(duration) ? duration : 0
-                    )
-                  }}
-                  className="h-full w-full object-contain"
-                />
-              </div>
-
-              <div className="flex items-center justify-between gap-4 border-t border-white/10 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-white">
-                    {videoFile.name}
-                  </p>
-
-                  <p className="mt-1 text-xs text-[#8f97b1]">
-                    {formatFileSize(videoFile.size)}
-                    {durationSeconds > 0
-                      ? ` • ${formatDuration(durationSeconds)}`
-                      : ""}
-                  </p>
+                      setDurationSeconds(
+                        Number.isFinite(duration)
+                          ? duration
+                          : 0
+                      )
+                    }}
+                    className="h-full w-full object-contain"
+                  />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={clearVideo}
-                  disabled={isSubmitting}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-red-500/10 hover:text-red-300 disabled:opacity-40"
-                  aria-label="Remove video"
-                >
-                  <DeleteOutlineRoundedIcon sx={{ fontSize: 20 }} />
-                </button>
+                <div className="flex items-center justify-between gap-4 border-t border-white/10 px-4 py-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-white">
+                      {videoFile.name}
+                    </p>
+
+                    <p className="mt-1 text-xs text-[#8f97b1]">
+                      {formatFileSize(videoFile.size)}
+
+                      {durationSeconds > 0
+                        ? ` • ${formatDuration(
+                            durationSeconds
+                          )}`
+                        : " • Loading duration..."}
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        fileInputRef.current?.click()
+                      }
+                      disabled={isSubmitting}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.035] px-3 text-xs font-semibold text-[#d7def0] transition hover:border-orange-400/30 hover:bg-orange-500/10 hover:text-orange-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Replace
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={clearVideo}
+                      disabled={isSubmitting}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.035] text-[#8f97b1] transition hover:border-red-400/20 hover:bg-red-500/10 hover:text-red-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label="Remove video"
+                    >
+                      <DeleteOutlineRoundedIcon
+                        sx={{ fontSize: 20 }}
+                      />
+                    </button>
+                  </div>
+                </div>
               </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() =>
+                  fileInputRef.current?.click()
+                }
+                disabled={isSubmitting}
+                className="group flex min-h-[280px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-[#0b0b0c] px-6 text-center transition hover:border-orange-400/40 hover:bg-orange-500/[0.035] active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="flex h-20 w-20 items-center justify-center rounded-full border border-white/15 bg-white/[0.04] text-[#7f89a6] transition group-hover:scale-105 group-hover:border-orange-400/50 group-hover:bg-orange-500/20 group-hover:text-orange-200 group-active:scale-95">
+                  <CloudUploadRoundedIcon
+                    sx={{ fontSize: 32 }}
+                  />
+                </span>
+
+                <span className="mt-5 text-sm font-semibold text-white">
+                  Upload reel video
+                </span>
+
+                <span className="mt-2 text-xs leading-5 text-[#8f97b1]">
+                  Drag and drop or browse your files
+                </span>
+
+                <span className="mt-1 text-xs leading-5 text-[#6f7892]">
+                  MP4 • MOV • WebM • Max 200 MB
+                </span>
+              </button>
+            )}
+          </section>
+
+          <div className="my-7 h-px bg-white/[0.07]" />
+
+          <section>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label
+                htmlFor="reel-description"
+                className={labelClassName}
+              >
+                Description *
+              </label>
+
+              <span className="text-xs text-[#6f7892]">
+                {description.length} /{" "}
+                {MAX_DESCRIPTION_LENGTH}
+              </span>
             </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
+
+            <textarea
+              id="reel-description"
+              value={description}
+              onChange={(event) =>
+                setDescription(
+                  event.target.value.slice(
+                    0,
+                    MAX_DESCRIPTION_LENGTH
+                  )
+                )
+              }
+              rows={6}
               disabled={isSubmitting}
-              className="group flex min-h-[260px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.025] px-6 text-center transition hover:border-orange-400/40 hover:bg-orange-500/[0.04] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-400/20 bg-orange-500/10 text-orange-200 transition group-hover:scale-105">
-                <CloudUploadRoundedIcon sx={{ fontSize: 28 }} />
-              </span>
+              placeholder="Describe your reel, recipe or cooking moment..."
+              className={`${fieldClassName} resize-y leading-7`}
+            />
+          </section>
 
-              <span className="mt-4 text-sm font-semibold text-white">
-                Upload reel video
-              </span>
-
-              <span className="mt-2 text-xs leading-5 text-[#8f97b1]">
-                MP4, WebM or MOV
-              </span>
-            </button>
-          )}
-        </section>
-
-        <section>
-          <div className="mb-2 flex items-center justify-between gap-3">
+          <section className="mt-6">
             <label
-              htmlFor="reel-description"
-              className="text-sm font-semibold text-white"
+              htmlFor="reel-visibility"
+              className={labelClassName}
             >
-              Description
+              Visibility
             </label>
 
-            <span className="text-xs text-[#737b94]">
-              {description.length}/{MAX_DESCRIPTION_LENGTH}
-            </span>
-          </div>
+            <PostRecipeSelectDropdown
+              value={visibility}
+              options={[
+                {
+                  label: "Public",
+                  value: "public",
+                },
+                {
+                  label: "Private",
+                  value: "private",
+                },
+              ]}
+              onChange={(value) => {
+                setVisibility(value as ReelVisibility)
+              }}
+              placeholder="Select visibility"
+              disabled={isSubmitting}
+              placement="top"
+            />
 
-          <textarea
-            id="reel-description"
-            value={description}
-            onChange={(event) =>
-              setDescription(
-                event.target.value.slice(0, MAX_DESCRIPTION_LENGTH)
-              )
-            }
-            rows={5}
-            disabled={isSubmitting}
-            placeholder="Describe your reel, the recipe or the cooking moment..."
-            className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-[#737b94] focus:border-orange-400/50 focus:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-60"
-          />
-        </section>
+            <p className="mt-2 text-xs leading-5 text-[#8f97b1]">
+              {visibility === "private"
+                ? "Private reels are only visible to you."
+                : "Public reels can be viewed by other FlavorFolio users."}
+            </p>
+          </section>
 
-        <section>
-          <label
-            htmlFor="reel-visibility"
-            className="mb-2 block text-sm font-semibold text-white"
-          >
-            Visibility
-          </label>
-
-          <select
-            id="reel-visibility"
-            value={visibility}
-            onChange={(event) =>
-              setVisibility(event.target.value as ReelVisibility)
-            }
-            disabled={isSubmitting}
-            className="h-11 w-full rounded-xl border border-white/10 bg-[#1b1d22] px-3 text-sm text-white outline-none transition focus:border-orange-400/50 disabled:opacity-60"
-          >
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-          </select>
-
-          <p className="mt-2 text-xs leading-5 text-[#8f97b1]">
-            Private reels are only visible to you.
-          </p>
-        </section>
-
-        {formError && (
-          <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm leading-5 text-red-200">
-            {formError}
-          </div>
-        )}
+          {formError && (
+            <div className="mt-6 rounded-xl border border-red-400/20 bg-[#140b0b] px-4 py-3 text-sm leading-6 text-red-200 shadow-[0_12px_32px_rgba(0,0,0,0.25)]">
+              {formError}
+            </div>
+          )}
+        </div>
       </div>
 
-      <footer className="sticky bottom-0 z-20 border-t border-white/10 bg-[#16181d]/95 p-5 backdrop-blur-xl">
+      <footer className="sticky bottom-0 z-50 flex items-center justify-end gap-3 border-t border-white/10 bg-[#16181d]/95 px-6 py-5 backdrop-blur-xl">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isSubmitting}
+          className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-medium text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Cancel
+        </button>
+
         <button
           type="submit"
           disabled={!canSubmit}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#feaa2b] px-4 text-sm font-bold text-[#17120a] transition hover:bg-[#ffb84d] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-11 min-w-[160px] items-center justify-center gap-2 rounded-lg border border-orange-400/40 bg-orange-500/20 text-orange-100 hover:bg-orange-500/30 active:scale-95 px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-white/5 disabled:bg-white/[0.04] disabled:text-[#6f7892]"
         >
           {isSubmitting ? (
             <>
               <CircularProgress
-                size={18}
+                size={17}
                 thickness={5}
-                sx={{ color: "#17120a" }}
+                sx={{ color: "#fff0d1" }}
               />
-              Publishing reel...
+
+              Publishing...
             </>
           ) : (
             <>
-              <MovieCreationRoundedIcon sx={{ fontSize: 20 }} />
+              <MovieCreationRoundedIcon
+                sx={{ fontSize: 19 }}
+              />
+
               Publish reel
             </>
           )}

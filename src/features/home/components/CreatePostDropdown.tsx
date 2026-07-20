@@ -113,7 +113,7 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
 
               <span>
                 <span className="block text-sm font-semibold text-white">
-                  Reel
+                  Reel (WIP)
                 </span>
 
                 <span className="mt-0.5 block text-xs leading-5 text-[#8f97b1]">
