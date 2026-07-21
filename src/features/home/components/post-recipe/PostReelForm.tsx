@@ -4,10 +4,10 @@ import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded"
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded"
 import MovieCreationRoundedIcon from "@mui/icons-material/MovieCreationRounded"
 
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react"
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import { useSnackbar } from "../../../../components/layout/SnackbarProvider"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
-import { ReelVisibility } from "../../../reels/types/reel.types"
+import { ReelMealType, ReelVisibility } from "../../../reels/types/reel.types"
 import { createReel } from "../../../reels/services/reels.service"
 import { CircularProgress } from "@mui/material"
 import PostRecipeSelectDropdown from "./PostRecipeSelectDropdown"
@@ -19,8 +19,34 @@ interface PostReelFormProps {
   onBackToRecipe?: () => void
 }
 
+const MIN_TITLE_LENGTH = 3
+const MAX_TITLE_LENGTH = 100
+const MIN_DESCRIPTION_LENGTH = 10
 const MAX_DESCRIPTION_LENGTH = 500
 const MAX_VIDEO_SIZE_BYTES = 200 * 1024 * 1024
+
+const MEAL_TYPE_OPTIONS: Array<{ label: string, value: ReelMealType }> = [
+  {
+    label: "Breakfast",
+    value: "breakfast",
+  },
+  {
+    label: "Lunch",
+    value: "lunch",
+  },
+  {
+    label: "Dinner",
+    value: "dinner",
+  },
+  {
+    label: "Dessert",
+    value: "dessert",
+  },
+  {
+    label: "Snack",
+    value: "snack",
+  },
+]
 
 const ACCEPTED_VIDEO_TYPES = [
   "video/mp4",
@@ -44,7 +70,6 @@ function formatDuration(seconds: number) {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
 }
 
-
 export default function PostReelForm({
     currentUser,
     onClose,
@@ -54,7 +79,9 @@ export default function PostReelForm({
     const { showSnackbar } = useSnackbar()
 
     const fileInputRef = useRef<HTMLInputElement | null>(null)
+    const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
+    const [meal, setMeal] = useState<ReelMealType | "">("")
     const [visibility, setVisibility] = useState<ReelVisibility>("public")
 
     const [videoFile, setVideoFile] = useState<File | null>(null)
@@ -128,6 +155,7 @@ export default function PostReelForm({
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
+        const normalizedTitle = title.trim()
         const normalizedDescription = description.trim()
 
         if (!currentUser?.uid) {
@@ -145,9 +173,33 @@ export default function PostReelForm({
             return
         }
 
+        if (!meal) {
+          setFormError("Please select a meal type.")
+          return
+        }
+
         if (!durationSeconds) {
             setFormError("Please wait for the video metadata to load.")
             return
+        }
+
+        if (!normalizedTitle) {
+          setFormError("Please add a title.")
+          return
+        }
+
+        if (normalizedTitle.length < MIN_TITLE_LENGTH) {
+          setFormError(
+            `Title must contain at least ${MIN_TITLE_LENGTH} characters.`
+          )
+          return
+        }
+
+        if (normalizedDescription.length < MIN_DESCRIPTION_LENGTH) {
+          setFormError(
+            `Description must contain at least ${MIN_DESCRIPTION_LENGTH} characters.`
+          )
+          return
         }
 
         try {
@@ -158,7 +210,9 @@ export default function PostReelForm({
             userId: currentUser.uid,
             username: currentUser.username || "Unknown",
             userProfileImage: currentUser.profileImage ||"",
+            title: normalizedTitle,
             description: normalizedDescription,
+            meal,
             visibility,
             videoFile,
             durationSeconds,
@@ -180,7 +234,33 @@ export default function PostReelForm({
         }
     }
 
-    const canSubmit = Boolean(videoFile) && Boolean(description.trim()) && durationSeconds > 0 && !isSubmitting
+    const completionPercentage = useMemo(() => {
+      let percentage = 0
+
+      if (videoFile && durationSeconds > 0) {
+        percentage += 35
+      }
+
+      if (title.trim().length >= MIN_TITLE_LENGTH) {
+        percentage += 20
+      }
+
+      if (description.trim().length >= MIN_DESCRIPTION_LENGTH) {
+        percentage += 20
+      }
+
+      if (meal) {
+        percentage += 10
+      }
+
+      if (visibility) {
+        percentage += 15
+      }
+
+      return percentage
+    }, [ videoFile, durationSeconds, title, description, meal, visibility, ])
+
+    const canSubmit = completionPercentage === 100 && !isSubmitting
 
   return (
     <form
@@ -316,9 +396,7 @@ export default function PostReelForm({
             ) : (
               <button
                 type="button"
-                onClick={() =>
-                  fileInputRef.current?.click()
-                }
+                onClick={() => fileInputRef.current?.click()}
                 disabled={isSubmitting}
                 className="group flex min-h-[280px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-[#0b0b0c] px-6 text-center transition hover:border-orange-400/40 hover:bg-orange-500/[0.035] active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -332,10 +410,6 @@ export default function PostReelForm({
                   Upload reel video
                 </span>
 
-                <span className="mt-2 text-xs leading-5 text-[#8f97b1]">
-                  Drag and drop or browse your files
-                </span>
-
                 <span className="mt-1 text-xs leading-5 text-[#6f7892]">
                   MP4 • MOV • WebM • Max 200 MB
                 </span>
@@ -346,6 +420,38 @@ export default function PostReelForm({
           <div className="my-7 h-px bg-white/[0.07]" />
 
           <section>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label
+                htmlFor="reel-title"
+                className={labelClassName}
+              >
+                Title *
+              </label>
+
+              <span className="text-xs text-[#6f7892]">
+                {title.length} / {MAX_TITLE_LENGTH}
+              </span>
+            </div>
+
+            <input
+              id="reel-title"
+              type="text"
+              value={title}
+              onChange={(event) =>
+                setTitle(
+                  event.target.value.slice(
+                    0,
+                    MAX_TITLE_LENGTH
+                  )
+                )
+              }
+              disabled={isSubmitting}
+              placeholder="Give your reel a title..."
+              className={fieldClassName}
+            />
+
+            <div className="my-6 h-px bg-white/[0.07]" />
+
             <div className="mb-2 flex items-center justify-between gap-3">
               <label
                 htmlFor="reel-description"
@@ -378,39 +484,60 @@ export default function PostReelForm({
             />
           </section>
 
-          <section className="mt-6">
-            <label
-              htmlFor="reel-visibility"
-              className={labelClassName}
-            >
-              Visibility
-            </label>
+          <section className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+              <label className={labelClassName}>
+                Meal type *
+              </label>
 
-            <PostRecipeSelectDropdown
-              value={visibility}
-              options={[
-                {
-                  label: "Public",
-                  value: "public",
-                },
-                {
-                  label: "Private",
-                  value: "private",
-                },
-              ]}
-              onChange={(value) => {
-                setVisibility(value as ReelVisibility)
-              }}
-              placeholder="Select visibility"
-              disabled={isSubmitting}
-              placement="top"
-            />
+              <PostRecipeSelectDropdown
+                value={meal}
+                options={MEAL_TYPE_OPTIONS}
+                onChange={(value) => {
+                  setMeal(value as ReelMealType)
+                  setFormError(null)
+                }}
+                placeholder="Select meal type"
+                disabled={isSubmitting}
+                placement="top"
+              />
 
-            <p className="mt-2 text-xs leading-5 text-[#8f97b1]">
-              {visibility === "private"
-                ? "Private reels are only visible to you."
-                : "Public reels can be viewed by other FlavorFolio users."}
-            </p>
+              <p className="mt-2 text-xs leading-5 text-[#8f97b1]">
+                Choose the meal category that best matches your reel.
+              </p>
+            </div>
+
+            <div>
+              <label className={labelClassName}>
+                Visibility
+              </label>
+
+              <PostRecipeSelectDropdown
+                value={visibility}
+                options={[
+                  {
+                    label: "Public",
+                    value: "public",
+                  },
+                  {
+                    label: "Private",
+                    value: "private",
+                  },
+                ]}
+                onChange={(value) => {
+                  setVisibility(value as ReelVisibility)
+                }}
+                placeholder="Select visibility"
+                disabled={isSubmitting}
+                placement="top"
+              />
+
+              <p className="mt-2 text-xs leading-5 text-[#8f97b1]">
+                {visibility === "private"
+                  ? "Private reels are only visible to you."
+                  : "Public reels can be viewed by other FlavorFolio users."}
+              </p>
+            </div>
           </section>
 
           {formError && (
@@ -421,41 +548,64 @@ export default function PostReelForm({
         </div>
       </div>
 
-      <footer className="sticky bottom-0 z-50 flex items-center justify-end gap-3 border-t border-white/10 bg-[#16181d]/95 px-6 py-5 backdrop-blur-xl">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isSubmitting}
-          className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-medium text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Cancel
-        </button>
+      <footer className="sticky bottom-0 z-50 border-t border-white/10 bg-[#16181d]/95 px-6 py-5 backdrop-blur-xl">
+        <div className="flex items-center justify-end gap-5">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-medium text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Cancel
+          </button>
 
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="inline-flex h-11 min-w-[160px] items-center justify-center gap-2 rounded-lg border border-orange-400/40 bg-orange-500/20 text-orange-100 hover:bg-orange-500/30 active:scale-95 px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-white/5 disabled:bg-white/[0.04] disabled:text-[#6f7892]"
-        >
-          {isSubmitting ? (
-            <>
-              <CircularProgress
-                size={17}
-                thickness={5}
-                sx={{ color: "#fff0d1" }}
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className={[
+              "relative h-11 min-w-[180px] overflow-hidden rounded-lg border",
+              "text-sm font-semibold transition active:scale-95",
+              "disabled:cursor-not-allowed disabled:border-white/5",
+              completionPercentage === 100
+                ? "border-orange-400/40 bg-orange-500/20 text-orange-100 hover:bg-orange-500/30"
+                : "border-orange-400/15 bg-[#211a17] text-[#a99576]",
+            ].join(" ")}
+          >
+            {!isSubmitting && (
+              <span
+                aria-hidden="true"
+                className="absolute inset-y-0 left-0 bg-orange-500/15 transition-[width] duration-300 ease-out"
+                style={{
+                  width: `${completionPercentage}%`,
+                }}
               />
+            )}
 
-              Publishing...
-            </>
-          ) : (
-            <>
-              <MovieCreationRoundedIcon
-                sx={{ fontSize: 19 }}
-              />
+            <span className="relative z-10 flex h-full items-center justify-center gap-2 px-5">
+              {isSubmitting ? (
+                <>
+                  <CircularProgress
+                    size={17}
+                    thickness={5}
+                    sx={{ color: "#fff0d1" }}
+                  />
 
-              Publish reel
-            </>
-          )}
-        </button>
+                  Publishing...
+                </>
+              ) : completionPercentage < 100 ? (
+                `${completionPercentage}%`
+              ) : (
+                <>
+                  <MovieCreationRoundedIcon
+                    sx={{ fontSize: 19 }}
+                  />
+
+                  Publish reel
+                </>
+              )}
+            </span>
+          </button>
+        </div>
       </footer>
     </form>
   )

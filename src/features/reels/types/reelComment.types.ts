@@ -31,3 +31,10 @@ export interface DeleteReelCommentInput {
   commentId: string
   currentUserId: string
 }
+
+export interface UpdateReelCommentInput {
+  reelId: string
+  commentId: string
+  currentUserId: string
+  text: string
+}

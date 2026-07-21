@@ -1,6 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, documentId, getDoc, getDocs, increment, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where, writeBatch } from "@firebase/firestore"
 import { db, storage } from "../../../firebase-config"
-import { ChatMessage, Conversation, ConversationParticipant, SharedRecipeMessage } from "../types/messages.types"
+import { ChatMessage, Conversation, ConversationParticipant, SharedRecipeMessage, SharedReelMessage } from "../types/messages.types"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
 
 const FIRESTORE_IN_QUERY_LIMIT = 30
@@ -748,4 +748,79 @@ export async function shareRecipeMessage({
         conversationId,
         messageId: messageRef.id,
     }
+}
+
+export async function shareReelMessage({
+  senderId,
+  receiverId,
+  reel,
+}: {
+  senderId: string
+  receiverId: string
+  reel: SharedReelMessage
+}) {
+  const allowed = await canMessageUser(senderId, receiverId)
+
+  if (!allowed) {
+    throw new Error(
+      "You can’t share reels unless you follow each other."
+    )
+  }
+
+  const conversationId =
+    await createOrOpenDirectConversation({
+      currentUserId: senderId,
+      targetUserId: receiverId,
+    })
+
+  const conversationRef = doc(db, "conversations", conversationId)
+
+  const reelRef = doc(db, "reels", reel.reelId)
+
+  const reelSnapshot = await getDoc(reelRef)
+
+  if (!reelSnapshot.exists()) {
+    throw new Error("Reel does not exist.")
+  }
+
+  const messageRef = doc(
+    collection(db, "conversations", conversationId, "messages")
+  )
+
+  const batch = writeBatch(db)
+
+  batch.set(messageRef, {
+    messageId: messageRef.id,
+    conversationId,
+    senderId,
+    receiverId,
+    text: "",
+    type: "reel",
+    reel,
+    isDeleted: false,
+    createdAt: serverTimestamp(),
+  })
+
+  batch.update(conversationRef, {
+    lastMessage: {
+      text: `Shared a reel: ${reel.title}`,
+      senderId,
+      type: "reel",
+      createdAt: serverTimestamp(),
+    },
+    [`unreadCount.${receiverId}`]: increment(1),
+    updatedAt: serverTimestamp(),
+  })
+
+  batch.update(reelRef, {
+    sharesCount: increment(1),
+    updatedAt: serverTimestamp(),
+  })
+
+  await batch.commit()
+
+  return {
+    conversationId,
+    messageId: messageRef.id,
+  }
 }

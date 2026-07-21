@@ -1,5 +1,5 @@
 import { collection, doc, getDoc, onSnapshot, orderBy, query, runTransaction, serverTimestamp } from "@firebase/firestore";
-import { CreateReelCommentInput, DeleteReelCommentInput, ReelComment, ReelCommentAuthor } from "../types/reelComment.types";
+import { CreateReelCommentInput, DeleteReelCommentInput, ReelComment, ReelCommentAuthor, UpdateReelCommentInput } from "../types/reelComment.types";
 import { db } from "../../../firebase-config";
 
 function mapReelCommentDoc(
@@ -18,6 +18,20 @@ function mapReelCommentDoc(
     createdAt: data.createdAt as ReelComment["createdAt"],
     updatedAt: data.updatedAt as ReelComment["updatedAt"],
   }
+}
+
+function normalizeReelCommentText(text: string) {
+  const normalizedText = text.trim()
+
+  if (!normalizedText) {
+    throw new Error("Comment cannot be empty.")
+  }
+
+  if (normalizedText.length > 500) {
+    throw new Error("Comment cannot exceed 500 characters.")
+  }
+
+  return normalizedText
 }
 
 export async function fetchReelCommentAuthor(
@@ -86,15 +100,7 @@ export function listenToReelComments({
 export async function createReelComment(
   input: CreateReelCommentInput
 ) {
-  const normalizedText = input.text.trim()
-
-  if (!normalizedText) {
-    throw new Error("Comment cannot be empty.")
-  }
-
-  if (normalizedText.length > 500) {
-    throw new Error("Comment cannot exceed 500 characters.")
-  }
+  const normalizedText = normalizeReelCommentText(input.text)
 
   const reelRef = doc(db, "reels", input.reelId)
 
@@ -185,5 +191,30 @@ export async function deleteReelComment(
       },
       { merge: true }
     )
+  })
+}
+
+export async function updateReelComment(input: UpdateReelCommentInput) {
+  const normalizedText = normalizeReelCommentText(input.text)
+
+  const commentRef = doc(db, "reels", input.reelId, "comments", input.commentId)
+  await runTransaction(db, async (transaction) => {
+    const commentSnapshot = await transaction.get(commentRef)
+
+    if (!commentSnapshot.exists()) {
+      throw new Error("Comment does not exist.")
+    }
+
+    const commentData = commentSnapshot.data()
+
+    if (commentData.userId !== input.currentUserId) {
+      throw new Error("You cannot edit this comment.")
+    }
+
+    transaction.update(commentRef, {
+      comment: normalizedText,
+      edited: true,
+      updatedAt: serverTimestamp(),
+    })
   })
 }

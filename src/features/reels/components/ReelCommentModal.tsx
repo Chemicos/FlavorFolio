@@ -10,6 +10,7 @@ import { motion } from 'motion/react'
 
 import ReelCommentInput from './ReelCommentInput'
 import ReelCommentItem from './ReelCommentItem'
+import { useNavigate } from 'react-router-dom'
 
 interface ReelCommentsModalProps {
   reel: Reel
@@ -25,19 +26,35 @@ export default function ReelCommentModal({
   onClose,
   onCommentsCountChange,
 }: ReelCommentsModalProps) {
+  const navigate = useNavigate()
   const { showSnackbar } = useSnackbar()
 
   const {
     comments,
     currentUserId,
     currentUserProfileImage,
+
     isLoading,
     isSubmitting,
     deletingCommentId,
+    updatingCommentId,
     error,
+
     addComment,
+    editComment,
     removeComment,
   } = useReelComments({ reelId: reel.reelId, onCommentsCountChange, })
+
+  const handleAuthorProfileClick = (authorId: string) => {
+    onClose()
+
+    if (authorId === currentUserId) {
+      navigate("/profile")
+      return
+    }
+
+    navigate(`/users/${authorId}`)
+  }
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -62,8 +79,28 @@ export default function ReelCommentModal({
   async function handleAddComment(text: string) {
     try {
       await addComment(text)
+
+      showSnackbar("Comment published.", "success")
     } catch {
-      showSnackbar("Failed to publish comment.","error")
+      showSnackbar("Failed to publish comment.", "error")
+    }
+  }
+
+  async function handleEditComment({commentId, text,}: {
+    commentId: string
+    text: string
+  }) {
+    try {
+      await editComment({
+        commentId,
+        text,
+      })
+
+      showSnackbar("Comment updated.", "success")
+    } catch (error) {
+      showSnackbar("Failed to update comment.", "error")
+
+      throw error
     }
   }
 
@@ -89,9 +126,7 @@ export default function ReelCommentModal({
         className="absolute inset-0 z-[70] cursor-default bg-black/20 backdrop-blur-[1px]"
       />
 
-      <div
-        className="absolute z-[80] right-4 top-4 bottom-4 w-[min(420px,calc(100vw-32px))] xl:left-[calc(50%+231px)] xl:right-auto xl:top-1/2 xl:bottom-auto xl:h-[min(820px,calc(100%_-_3rem))] xl:w-[420px] xl:-translate-y-1/2"
-      >
+      <div className="absolute z-[80] right-4 top-4 bottom-4 w-[min(420px,calc(100vw-32px))] xl:left-[calc(50%+231px)] xl:right-auto xl:top-1/2 xl:bottom-auto xl:h-[min(820px,calc(100%_-_3rem))] xl:w-[420px] xl:-translate-y-1/2">
         <motion.aside
           initial={{opacity: 0,x: 28,scale: 0.98,}}
           animate={{opacity: 1, x: 0, scale: 1,}}
@@ -181,6 +216,9 @@ export default function ReelCommentModal({
                     comment={comment}
                     currentUserId={currentUserId}
                     isDeleting={deletingCommentId === comment.id}
+                    isUpdating={updatingCommentId === comment.id}
+                    onAuthorClick={handleAuthorProfileClick}
+                    onEdit={handleEditComment}
                     onDelete={handleDeleteComment}
                   />
                 ))}

@@ -223,7 +223,7 @@ export default function Home() {
   }
 
   const handleReelSubmitSuccess = () => {
-    showSnackbar("Reel published successfully.", "success")
+    showSnackbar("Reel published successfully. It is now available in the Reels feed.", "success")
     setIsPostFormVisible(false)
     setSelectedPostType("recipe")
   }
@@ -541,6 +541,7 @@ export default function Home() {
                   onClose={handleClosePostRecipeDrawer}
                   currentUser={currentUser}
                   onSubmitSuccess={handleRecipeSubmitSuccess}
+                  onReelSubmitSuccess={handleReelSubmitSuccess}
                   mode={editingRecipe ? "edit" : "create"}
                   recipeToEdit={editingRecipe}
                   onUpdateSuccess={handleRecipeUpdateSuccess}

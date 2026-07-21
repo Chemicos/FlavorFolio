@@ -8,14 +8,26 @@ interface ReelsFeedProps {
   reels: Reel[]
   isLoading: boolean
   error: string | null
+  currentUserId: string | null
+  likedReelIds: string[]
   onCommentsClick: (reel: Reel) => void
+  onShareClick: (reel: Reel) => void
+  onLikeStateChange: (
+    reelId: string,
+    isLiked: boolean,
+    likesCount: number
+  ) => void
 }
 
 export default function ReelsFeed({
     reels,
     isLoading,
     error,
+    currentUserId,
+    likedReelIds,
     onCommentsClick,
+    onShareClick,
+    onLikeStateChange,
 }: ReelsFeedProps) {
     // const { reels, isLoading, error } = useReels()
 
@@ -40,13 +52,20 @@ export default function ReelsFeed({
     if (!reels.length) return <ReelsEmptyState />
 
     return (
-        <section className="h-full overflow-y-auto snap-y snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <section className="h-full snap-y snap-mandatory overflow-y-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {reels.map((reel) => (
                 <div
                     key={reel.reelId}
                     className="flex h-full snap-start items-center justify-center px-4 py-6"
                 >
-                    <ReelCard reel={reel} onCommentsClick={onCommentsClick} />
+                <ReelCard
+                    reel={reel}
+                    currentUserId={currentUserId}
+                    isLiked={likedReelIds.includes(reel.reelId)}
+                    onCommentsClick={onCommentsClick}
+                    onShareClick={onShareClick}
+                    onLikeStateChange={onLikeStateChange}
+                />
                 </div>
             ))}
         </section>

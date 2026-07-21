@@ -1,9 +1,13 @@
 import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, where } from "@firebase/firestore"
-import { CreateReelInput, CreateReelResult, Reel } from "../types/reel.types"
+import { CreateReelInput, CreateReelResult, Reel, ReelMealType } from "../types/reel.types"
 import { db, storage } from "../../../firebase-config"
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
 
+const MIN_REEL_TITLE_LENGTH = 3
+const MAX_REEL_TITLE_LENGTH = 100
+const MAX_REEL_DESCRIPTION_LENGTH = 500
 const MAX_REEL_SIZE_BYTES = 200 * 1024 * 1024
+const ALLOWED_REEL_MEAL_TYPES: ReelMealType[] = ["breakfast", "lunch", "dinner", "dessert", "snack",]
 
 const ALLOWED_REEL_VIDEO_TYPES = [
   "video/mp4",
@@ -20,18 +24,45 @@ function sanitizeFileName(fileName: string) {
 }
 
 function validateCreateReelInput(input: CreateReelInput) {
+  const title = input.title.trim()
   const description = input.description.trim()
 
   if (!input.userId) {
     throw new Error("You must be signed in to publish a reel.")
   }
 
+  if (!title) {
+    throw new Error("Reel title is required.")
+  }
+
+  if (title.length < MIN_REEL_TITLE_LENGTH) {
+    throw new Error(
+      `Title must contain at least ${MIN_REEL_TITLE_LENGTH} characters.`
+    )
+  }
+
+  if (title.length > MAX_REEL_TITLE_LENGTH) {
+    throw new Error(
+      `Title cannot exceed ${MAX_REEL_TITLE_LENGTH} characters.`
+    )
+  }
+
   if (!description) {
     throw new Error("Reel description is required.")
   }
 
-  if (description.length > 500) {
-    throw new Error("Description cannot exceed 500 characters.")
+  if (description.length > MAX_REEL_DESCRIPTION_LENGTH) {
+    throw new Error(
+      `Description cannot exceed ${MAX_REEL_DESCRIPTION_LENGTH} characters.`
+    )
+  }
+
+  if (!input.meal) {
+    throw new Error("Meal type is required.")
+  }
+
+  if (!ALLOWED_REEL_MEAL_TYPES.includes(input.meal)) {
+    throw new Error("Please select a valid meal type.")
   }
 
   if (!input.videoFile) {
@@ -63,25 +94,61 @@ function mapReelDoc(docSnap: any): Reel {
 
     author: {
       userId: data.author?.userId || data.userId || "",
-      username: data.author?.username || data.username || "Unknown",
+      username:
+        data.author?.username ||
+        data.username ||
+        "Unknown",
       profileImage:
-        data.author?.profileImage || data.userProfileImage || "",
+        data.author?.profileImage ||
+        data.userProfileImage ||
+        "",
     },
 
-    description: data.description || data.title || "",
+    title:
+      data.title ||
+      data.description ||
+      "Recipe inspiration",
+
+    description: data.description || "",
+    meal: (data.meal || "dinner") as ReelMealType,
+
     videoUrl: data.videoUrl || "",
     videoFileName: data.videoFileName || "",
 
-    thumbnail: data.thumbnail || data.thumbnailUrl || "",
-    duration: Number(data.duration || data.durationSeconds || 0),
+    thumbnail:
+      data.thumbnail ||
+      data.thumbnailUrl ||
+      "",
+
+    duration: Number(
+      data.duration ||
+      data.durationSeconds ||
+      0
+    ),
 
     visibility: data.visibility || "public",
 
     stats: {
-      likesCount: Number(data.stats?.likesCount ?? data.likesCount ?? 0),
-      commentsCount: Number(data.stats?.commentsCount ?? data.commentsCount ?? 0),
-      sharesCount: Number(data.stats?.sharesCount ?? data.sharesCount ?? 0),
-      viewsCount: Number(data.stats?.viewsCount ?? data.viewsCount ?? 0),
+      likesCount: Number(
+        data.stats?.likesCount ??
+        data.likesCount ??
+        0
+      ),
+      commentsCount: Number(
+        data.stats?.commentsCount ??
+        data.commentsCount ??
+        0
+      ),
+      sharesCount: Number(
+        data.stats?.sharesCount ??
+        data.sharesCount ??
+        0
+      ),
+      viewsCount: Number(
+        data.stats?.viewsCount ??
+        data.viewsCount ??
+        0
+      ),
     },
 
     createdAt: data.createdAt || undefined,
@@ -141,7 +208,10 @@ export async function createReel(
       profileImage: input.userProfileImage || "",
     },
 
+    title: input.title.trim(),
     description: input.description.trim(),
+    meal: input.meal,
+    
     videoUrl,
     videoFileName: uploadSnapshot.ref.fullPath,
 

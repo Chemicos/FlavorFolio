@@ -40,6 +40,22 @@ export function useReels(limitCount = 20) {
         }
     }, [limitCount])
 
+    const updateReelLikesCount = (reelId: string, likesCount: number) => {
+        setReels((previousReels) =>
+            previousReels.map((reel) =>
+            reel.reelId === reelId
+                ? {
+                    ...reel,
+                    stats: {
+                        ...reel.stats,
+                        likesCount,
+                    },
+                }
+                : reel
+            )
+        )
+    }
+
     const updateReelCommentsCount = useCallback(
         (reelId: string,commentsCount: number) => {
             setReels((currentReels) =>
@@ -66,5 +82,6 @@ export function useReels(limitCount = 20) {
         isLoading,
         error,
         updateReelCommentsCount,
+        updateReelLikesCount,
     }
 }

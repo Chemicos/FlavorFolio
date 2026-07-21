@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ReelComment, ReelCommentAuthor } from "../types/reelComment.types"
 import { getAuth, onAuthStateChanged, User } from "firebase/auth"
-import { createReelComment, deleteReelComment, fetchReelCommentAuthor, listenToReelComments } from "../services/reelComments.service"
+import { createReelComment, deleteReelComment, fetchReelCommentAuthor, listenToReelComments, updateReelComment } from "../services/reelComments.service"
 
 interface UseReelCommentsOptions {
   reelId: string | null
@@ -21,8 +21,9 @@ export function useReelComments({
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [deletingCommentId, setDeletingCommentId] =
-    useState<string | null>(null)
+
+  const [updatingCommentId, setUpdatingCommentId] = useState<string | null>(null)
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
 
   const [error, setError] = useState<string | null>(null)
 
@@ -145,6 +146,49 @@ export function useReelComments({
     [reelId, authUser, commentAuthor]
   )
 
+  const editComment = useCallback(
+    async ({
+      commentId,
+      text,
+    }: {
+      commentId: string
+      text: string
+    }) => {
+      if (!reelId) {
+        throw new Error("No reel selected.")
+      }
+
+      if (!authUser?.uid) {
+        throw new Error(
+          "You must be signed in to edit comments."
+        )
+      }
+
+      try {
+        setUpdatingCommentId(commentId)
+        setError(null)
+
+        await updateReelComment({
+          reelId,
+          commentId,
+          currentUserId: authUser.uid,
+          text,
+        })
+      } catch (error) {
+        console.error(
+          "Failed to update reel comment:",
+          error
+        )
+
+        setError("Failed to update comment.")
+        throw error
+      } finally {
+        setUpdatingCommentId(null)
+      }
+    },
+    [reelId, authUser]
+  )
+
   const removeComment = useCallback(
     async (commentId: string) => {
       if (!reelId) {
@@ -184,15 +228,16 @@ export function useReelComments({
   return {
     comments,
     currentUserId: authUser?.uid || null,
-    currentUserProfileImage:
-      commentAuthor?.profileImage || "",
+    currentUserProfileImage: commentAuthor?.profileImage || "",
 
     isLoading,
     isSubmitting,
     deletingCommentId,
+    updatingCommentId,
     error,
 
     addComment,
+    editComment,
     removeComment,
   }
 }

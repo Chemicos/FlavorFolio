@@ -1,7 +1,7 @@
 import { Timestamp } from "@firebase/firestore"
 
 export type ConversationType = "direct"
-export type MessageType = "text" | "image" | "recipe"
+export type MessageType = "text" | "image" | "recipe" | "reel"
 
 export interface ConversationParticipant {
     userId: string
@@ -39,6 +39,17 @@ export interface SharedRecipeMessage {
     durationMinutes: number
 }
 
+export interface SharedReelMessage {
+    reelId: string
+    title: string
+    description: string
+    videoUrl: string
+    thumbnail: string
+    authorUsername: string
+    meal: string
+    durationSeconds: number
+}
+
 export interface ChatMessage {
     messageId: string
     conversationId: string
@@ -49,6 +60,7 @@ export interface ChatMessage {
     imageUrl?: string
     imagePath?: string
     recipe?:SharedRecipeMessage
+    reel?: SharedReelMessage
     imageFileName?: string
     createdAt: Timestamp
     isDeleted: boolean

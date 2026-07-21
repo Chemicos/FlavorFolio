@@ -12,7 +12,7 @@ export default function MessagesPage() {
 
   return (
     <>
-      <Navigation variant={"solid"} />
+      <Navigation />
       <ChatLayout
         currentUserId={currentUserId}
         activeConversationId={conversationId || null}

@@ -5,17 +5,26 @@ import { Reel } from "../types/reel.types";
 import { useReels } from "../hooks/useReels";
 import { AnimatePresence } from "motion/react";
 import ReelCommentModal from "../components/ReelCommentModal";
+import { useLikedReels } from "../hooks/useLikedReels";
+import { SharedReelMessage } from "../../messages/types/messages.types";
+import ShareRecipeModal from "../../messages/components/ShareRecipeModal";
+import { useSnackbar } from "../../../components/layout/SnackbarProvider";
 
 
 export default function ReelsPage() {
+  const { showSnackbar } = useSnackbar()
   const [selectedReel, setSelectedReel] = useState<Reel | null>(null)
+  const [reelToShare, setReelToShare] = useState<SharedReelMessage | null>(null)
 
   const {
     reels,
     isLoading,
     error,
     updateReelCommentsCount,
+    updateReelLikesCount,
   } = useReels()
+
+  const {currentUserId, likedReelIds,} = useLikedReels()
 
   const activeSelectedReel = selectedReel
     ? reels.find(
@@ -23,6 +32,29 @@ export default function ReelsPage() {
           reel.reelId === selectedReel.reelId
       ) || selectedReel
     : null
+
+  const handleOpenShareReel = (
+    reel: Reel
+  ) => {
+    setReelToShare({
+      reelId: reel.reelId,
+      title:
+        reel.title || "Recipe reel",
+      description:
+        reel.description || "",
+      videoUrl:
+        reel.videoUrl || "",
+      thumbnail:
+        reel.thumbnail || "",
+      authorUsername:
+        reel.author?.username || "Unknown",
+      meal:
+        reel.meal || "",
+      durationSeconds: Number(
+        reel.duration || 0
+      ),
+    })
+  }
 
   return (
      <>
@@ -32,7 +64,20 @@ export default function ReelsPage() {
             reels={reels}
             isLoading={isLoading}
             error={error}
+            currentUserId={currentUserId}
+            likedReelIds={likedReelIds}
             onCommentsClick={setSelectedReel}
+            onShareClick={handleOpenShareReel}
+            onLikeStateChange={(
+              reelId,
+              _isLiked,
+              likesCount
+            ) => {
+              updateReelLikesCount(
+                reelId,
+                likesCount
+              )
+            }}
           />
 
           <AnimatePresence>
@@ -49,6 +94,23 @@ export default function ReelsPage() {
               />
             )}
           </AnimatePresence>
+
+          <ShareRecipeModal
+            isOpen={Boolean(reelToShare)}
+            currentUserId={currentUserId}
+            reel={reelToShare}
+            onClose={() =>
+              setReelToShare(null)
+            }
+            onShared={(username) => {
+              showSnackbar(
+                `Reel shared with ${username}.`,
+                "success"
+              )
+
+              setReelToShare(null)
+            }}
+          />
         </main>
     </>
   )
