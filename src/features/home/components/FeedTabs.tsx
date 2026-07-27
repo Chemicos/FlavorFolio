@@ -28,7 +28,7 @@ export default function FeedTabs({
             minHeight: 0,
             borderBottom: "1px solid rgba(168, 179, 207, 0.12)",
             "& .MuiTabs-indicator": {
-            backgroundColor: "#ffffff",
+            backgroundColor: "#facc15",
             height: "2px",
             borderRadius: "999px",
             },
@@ -55,7 +55,7 @@ export default function FeedTabs({
                     color: "rgba(168, 179, 207, 0.6)",
                     transition: "color 0.2s ease",
                     "&.Mui-selected": {
-                    color: "#ffffff",
+                    color: "#facc15",
                     },
                     "&:hover": {
                     color: "#ffffff",

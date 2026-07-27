@@ -92,22 +92,6 @@ export default function NeedsRevisionPage() {
     )
   }
 
-  // useEffect(() => {
-  //   if (!recipeIdFromUrl || openedRecipeFromUrlRef.current || isLoading) return
-
-  //   const recipeToEdit = recipes.find(
-  //     (recipe) => recipe.recipeId === recipeIdFromUrl
-  //   )
-
-  //   if (!recipeToEdit) return
-
-  //   setEditingRecipe(null)
-  //   setPreviewRecipe(null)
-  //   setSelectedRecipe(recipeToEdit)
-
-  //   openedRecipeFromUrlRef.current = true
-  // }, [recipeIdFromUrl, recipes, isLoading])
-
   useEffect(() => {
     if (!recipeIdFromUrl || isLoading) return
 
@@ -121,10 +105,7 @@ export default function NeedsRevisionPage() {
       ) {
         handledUnavailableRecipeIdRef.current = recipeIdFromUrl
 
-        showSnackbar(
-          "This recipe is no longer available for revision.",
-          "info"
-        )
+        showSnackbar("This recipe is no longer available for revision.", "info")
       }
 
       setSelectedRecipe(null)
@@ -332,7 +313,7 @@ export default function NeedsRevisionPage() {
     >
       <Navigation />
 
-      <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-28">
+      <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-20">
         <NeedsRevisionPageHeader 
           search={search}
           selectedCount={selectedIds.length}

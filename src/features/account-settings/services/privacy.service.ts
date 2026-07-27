@@ -1,7 +1,7 @@
 import { doc, getDoc, onSnapshot, serverTimestamp, updateDoc } from "@firebase/firestore"
 import { db } from "../../../firebase-config"
 
-export type ProfileVisibility = "public" | "followers" | "private"
+export type ProfileVisibility = "public" | "followers"
 
 export interface PrivacySettings {
   profileVisibility: ProfileVisibility

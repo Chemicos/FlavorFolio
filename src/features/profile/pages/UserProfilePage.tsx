@@ -28,6 +28,9 @@ import { createOrOpenDirectConversation } from "../../messages/services/messages
 import { SharedRecipeMessage } from "../../messages/types/messages.types"
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
 import StickyProfileDrawer from "../components/StickyProfileDrawer"
+import { canViewProfileContent } from "../utils/profilePrivacy"
+import { useUserProfileRecipes } from "../hooks/useUserProfileRecipes"
+import ProfileContentLockedState from "../components/ProfileContentLockedState"
 
 function ViewRecipeDrawerLoading() {
   return (
@@ -49,7 +52,6 @@ export default function UserProfilePage() {
   const navigate = useNavigate()
   const { userId } = useParams<{ userId: string }>()
   const { showSnackbar } = useSnackbar()
-  
 
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([])
   const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
@@ -59,7 +61,7 @@ export default function UserProfilePage() {
   const isBlockedByProfile = Boolean(userId && blockedByUserIds.includes(userId))
   const hasBlockedRelationship = isBlockedProfile || isBlockedByProfile
 
-  const { profile, recipes, setRecipes, isLoading, error } = useUserProfile(userId)
+  const { profile, isLoading: isProfileLoading, error: profileError } = useUserProfile(userId)
   const [connectionsModalType, setConnectionsModalType] = useState<ProfileConnectionType | null>(null)
   const isConnectionsModalOpen = Boolean(connectionsModalType)
   const [isProfileActionsMenuOpen, setIsProfileActionsMenuOpen] = useState(false)
@@ -259,32 +261,92 @@ export default function UserProfilePage() {
     }
   }, [currentUserId, currentUserProfile])
 
+  
+  const isOwnProfile = currentUserId === userId
+  const isFollowingProfile = Boolean(userId && followingUserIds.includes(userId))
+  
+  const profileVisibility = profile?.privacy?.profileVisibility
+  const canViewRecipes = profile
+    ? canViewProfileContent({
+        profileVisibility:
+          profile.privacy.profileVisibility,
+        isOwnProfile,
+        isFollowingProfile,
+      })
+    : false
+  
+  const isProfileContentLocked = Boolean(profile) && !hasBlockedRelationship && !canViewRecipes
+  const isFollowersOnlyProfile = profile?.privacy.profileVisibility === "followers"
+  const isPrivateProfile = profile?.privacy.profileVisibility === "private"
+  
+  const {
+    recipes,
+    setRecipes,
+    publishedRecipesCount,
+    isLoading: areRecipesLoading,
+    error: recipesError,
+  } = useUserProfileRecipes({
+    userId,
+    enabled: canViewRecipes && !hasBlockedRelationship,
+  })
+  
+  const isLoading = isProfileLoading || ( canViewRecipes && !hasBlockedRelationship && areRecipesLoading )
+  const error = profileError || recipesError
+  
   useEffect(() => {
-    if (!selectedRecipeId) {
+    if ( !selectedRecipeId || !canViewRecipes || hasBlockedRelationship ) {
       setSelectedRecipe(null)
+      setIsRecipeDrawerLoading(false)
       return
     }
 
     setIsRecipeDrawerLoading(true)
 
-    const unsubscribe = subscribeToProfileRecipeById(
-      selectedRecipeId,
-      (recipe) => {
-        setSelectedRecipe(recipe)
-        setIsRecipeDrawerLoading(false)
-      },
-      (error) => {
-        console.error("Failed to load selected recipe:", error)
-        showSnackbar("Failed to load recipe.", "error")
-        setIsRecipeDrawerLoading(false)
-      }
-    )
+    const unsubscribe =
+      subscribeToProfileRecipeById(
+        selectedRecipeId,
+        (recipe) => {
+          if (
+            recipe &&
+            recipe.userId !== userId
+          ) {
+            setSelectedRecipe(null)
+            setSelectedRecipeId(null)
+            setIsRecipeDrawerLoading(false)
+
+            showSnackbar( "This recipe is not part of this profile.", "error")
+
+            return
+          }
+
+          setSelectedRecipe(recipe)
+          setIsRecipeDrawerLoading(false)
+        },
+        (error) => {
+          console.error(
+            "Failed to load selected recipe:",
+            error
+          )
+
+          showSnackbar( "Failed to load recipe.", "error")
+
+          setSelectedRecipe(null)
+          setIsRecipeDrawerLoading(false)
+        }
+      )
 
     return () => unsubscribe()
-  }, [selectedRecipeId, showSnackbar])
+  }, [selectedRecipeId, canViewRecipes, hasBlockedRelationship, userId, showSnackbar])
 
-  const isOwnProfile = currentUserId === userId
-  const isFollowingProfile = Boolean(userId && followingUserIds.includes(userId))
+  useEffect(() => {
+    if (canViewRecipes && !hasBlockedRelationship) {
+      return
+    }
+
+    setSelectedRecipeId(null)
+    setSelectedRecipe(null)
+    setIsRecipeDrawerLoading(false)
+  }, [canViewRecipes, hasBlockedRelationship,])
 
   const handleToggleFollow = async () => {
     if (!currentUserId || !userId || !profile || isOwnProfile || isFollowLoading) return
@@ -589,7 +651,7 @@ export default function UserProfilePage() {
   return (
     <div className="relative min-h-screen bg-[#0d0e11] text-white">
       <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
-      <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-28 xl:px-10">
+      <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
         <main 
           className={[
             "min-w-0 flex-1 transition-all duration-300",
@@ -613,7 +675,7 @@ export default function UserProfilePage() {
                 location={profile.location || "Location not set"}
                 website={profile.website || "Website not set"}
                 joinedLabel={profile.joinedLabel || "Joined recently"}
-                recipesCount={recipes.length}
+                recipesCount={publishedRecipesCount}
                 followersCount={profile.stats.followersCount || 0}
                 followingCount={profile.stats.followingCount || 0}
                 onFollowersClick={() => setConnectionsModalType("followers")}
@@ -697,32 +759,31 @@ export default function UserProfilePage() {
                   ) : null
                 }
               />
+              { canViewRecipes && !hasBlockedRelationship &&
+                <div className="sticky top-16 z-40 bg-[#0d0e11] pb-5">
+                  <div className="border-b border-white/10 pt-6" />
 
-              <div className="sticky top-16 z-40 bg-[#0d0e11] pb-5">
-                <div className="border-b border-white/10 pt-6" />
-
-                <ProfileRecipeToolbar
-                  searchQuery={searchQuery}
-                  onSearchQueryChange={setSearchQuery}
-                  resultCount={visibleRecipes.length}
-                  sortBy={sortBy}
-                  onSortByChange={setSortBy}
-                  category={category}
-                  onCategoryChange={setCategory}
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
-                  categories={categories}
-                />
-              </div>
-
-              {(isLoading || isSearching) && (
-                <ProfileRecipeGridSkeleton viewMode={viewMode} count={8} />
-              )}
+                  <ProfileRecipeToolbar
+                    searchQuery={searchQuery}
+                    onSearchQueryChange={setSearchQuery}
+                    resultCount={visibleRecipes.length}
+                    sortBy={sortBy}
+                    onSortByChange={setSortBy}
+                    category={category}
+                    onCategoryChange={setCategory}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    categories={categories}
+                  />
+                </div>
+              }
 
               {hasBlockedRelationship ? (
                 <div className="mt-8 rounded-2xl border border-orange-400/10 bg-orange-500/[0.04] p-8 text-center">
                   <h3 className="text-lg font-bold text-white">
-                    {isBlockedProfile ? "You blocked this user" : "This profile is unavailable"}
+                    {isBlockedProfile
+                      ? "You blocked this user"
+                      : "This profile is unavailable"}
                   </h3>
 
                   <p className="mx-auto mt-2 max-w-[520px] text-sm leading-6 text-[#8f97b1]">
@@ -731,16 +792,36 @@ export default function UserProfilePage() {
                       : "You cannot view this profile or interact with this user."}
                   </p>
                 </div>
+              ) : isProfileContentLocked ? (
+                <ProfileContentLockedState
+                  username={profile.username || profile.fullName || "This user"}
+                  isFollowLoading={isFollowLoading}
+                  isPrivate={isPrivateProfile}
+                  onFollow={handleToggleFollow}
+                />
               ) : (
-                !isLoading && !isSearching && (
-                  <ProfileRecipeGrid
-                    recipes={visibleRecipes}
-                    viewMode={viewMode}
-                    currentUserId={null}
-                    onRecipeClick={(recipe) => setSelectedRecipeId(recipe.id)}
-                    onRecipeShare={handleShareRecipeFromGrid}
-                  />
-                )
+                <>
+                  {(isLoading || isSearching) && (
+                    <ProfileRecipeGridSkeleton
+                      viewMode={viewMode}
+                      count={8}
+                    />
+                  )}
+
+                  {!isLoading && !isSearching && (
+                    <ProfileRecipeGrid
+                      recipes={visibleRecipes}
+                      viewMode={viewMode}
+                      currentUserId={null}
+                      onRecipeClick={(recipe) => {
+                        setSelectedRecipeId(recipe.id)
+                      }}
+                      onRecipeShare={(recipe) => {
+                        handleShareRecipeFromGrid(recipe)
+                      }}
+                    />
+                  )}
+                </>
               )}
             </>
           )}

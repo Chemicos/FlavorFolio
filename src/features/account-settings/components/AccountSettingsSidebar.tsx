@@ -2,7 +2,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded"
 import BlockRoundedIcon from "@mui/icons-material/BlockRounded"
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded"
-import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded"
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded"
 
 import { AccountSettingsTab } from "./AccountSettingsLayout"
@@ -34,11 +33,6 @@ const sidebarItems: Array<{
     label: "Privacy",
     icon: VisibilityRoundedIcon,
   },
-  {
-    value: "notifications",
-    label: "Notifications",
-    icon: NotificationsRoundedIcon,
-  },
 ]
 
 export default function AccountSettingsSidebar({
@@ -48,7 +42,7 @@ export default function AccountSettingsSidebar({
   const navigate = useNavigate()
 
   return (
-    <aside className="sticky top-28 h-fit overflow-hidden rounded-2xl border border-white/10 bg-[#16181d]/80 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+    <aside className="sticky top-20 h-fit overflow-hidden rounded-2xl border border-white/10 bg-[#16181d]/80 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
       <div className="flex items-center gap-4 px-1">
         <button
           type="button"

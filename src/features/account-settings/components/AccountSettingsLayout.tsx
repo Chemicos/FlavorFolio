@@ -3,13 +3,8 @@ import AccountSettingsSidebar from "./AccountSettingsSidebar"
 import SecuritySettingsSection from "./SecuritySettingsSection"
 import BlockedAccountsSection from "./BlockedAccountsSection"
 import PrivacySettingsSection from "./PrivacySettingsSection"
-import NotificationsSettingsSection from "./NotificationsSettingsSection"
 
-export type AccountSettingsTab =
-  | "security"
-  | "blocked"
-  | "privacy"
-  | "notifications"
+export type AccountSettingsTab = "security" | "blocked" | "privacy"
 
 export default function AccountSettingsLayout() {
   const [activeTab, setActiveTab] = useState<AccountSettingsTab>("security")
@@ -25,7 +20,6 @@ export default function AccountSettingsLayout() {
         {activeTab === "security" && <SecuritySettingsSection />}
         {activeTab === "blocked" && <BlockedAccountsSection />}
         {activeTab === "privacy" && <PrivacySettingsSection />}
-        {activeTab === "notifications" && <NotificationsSettingsSection />}
       </div>
     </section>
   )

@@ -2,11 +2,11 @@ import { useEffect, useState } from "react"
 import AccountSettingsSectionHeader from "./AccountSettingsSectionHeader"
 import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
-import { subscribeToPrivacySettings, updatePrivacySettings } from "../services/privacy.service"
+import { ProfileVisibility, subscribeToPrivacySettings, updatePrivacySettings } from "../services/privacy.service"
 import { CircularProgress } from "@mui/material"
 
-type ProfileVisibility = "public" | "followers" | "private"
-type MessagePrivacy = "everyone" | "followers" | "only_me"
+// type ProfileVisibility = "public" | "followers" | "private"
+// type MessagePrivacy = "everyone" | "followers" | "only_me"
 
 function SettingsRadio({
   label,
@@ -86,7 +86,7 @@ export default function PrivacySettingsSection() {
   const [userId, setUserId] = useState<string | null>(null)
   const [profileVisibility, setProfileVisibility] = useState<ProfileVisibility>("public")
   const [showInSearch, setShowInSearch] = useState(true)
-  const [messagePrivacy, setMessagePrivacy] = useState<MessagePrivacy>("everyone")
+  // const [messagePrivacy, setMessagePrivacy] = useState<MessagePrivacy>("everyone")
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -168,7 +168,7 @@ export default function PrivacySettingsSection() {
     <section>
       <AccountSettingsSectionHeader
         title="Privacy"
-        description="Control who can see your profile, message you, and discover your account."
+        description="Control who can see your profile and discover your account."
       />
 
       {isLoading ? (
@@ -195,41 +195,8 @@ export default function PrivacySettingsSection() {
                 disabled={isSaving}
                 onChange={() => handleVisibilityChange("followers")}
               />
-              <SettingsRadio
-                label="Only me"
-                description="private"
-                checked={profileVisibility === "private"}
-                disabled={isSaving}
-                onChange={() => handleVisibilityChange("private")}
-              />
             </div>
           </div>
-
-          {/* <div className="rounded-2xl border border-white/10  p-6">
-            <h3 className="text-base font-bold text-white">Interactions - WIP</h3>
-            <p className="mt-1 text-sm text-[#8f97b1]">
-              Who can send you messages?
-            </p>
-
-            <div className="mt-5 space-y-4">
-              <SettingsRadio
-                label="Everyone"
-                description="default"
-                checked={messagePrivacy === "everyone"}
-                onChange={() => setMessagePrivacy("everyone")}
-              />
-              <SettingsRadio
-                label="Followers only"
-                checked={messagePrivacy === "followers"}
-                onChange={() => setMessagePrivacy("followers")}
-              />
-              <SettingsRadio
-                label="Only me"
-                checked={messagePrivacy === "only_me"}
-                onChange={() => setMessagePrivacy("only_me")}
-              />
-            </div>
-          </div> */}
 
           <div className="rounded-2xl border border-white/10 p-6">
             <h3 className="text-base font-bold text-white">Discoverability</h3>

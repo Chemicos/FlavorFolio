@@ -2,6 +2,7 @@ import { collection, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, u
 import { db, storage } from "../../../firebase-config"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { buildRecipeKeywords, buildUserKeywords } from "../../../utils/searchKeywords"
+import { ProfileVisibility } from "../../account-settings/services/privacy.service"
 
 export interface MyProfileData {
   uid: string
@@ -13,6 +14,12 @@ export interface MyProfileData {
   bannerImage: string
   location: string
   website: string
+
+  privacy: {
+    profileVisibility: ProfileVisibility
+    showInSearch: boolean
+  }
+
   createdAt?: {
     seconds: number
     nanoseconds: number
@@ -231,6 +238,12 @@ export function subscribeToMyProfile(
         location: data.location || "",
         website: data.website || "",
         createdAt: data.createdAt || undefined,
+
+        privacy: {
+          profileVisibility: data.privacy?.profileVisibility || "public",
+          showInSearch: data.privacy?.showInSearch ?? true,
+        },
+
         stats: {
           recipesCount: Number(data.stats?.recipesCount || 0),
           followersCount: Number(data.stats?.followersCount || 0),
@@ -320,6 +333,12 @@ export async function fetchMyProfile(userId: string): Promise<MyProfileData> {
     location: data.location || "",
     website: data.website || "",
     createdAt: data.createdAt || undefined,
+
+    privacy: {
+      profileVisibility: data.privacy?.profileVisibility || "public",
+      showInSearch: data.privacy?.showInSearch ?? true,
+    },
+
     stats: {
       recipesCount: Number(data.stats?.recipesCount || 0),
       followersCount: Number(data.stats?.followersCount || 0),

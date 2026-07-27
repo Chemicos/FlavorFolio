@@ -18,20 +18,20 @@ const muiFieldSx = {
     color: "rgba(168,179,207,0.50)", // label color
   },
   "&:hover .MuiInputLabel-root": {
-    color: "rgba(168,179,207,1.00)", // label on hover
+    color: "#e17e00", // label on hover
   },
   "& .MuiInputLabel-root.Mui-focused": {
-    color: "rgba(168,179,207,1.00)", // label on focus
+    color: "#e17e00", // label on focus
   },
   
   "& .MuiOutlinedInput-notchedOutline": {
     borderColor: "rgba(168,179,207,0.20)", // outline color
   },
   "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(168,179,207,1.00)", // outline color on hover
+    borderColor: "#e17e00", // outline color on hover
   },
   "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(168,179,207,1.00)", //outline focus
+    borderColor: "#e17e00", //outline focus
   },
   "& .MuiInputBase-input": {
     color: "rgba(255,255,255,100)", //input color
@@ -72,12 +72,7 @@ export default function SignUpForm() {
     const usernameOk = username.trim().length >= 3
     const emailOk = isValidEmail(email)
 
-    const isFormValid =
-    usernameOk &&
-    emailOk &&
-    passwordOk &&
-    confirmOk &&
-    !loading
+    const isFormValid = usernameOk && emailOk && passwordOk && confirmOk && !loading
 
     const handleSignUp = async (e: { preventDefault: () => void }) => {
         e.preventDefault()

@@ -40,8 +40,6 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
     
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const menuOpen = Boolean(anchorEl)
-    // const [isScrolled, setIsScrolled] = useState(false)
-    // const shouldUseSolidNav = variant === "solid" || isScrolled
 
     const notificationRef = useRef<HTMLDivElement | null>(null)
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
@@ -130,17 +128,6 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
     }
   }, [navigate, auth])
   // <<
-
-  // useEffect(() => {
-  //   const handleScroll = () => {
-  //     setIsScrolled(window.scrollY !== 0)
-  //   }
-
-  //   handleScroll()
-  //   window.addEventListener("scroll", handleScroll)
-
-  //   return () => window.removeEventListener("scroll", handleScroll)
-  // }, [])
 
   useEffect(() => {
     const darkMode = localStorage.getItem('darkMode') === 'true'

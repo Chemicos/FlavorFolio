@@ -571,7 +571,7 @@ export default function MyProfilePage() {
       <div className="relative z-10">
         <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
 
-        <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-28 xl:px-10">
+        <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
           <main 
             className={[
               "min-w-0 flex-1 transition-all duration-300",

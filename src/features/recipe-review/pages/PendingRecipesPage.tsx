@@ -136,37 +136,6 @@ export default function PendingRecipesPage() {
     }, [filteredRecipes, currentPage, rowsPerPage])
 
     useEffect(() => {
-        // if (!targetRecipeId || isLoading || !recipes.length) return
-
-        // const targetRecipe = recipes.find(
-        //     (recipe) => recipe.recipeId === targetRecipeId
-        // )
-
-        // if (!targetRecipe) {
-        //     setSelectedRecipe(null)
-
-        //     const nextParams = new URLSearchParams(searchParams)
-        //     nextParams.delete("recipeId")
-        //     setSearchParams(nextParams, { replace: true })
-
-        //     return
-        // }
-
-        // const targetIndex = filteredRecipes.findIndex(
-        //     (recipe) => recipe.recipeId === targetRecipeId
-        // )
-
-        // if (targetIndex >= 0) {
-        //     setCurrentPage(Math.floor(targetIndex / rowsPerPage) + 1)
-        // }
-
-        // setSelectedRecipe((currentRecipe) => {
-        //     if (currentRecipe?.recipeId === targetRecipe.recipeId) {
-        //         return currentRecipe
-        //     }
-
-        //     return targetRecipe
-        // })
         if (!targetRecipeId || isLoading) return
 
         const targetRecipe = recipes.find(
@@ -394,7 +363,7 @@ export default function PendingRecipesPage() {
         >
             <Navigation />
 
-            <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-28">
+            <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-20">
                 <RecipeReviewPageHeader 
                     search={search}
                     selectedCount={selectedIds.length}
