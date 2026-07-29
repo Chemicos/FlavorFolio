@@ -106,7 +106,7 @@ export default function RecipeGridCard({
   return (
     <article
       onClick={handleCardClick}
-      className="group relative h-[370px] cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-black shadow-[0_18px_55px_rgba(0,0,0,0.18)] transition duration-200 hover:-translate-y-1 hover:border-white/15"
+      className="group relative h-[370px] cursor-pointer overflow-hidden rounded-md bg-black shadow-[0_18px_55px_rgba(0,0,0,0.18)] transition duration-200 hover:-translate-y-1 hover:border-white/15"
     >
       <img
         src={recipe.image}

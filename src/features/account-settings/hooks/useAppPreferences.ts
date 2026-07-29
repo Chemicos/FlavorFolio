@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { subscribeToAppPreferences, updateAppPreferences } from "../services/preferences.service"
 import { AppLanguage, AppPreferences, AppTheme, defaultAppPreferences } from "../types/preferences.types"
-import { APP_THEME_STORAGE_KEY, applyAppTheme } from "../utils/appTheme"
+import { APP_THEME_STORAGE_KEY, applyAppTheme, subscribeToSystemTheme } from "../utils/appTheme"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 
 function getInitialTheme(): AppTheme {
@@ -34,7 +34,16 @@ export function useAppPreferences() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    applyAppTheme(preferences.theme)
+    applyAppTheme( preferences.theme )
+
+    return subscribeToSystemTheme(
+      preferences.theme,
+      () => {
+        applyAppTheme(
+          preferences.theme
+        )
+      }
+    )
   }, [preferences.theme])
 
   useEffect(() => {
@@ -91,15 +100,28 @@ export function useAppPreferences() {
       theme,
     }))
 
+    applyAppTheme(theme)
+
+    window.localStorage.setItem( APP_THEME_STORAGE_KEY, theme )
+
     try {
       setSavingKey("theme")
 
-      await updateAppPreferences({userId, preferences: { theme },})
+      await updateAppPreferences({
+        userId,
+        preferences: {
+          theme,
+        },
+      })
     } catch (error) {
       setPreferences((previous) => ({
         ...previous,
         theme: previousTheme,
       }))
+
+      applyAppTheme(previousTheme)
+
+      window.localStorage.setItem( APP_THEME_STORAGE_KEY, previousTheme )
 
       throw error
     } finally {

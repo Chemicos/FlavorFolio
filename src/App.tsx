@@ -26,6 +26,7 @@ import AdminReportsPage from './features/admin-dashboard/pages/AdminReportsPage'
 import MessagesPage from './features/messages/pages/MessagesPage'
 import ReelsPage from './features/reels/pages/ReelsPage'
 import PresenceHeartbeat from './features/messages/components/PresenceHeartbeat'
+import AppThemeController from './features/account-settings/components/AppThemeController'
 
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -38,34 +39,43 @@ function App() {
     return () => unsubscribe()
   }, [])
 
-  if (user === undefined) {
-    return <div className='min-h-screen bg-[#0b0b0c]'></div>
-  }
+  // if (user === undefined) {
+  //   return <div className='min-h-screen bg-[#0b0b0c]'></div>
+  // }
 
   return (
-    <Router>
-      <PresenceHeartbeat currentUserId={user?.uid} />
-      
-      {/* <div> */}
-        <Routes>
-          <Route path="/" element={user ? <Navigate replace to="/home" /> : <Login />} />
-          <Route path="/home" element={user ? <Home /> : <Navigate replace to="/" />} />
-          <Route path="/reels" element={user ? <ReelsPage /> : <Navigate replace to="/" />} />
-          <Route path='/pending' element={user ? <PendingRecipesPage /> : <Navigate replace to="/" />} />
-          <Route path='/needs-revision' element={user ? <NeedsRevisionPage /> : <Navigate replace to="/" />} />
-          <Route path='/profile' element={user ? <MyProfilePage /> : <Navigate replace to="/" />} />
-          <Route path="/users/:userId" element={user ? <UserProfilePage /> : <Navigate replace to="/" />} />
-          <Route path='/settings' element={user ? <AccountSettingsPage /> : <Navigate replace to="/" />} />
-          <Route path='/admin/dashboard' element={user ? <AdminDashboardPage/> : <Navigate replace to="/" />} />
-          <Route path="/admin/recipes" element={user ? <AdminRecipesPage /> : <Navigate replace to="/" />}/>
-          <Route path="/admin/users" element={user ? <AdminUsersPage /> : <Navigate replace to="/" />} />
-          <Route path="/admin/reports" element={user ? <AdminReportsPage /> : <Navigate replace to="/" />} />
-          <Route path="/messages" element={user ? <MessagesPage /> : <Navigate replace to="/" />} />
-          <Route path="/messages/:conversationId" element={user ? <MessagesPage /> : <Navigate replace to="/" /> } />
-          {/* <Route path='/manage-feedback' element={user ? <ManageFeedback /> : <Navigate replace to="/" />} /> */}
-        </Routes>
-      {/* </div> */}
-    </Router>
+    <>
+      <AppThemeController />
+    
+      {user === undefined ? (
+        <div className="min-h-screen bg-[var(--bg-primary)] transition-colors duration-200" />
+      ): (
+      <Router>
+        <PresenceHeartbeat currentUserId={user?.uid} />
+        
+        {/* <div> */}
+          <Routes>
+            <Route path="/" element={user ? <Navigate replace to="/home" /> : <Login />} />
+            <Route path="/home" element={user ? <Home /> : <Navigate replace to="/" />} />
+            <Route path="/reels" element={user ? <ReelsPage /> : <Navigate replace to="/" />} />
+            <Route path='/pending' element={user ? <PendingRecipesPage /> : <Navigate replace to="/" />} />
+            <Route path='/needs-revision' element={user ? <NeedsRevisionPage /> : <Navigate replace to="/" />} />
+            <Route path='/profile' element={user ? <MyProfilePage /> : <Navigate replace to="/" />} />
+            <Route path="/users/:userId" element={user ? <UserProfilePage /> : <Navigate replace to="/" />} />
+            <Route path='/settings' element={user ? <AccountSettingsPage /> : <Navigate replace to="/" />} />
+            <Route path='/admin/dashboard' element={user ? <AdminDashboardPage/> : <Navigate replace to="/" />} />
+            <Route path="/admin/recipes" element={user ? <AdminRecipesPage /> : <Navigate replace to="/" />}/>
+            <Route path="/admin/users" element={user ? <AdminUsersPage /> : <Navigate replace to="/" />} />
+            <Route path="/admin/reports" element={user ? <AdminReportsPage /> : <Navigate replace to="/" />} />
+            <Route path="/messages" element={user ? <MessagesPage /> : <Navigate replace to="/" />} />
+            <Route path="/messages/:conversationId" element={user ? <MessagesPage /> : <Navigate replace to="/" /> } />
+            {/* <Route path='/manage-feedback' element={user ? <ManageFeedback /> : <Navigate replace to="/" />} /> */}
+          </Routes>
+        {/* </div> */}
+      </Router>
+      )}
+    </>
+
   )
 }
 

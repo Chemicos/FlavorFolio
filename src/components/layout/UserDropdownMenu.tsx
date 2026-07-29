@@ -1,5 +1,4 @@
-import {
-    Badge,
+import { 
     Box,
     Divider,
     ListItemIcon,
@@ -12,9 +11,9 @@ import PersonIcon from "@mui/icons-material/Person"
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty"
 import BlockIcon from "@mui/icons-material/Block"
 import BarChartIcon from "@mui/icons-material/BarChart"
-import MailOutlineIcon from "@mui/icons-material/MailOutline"
 import SettingsIcon from "@mui/icons-material/Settings"
 import LogoutIcon from "@mui/icons-material/Logout"
+import { useLocation } from "react-router-dom"
 
 export interface UserDropdownMenuProps {
     anchorEl: HTMLElement | null
@@ -60,30 +59,30 @@ function MenuActionItem({
         mx: 1,
         my: 0.25,
         px: 1.5,
-        color: danger ? "#fca5a5" : "#d7def0",
+        color: danger ? "var(--danger-text)" : "var(--text-primary)",
         "& .MuiListItemIcon-root": {
           minWidth: 34,
-          color: danger ? "#f87171" : "#a8b3cf",
+          color: danger ? "var(--danger)" : "var(--text-secondary)",
           transition: "color 160ms ease",
         },
         "&:hover": {
           backgroundColor: danger
-            ? "rgba(239,68,68,0.10)"
-            : "rgba(254,170,43,0.10)",
-          color: danger ? "#fecaca" : "#ffd28a",
+            ? "var(--danger-soft)"
+            : "var(--accent-soft)",
+          color: danger ? "var(--danger-text)" : "var(--accent-text)",
           borderColor: danger
             ? "rgba(248,113,113,0.20)"
             : "rgba(254,170,43,0.20)",
         },
         "&:hover .MuiListItemIcon-root": {
-          color: danger ? "#fca5a5" : "#feaa2b",
+          color: danger ? "var(--danger)" : "var(--accent)",
         },
         "&.Mui-selected": {
-          backgroundColor: "rgba(254,170,43,0.12)",
-          color: "#ffd28a",
+          backgroundColor: "var(--accent-soft)",
+          color: "var(--accent-text)",
         },
         "&.Mui-selected:hover": {
-          backgroundColor: "rgba(254,170,43,0.16)",
+          backgroundColor: "var(--accent-soft-hover)",
         },
       }}
     >
@@ -110,12 +109,12 @@ function MenuActionItem({
             justifyContent: "center",
             fontSize: 12,
             fontWeight: 500,
-            color: "#0d0e11",
-            backgroundColor: "#feaa2b",
-            boxShadow: "0 0 18px rgba(254,170,43,0.28)",
+            color: "var(--text-on-accent)",
+            backgroundColor: "var(--accent)",
+            boxShadow: "0 0 18px var(--accent-soft-hover)",
           }}
         >
-          {badgeCount}
+          {badgeCount > 99 ? "99+" : badgeCount}
         </Box>
       )}
     </MenuItem>
@@ -138,6 +137,7 @@ export default function UserDropdownMenu({
     feedbackCount = 0,
     needsRevisionCount = 0,
 }: UserDropdownMenuProps) {
+  const location = useLocation()
   return (
     <Menu 
         anchorEl={anchorEl} 
@@ -153,10 +153,9 @@ export default function UserDropdownMenu({
                     width: 270,
                     overflow: "hidden",
                     borderRadius: "18px",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    backgroundColor: "#1b1d22",
-                    boxShadow: "0 24px 90px rgba(0,0,0,0.65)",
-                    backdropFilter: "blur(18px)",
+                    border: "1px solid var(--border)",
+                    backgroundColor: "var(--account-dropdown-bg)",
+                    boxShadow: "var(--shadow-dropdown)",
                     py: 1.5,
                 }
             },
@@ -208,15 +207,12 @@ export default function UserDropdownMenu({
         <MenuActionItem
           icon={<SettingsIcon fontSize="small" />}
           label="Settings"
+          selected={location.pathname === "/settings"}
           onClick={onSettings}
         />
 
         <Divider
-            sx={{
-              my: 1.25,
-              mx: 2,
-              borderColor: "rgba(255,255,255,0.10)",
-            }}
+            sx={{ my: 1.25, mx: 2, borderColor: "var(--border)" }}
         />
 
         <MenuActionItem

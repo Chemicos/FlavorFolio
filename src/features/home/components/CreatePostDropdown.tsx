@@ -31,12 +31,20 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
             }
         }
 
+        function handleViewportChange() {
+            setIsOpen(false)
+        }
+
         document.addEventListener("mousedown", handleClickOutside)
         document.addEventListener("keydown", handleEscape)
+        window.addEventListener("scroll", handleViewportChange, { passive: true })
+        window.addEventListener("resize", handleViewportChange)
 
         return () => {
             document.removeEventListener("mousedown", handleClickOutside)
             document.removeEventListener("keydown", handleEscape)
+            window.removeEventListener("scroll", handleViewportChange)
+            window.removeEventListener("resize", handleViewportChange)
         }
     }, [])
 
@@ -52,7 +60,12 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
         onClick={() => setIsOpen((current) => !current)}
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        className="inline-flex h-10 items-center gap-2 rounded-lg border border-orange-400/20 bg-orange-500/10 px-3 text-sm font-semibold text-orange-200 transition hover:border-orange-300/30 hover:bg-orange-500/20 hover:text-orange-100 active:scale-[0.98] sm:px-4"
+        className={[
+          "inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition active:scale-[0.98] sm:px-4",
+          isOpen
+            ? "border-[var(--accent-border)] bg-[var(--accent-soft-hover)] text-[var(--accent-text)]"
+            : "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)] hover:bg-[var(--accent-soft-hover)]",
+        ].join(" ")}
       >
         <PostAddRoundedIcon sx={{ fontSize: 20 }} />
 
@@ -78,24 +91,24 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
               duration: 0.16,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="absolute right-0 top-[calc(100%+10px)] z-50 w-[250px] overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.55)]"
+            className="absolute right-0 top-[calc(100%+10px)] z-40 w-[250px] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
           >
             <button
               type="button"
               role="menuitem"
               onClick={() => handleSelect("recipe")}
-              className="flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition hover:bg-white/[0.05]"
+              className="flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition hover:bg-[var(--dropdown-hover)]"
             >
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 text-orange-200">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]">
                 <ArticleRoundedIcon sx={{ fontSize: 19 }} />
               </span>
 
               <span>
-                <span className="block text-sm font-semibold text-white">
+                <span className="block text-sm font-semibold text-[var(--text-primary)]">
                   Recipe
                 </span>
 
-                <span className="mt-0.5 block text-xs leading-5 text-[#8f97b1]">
+                <span className="mt-0.5 block text-xs leading-5 text-[var(--text-muted)]">
                   Publish a complete recipe with ingredients and cooking steps.
                 </span>
               </span>
@@ -105,18 +118,18 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
               type="button"
               role="menuitem"
               onClick={() => handleSelect("reel")}
-              className="flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition hover:bg-white/[0.05]"
+              className="flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition hover:bg-[var(--dropdown-hover)]"
             >
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 text-orange-200">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]">
                 <VideoLibraryRoundedIcon sx={{ fontSize: 19 }} />
               </span>
 
               <span>
-                <span className="block text-sm font-semibold text-white">
+                <span className="block text-sm font-semibold text-[var(--text-primary)]">
                   Reel (WIP)
                 </span>
 
-                <span className="mt-0.5 block text-xs leading-5 text-[#8f97b1]">
+                <span className="mt-0.5 block text-xs leading-5 text-[var(--text-muted)]">
                   Share a short vertical cooking video with the community.
                 </span>
               </span>

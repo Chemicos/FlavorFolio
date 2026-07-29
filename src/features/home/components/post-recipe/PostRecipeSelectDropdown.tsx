@@ -20,7 +20,18 @@ interface PostRecipeSelectProps {
     placement?: DropdownPlacement
 }
 
-const fieldClass = "w-full rounded-md border border-white/10 bg-[#0b0b0c] px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50 focus:ring-2 focus:ring-orange-500/10"
+const fieldClass = [
+  "w-full rounded-md border px-4 py-3 text-sm outline-none transition",
+  "border-[var(--input-border)]",
+  "bg-[var(--input-bg)]",
+  "text-[var(--text-primary)]",
+  "placeholder:text-[var(--input-placeholder)]",
+  "hover:border-[var(--border-strong)]",
+  "hover:bg-[var(--input-bg-hover)]",
+  "focus:border-[var(--focus-border)]",
+  "focus:ring-2",
+  "focus:ring-[var(--focus-ring)]",
+].join(" ")
 
 export default function PostRecipeSelectDropdown({
     value,
@@ -53,14 +64,14 @@ export default function PostRecipeSelectDropdown({
             onClick={() => setIsOpen((prev) => !prev)}
             className={`${fieldClass} flex h-[46px] items-center justify-between`}
         >
-            <span className={selectedOption ? "capitalize" : "text-[#6f7892]"}>
+            <span className={selectedOption ? "capitalize text-[var(--text-primary)]" : "text-[var(--input-placeholder)]"}>
                 {selectedOption?.label || placeholder}
             </span>
 
             <motion.span
                 animate={{ rotate: isOpen ? 180 : 0 }}
                 transition={{ duration: 0.15 }}
-                className="flex items-center text-[#a8b3cf]"
+                className="flex items-center text-[var(--text-secondary)]"
             >
                 <KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />
             </motion.span>
@@ -69,34 +80,11 @@ export default function PostRecipeSelectDropdown({
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{
-                        opacity: 0,
-                        y: placement === "top" ? 6 : -6,
-                        scale: 0.96,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        y: 0,
-                        scale: 1,
-                    }}
-                    exit={{
-                        opacity: 0,
-                        y: placement === "top" ? 6 : -6,
-                        scale: 0.96,
-                    }}
-                    transition={{
-                        duration: 0.16,
-                        ease: [0.22, 1, 0.36, 1],
-                    }}
-                    className={[
-                        "absolute left-0 right-0 z-[80]",
-                        "overflow-hidden rounded-lg border border-white/10",
-                        "bg-[#0b0b0c] p-1",
-                        "shadow-[0_18px_45px_rgba(0,0,0,0.55)]",
-                        placement === "top"
-                            ? "bottom-[calc(100%+8px)]"
-                            : "top-[calc(100%+8px)]",
-                    ].join(" ")}
+                    initial={{ opacity: 0, y: placement === "top" ? 6 : -6, scale: 0.96, }}
+                    animate={{ opacity: 1, y: 0, scale: 1, }}
+                    exit={{ opacity: 0, y: placement === "top" ? 6 : -6, scale: 0.96, }}
+                    transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1], }}
+                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
                 >
                     {options.map((option) => {
                         const isSelected = value === option.value
@@ -112,8 +100,8 @@ export default function PostRecipeSelectDropdown({
                                 className={[
                                 "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition",
                                 isSelected
-                                    ? "bg-orange-500/15 text-orange-200"
-                                    : "text-[#a8b3cf] hover:bg-white/[0.04] hover:text-white",
+                                    ? "bg-[var(--dropdown-selected)] text-[var(--accent-text)]"
+                                    : "text-[var(--text-secondary)] hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]",
                                 ].join(" ")}
                             >
                                 <span>{option.label}</span>

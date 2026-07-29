@@ -12,7 +12,21 @@ import { deleteCurrentUserAccount, updateCurrentUserPassword } from "../services
 import { useNavigate } from "react-router-dom"
 import DeleteWarningDialog from "../../home/components/recipe-view-drawer/DeleteWarningDialog"
 
-const inputClass = "h-11 w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-4 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50 focus:ring-2 focus:ring-orange-500/10"
+const inputClass = [
+  "h-11 w-full rounded-lg border px-4 text-sm outline-none",
+  "border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)]",
+  "placeholder:text-[var(--input-placeholder)]",
+  "transition-colors duration-200",
+  "hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)]",
+  "focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]",
+].join(" ")
+
+const passwordVisibilityButtonClass = [
+  "absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg",
+  "text-[var(--text-muted)] transition-colors duration-200",
+  "hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
+  "focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]",
+].join(" ")
 
 export default function SecuritySettingsSection() {
   const { showSnackbar } = useSnackbar()
@@ -78,10 +92,7 @@ export default function SecuritySettingsSection() {
     } catch (error) {
       console.error("Failed to delete account:", error)
 
-      showSnackbar(
-        "Failed to delete account. Please enter your current password or sign in again.",
-        "error"
-      )
+      showSnackbar("Failed to delete account. Please enter your current password or sign in again.", "error")
     } finally {
       setIsDeletingAccount(false)
       setIsDeleteDialogOpen(false)
@@ -96,17 +107,17 @@ export default function SecuritySettingsSection() {
       />
 
       <form onSubmit={handleSubmit} className="mt-8 w-full">
-        <div className="rounded-2xl border border-white/10 p-7">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7 shadow-[var(--shadow-card)] transition-colors duration-200">
           <div>
-            <h3 className="text-base font-bold text-white">Change password</h3>
-            <p className="mt-1 text-sm leading-6 text-[#8f97b1]">
+            <h3 className="text-base font-bold text-[var(--text-primary)]">Change password</h3>
+            <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
               Use a strong password with uppercase, lowercase, numbers and special characters.
             </p>
           </div>
 
           <div className="mt-7 space-y-6">
             <div>
-              <label className="mb-2 block text-sm font-medium text-[#d7def0]">
+              <label className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
                 Current password
               </label>
 
@@ -122,7 +133,7 @@ export default function SecuritySettingsSection() {
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-white/[0.06] hover:text-white"
+                  className={passwordVisibilityButtonClass}
                 >
                   {showCurrentPassword ? (
                     <VisibilityOffRoundedIcon sx={{ fontSize: 18 }} />
@@ -134,7 +145,7 @@ export default function SecuritySettingsSection() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-[#d7def0]">
+              <label className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
                 New password
               </label>
 
@@ -150,7 +161,7 @@ export default function SecuritySettingsSection() {
                 <button
                   type="button"
                   onClick={() => setShowNewPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-white/[0.06] hover:text-white"
+                  className={passwordVisibilityButtonClass}
                 >
                   {showNewPassword ? (
                     <VisibilityOffRoundedIcon sx={{ fontSize: 18 }} />
@@ -160,13 +171,11 @@ export default function SecuritySettingsSection() {
                 </button>
               </div>
 
-              {newPassword.trim() && (
-                <PasswordStrength password={newPassword} />
-              )}
+              {newPassword.trim() && (<PasswordStrength password={newPassword} />)}
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-[#d7def0]">
+              <label className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
                 Confirm new password
               </label>
 
@@ -176,13 +185,19 @@ export default function SecuritySettingsSection() {
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   placeholder="Confirm new password"
-                  className={`${inputClass} pr-11`}
+                  className={`${inputClass} pr-11 ${
+                    !passwordsMatch
+                      ? "border-[var(--danger-border)] focus:border-[var(--danger)] focus:ring-[var(--danger-soft)]"
+                      : ""
+                  }`}
+                  aria-invalid={!passwordsMatch}
+                  aria-describedby={!passwordsMatch ? "password-match-error" : undefined}
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-white/[0.06] hover:text-white"
+                  className={passwordVisibilityButtonClass}
                 >
                   {showConfirmPassword ? (
                     <VisibilityOffRoundedIcon sx={{ fontSize: 18 }} />
@@ -193,7 +208,7 @@ export default function SecuritySettingsSection() {
               </div>
 
               {!passwordsMatch && (
-                <p className="mt-2 text-xs text-[#ff8b7d]">
+                <p id="password-match-error" className="mt-2 text-xs text-[var(--danger-text)]">
                   Passwords do not match.
                 </p>
               )}
@@ -204,10 +219,18 @@ export default function SecuritySettingsSection() {
             <button
               type="submit"
               disabled={!canSave}
-              className="inline-flex h-10 min-w-[150px] items-center justify-center gap-2 rounded-lg border border-orange-400/25 bg-orange-500/20 px-5 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className={[
+                "inline-flex h-10 min-w-[150px] items-center justify-center gap-2 rounded-lg border px-5",
+                "border-[var(--accent-border)] bg-[var(--accent-soft)]",
+                "text-sm font-semibold text-[var(--accent-text)]",
+                "transition-colors duration-200",
+                "hover:bg-[var(--accent-soft-hover)]",
+                "focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              ].join(" ")}
             >
               {isSaving ? (
-                <CircularProgress size={17} thickness={5} sx={{ color: "#fed7aa" }} />
+                <CircularProgress size={17} thickness={5} sx={{ color: "var(--accent)" }} />
               ) : (
                 <SaveRoundedIcon sx={{ fontSize: 18 }} />
               )}
@@ -216,16 +239,23 @@ export default function SecuritySettingsSection() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-red-400/10 bg-red-500/[0.04] p-6">
-          <h3 className="text-base font-bold text-white">Danger Zone</h3>
-          <p className="mt-1 text-sm leading-6 text-[#8f97b1]">
+        <div className="mt-8 rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-6 transition-colors duration-200">
+          <h3 className="text-base font-bold text-[var(--text-primary)]">Danger Zone</h3>
+          <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
             Permanently delete your account and all related data. This action cannot be undone.
           </p>
 
           <button
             type="button"
             onClick={() => setIsDeleteDialogOpen(true)}
-            className="mt-5 inline-flex h-10 items-center gap-2 rounded-lg border border-red-400/15 bg-red-500/10 px-4 text-sm font-semibold text-[#ff8b7d] transition hover:bg-red-500/15"
+            className={[
+              "mt-5 inline-flex h-10 items-center gap-2 rounded-lg border px-4",
+              "border-[var(--danger-border)] bg-[var(--danger-soft)]",
+              "text-sm font-semibold text-[var(--danger-text)]",
+              "transition-colors duration-200",
+              "hover:bg-[color-mix(in_srgb,var(--danger-soft),var(--danger)_8%)]",
+              "focus:outline-none focus:ring-2 focus:ring-[var(--danger-soft)]",
+            ].join(" ")}
           >
             <DeleteOutlineRoundedIcon sx={{ fontSize: 18 }} />
             Delete account

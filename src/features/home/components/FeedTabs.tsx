@@ -26,9 +26,9 @@ export default function FeedTabs({
         scrollButtons={false}
         sx={{
             minHeight: 0,
-            borderBottom: "1px solid rgba(168, 179, 207, 0.12)",
+            borderBottom: "1px solid var(--border)",
             "& .MuiTabs-indicator": {
-            backgroundColor: "#facc15",
+            backgroundColor: "var(--accent)",
             height: "2px",
             borderRadius: "999px",
             },
@@ -52,13 +52,16 @@ export default function FeedTabs({
                     textTransform: "none",
                     fontSize: "0.95rem",
                     fontWeight: 500,
-                    color: "rgba(168, 179, 207, 0.6)",
-                    transition: "color 0.2s ease",
+                    color: "var(--text-muted)",
+                    transition: "color 160ms ease",
                     "&.Mui-selected": {
-                    color: "#facc15",
+                    color: "var(--accent-text)",
                     },
                     "&:hover": {
-                    color: "#ffffff",
+                    color: "var(--text-primary)",
+                    },
+                    "&.Mui-focusVisible": {
+                        backgroundColor: "var(--focus-ring)",
                     },
                 }}
                 />

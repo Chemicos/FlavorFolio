@@ -15,9 +15,9 @@ export default function GlobalSearchResultItem({result, onClick}: GlobalSearchRe
         <button
             type="button"
             onClick={onClick}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-white/[0.05]"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-[var(--surface-hover)]"
         >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/[0.06] text-[#feaa2b]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--surface-subtle)] text-[var(--accent)]">
                 {result.image ? (
                 <img
                     src={result.image}
@@ -32,15 +32,15 @@ export default function GlobalSearchResultItem({result, onClick}: GlobalSearchRe
             </div>
 
             <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-white">
+                <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
                     {result.title}
                 </p>
-                <p className="mt-0.5 truncate text-xs text-[#8f97b1]">
+                <p className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
                     {result.subtitle}
                 </p>
             </div>
 
-            <span className="rounded-full border border-[#feaa2b]/10 bg-[#feaa2b]/[0.07] px-2 py-1 text-[0.62rem] font-semibold uppercase tracking-wide text-[#d7b474]">
+            <span className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-2 py-1 text-[0.62rem] font-semibold uppercase tracking-wide text-[var(--accent-text)]">
                 {result.type}
             </span>
         </button>

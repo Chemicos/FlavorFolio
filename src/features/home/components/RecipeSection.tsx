@@ -144,20 +144,29 @@ export default function RecipeSection({
   return (
     <section ref={sectionRef} className="w-full min-h-[calc(100vh-140px)]">
         <div className="mb-12 flex items-center justify-between gap-4">
-            <h2 className="text-[1.3rem] 2xl-plus:text-[1.6rem] text-white/45">
+            <h2 className="text-[1.3rem] 2xl-plus:text-[1.6rem] text-[var(--text-secondary)]">
                 {title}
             </h2>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
                 <CreatePostDropdown onSelect={onCreatePost} />
 
                 <button
                     type="button"
                     onClick={onOpenFilters}
                     aria-label="Open filters"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg text-[#a8b3cf] transition hover:bg-white/[0.06] hover:text-white active:scale-95"
+                    className={[
+                        "relative flex h-10 w-10 items-center justify-center rounded-lg border transition active:scale-95",
+                        hasActiveFilters
+                            ? "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)] hover:bg-[var(--accent-soft-hover)]"
+                            : "border-transparent text-[var(--text-secondary)] hover:border-[var(--border)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
+                    ].join(" ")}
                 >
                     <TuneIcon sx={{ fontSize: 20 }} />
+
+                    {hasActiveFilters && (
+                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                    )}
                 </button>
             </div>
         </div>
@@ -166,22 +175,26 @@ export default function RecipeSection({
             <RecipeGridSkeleton count={8} />
         ) : recipes.length === 0 ? (
             <div className="flex min-h-[360px] w-full items-center justify-center">
-                <div className="w-full max-w-[520px] rounded-2xl border border-white/10 bg-white/[0.025] px-8 py-12 text-center shadow-[0_18px_55px_rgba(0,0,0,0.16)]">
-                <h3 className="text-base font-bold text-white">
-                    {hasActiveFilters
-                    ? "No recipes match your filters"
-                    : title === "Following"
-                        ? "No recipes from followed creators"
-                        : "No recipes available"}
-                </h3>
+                <div className="w-full max-w-[520px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-8 py-12 text-center shadow-[var(--shadow-card)]">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]">
+                        <TuneIcon sx={{ fontSize: 22 }} />
+                    </div>
 
-                <p className="mx-auto mt-2 max-w-[390px] text-sm leading-6 text-[#8f97b1]">
-                    {hasActiveFilters
-                    ? "Try removing or adjusting some filters to discover more recipes."
-                    : title === "Following"
-                        ? "Follow more creators to see their latest published recipes here."
-                        : "New recipes will appear here when they become available."}
-                </p>
+                    <h3 className="mt-5 text-base font-bold text-[var(--text-primary)]">
+                        {hasActiveFilters
+                        ? "No recipes match your filters"
+                        : title === "Following"
+                            ? "No recipes from followed creators"
+                            : "No recipes available"}
+                    </h3>
+
+                    <p className="mx-auto mt-2 max-w-[390px] text-sm leading-6 text-[var(--text-muted)]">
+                        {hasActiveFilters
+                        ? "Try removing or adjusting some filters to discover more recipes."
+                        : title === "Following"
+                            ? "Follow more creators to see their latest published recipes here."
+                            : "New recipes will appear here when they become available."}
+                    </p>
                 </div>
             </div>
         ) : (
@@ -230,12 +243,6 @@ export default function RecipeSection({
                 </div>
                 </div>
         )}
-
-        {/* {isFetchingMore && (
-            <div className="flex w-full justify-center py-8">
-                <CircularProgress size={32} thickness={4} sx={{ color: "#fff" }} />
-            </div>
-        )} */}
     </section>
   )
 }

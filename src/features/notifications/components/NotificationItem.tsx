@@ -31,7 +31,7 @@ function formatNotificationDate(createdAt?: FlavorFolioNotification["createdAt"]
 }
 
 function getNotificationIcon(type: NotificationType) {
-  const iconClass = "text-orange-200"
+  const iconClass = "text-[var(--text-on-accent)]"
 
   switch (type) {
     case "recipe_saved":
@@ -47,7 +47,7 @@ function getNotificationIcon(type: NotificationType) {
     case "needs_revision":
       return <ReportProblemRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
     case "recipe_pending":
-      return <PendingActionsRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+      return <PendingActionsRoundedIcon className={iconClass} sx={{ fontSize: 16 }} />
     case "recipe_resubmitted":
       return <ReplayRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
     case "rating":
@@ -59,7 +59,7 @@ function getNotificationIcon(type: NotificationType) {
     case "reply_dislike":
       return <ThumbDownRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
     default:
-      return <ChatBubbleOutlineRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+      return <ChatBubbleOutlineRoundedIcon className={iconClass} sx={{ fontSize: 14 }} />
   }
 }
 
@@ -144,10 +144,10 @@ export default function NotificationItem({
   return (
     <div
       className={[
-        "group relative border-b border-white/10 px-4 py-4 transition last:border-b-0",
+        "group relative border-b border-[var(--border-subtle)] px-4 py-4 transition last:border-b-0",
         notification.read
-          ? "bg-transparent opacity-70 hover:opacity-100"
-          : "bg-white/[0.025] hover:bg-white/[0.045]",
+          ? "bg-transparent opacity-70 hover:bg-[var(--surface-hover)] hover:opacity-100"
+          : "bg-[var(--surface-subtle)] hover:bg-[var(--surface-hover)]",
       ].join(" ")}
     >
       <div
@@ -162,41 +162,43 @@ export default function NotificationItem({
         }}
         className="flex w-full cursor-pointer gap-3 text-left"
       >
-        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white/10">
-          {notification.actorProfileImage ? (
-            <img
-              src={notification.actorProfileImage}
-              alt={notification.actorUsername || "User"}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
-              {actorInitial}
-            </div>
-          )}
+        <div className="relative h-11 w-11 shrink-0 overflow-visible">
+          <div className="h-11 w-11 overflow-hidden rounded-full border border-[var(--border-subtle)] bg-[var(--surface-muted)]">
+            {notification.actorProfileImage ? (
+              <img
+                src={notification.actorProfileImage}
+                alt={notification.actorUsername || "User"}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-sm font-bold text-[var(--text-primary)]">
+                {actorInitial}
+              </div>
+            )}
+          </div>
 
-          <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-[#1b1d22] bg-orange-500/90">
+          <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[var(--dropdown-bg)] bg-[var(--accent)]">
             {getNotificationIcon(notification.type)}
           </div>
         </div>
 
         <div className="min-w-0 flex-1 pr-7">
           <div className="flex items-start justify-between gap-3">
-            <p className="text-sm font-semibold leading-5 text-white">
+            <p className="text-sm font-semibold leading-5 text-[var(--text-primary)]">
               {notification.actorUsername || "FlavorFolio"}
             </p>
 
             {!notification.read && (
-              <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.75)]" />
+              <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[var(--success)] shadow-[0_0_12px_var(--success-soft)]" />
             )}
           </div>
 
-          <p className="mt-1 text-sm leading-6 text-[#d7def0]">
+          <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
             {notification.message}
           </p>
 
           {notification.recipeTitle && (
-            <p className="mt-1 truncate text-xs font-medium text-orange-200/80">
+            <p className="mt-1 truncate text-xs font-medium text-[var(--accent-text)]">
               {notification.recipeTitle}
             </p>
           )}
@@ -205,13 +207,13 @@ export default function NotificationItem({
             <button
               type="button"
               onClick={handleActionClick}
-              className="mt-3 inline-flex h-8 items-center rounded-lg border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-[#d7def0] transition hover:border-[#feaa2b]/30 hover:bg-[#feaa2b]/10 hover:text-[#ffd28a] active:scale-95"
+              className="mt-3 inline-flex h-8 items-center rounded-lg border border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] px-3 text-xs font-semibold text-[var(--button-secondary-text)] transition hover:border-[var(--accent-border)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-text)] active:scale-95"
             >
               {action.label}
             </button>
           )}
 
-          <p className="mt-2 text-xs text-[#6f7892]">
+          <p className="mt-2 text-xs text-[var(--text-muted)]">
             {formatNotificationDate(notification.createdAt)}
           </p>
         </div>
@@ -223,7 +225,7 @@ export default function NotificationItem({
           event.stopPropagation()
           onDelete(notification.id)
         }}
-        className="absolute right-3 top-4 flex h-7 w-7 items-center justify-center rounded-lg text-[#6f7892] opacity-0 transition hover:bg-white/[0.06] hover:text-white group-hover:opacity-100"
+        className="absolute right-3 top-4 flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-muted)] opacity-0 transition hover:bg-[var(--danger-soft)] hover:text-[var(--danger-text)] focus:opacity-100 group-hover:opacity-100"
         aria-label="Delete notification"
       >
         <CloseRoundedIcon sx={{ fontSize: 17 }} />

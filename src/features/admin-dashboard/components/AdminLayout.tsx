@@ -32,8 +32,8 @@ export default function AdminLayout({
         className={[
           "w-full transition-all duration-300 xl:px-8",
           fullHeight
-            ? "flex h-screen flex-col overflow-hidden px-6 pb-6 pt-24"
-            : "px-6 pb-16 pt-24",
+            ? "flex h-screen flex-col overflow-hidden px-6 pb-6 pt-20"
+            : "px-6 pb-16 pt-20",
           isCollapsed
             ? "xl:ml-[82px] xl:w-[calc(100%-82px)]"
             : "xl:ml-[260px] xl:w-[calc(100%-260px)]",

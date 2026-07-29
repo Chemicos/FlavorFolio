@@ -3,6 +3,7 @@ import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded"
 import BlockRoundedIcon from "@mui/icons-material/BlockRounded"
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded"
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded"
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded"
 
 import { AccountSettingsTab } from "./AccountSettingsLayout"
 import { useNavigate } from "react-router-dom"
@@ -33,6 +34,11 @@ const sidebarItems: Array<{
     label: "Privacy",
     icon: VisibilityRoundedIcon,
   },
+  {
+    value: "preferences",
+    label: "Preferences",
+    icon: SettingsRoundedIcon,
+  },
 ]
 
 export default function AccountSettingsSidebar({
@@ -42,20 +48,20 @@ export default function AccountSettingsSidebar({
   const navigate = useNavigate()
 
   return (
-    <aside className="sticky top-20 h-fit overflow-hidden rounded-2xl border border-white/10 bg-[#16181d]/80 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+    <aside className="sticky top-20 h-fit overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] p-5 shadow-[var(--shadow-panel)] transition-colors duration-200">
       <div className="flex items-center gap-4 px-1">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-[#a8b3cf] transition hover:bg-white/[0.08] hover:text-white active:scale-95"
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95"
           aria-label="Go back"
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
         </button>
 
         <div>
-          <h1 className="text-lg font-bold text-white">Account Settings</h1>
-          <p className="mt-1 text-xs text-[#7f89a6]">
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">Account Settings</h1>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
             Manage your account preferences.
           </p>
         </div>
@@ -75,11 +81,18 @@ export default function AccountSettingsSidebar({
                 "group flex h-11 w-full items-center rounded-xl text-sm font-semibold transition",
                 "gap-3 px-3 text-left",
                 isActive
-                  ? "border border-[#feaa2b]/25 bg-[#feaa2b]/10 text-[#ffd28a]"
-                  : "border border-transparent text-[#a8b3cf] hover:bg-white/[0.04] hover:text-white",
+                  ? "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                  : "border-transparent text-[var(--text-secondary)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]",
               ].join(" ")}
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
+              <span
+                className={[
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition",
+                  isActive
+                    ? "bg-[var(--accent-soft-hover)]"
+                    : "bg-[var(--surface-subtle)] group-hover:bg-[var(--surface-hover)]",
+                ].join(" ")}
+              >
                 <Icon sx={{ fontSize: 19 }} />
               </span>
 
@@ -89,12 +102,12 @@ export default function AccountSettingsSidebar({
         })}
       </nav>
 
-      <div className="mt-16 border-t border-white/10 pt-5">
+      <div className="mt-16 border-t border-[var(--border)] pt-5">
         <button
           type="button"
-          className="group flex h-11 w-full items-center gap-3 rounded-xl border border-transparent px-3 text-left text-sm font-semibold text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
+          className="group flex h-11 w-full items-center gap-3 rounded-xl border border-transparent px-3 text-left text-sm font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--danger-soft)] hover:text-[var(--danger-text)]"
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-subtle)] transition group-hover:bg-[var(--danger-soft)]">
             <LogoutRoundedIcon sx={{ fontSize: 19 }} />
           </span>
 

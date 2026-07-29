@@ -123,11 +123,6 @@ export default function GlobalSearchBar() {
         navigate(`/users/${result.id}`)
     }
 
-    // const emptyMessage = useMemo(() => {
-    //     if (search.trim().length < 3) return "Type at least 3 characters."
-    //     return "No results found."
-    // }, [search])
-
     const emptyMessage = useMemo(() => {
         if (search.trim().length < 2) {
             return "Type at least 2 characters."
@@ -183,7 +178,7 @@ export default function GlobalSearchBar() {
             <div className="relative">
                 <SearchRoundedIcon
                     sx={{ fontSize: 20 }}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-[#8f97b1]"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-[var(--text-muted)]"
                 />
 
                 <input
@@ -191,7 +186,7 @@ export default function GlobalSearchBar() {
                     onFocus={() => setIsFocused(true)}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search recipes, ingredients, cuisine, users..."
-                    className="h-11 w-full rounded-xl border border-white/10 bg-[#111216]/90 pl-12 pr-12 text-sm text-white outline-none backdrop-blur-xl transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-[#feaa2b]/40 focus:ring-2 focus:ring-[#feaa2b]/10"
+                    className="h-11 w-full rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] pl-12 pr-12 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
 
                 {hasSearch && (
@@ -203,11 +198,9 @@ export default function GlobalSearchBar() {
                         setActiveTab("all")
                     }}
                     aria-label="Clear search"
-                    className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-white/[0.06] hover:text-white"
+                    className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[var(--text-secondary)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
                 >
-                    <CloseRoundedIcon
-                    sx={{ fontSize: 18 }}
-                    />
+                    <CloseRoundedIcon sx={{ fontSize: 18 }}/>
                 </button>
                 )}
             </div>
@@ -219,14 +212,14 @@ export default function GlobalSearchBar() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.98 }}
                     transition={{ duration: 0.16 }}
-                    className="absolute left-0 right-0 top-14 z-[90] overflow-hidden rounded-2xl border border-white/10 bg-[#1b1d22] shadow-[0_24px_90px_rgba(0,0,0,0.65)]"
+                    className="absolute left-0 right-0 top-14 z-[90] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] shadow-[var(--shadow-dropdown)] transition-colors duration-200"
                 >
-                    <header className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3">
-                        <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-[#8f97b1]">
+                    <header className="flex items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3">
+                        <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                             Search results
                         </p>
 
-                        <div className="flex items-center rounded-lg border border-white/[0.08] bg-[#111216] p-1">
+                        <div className="flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] p-1">
                             {searchTabs.map((tab) => {
                             const isActive = activeTab === tab.value
 
@@ -240,8 +233,8 @@ export default function GlobalSearchBar() {
                                 className={[
                                     "relative flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[0.7rem] font-semibold transition",
                                     isActive
-                                    ? "bg-white/[0.08] text-white"
-                                    : "text-[#7f89a6] hover:bg-white/[0.04] hover:text-[#d7def0]",
+                                    ? "bg-[var(--surface-active)] text-[var(--text-primary)]"
+                                    : "text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
                                 ].join(" ")}
                                 >
                                 <span>
@@ -253,8 +246,8 @@ export default function GlobalSearchBar() {
                                     className={[
                                         "flex min-w-4 items-center justify-center rounded-full px-1 text-[0.6rem]",
                                         isActive
-                                        ? "bg-[#feaa2b]/15 text-[#ffd28a]"
-                                        : "bg-white/[0.05] text-[#6f7892]",
+                                        ? "bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                                        : "bg-[var(--surface-muted)] text-[var(--text-muted)]",
                                     ].join(" ")}
                                     >
                                         {tabCount}
@@ -320,29 +313,25 @@ export default function GlobalSearchBar() {
                             </motion.div>
                         ) : (
                             <div className="px-4 py-10 text-center">
-                            <p className="text-sm font-semibold text-white">
+                            <p className="text-sm font-semibold text-[var(--text-primary)]">
                                 {emptyMessage}
                             </p>
 
-                            <p className="mt-1 text-xs leading-5 text-[#8f97b1]">
+                            <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
                                 {emptyDescription}
                             </p>
                             </div>
                         )}
                         </motion.div>
 
-                        {!isLoading &&
-                        canToggleAllResults && (
-                            <footer className="border-t border-white/[0.08] p-2">
+                        {!isLoading && canToggleAllResults && (
+                            <footer className="border-t border-[var(--border)] p-2">
                             <button
                                 type="button"
                                 onClick={() =>
-                                setShowAllResults(
-                                    (previous) =>
-                                    !previous
-                                )
+                                    setShowAllResults((previous) => !previous)
                                 }
-                                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg text-xs font-semibold text-[#a8b3cf] transition hover:bg-white/[0.05] hover:text-white"
+                                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg text-xs font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
                             >
                                 {showAllResults ? (
                                 <>
@@ -354,19 +343,11 @@ export default function GlobalSearchBar() {
                                     Show all results
                                     {hiddenResultsCount >
                                     0 && (
-                                    <span className="text-[#6f7892]">
-                                        (
-                                        {
-                                        filteredResults.length
-                                        }
-                                        )
+                                    <span className="text-[var(--text-muted)]">
+                                        ({filteredResults.length})
                                     </span>
                                     )}
-                                    <KeyboardArrowDownRoundedIcon
-                                    sx={{
-                                        fontSize: 17,
-                                    }}
-                                    />
+                                    <KeyboardArrowDownRoundedIcon sx={{ fontSize: 17, }} />
                                 </>
                                 )}
                             </button>

@@ -7,9 +7,7 @@ import { collection, doc, getCountFromServer, getDoc, getDocs, onSnapshot, query
 import { db } from "../../firebase-config"
 
 import {motion} from "motion/react"
-import DarkModeIcon from '@mui/icons-material/DarkMode'
 import SmartDisplayRoundedIcon from "@mui/icons-material/SmartDisplayRounded"
-import LightModeIcon from '@mui/icons-material/LightMode'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import UserDropdownMenu from './UserDropdownMenu'
@@ -25,6 +23,7 @@ interface NavigationProps {
 
 export default function Navigation({ onFeedbackClick, floatingMessagesRightOffset = 24, }: NavigationProps) {
     const navigate = useNavigate()
+    const location = useLocation()
     const auth = getAuth()
     
     const [username, setUsername] = useState('')
@@ -36,13 +35,15 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
     const [needsRevisionCount, setNeedsRevisionCount] = useState(0)
     const [pendingCount, setPendingCount] = useState(0)
     const [feedbackCount, setFeedbackCount] = useState(0)
-    const [isDarkMode, setIsDarkMode] = useState(false)
+    // const [isDarkMode, setIsDarkMode] = useState(false)
     
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const menuOpen = Boolean(anchorEl)
 
     const notificationRef = useRef<HTMLDivElement | null>(null)
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+
+    const isReelsRoute = location.pathname.startsWith("/reels")
 
     const {
       notifications,
@@ -130,16 +131,6 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
   // <<
 
   useEffect(() => {
-    const darkMode = localStorage.getItem('darkMode') === 'true'
-    setIsDarkMode(darkMode)
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [])
-
-  useEffect(() => {
     const fetchNeedsRevisionCount = async () => {
       const user = auth.currentUser
       if (!user) return
@@ -174,18 +165,6 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
       document.removeEventListener("pointerdown", handlePointerDown)
     }
   }, [isNotificationsOpen])
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode
-    setIsDarkMode(newDarkMode)
-    localStorage.setItem('darkMode', String(newDarkMode))
-
-    if (newDarkMode) {
-        document.documentElement.classList.add('dark')
-    } else {
-        document.documentElement.classList.remove('dark')
-    }
-  }
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -223,7 +202,7 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
   return (
     <>
       <div className='fixed left-0 top-0 z-50 w-full'>
-          <nav className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-white/10 bg-[#0b0b0c] px-6">    
+          <nav className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6 shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-colors duration-200">    
             <Link
               to="/home"
               className='flex items-center transition duration-200 hover:scale-105'
@@ -239,7 +218,12 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
               <button
                 type="button"
                 onClick={() => navigate("/reels")}
-                className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-[#111216]/90 px-4 text-sm font-semibold text-[#d7def0] backdrop-blur-xl transition hover:border-[#feaa2b]/30 hover:bg-[#feaa2b]/10 hover:text-[#ffd28a] active:scale-95"
+                className={[
+                "flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-semibold backdrop-blur-xl transition active:scale-95",
+                isReelsRoute
+                  ? "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                  : "border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] hover:border-[var(--accent-border)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-text)]",
+              ].join(" ")}
               >
                 <SmartDisplayRoundedIcon sx={{ fontSize: 20 }} />
                 Reels
@@ -253,13 +237,19 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
                 <button
                   type="button"
                   onClick={() => setIsNotificationsOpen((prev) => !prev)}
-                  className="relative flex h-10 w-10 items-center justify-center rounded-lg text-[#a8b3cf] transition hover:bg-white/[0.06] hover:text-white active:scale-95"
+                  className={[
+                    "relative flex h-10 w-10 items-center justify-center rounded-lg",
+                    "text-[var(--text-secondary)] transition active:scale-95",
+                    "hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
+                    isNotificationsOpen ? "bg-[var(--surface-active)] text-[var(--text-primary)]" : "",
+                  ].join(" ")}
                   aria-label="Notifications"
+                  aria-expanded={isNotificationsOpen}
                 >
                   <NotificationsIcon sx={{ fontSize: 25 }} />
 
                   {unreadCount > 0 && (
-                    <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-400 px-1 text-[10px] font-bold text-[#0b0b0c] shadow-[0_0_14px_rgba(251,146,60,0.65)]">
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-bold text-[var(--text-on-accent)] shadow-[0_0_14px_var(--accent-soft-hover)]">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
@@ -277,7 +267,6 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
                   onNotificationClick={(notification) => {
                     if (notification.recipeId) {
                       setIsNotificationsOpen(false)
-                      // momentan doar închidem; mai târziu putem deschide recipe drawer / navigate.
                     }
                   }}
                 />
@@ -290,9 +279,14 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
                   aria-expanded={menuOpen}
                   aria-haspopup="true"
                   onClick={handleMenuOpen}
-                  className='flex items-center gap-3 rounded-lg px-3 py-1 pr-4 transition hover:bg-white/[0.06]'
+                  className={[
+                    "flex items-center gap-3 rounded-xl border border-transparent px-3 py-1 pr-4",
+                    "text-[var(--text-secondary)] transition",
+                    "hover:border-[var(--border)] hover:bg-[var(--surface-hover)]",
+                    menuOpen ? "border-[var(--border)] bg-[var(--surface-active)]" : "",
+                  ].join(" ")}
                 >
-                  <div className='relative h-8 w-8 overflow-hidden rounded-lg bg-white/10'>
+                  <div className='relative h-8 w-8 overflow-hidden rounded-lg bg-[var(--surface-muted)]'>
                     {userPhoto ? (
                       <img
                         ref={avatarImageRef}
@@ -306,13 +300,13 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
                         ].join(' ')}
                       />
                     ) : (
-                      <div className='absolute inset-0 animate-pulse bg-white/10' />
+                      <div className='absolute inset-0 animate-pulse bg-[var(--surface-muted)]' />
                     )}
                   </div>
 
                   <div className='hidden min-w-[110px] text-left md:flex flex-col gap-[2px]'>
-                    <p className='truncate text-sm font-semibold text-[#a8b3cf]'>{username}</p>
-                    <p className='text-[11px] text-[#a8b3cf]/50'>
+                    <p className='truncate text-sm font-semibold text-[var(--text-primary)]'>{username}</p>
+                    <p className='text-[11px] text-[var(--text-muted)]'>
                       {isAdmin ? "Admin" : "Member"}
                     </p>
                   </div>
@@ -323,9 +317,9 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
                       duration: 0.22,
                       ease: [0.22, 1, 0.36, 1]
                     }}
-                    className='flex items-center justify-center'
+                    className='flex items-center justify-center text-[var(--text-secondary)]'
                   >
-                    <ExpandMoreIcon sx={{fontSize: 24, color: "#a8b3cf"}} />
+                    <ExpandMoreIcon sx={{fontSize: 24}} />
                   </motion.div>
                 </button>
 

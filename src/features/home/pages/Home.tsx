@@ -436,201 +436,196 @@ export default function Home() {
     }
   
   return (
-    <div 
-      className="relative min-h-screen w-full overflow-x-clip bg-[#0d0e11]"
-      style={{
-        background: `
-          radial-gradient(circle at 15% 0%, rgba(255,145,0,0.08), transparent 30%),
-          radial-gradient(circle at 90% 10%, rgba(255,255,255,0.025), transparent 25%),
-          radial-gradient(circle at 50% 100%, rgba(255,170,60,0.04), transparent 45%),
-          linear-gradient(180deg, #0d0e11 0%, #090909 100%)
-        `,
-      }}
-    >
-    <div className="relative z-10">
-      <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
+    <div  className="relative min-h-screen w-full overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors">
+      <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-[-180px] top-[-220px] h-[560px] w-[560px] rounded-full bg-[var(--accent-soft)] opacity-70 blur-[130px]"
+        />
 
-      <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
-        <main
-          className={[
-            "min-w-0 flex-1 transition-[max-width,width] duration-300 ease-out",
-            isInlineDrawerOpen ? "max-w-none" : "mx-auto max-w-[1400px]",
-          ].join(" ")}
-        >
-          <div>
-            <FeedTabs
-              activeTab={activeTab}
-              // onTabChange={setActiveTab}
-              onTabChange={handleTabChange}
-            />
+      <div className="relative z-10">
+        <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
 
-            <FilterBar
-              filters={filters}
-              onChangeFilters={setFilters}
-              onResetFilters={handleResetFilters}
-            />  
-          </div>
+        <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
+          <main
+            className={[
+              "min-w-0 flex-1 transition-[max-width,width] duration-300 ease-out",
+              isInlineDrawerOpen ? "max-w-none" : "mx-auto max-w-[1320px]",
+            ].join(" ")}
+          >
+            <div>
+              <FeedTabs
+                activeTab={activeTab}
+                // onTabChange={setActiveTab}
+                onTabChange={handleTabChange}
+              />
 
-          <div className="mt-8">        
-            <Content
-              // recipes={activeRecipes}
-              recipes={visibleSearchedRecipes}
-              isLoading={isLoading}
-              isFiltering={isFiltering}
-              title={activeTab}
-              onOpenFilters={() => setIsFilterDrawerOpen(true)}
-              currentUser={currentUser}
-              savedRecipes={savedRecipes}
-              followingUserIds={followingUserIds}
-              authorFollowersCountMap={authorFollowersCountMap}
-              onFollowStateChange={handleFollowStateChange}
-              onFavoriteStateChange={handleFavoriteStateChange}
-              activeTab={activeTab}
-              filters={filters}
-              onRecipeClick={handleRecipeClick}
-              onCreatePost={handlePostClick}
-              hasMoreRecipes={hasMoreRecipes}
-              isFetchingMoreRecipes={isFetchingMoreRecipes}
-              onFetchMoreRecipes={fetchMoreRecipes}
-            />
-          </div>
-        </main>
+              <FilterBar
+                filters={filters}
+                onChangeFilters={setFilters}
+                onResetFilters={handleResetFilters}
+              />  
+            </div>
 
-        <AnimatePresence mode="wait">
-          {isInlineDrawerOpen && (
-            <motion.div
-              key={
-                isRecipeDrawerLoading
-                  ? `loading-${recipeIdFromUrl}`
-                  : editingRecipe
-                    ? `edit-${editingRecipe.recipeId || editingRecipe.id}`
-                    : isPostFormVisible
-                      ? `create-${selectedPostType}`
-                      : `view-${selectedRecipe?.recipeId || selectedRecipe?.id}`
-              }
-              initial={{ opacity: 0, }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, }}
-              transition={{
-                duration: 0.22,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="sticky top-20 self-start"
-              style={{
-                width: RECIPE_DRAWER_WIDTH,
-                flexShrink: 0,
-              }}
-            >
-              {isRecipeDrawerLoading ? (
-                <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.28)]">
-                  <CircularProgress
-                    size={34}
-                    thickness={4.5}
-                    sx={{ color: "#feaa2b" }}
+            <div className="mt-8">        
+              <Content
+                // recipes={activeRecipes}
+                recipes={visibleSearchedRecipes}
+                isLoading={isLoading}
+                isFiltering={isFiltering}
+                title={activeTab}
+                onOpenFilters={() => setIsFilterDrawerOpen(true)}
+                currentUser={currentUser}
+                savedRecipes={savedRecipes}
+                followingUserIds={followingUserIds}
+                authorFollowersCountMap={authorFollowersCountMap}
+                onFollowStateChange={handleFollowStateChange}
+                onFavoriteStateChange={handleFavoriteStateChange}
+                activeTab={activeTab}
+                filters={filters}
+                onRecipeClick={handleRecipeClick}
+                onCreatePost={handlePostClick}
+                hasMoreRecipes={hasMoreRecipes}
+                isFetchingMoreRecipes={isFetchingMoreRecipes}
+                onFetchMoreRecipes={fetchMoreRecipes}
+              />
+            </div>
+          </main>
+
+          <AnimatePresence mode="wait">
+            {isInlineDrawerOpen && (
+              <motion.div
+                key={
+                  isRecipeDrawerLoading
+                    ? `loading-${recipeIdFromUrl}`
+                    : editingRecipe
+                      ? `edit-${editingRecipe.recipeId || editingRecipe.id}`
+                      : isPostFormVisible
+                        ? `create-${selectedPostType}`
+                        : `view-${selectedRecipe?.recipeId || selectedRecipe?.id}`
+                }
+                initial={{ opacity: 0, }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, }}
+                transition={{
+                  duration: 0.22,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="sticky top-20 self-start"
+                style={{
+                  width: RECIPE_DRAWER_WIDTH,
+                  flexShrink: 0,
+                }}
+              >
+                {isRecipeDrawerLoading ? (
+                  <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-panel)]">
+                    <CircularProgress
+                      size={34}
+                      thickness={4.5}
+                      sx={{ color: "var(--accent)" }}
+                    />
+
+                    <p className="mt-4 text-sm font-medium text-[var(--text-secondary)]">
+                      Loading recipe...
+                    </p>
+                  </aside>
+                ) : isPostFormVisible ? (
+                  <PostRecipeDrawer
+                    variant="inline"
+                    width={RECIPE_DRAWER_WIDTH}
+                    postType={editingRecipe ? "recipe" : selectedPostType}
+                    onClose={handleClosePostRecipeDrawer}
+                    currentUser={currentUser}
+                    onSubmitSuccess={handleRecipeSubmitSuccess}
+                    onReelSubmitSuccess={handleReelSubmitSuccess}
+                    mode={editingRecipe ? "edit" : "create"}
+                    recipeToEdit={editingRecipe}
+                    onUpdateSuccess={handleRecipeUpdateSuccess}
                   />
+                ) : selectedRecipe ? (
+                  <ViewRecipeDrawer
+                    presentation="inline"
+                    width={RECIPE_DRAWER_WIDTH}
+                    recipe={selectedRecipe}
+                    onShareRecipe={handleShareRecipe}
+                    currentUser={currentUser}
+                    savedRecipes={savedRecipes}
+                    followingUserIds={followingUserIds}
+                    authorFollowersCount={
+                      authorFollowersCountMap[selectedRecipe.userId || ""] ??
+                      Number(selectedRecipe.author?.followersCount || 0)
+                    }
+                    onAuthorClick={handleAuthorProfileClick}
+                    onClose={handleCloseRecipeDrawer}
+                    onFavoriteStateChange={(recipeId, isNowSaved) => {
+                      handleFavoriteStateChange(recipeId, isNowSaved)
 
-                  <p className="mt-4 text-sm font-medium text-[#a8b3cf]">
-                    Loading recipe...
-                  </p>
-                </aside>
-              ) : isPostFormVisible ? (
-                <PostRecipeDrawer
-                  variant="inline"
-                  width={RECIPE_DRAWER_WIDTH}
-                  postType={editingRecipe ? "recipe" : selectedPostType}
-                  onClose={handleClosePostRecipeDrawer}
-                  currentUser={currentUser}
-                  onSubmitSuccess={handleRecipeSubmitSuccess}
-                  onReelSubmitSuccess={handleReelSubmitSuccess}
-                  mode={editingRecipe ? "edit" : "create"}
-                  recipeToEdit={editingRecipe}
-                  onUpdateSuccess={handleRecipeUpdateSuccess}
-                />
-              ) : selectedRecipe ? (
-                <ViewRecipeDrawer
-                  presentation="inline"
-                  width={RECIPE_DRAWER_WIDTH}
-                  recipe={selectedRecipe}
-                  onShareRecipe={handleShareRecipe}
-                  currentUser={currentUser}
-                  savedRecipes={savedRecipes}
-                  followingUserIds={followingUserIds}
-                  authorFollowersCount={
-                    authorFollowersCountMap[selectedRecipe.userId || ""] ??
-                    Number(selectedRecipe.author?.followersCount || 0)
-                  }
-                  onAuthorClick={handleAuthorProfileClick}
-                  onClose={handleCloseRecipeDrawer}
-                  onFavoriteStateChange={(recipeId, isNowSaved) => {
-                    handleFavoriteStateChange(recipeId, isNowSaved)
+                      showSnackbar(
+                        isNowSaved
+                          ? "Recipe saved."
+                          : "Recipe removed from saved recipes.",
+                        isNowSaved ? "success" : "info"
+                      )
+                    }}
+                    onFollowStateChange={handleRecipeDrawerFollowStateChange}
+                    onRatingStateChange={handleRecipeDrawerRatingStateChange}
+                    onCommentStateChange={handleCommentStateChange}
+                    onEditRecipe={handleEditRecipe}
+                    onDeleteRecipe={handleRecipeDeleteSuccess}
+                    blockedUserIds={blockedUserIds}
+                    blockedByUserIds={blockedByUserIds}
+                  />
+                ) : null}
+              </motion.div>
+            )}
+            
+          </AnimatePresence>
+        </div>
 
-                    showSnackbar(
-                      isNowSaved
-                        ? "Recipe saved."
-                        : "Recipe removed from saved recipes.",
-                      isNowSaved ? "success" : "info"
-                    )
-                  }}
-                  onFollowStateChange={handleRecipeDrawerFollowStateChange}
-                  onRatingStateChange={handleRecipeDrawerRatingStateChange}
-                  onCommentStateChange={handleCommentStateChange}
-                  onEditRecipe={handleEditRecipe}
-                  onDeleteRecipe={handleRecipeDeleteSuccess}
-                  blockedUserIds={blockedUserIds}
-                  blockedByUserIds={blockedByUserIds}
-                />
-              ) : null}
-            </motion.div>
+        {/* <FloatingSpeedDial /> */}
+        <ScrollToTopButton rightOffset={floatingActionsRightOffset} />
+
+        {/* <AnimatePresence>
+          {isPostFormVisible && (
+            <PostRecipeDrawer 
+              onClose={handleClosePostRecipeDrawer} 
+              currentUser={currentUser} 
+              onSubmitSuccess={handleRecipeSubmitSuccess}
+              mode={editingRecipe ?  "edit" : "create"}
+              recipeToEdit={editingRecipe}
+              onUpdateSuccess={handleRecipeUpdateSuccess}
+            />
           )}
-          
+        </AnimatePresence> */}
+
+        {/* {isFeedbackVisible && <Feedback onClose={handleClose} />} */}
+        
+        <AnimatePresence>
+          {isFilterDrawerOpen && (
+            <FilterDrawer
+              isOpen={isFilterDrawerOpen}
+              filters={filters}
+              availableCuisines={availableCuisines}
+              onClose={() => setIsFilterDrawerOpen(false)}
+              onChange={setFilters}
+              onReset={() => setFilters(defaultRecipeFilters)}
+            />
+          )}
         </AnimatePresence>
+
+
+        <ShareRecipeModal
+            isOpen={isShareModalOpen}
+            currentUserId={currentUser?.uid || null}
+            recipe={sharedRecipe}
+            onClose={() => {
+                setIsShareModalOpen(false)
+                setRecipeToShare(null)
+            }}
+            onShared={(username) => {
+                showSnackbar(`Recipe shared with ${username}`, "success")
+            }}
+        />
       </div>
-
-      {/* <FloatingSpeedDial /> */}
-      <ScrollToTopButton rightOffset={floatingActionsRightOffset} />
-
-      {/* <AnimatePresence>
-        {isPostFormVisible && (
-          <PostRecipeDrawer 
-            onClose={handleClosePostRecipeDrawer} 
-            currentUser={currentUser} 
-            onSubmitSuccess={handleRecipeSubmitSuccess}
-            mode={editingRecipe ?  "edit" : "create"}
-            recipeToEdit={editingRecipe}
-            onUpdateSuccess={handleRecipeUpdateSuccess}
-          />
-        )}
-      </AnimatePresence> */}
-
-      {/* {isFeedbackVisible && <Feedback onClose={handleClose} />} */}
-      
-      <AnimatePresence>
-        {isFilterDrawerOpen && (
-          <FilterDrawer
-            isOpen={isFilterDrawerOpen}
-            filters={filters}
-            availableCuisines={availableCuisines}
-            onClose={() => setIsFilterDrawerOpen(false)}
-            onChange={setFilters}
-            onReset={() => setFilters(defaultRecipeFilters)}
-          />
-        )}
-      </AnimatePresence>
-
-
-      <ShareRecipeModal
-          isOpen={isShareModalOpen}
-          currentUserId={currentUser?.uid || null}
-          recipe={sharedRecipe}
-          onClose={() => {
-              setIsShareModalOpen(false)
-              setRecipeToShare(null)
-          }}
-          onShared={(username) => {
-              showSnackbar(`Recipe shared with ${username}`, "success")
-          }}
-      />
     </div>
-  </div>
   )
 }

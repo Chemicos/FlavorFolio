@@ -1,0 +1,209 @@
+:root {
+    color-scheme: light;
+
+  /* Application backgrounds */
+  --bg-primary: #f8f4ee;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #fcf9f5;
+  --bg-elevated: #fffdf9;
+
+  /* Surfaces */
+  --surface: #fffdf9;
+  --surface-subtle: #f7efe5;
+  --surface-muted: #f2eadf;
+  --surface-hover: #f7efe3;
+  --surface-active: #f1e3d1;
+
+  /* Borders */
+  --border: #e8ded0;
+  --border-subtle: #eee6dc;
+  --border-strong: #d7c8b7;
+
+  /* Text */
+  --text-primary: #2e251c;
+  --text-secondary: #6d6256;
+  --text-muted: #918575;
+  --text-disabled: #b1a79c;
+  --text-on-accent: #ffffff;
+
+  /* Brand */
+  --accent: #e88a17;
+  --accent-hover: #d97c0a;
+  --accent-active: #c96f05;
+  --accent-soft: rgba(232, 138, 23, 0.12);
+  --accent-soft-hover: rgba(232, 138, 23, 0.18);
+  --accent-border: rgba(232, 138, 23, 0.32);
+  --accent-text: #9a5608;
+
+  /* Semantic states */
+  --success: #16845b;
+  --success-text: #116847;
+  --success-soft: rgba(22, 132, 91, 0.12);
+  --success-border: rgba(22, 132, 91, 0.25);
+
+  --warning: #c77a08;
+  --warning-text: #955a05;
+  --warning-soft: rgba(199, 122, 8, 0.12);
+  --warning-border: rgba(199, 122, 8, 0.25);
+
+  --danger: #dc4c4c;
+  --danger-text: #b53737;
+  --danger-soft: rgba(220, 76, 76, 0.11);
+  --danger-border: rgba(220, 76, 76, 0.24);
+
+  --danger-soft-hover: rgba(220, 76, 76, 0.18);
+
+  --info: #3977c4;
+  --info-text: #2b5f9e;
+  --info-soft: rgba(57, 119, 196, 0.11);
+  --info-border: rgba(57, 119, 196, 0.24);
+
+  /* Interactive states */
+  --hover: rgba(80, 55, 30, 0.055);
+  --active: rgba(80, 55, 30, 0.09);
+  --focus-ring: rgba(232, 138, 23, 0.18);
+  --focus-border: rgba(232, 138, 23, 0.55);
+
+  /* Inputs */
+  --input-bg: #fffdf9;
+  --input-bg-hover: #ffffff;
+  --input-border: #e3d8ca;
+  --input-placeholder: #9a8e81;
+
+  /* Buttons */
+  --button-secondary-bg: #f6eee4;
+  --button-secondary-hover: #eee2d3;
+  --button-secondary-text: #55483b;
+  --button-secondary-border: #e5d8c8;
+
+  /* Menu */
+  --menu-hover: rgba(251,191,36,.10);
+  --menu-active: rgba(251,191,36,.14);
+
+  /* Cards and dropdowns */
+  --card-bg: #ffffff;
+  --card-hover: #fffaf4;
+  --dropdown-bg: #fffdf9;
+  --dropdown-hover: #f7efe3;
+  --dropdown-selected: rgba(232, 138, 23, 0.13);
+
+  --account-dropdown-bg: #fffaf3;
+
+  /* Overlay and shadows */
+  --overlay: rgba(45, 32, 20, 0.38);
+
+  --shadow-panel:
+    0 24px 80px rgba(88, 65, 42, 0.09);
+
+  --shadow-card:
+    0 8px 24px rgba(88, 65, 42, 0.08);
+
+  --shadow-dropdown:
+    0 18px 45px rgba(88, 65, 42, 0.16);
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Application backgrounds */
+  --bg-primary: #0d0e11;
+  --bg-secondary: #16181d;
+  --bg-tertiary: #1b1d23;
+  --bg-elevated: #20232b;
+
+  /* Surfaces */
+  --surface: #20232b;
+  --surface-subtle: rgba(255, 255, 255, 0.035);
+  --surface-muted: rgba(255, 255, 255, 0.055);
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --surface-active: rgba(255, 255, 255, 0.08);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.055);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #a8b3cf;
+  --text-muted: #7f89a6;
+  --text-disabled: #596176;
+  --text-on-accent: #0b0b0c;
+
+  /* Brand */
+  --accent: #feaa2b;
+  --accent-hover: #ffb84d;
+  --accent-active: #ec9514;
+  --accent-soft: rgba(254, 170, 43, 0.1);
+  --accent-soft-hover: rgba(254, 170, 43, 0.16);
+  --accent-border: rgba(254, 170, 43, 0.25);
+  --accent-text: #ffd28a;
+
+  /* Semantic states */
+  --success: #55d6a0;
+  --success-text: #8ce9bd;
+  --success-soft: rgba(85, 214, 160, 0.1);
+  --success-border: rgba(85, 214, 160, 0.22);
+
+  --warning: #f6b94d;
+  --warning-text: #ffd388;
+  --warning-soft: rgba(246, 185, 77, 0.1);
+  --warning-border: rgba(246, 185, 77, 0.22);
+
+  --danger: #f87171;
+  --danger-text: #fca5a5;
+  --danger-soft: rgba(248, 113, 113, 0.1);
+  --danger-border: rgba(248, 113, 113, 0.22);
+
+  --danger-soft-hover: rgba(248, 113, 113, 0.17);
+
+  --info: #6ba7f2;
+  --info-text: #9dc7fa;
+  --info-soft: rgba(107, 167, 242, 0.1);
+  --info-border: rgba(107, 167, 242, 0.22);
+
+  /* Interactive states */
+  --hover: rgba(255, 255, 255, 0.04);
+  --active: rgba(255, 255, 255, 0.075);
+  --focus-ring: rgba(254, 170, 43, 0.1);
+  --focus-border: rgba(254, 170, 43, 0.5);
+
+  /* Inputs */
+  --input-bg: #0b0b0c;
+  --input-bg-hover: #101114;
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-placeholder: #6f7892;
+
+  /* Buttons */
+  --button-secondary-bg: rgba(255, 255, 255, 0.04);
+  --button-secondary-hover: rgba(255, 255, 255, 0.08);
+  --button-secondary-text: #a8b3cf;
+  --button-secondary-border: rgba(255, 255, 255, 0.1);
+
+  /* Menu */
+
+  --menu-hover: rgba(254,170,43,.10);
+  --menu-active: rgba(254,170,43,.14);
+
+  /* Cards and dropdowns */
+  --card-bg: #16181d;
+  --card-hover: #1b1e24;
+  --dropdown-bg: #0b0b0c;
+  --dropdown-hover: rgba(255, 255, 255, 0.04);
+  --dropdown-selected: rgba(254, 170, 43, 0.15);
+
+  --account-dropdown-bg: #171a20;
+
+  /* Overlay and shadows */
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --shadow-panel:
+    0 24px 80px rgba(0, 0, 0, 0.28);
+
+  --shadow-card:
+    0 12px 30px rgba(0, 0, 0, 0.2);
+
+  --shadow-dropdown:
+    0 18px 45px rgba(0, 0, 0, 0.45);
+}
+
