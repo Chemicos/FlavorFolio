@@ -157,7 +157,7 @@ export default function RecipeGridCard({
         </div>
 
         <p className="truncate text-xs font-semibold text-white">
-          by {authorUsername}
+          {authorUsername}
         </p>
       </div>  
 

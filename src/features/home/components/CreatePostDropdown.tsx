@@ -91,7 +91,7 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
               duration: 0.16,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="absolute right-0 top-[calc(100%+10px)] z-40 w-[250px] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
+            className="absolute right-0 top-[calc(100%+10px)] z-40 w-[250px] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--account-dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
           >
             <button
               type="button"

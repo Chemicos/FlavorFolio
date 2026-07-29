@@ -25,19 +25,19 @@ function FilterChip ({
 }) {
   return (
     <div className="group flex h-[38px] items-center justify-between gap-2 rounded-lg
-        border border-white/10 bg-[#111318]/70 px-3.5 text-[#a8b3cf]
-        backdrop-blur-md transition-all duration-200
-        hover:border-white/15 hover:bg-[#181b22]/80
+      border border-[var(--border)] bg-[var(--surface-subtle)] px-3.5
+      text-[var(--text-secondary)] transition-all duration-200
+      hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]
     ">
       <div className='flex items-center gap-2'>
-        <span className="flex items-center text-[#a8b3cf]">{icon}</span>
+        <span className="flex items-center text-[var(--text-secondary)]">{icon}</span>
         <span className="text-sm">{label}</span>
       </div>
 
       <button
         type="button"
         onClick={onRemove}
-        className="ml-1 flex items-center justify-center text-[#a8b3cf]/50 transition hover:text-white active:text-[#a8b3cf]/50"
+        className="ml-1 flex items-center justify-center text-[var(--text-muted)] transition hover:text-[var(--danger-text)] active:text-[var(--danger)]"
         aria-label={`Remove ${label} filter`}
       >
         <CloseIcon sx={{fontSize: 18}} />
@@ -72,9 +72,8 @@ export default function FilterBar({
 
   return (
     <div className='w-full'>
-        <div className='flex flex-wrap items-center justify-between gap-3 backdrop-blur-xl'>
-          <div className='flex flex-wrap items-center gap-3'>
-            
+        <div className='flex flex-wrap items-center justify-between gap-3'>
+          <div className='flex flex-wrap items-center gap-3'>  
             {filters.durations.map((duration) => (
               <FilterChip 
                 key={duration}
@@ -194,7 +193,7 @@ export default function FilterBar({
             <button
               type='button'
               onClick={onResetFilters}
-              className='px-3 text-[1rem] text-[#a8b3cf]/50 transition hover:text-white active:text-[#a8b3cf]'
+              className='px-3 text-sm text-[var(--text-muted)] transition hover:text-[var(--text-primary)] active:text-[var(--text-secondary)]'
             >
               Reset filters
             </button>
