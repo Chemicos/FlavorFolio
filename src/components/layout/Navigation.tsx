@@ -219,13 +219,13 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
                 type="button"
                 onClick={() => navigate("/reels")}
                 className={[
-                "flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-semibold backdrop-blur-xl transition active:scale-95",
+                "flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold backdrop-blur-xl transition active:scale-95",
                 isReelsRoute
                   ? "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
                   : "border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] hover:border-[var(--accent-border)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-text)]",
               ].join(" ")}
               >
-                <SmartDisplayRoundedIcon sx={{ fontSize: 20 }} />
+                <SmartDisplayRoundedIcon sx={{ fontSize: 18 }} />
                 Reels
               </button>
 
@@ -286,7 +286,7 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
                     menuOpen ? "border-[var(--border)] bg-[var(--surface-active)]" : "",
                   ].join(" ")}
                 >
-                  <div className='relative h-8 w-8 overflow-hidden rounded-lg bg-[var(--surface-muted)]'>
+                  <div className='relative h-8 w-8 overflow-hidden rounded-md bg-[var(--surface-muted)]'>
                     {userPhoto ? (
                       <img
                         ref={avatarImageRef}

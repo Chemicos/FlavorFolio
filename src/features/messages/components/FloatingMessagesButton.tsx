@@ -22,19 +22,16 @@ const hiddenRoutes = [
 
 export default function FloatingMessagesButton({rightOffset = 24,}: FloatingMessagesButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
+
   const currentUserId = auth.currentUser?.uid || null
-
   const location = useLocation()
-  const isMessagesPage = location.pathname.startsWith("/messages")
-
-  if (!currentUserId || isMessagesPage) return null
-
   const { conversations } = useConversations(currentUserId)
 
+  const isMessagesPage = location.pathname.startsWith("/messages")
   const shouldHide = hiddenRoutes.some((route) =>
     location.pathname.startsWith(route)
   )
-
+  
   const unreadTotal = useMemo(() => {
     if (!currentUserId) return 0
 
@@ -42,9 +39,7 @@ export default function FloatingMessagesButton({rightOffset = 24,}: FloatingMess
       return sum + Number(conversation.unreadCount?.[currentUserId] || 0)
     }, 0)
   }, [conversations, currentUserId])
-  
-  if (shouldHide) return null
-  if (!currentUserId) return null
+  if (!currentUserId || isMessagesPage || shouldHide) return null
 
   return (
     <>
@@ -53,13 +48,13 @@ export default function FloatingMessagesButton({rightOffset = 24,}: FloatingMess
         style={{right: rightOffset}}
         onClick={() => setIsOpen((prev) => !prev)}
         className={[
-          "fixed bottom-6 right-6 z-40 flex h-14 items-center gap-2 rounded-full border px-5 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-[right,background-color,border-color,transform] duration-300 active:scale-95",
+          "fixed bottom-6 right-6 z-40 flex h-14 items-center gap-2 rounded-full border px-5 shadow-[var(--shadow-dropdown)] transition-[right,background-color,border-color,color,transform] duration-200 active:scale-95",
           isOpen
-            ? "border-[#feaa2b]/50 bg-[#feaa2b]/20 text-[#ffd28a]"
-            : "border-white/10 bg-[#0b0b0c]/90 text-[#d7def0] hover:bg-[#16181d]",
+            ? "border-[var(--accent-border)] bg-[var(--accent-soft-hover)] text-[var(--accent-text)]"
+            : "border-[var(--border)] bg-[var(--account-dropdown-bg)] text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--dropdown-hover)]",
         ].join(" ")}
       >
-        <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.05]">
+        <span className="relative flex h-8 w-8 items-center justify-center rounded-full transition">
           {isOpen ? (
             <CloseRoundedIcon sx={{ fontSize: 21 }} />
           ) : (
@@ -67,7 +62,7 @@ export default function FloatingMessagesButton({rightOffset = 24,}: FloatingMess
           )}
 
           {unreadTotal > 0 && !isOpen && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#feaa2b] text-[#0d0e11] px-1 text-[0.68rem] font-bold">
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[0.68rem] font-bold text-[var(--text-on-accent)] shadow-[0_0_14px_var(--accent-soft-hover)]">
               {unreadTotal > 9 ? "9+" : unreadTotal}
             </span>
           )}

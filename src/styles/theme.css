@@ -76,6 +76,17 @@
   --button-secondary-text: #55483b;
   --button-secondary-border: #e5d8c8;
 
+  /* Danger buttons */
+  --button-danger-bg: #fff4f4;
+  --button-danger-hover: #ffe6e6;
+  --button-danger-border: #f2caca;
+  --button-danger-text: #b53737;
+
+  /* Drawer controls */
+  --drawer-control-bg: #fffaf3;
+  --drawer-control-hover: #f2e7d9;
+  --drawer-control-border: #dfd1c0;
+
   /* Menu */
   --menu-hover: rgba(251,191,36,.10);
   --menu-active: rgba(251,191,36,.14);
@@ -176,12 +187,23 @@
 
   /* Buttons */
   --button-secondary-bg: rgba(255, 255, 255, 0.04);
-  --button-secondary-hover: rgba(255, 255, 255, 0.08);
+  --button-secondary-hover: #171a20;
   --button-secondary-text: #a8b3cf;
   --button-secondary-border: rgba(255, 255, 255, 0.1);
 
-  /* Menu */
+  /* Danger buttons */
 
+  --button-danger-bg: #2a1717;
+  --button-danger-hover: #3a1d1d;
+  --button-danger-border: rgba(248, 113, 113, 0.22);
+  --button-danger-text: #fca5a5;
+
+  /* Drawer controls */
+  --drawer-control-bg: #2a2e37;
+  --drawer-control-hover: #343944;
+  --drawer-control-border: rgba(255, 255, 255, 0.14);
+
+  /* Menu */
   --menu-hover: rgba(254,170,43,.10);
   --menu-active: rgba(254,170,43,.14);
 

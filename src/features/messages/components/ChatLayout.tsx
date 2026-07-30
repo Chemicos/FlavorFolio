@@ -11,10 +11,49 @@ import { deleteMessage, markConversationAsRead } from "../services/messages.serv
 import { useCanMessageUser } from "../hooks/useCanMessageUser"
 import MessageImagePreviewModal from "./MessageImagePreviewModal"
 import { useUserPresence } from "../hooks/useUserPresence"
+import ScrollToBottomButton from "./ScrollToBottomButton"
+import MessageDateDivider from "./MessageDateDivider"
 
 interface ChatLayoutProps {
   currentUserId: string
   activeConversationId: string | null
+}
+
+function getDateFromValue(value: unknown): Date | null {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("toDate" in value) ||
+    typeof (value as { toDate?: unknown }).toDate !== "function"
+  ) {
+    return null
+  }
+
+  return (value as { toDate: () => Date }).toDate()
+}
+
+function isSameCalendarDay(firstValue: unknown, secondValue: unknown) {
+  const firstDate = getDateFromValue(firstValue)
+  const secondDate = getDateFromValue(secondValue)
+
+  if (!firstDate || !secondDate) return false
+
+  return (
+    firstDate.getFullYear() === secondDate.getFullYear() &&
+    firstDate.getMonth() === secondDate.getMonth() &&
+    firstDate.getDate() === secondDate.getDate()
+  )
+}
+
+function formatMessageDividerDate(value: unknown) {
+  const date = getDateFromValue(value)
+
+  if (!date) return ""
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(date)
 }
 
 export default function ChatLayout({
@@ -28,10 +67,9 @@ export default function ChatLayout({
   const shouldForceBottomRef = useRef(false)
 
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
+  const SCROLL_BOTTOM_THRESHOLD = 150
 
-  const activeConversation =
-    conversations.find((item) => item.conversationId === activeConversationId) ||
-    null
+  const activeConversation = conversations.find((item) => item.conversationId === activeConversationId) || null
 
   const { messages } = useConversationMessages({
     conversationId: activeConversationId,
@@ -66,6 +104,11 @@ export default function ChatLayout({
     })
   }
 
+  const handleScrollToBottom = () => {
+    setIsNearBottom(true)
+    scrollToBottom("smooth")
+  }
+
   useEffect(() => {
     const container = messagesContainerRef.current
     if (!container) return
@@ -76,7 +119,7 @@ export default function ChatLayout({
         container.scrollTop -
         container.clientHeight
 
-      setIsNearBottom(distance < 150)
+      setIsNearBottom(distance < SCROLL_BOTTOM_THRESHOLD)
     }
 
     container.addEventListener("scroll", handleScroll)
@@ -108,7 +151,7 @@ export default function ChatLayout({
     if (isNearBottom) {
       scrollToBottom("smooth")
     }
-  }, [messages.length, activeConversationId])
+  }, [messages.length, activeConversationId, isNearBottom])
     
   const lastMessage = messages[messages.length - 1]
 
@@ -160,7 +203,7 @@ export default function ChatLayout({
     }
   }
   return (
-    <main className="fixed inset-x-0 bottom-0 top-16 overflow-hidden bg-[#0d0e11]">
+    <main className="fixed inset-x-0 bottom-0 top-16 overflow-hidden bg-[var(--bg-primary)]">
       <div className="grid h-full w-full grid-cols-[360px_minmax(0,1fr)] overflow-hidden">
         <ConversationList
           conversations={conversations}
@@ -169,7 +212,7 @@ export default function ChatLayout({
           isLoading={isLoading}
         />
 
-        <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-white/10 bg-[#111216] overflow-hidden">
+        <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-[var(--border)] bg-[var(--bg-tertiary)] overflow-hidden">
           {activeConversation && otherUserId && otherUser ? (
             <>
               <ChatHeader 
@@ -182,7 +225,7 @@ export default function ChatLayout({
                 }
               />
 
-              <div ref={messagesContainerRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-6 [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+              {/* <div ref={messagesContainerRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-6 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
                 <div className="flex flex-col gap-3">
                   {messages.map((message) => (
                     <MessageBubble
@@ -197,6 +240,59 @@ export default function ChatLayout({
 
                   <div ref={bottomRef} />
                 </div>
+              </div> */}
+
+              <div className="relative min-h-0 flex-1">
+                <div ref={messagesContainerRef} className="h-full overflow-y-auto px-6 py-6 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
+                  <div className="flex flex-col gap-3">
+                    {messages.map((message, index) => {
+                      const previousMessage = messages[index - 1]
+
+                      const shouldShowDateDivider =
+                        index === 0 ||
+                        !isSameCalendarDay(
+                          message.createdAt,
+                          previousMessage?.createdAt
+                        )
+
+                      const isSeen =
+                        message.messageId ===
+                        lastOwnMessageIdSeenByOtherUser
+
+                      return (
+                        <div key={message.messageId}>
+                          {shouldShowDateDivider && (
+                            <MessageDateDivider
+                              label={formatMessageDividerDate(
+                                message.createdAt
+                              )}
+                            />
+                          )}
+
+                          <MessageBubble
+                            message={message}
+                            isOwn={message.senderId === currentUserId}
+                            isSeen={isSeen}
+                            seenAt={isSeen ? lastReadAtByOtherUser : null}
+                            onDelete={
+                              message.senderId === currentUserId
+                                ? () => handleDeleteMessage(message.messageId)
+                                : undefined
+                            }
+                            onOpenImage={setPreviewImageUrl}
+                          />
+                        </div>
+                      )
+                    })}
+
+                    <div ref={bottomRef} />
+                  </div>
+                </div>
+
+                <ScrollToBottomButton
+                  isVisible={!isNearBottom && messages.length > 0}
+                  onClick={handleScrollToBottom}
+                />
               </div>
 
               <MessageComposer
@@ -210,13 +306,13 @@ export default function ChatLayout({
           ) : (
             <div className="flex h-full items-center justify-center px-6 text-center">
               <div>
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#feaa2b]/10 text-2xl text-[#feaa2b]">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-2xl text-[var(--accent)]">
                   <ChatBubbleOutlineRoundedIcon />
                 </div>
-                <h2 className="mt-5 text-xl font-bold text-white">
+                <h2 className="mt-5 text-xl font-bold text-[var(--text-primary)]">
                   Select a conversation
                 </h2>
-                <p className="mt-2 text-sm text-[#8f97b1]">
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">
                   Choose a chat from the left sidebar to start messaging.
                 </p>
               </div>

@@ -264,7 +264,7 @@ export default function GlobalSearchBar() {
                             className={[
                                 "overscroll-contain overflow-y-auto p-2",
                                 "[scrollbar-width:thin]",
-                                "[scrollbar-color:rgba(168,179,207,0.35)_transparent]",
+                                "[scrollbar-color:var(--border-strong)_transparent]",
                                 showAllResults
                                 ? "max-h-[520px]"
                                 : "max-h-[420px]",

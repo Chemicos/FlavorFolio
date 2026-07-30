@@ -6,11 +6,13 @@ import { Tooltip } from "@mui/material"
 import { ChatMessage } from "../types/messages.types"
 import { useNavigate } from "react-router-dom"
 import SharedReelMessageCard from "./SharedReelMessageCard"
+import { Timestamp } from "@firebase/firestore"
 
 interface MessageBubbleProps {
   message: ChatMessage
   isOwn: boolean
   isSeen?: boolean
+  seenAt?: Timestamp | null
   onDelete?: () => void
   onOpenImage?: (imageUrl: string) => void
 }
@@ -41,24 +43,42 @@ function formatTime(value: unknown) {
   }).format(date)
 }
 
+function formatSeenDate(value: unknown) {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("toDate" in value) ||
+    typeof (value as { toDate?: unknown }).toDate !== "function"
+  ) {
+    return ""
+  }
+
+  const date = (value as { toDate: () => Date }).toDate()
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(date)
+}
+
 const viewTooltipProps = {
   tooltip: {
     sx: {
-      bgcolor: "#0b0b0c",
-      color: "#d7def0",
+      bgcolor: "var(--dropdown-bg)",
+      color: "var(--text-primary)",
       fontSize: "0.75rem",
-      border: "1px solid rgba(255,255,255,0.08)",
+      border: "1px solid var(--border)",
       backdropFilter: "blur(12px)",
-      boxShadow: "0 12px 30px rgba(0,0,0,0.45)",
+      boxShadow: "var(--shadow-dropdown)",
       px: 1.2,
       py: 0.7,
     },
   },
   arrow: {
     sx: {
-      color: "#0b0b0c",
+      color: "var(--dropdown-bg)",
       "&:before": {
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid var(--border)",
       },
     },
   },
@@ -68,6 +88,7 @@ export default function MessageBubble({
   message, 
   isOwn, 
   isSeen = false, 
+  seenAt,
   onDelete,
   onOpenImage,
 }: MessageBubbleProps) {
@@ -75,6 +96,8 @@ export default function MessageBubble({
   const isRecipeMessage = message.type === "recipe"
   const isReelMessage = message.type === "reel" && Boolean(message.reel)
   const isRichMessage = isRecipeMessage || isReelMessage
+
+  const seenDateLabel = formatSeenDate(seenAt)
   
   return (
     <div className={["group flex flex-col", isOwn ? "items-end" : "items-start"].join(" ")}>
@@ -84,7 +107,7 @@ export default function MessageBubble({
             <button
               type="button"
               onClick={onDelete}
-              className="mb-1 flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-[#0b0b0c] text-[#8f97b1] opacity-0 transition hover:border-red-400/20 hover:bg-red-500/10 hover:text-red-300 group-hover:opacity-100"
+              className="mb-1 flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] text-[var(--text-muted)] opacity-0 transition hover:border-[var(--danger-border)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger-text)] group-hover:opacity-100"
             >
               <DeleteOutlineRoundedIcon sx={{ fontSize: 17 }} />
             </button>
@@ -94,14 +117,14 @@ export default function MessageBubble({
         <div
           className={[
             isRichMessage
-              ? "max-w-[360px] rounded-2xl p-2 shadow-[0_12px_30px_rgba(0,0,0,0.18)]"
-              : "max-w-[450px] rounded-2xl px-4 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.18)]",
+              ? "max-w-[360px] rounded-2xl p-2 shadow-[var(--shadow-card)]"
+              : "max-w-[450px] rounded-2xl px-4 py-3 shadow-[var(--shadow-card)]",
 
             isRichMessage
-              ? "border border-white/10 bg-[#16181d] text-[#d7def0]"
+              ? "border border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-primary)]"
               : isOwn
-                ? "rounded-br-md bg-[#feaa2b] text-[#0d0e11]"
-                : "rounded-bl-md border border-white/10 bg-[#0b0b0c] text-[#d7def0]",
+                ? "rounded-br-md bg-[var(--accent)] text-[var(--text-on-accent)]"
+                : "rounded-bl-md border border-[var(--border)] bg-[var(--dropdown-bg)] text-[var(--text-primary)]",
           ].join(" ")}
         >
           {message.isDeleted ? (
@@ -119,7 +142,7 @@ export default function MessageBubble({
                         message.imageUrl!
                       )
                     }
-                    className="mb-2 block overflow-hidden rounded-xl outline-none transition hover:opacity-90 focus:ring-2 focus:ring-[#feaa2b]/40"
+                    className="mb-2 block overflow-hidden rounded-xl outline-none transition hover:opacity-90 focus:ring-2 focus:ring-[var(--focus-ring)]"
                   >
                     <img
                       src={message.imageUrl}
@@ -130,7 +153,7 @@ export default function MessageBubble({
                 )}
 
               {message.text && (
-                <p className="whitespace-pre-wrap text-sm leading-6">
+                <p className="whitespace-pre-wrap [overflow-wrap:anywhere] text-sm leading-6">
                   {message.text}
                 </p>
               )}
@@ -144,43 +167,37 @@ export default function MessageBubble({
                         `/home?recipeId=${message.recipe?.recipeId}`
                       )
                     }
-                    className="block w-full overflow-hidden rounded-xl bg-[#0b0b0c] text-left transition hover:bg-[#202329] active:scale-[0.99]"
+                    className="block w-full overflow-hidden rounded-xl bg-[var(--dropdown-bg)] text-left transition hover:bg-[var(--surface-hover)] active:scale-[0.99]"
                   >
-                    <div className="h-36 w-full overflow-hidden bg-white/10">
+                    <div className="h-36 w-full overflow-hidden bg-[var(--surface-muted)]">
                       {message.recipe.image ? (
                         <img
-                          src={
-                            message.recipe.image
-                          }
-                          alt={
-                            message.recipe.title
-                          }
+                          src={message.recipe.image}
+                          alt={message.recipe.title}
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[#8f97b1]">
+                        <div className="flex h-full w-full items-center justify-center text-[var(--text-muted)]">
                           <RestaurantRoundedIcon />
                         </div>
                       )}
                     </div>
 
                     <div className="p-3">
-                      <div className="mb-2 inline-flex rounded-full bg-[#feaa2b]/15 px-2 py-1 text-[0.68rem] font-semibold text-[#ffd28a]">
+                      <div className="mb-2 inline-flex rounded-full bg-[var(--accent-soft)] px-2 py-1 text-[0.68rem] font-semibold text-[var(--accent-text)]">
                         Shared recipe
                       </div>
 
-                      <p className="line-clamp-2 text-sm font-bold text-white">
+                      <p className="line-clamp-2 text-sm font-bold text-[var(--text-primary)]">
                         {message.recipe.title}
                       </p>
 
-                      <p className="mt-1 truncate text-xs text-[#8f97b1]">
+                      <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
                         by{" "}
-                        {message.recipe
-                          .authorUsername ||
-                          "Unknown"}
+                        {message.recipe.authorUsername || "Unknown"}
                       </p>
 
-                      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-[#a8b3cf]">
+                      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-[var(--text-secondary)]">
                         <span className="truncate capitalize">
                           {message.recipe.meal}
                           {message.recipe
@@ -191,11 +208,7 @@ export default function MessageBubble({
 
                         <span className="inline-flex shrink-0 items-center gap-1 font-semibold">
                           View
-                          <OpenInNewRoundedIcon
-                            sx={{
-                              fontSize: 14,
-                            }}
-                          />
+                          <OpenInNewRoundedIcon sx={{fontSize: 14,}} />
                         </span>
                       </div>
                     </div>
@@ -204,9 +217,7 @@ export default function MessageBubble({
 
               {isReelMessage &&
                 message.reel && (
-                  <SharedReelMessageCard
-                    reel={message.reel}
-                  />
+                  <SharedReelMessageCard reel={message.reel} />
                 )}
             </>
           )}
@@ -215,10 +226,10 @@ export default function MessageBubble({
             className={[
               "mt-1 text-right text-[0.65rem]",
               isRichMessage
-                ? "text-[#7f89a6]"
+                ? "text-[var(--text-muted)]"
                 : isOwn
-                  ? "text-[#3b2a10]"
-                  : "text-[#7f89a6]",
+                  ? "text-[var(--accent-text)]"
+                  : "text-[var(--text-muted)]",
             ].join(" ")}
           >
             {formatTime(message.createdAt)}
@@ -227,8 +238,8 @@ export default function MessageBubble({
       </div>
 
       {isOwn && isSeen && (
-        <span className="mt-1 pr-1 text-[0.68rem] font-medium text-[#8f97b1]">
-          Seen
+        <span className="mt-1 pr-1 text-[0.68rem] font-medium text-[var(--text-muted)]">
+          Seen{seenDateLabel ? ` · ${seenDateLabel}` : ""}
         </span>
       )}
     </div>

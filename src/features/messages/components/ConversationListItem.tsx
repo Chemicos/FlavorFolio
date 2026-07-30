@@ -136,52 +136,44 @@ export default function ConversationListItem({
         else navigate(`/messages/${conversation.conversationId}`)
       }}
       className={[
-        "flex w-full items-center gap-3 rounded-xl p-3 text-left transition active:scale-[0.99]",
+        "flex w-full items-center gap-3 rounded-xl p-3 text-left border transition-colors duration-200 active:scale-[0.99]",
         isActive
-          ? "border border-[#feaa2b]/25 bg-[#feaa2b]/10"
-          : "border border-transparent hover:bg-white/[0.04]",
+          ? "border-[var(--accent-border)] bg-[var(--accent-soft)]"
+          : "border-transparent hover:bg-[var(--surface-hover)]",
       ].join(" ")}
     >
-      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white/10">
-        {participant?.profileImage &&
-        !hasImageError ? (
+      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[var(--surface-muted)]">
+        {participant?.profileImage && !hasImageError ? (
           <img
             src={participant.profileImage}
-            alt={
-              participant.username ||
-              "Conversation participant"
-            }
-            onError={() =>
-              setHasImageError(true)
-            }
+            alt={participant.username || "Conversation participant"}
+            onError={() => setHasImageError(true)}
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white/70">
-            {(participant?.username || "U")
-              .charAt(0)
-              .toUpperCase()}
+          <div className="flex h-full w-full items-center justify-center text-sm font-bold text-[var(--text-secondary)]">
+            {(participant?.username || "U").charAt(0).toUpperCase()}
           </div>
         )}
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex justify-between gap-3">
-          <p className="truncate text-sm font-semibold text-white">
+          <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
             {participant?.username || "Unknown user"}
           </p>
-          <span className="shrink-0 text-xs text-[#7f89a6]">
+          <span className="shrink-0 text-xs text-[var(--text-muted)]">
             {formatTime(conversation.updatedAt)}
           </span>
         </div>
 
-        <p className="mt-1 truncate text-xs text-[#8f97b1]">
+        <p className="mt-1 truncate text-xs text-[var(--text-secondary)]">
           {conversation.lastMessage?.text || "No messages yet."}
         </p>
       </div>
 
       {unreadCount > 0 && (
-        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#feaa2b] px-1.5 text-[0.68rem] font-bold text-[#0d0e11]">
+        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-[0.68rem] font-bold text-[var(--text-on-accent)]">
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       )}

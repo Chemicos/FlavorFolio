@@ -21,6 +21,7 @@ export default function MessageComposer({
   disabledReason,
 }: MessageComposerProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   
   const [text, setText] = useState("")
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -43,6 +44,45 @@ export default function MessageComposer({
     setPreviewUrl("")
   }
 
+  const resizeTextarea = () => {
+    const textarea = textareaRef.current
+
+    if (!textarea) return
+
+    const computedStyles = window.getComputedStyle(textarea)
+    const lineHeight = Number.parseFloat(computedStyles.lineHeight) || 24
+    const verticalPadding = Number.parseFloat(computedStyles.paddingTop) + Number.parseFloat(computedStyles.paddingBottom)
+
+    const maxHeight = lineHeight * 5 + verticalPadding
+
+    textarea.style.height = "auto"
+    textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`
+    textarea.style.overflowY =
+      textarea.scrollHeight > maxHeight
+        ? "auto"
+        : "hidden"
+  }
+
+  const resetTextarea = () => {
+    setText("")
+
+    requestAnimationFrame(() => {
+      const textarea = textareaRef.current
+
+      if (!textarea) return
+
+      textarea.style.height = "auto"
+      textarea.style.overflowY = "hidden"
+    })
+  }
+
+  const handleTextChange = (
+    event: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    setText(event.target.value)
+    resizeTextarea()
+  }
+
   const handleSend = async () => {
     if (!canSend || isSending || disabled) return
 
@@ -59,7 +99,7 @@ export default function MessageComposer({
         })
 
         handleClearImage()
-        setText("")
+        resetTextarea()
         return
       }
 
@@ -70,16 +110,16 @@ export default function MessageComposer({
         text,
       })
 
-      setText("")
+      resetTextarea()
     } finally {
       setIsSending(false)
     }
   }
   
   return (
-    <footer className="shrink-0 border-t border-white/10 bg-[#16181d]/95 px-6 py-4">
+    <footer className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)] px-6 py-4">
       {disabled && disabledReason && (
-        <div className="mb-3 rounded-xl border border-orange-400/15 bg-orange-500/10 px-4 py-3 text-sm text-orange-200">
+        <div className="mb-3 rounded-xl border border-[var(--warning-border)] bg-[var(--warning-soft)] px-4 py-3 text-sm text-[var(--warning-text)]">
           {disabledReason}
         </div>
       )}
@@ -95,7 +135,7 @@ export default function MessageComposer({
         }}
       />
 
-      <div className="rounded-2xl border border-white/10 bg-[#0b0b0c] p-2 transition-within:border-[#feaa2b]/50 focus-within:ring-2 focus-within:ring-[#feaa2b]/10 hover:border-[#feaa2b]/20">
+      <div className="rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] p-2 transition-within:border-[var(--focus-border)] focus-within:ring-2 focus-within:ring-[var(--focus-ring)] hover:border-[var(--accent-border)]">
         {previewUrl && (
           <div className="relative mb-2 w-fit">
             <img
@@ -107,7 +147,7 @@ export default function MessageComposer({
             <button
               type="button"
               onClick={handleClearImage}
-              className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-[#16181d] text-white transition hover:bg-red-600/80 hover:text-red-200"
+              className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full border border-[var(--button-danger-border)] bg-[var(--button-danger-bg)] text-[var(--button-danger-text)] shadow-[var(--shadow-card)] transition hover:bg-[var(--button-danger-hover)]"
             >
               <CloseRoundedIcon sx={{ fontSize: 16 }} />
             </button>
@@ -115,9 +155,10 @@ export default function MessageComposer({
         )}
 
         <textarea
+          ref={textareaRef}
           value={text}
           disabled={disabled}
-          onChange={(event) => setText(event.target.value)}
+          onChange={handleTextChange}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault()
@@ -126,7 +167,8 @@ export default function MessageComposer({
           }}
           rows={1}
           placeholder={disabled ? "Messaging unavailable..." : "Message..."}
-          className="max-h-32 min-h-[44px] w-full resize-none bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-[#6f7892] disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-[44px] w-full resize-none overflow-y-hidden bg-transparent px-2 py-2 text-sm leading-6 text-[var(--text-primary)] outline-none placeholder:text-[var(--input-placeholder)] disabled:cursor-not-allowed disabled:opacity-50
+          [scrollbar-color:var(--border-strong)_transparent] [scrollbar-width:thin]"
         />
 
         <div className="flex items-center justify-between">
@@ -134,7 +176,7 @@ export default function MessageComposer({
             type="button"
             disabled={disabled || isSending}
             onClick={() => fileInputRef.current?.click()}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-[#a8b3cf] transition hover:bg-white/[0.06] hover:text-[#ffd28a] disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-secondary)] transition hover:bg-[var(--hover)] hover:text-[var(--accent-text)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             <AttachFileRoundedIcon sx={{ fontSize: 20 }} />
           </button>
@@ -143,10 +185,10 @@ export default function MessageComposer({
             type="button"
             disabled={!canSend || isSending || disabled}
             onClick={handleSend}
-            className="flex h-10 min-w-[86px] items-center justify-center gap-2 rounded-xl bg-[#feaa2b] px-4 text-sm font-semibold text-[#0d0e11] transition hover:bg-[#ffc15c] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-10 min-w-[86px] items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 text-sm text-[var(--text-on-accent)] transition hover:bg-[var(--accent-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Send
-            <SendRoundedIcon sx={{ fontSize: 18 }} />
+            <SendRoundedIcon sx={{ fontSize: 16 }} />
           </button>
         </div>
       </div>

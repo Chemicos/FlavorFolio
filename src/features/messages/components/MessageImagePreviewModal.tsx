@@ -18,13 +18,13 @@ export default function MessageImagePreviewModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 top-16 z-[80] flex items-center justify-center bg-black/80 px-6 py-10 backdrop-blur-xl"
+          className="fixed inset-0 top-16 z-[80] flex items-center justify-center bg-[var(--overlay)] px-6 py-10 backdrop-blur-xl"
           onClick={onClose}
         >
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-6 top-6 flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-[#16181d]/90 text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white"
+            className="absolute right-6 top-6 flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
           >
             <CloseRoundedIcon sx={{ fontSize: 22 }} />
           </button>
@@ -34,7 +34,7 @@ export default function MessageImagePreviewModal({
             target="_blank"
             rel="noreferrer"
             onClick={(event) => event.stopPropagation()}
-            className="absolute right-20 top-6 flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-[#16181d]/90 text-[#d7def0] transition hover:bg-white/[0.08] hover:text-[#ffd28a]"
+            className="absolute right-20 top-6 flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--accent-text)]"
           >
             <OpenInNewRoundedIcon sx={{ fontSize: 20 }} />
           </a>
@@ -47,7 +47,7 @@ export default function MessageImagePreviewModal({
             exit={{ scale: 0.96, opacity: 0 }}
             transition={{ duration: 0.18 }}
             onClick={(event) => event.stopPropagation()}
-            className="max-h-[86vh] max-w-[92vw] rounded-2xl border border-white/10 object-contain shadow-[0_30px_120px_rgba(0,0,0,0.65)]"
+            className="max-h-[86vh] max-w-[92vw] rounded-2xl border border-[var(--border)] object-contain shadow-[var(--shadow-panel)]"
           />
         </motion.div>
       )}

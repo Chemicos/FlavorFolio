@@ -22,10 +22,10 @@ export default function SharedReelMessageCard({reel}: SharedReelMessageCardProps
     <button
       type="button"
       onClick={handleOpenReel}
-      className="block w-full overflow-hidden rounded-xl bg-[#0b0b0c] text-left transition hover:bg-[#202329] active:scale-[0.99]"
+      className="block w-full overflow-hidden rounded-xl bg-[var(--dropdown-bg)] text-left transition hover:bg-[var(--surface-hover)] active:scale-[0.99]"
       aria-label={`Open shared reel ${reel.title}`}
     >
-      <div className="relative h-52 w-full overflow-hidden bg-white/[0.06]">
+      <div className="relative h-52 w-full overflow-hidden bg-[var(--surface-muted)]">
         {reel.thumbnail && !hasThumbnailError ? (
           <img
             src={reel.thumbnail}
@@ -42,7 +42,7 @@ export default function SharedReelMessageCard({reel}: SharedReelMessageCardProps
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[#8f97b1]">
+          <div className="flex h-full w-full items-center justify-center text-[var(--text-muted)]">
             <MovieRoundedIcon sx={{ fontSize: 32 }} />
           </div>
         )}
@@ -63,30 +63,30 @@ export default function SharedReelMessageCard({reel}: SharedReelMessageCardProps
       </div>
 
       <div className="p-3">
-        <div className="mb-2 inline-flex rounded-full bg-[#feaa2b]/15 px-2 py-1 text-[0.68rem] font-semibold text-[#ffd28a]">
+        <div className="mb-2 inline-flex rounded-full bg-[var(--accent-soft)] px-2 py-1 text-[0.68rem] font-semibold text-[var(--accent-text)]">
           Shared reel
         </div>
 
-        <p className="line-clamp-2 text-sm font-bold text-white">
+        <p className="line-clamp-2 text-sm font-bold text-[var(--text-primary)]">
           {reel.title || "Recipe reel"}
         </p>
 
-        <p className="mt-1 truncate text-xs text-[#8f97b1]">
+        <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
           by {reel.authorUsername || "Unknown"}
         </p>
 
         {reel.description && (
-          <p className="mt-2 line-clamp-2 text-xs leading-5 text-[#a8b3cf]">
+          <p className="mt-2 line-clamp-2 text-xs leading-5 text-[var(--text-secondary)]">
             {reel.description}
           </p>
         )}
 
-        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-[#a8b3cf]">
+        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-[var(--text-secondary)]">
           <span className="truncate capitalize">
             {reel.meal || "Recipe reel"}
           </span>
 
-          <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-[#d7def0]">
+          <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-[var(--text-primary)]">
             View
             <OpenInNewRoundedIcon sx={{ fontSize: 14 }} />
           </span>

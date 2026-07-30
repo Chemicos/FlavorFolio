@@ -8,7 +8,7 @@ import RestaurantIcon from "@mui/icons-material/Restaurant"
 import PublicIcon from "@mui/icons-material/Public"
 import Groups2Icon from "@mui/icons-material/Groups2"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { Checkbox, FormControlLabel } from "@mui/material"
 
@@ -92,25 +92,25 @@ function FilterSection({
                 type="button"
                 onClick={onToggle}
                 className={[
-                   "flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition",
+                   "flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm text-left transition",
                     hasActiveFilters
-                        ? "bg-white/[0.04] text-white"
-                        : "hover:bg-[#202429]/80" 
+                        ? "bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                        : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]" 
                 ].join(" ")}
             >
-                <div className="flex items-center gap-3 text-[#b8c0d9]">
+                <div className="flex items-center gap-3">
                     <span className="flex items-center">{icon}</span>
                     <span>{title}</span>
 
                     {hasActiveFilters && (
-                        <span className="ml-1 h-2 w-2 rounded-full bg-[#a8b3cf]" />
+                        <span className="ml-1 h-2 w-2 rounded-full bg-[var(--accent)]" />
                     )}
                 </div>
 
                 <motion.span
                 animate={{ rotate: isOpen ? 180 : 0 }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-center text-[#a8b3cf]"
+                className="flex items-center text-[var(--text-muted)]"
                 >
                     <KeyboardArrowDownIcon sx={{ fontSize: 22 }} />
                 </motion.span>
@@ -129,7 +129,7 @@ function FilterSection({
                     }}
                     className="overflow-hidden pl-6"
                 >
-                    <div className="border-l border-[#a8b3cf]/50 mt-2 pr-4">
+                    <div className="border-l border-[var(--border-strong)] mt-2 pr-4">
                     {children}
                     </div>
                 </motion.div>
@@ -158,10 +158,10 @@ function CheckboxRow({
                         padding: 0,
                         marginRight: "10px",
 
-                        color: "rgba(168, 179, 207, 0.5)",
+                        color: "var(--text-disabled)",
 
                         "&.Mui-checked": {
-                        color: "#d8ddeb",
+                        color: "var(--accent)",
                         },
 
                         "& .MuiSvgIcon-root": {
@@ -170,7 +170,7 @@ function CheckboxRow({
                     }}
                 />
             }
-            label={<span className="text-sm text-[#a8b3cf]">{label}</span> }
+            label={<span className="text-sm text-[var(--text-secondary)]">{label}</span> }
             sx={{
                 margin: 0,
                 cursor: "pointer",
@@ -182,10 +182,8 @@ function CheckboxRow({
                 borderBottomRightRadius: "5px",
 
                 "&:hover": {
-                    backgroundColor: "#202429",
-                },
-
-                
+                    backgroundColor: "var(--surface-hover)",
+                },       
             }}
         />
     )
@@ -252,6 +250,7 @@ export default function FilterDrawer({
 }: FilterDrawerProps) {
     const [openSections, setOpenSections] = useState(() => getInitialOpenSections(filters))
     const activeSections = getSectionWithActiveFilters(filters)
+    const hasActiveFilters = Object.values(activeSections).some(Boolean)
 
     const [cuisineSearch, setCuisineSearch] = useState("")
 
@@ -273,21 +272,10 @@ export default function FilterDrawer({
         }))
     }
 
-    // useEffect(() => {
-    //     if (!isOpen) return
-
-    //     const originalOverflow = document.body.style.overflow
-    //     document.body.style.overflow = "hidden"
-
-    //     return () => {
-    //         document.body.style.overflow = originalOverflow
-    //     }
-    // }, [isOpen])
-
   return (
         <div className="fixed inset-0 z-[70]">
             <motion.div 
-                className="absolute inset-0 bg-[#0b0b0c]/30" 
+                className="absolute inset-0 bg-[var(--overlay)]" 
                 initial={{opacity: 0}}
                 animate={{opacity: 1}}
                 exit={{opacity: 0}}
@@ -306,24 +294,31 @@ export default function FilterDrawer({
                     mass: 1,
                 }}
                 className="relative flex flex-col left-0 top-0 h-full w-full max-w-[300px]
-                border-r border-white/10 
-                bg-[#050506]/70 backdrop-blur-2xl py-8 shadow-[20px_0_60px_rgba(0,0,0,0.35)]"
-            >
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent" />
-                
+                border-r border-[var(--border)] bg-[var(--bg-elevated)]
+                py-8 shadow-[var(--shadow-panel)]"
+            >   
                 <div className="flex flex-col px-6">
                     <div className="mb-8 flex items-start justify-between gap-4">
                         <div>
-                            <h2 className="text-[1.4rem] text-[#d7def0]">Filter recipes</h2>
-                            <p className="mt-1 text-sm text-[#7f89a6]">Refine the current feed</p>
+                            <h2 className="text-[1.2rem] text-[var(--text-primary)]">Filter recipes</h2>
+                            <p className="mt-1 text-sm text-[var(--text-muted)]">Refine the current feed</p>
                         </div>
 
                         <button
                             type="button"
                             aria-label="Close drawer"
                             onClick={onClose}
-                            className="absolute top-10 right-0 translate-x-1/2 flex h-10 w-10 items-center justify-center rounded-lg 
-                            text-[#a8b3cf] transition border border-white/10 bg-[#16181d]/90 hover:bg-[#202429] hover:text-white"
+                            className="
+                                absolute right-0 top-10 flex h-10 w-10 translate-x-1/2
+                                items-center justify-center rounded-lg border
+                                border-[var(--drawer-control-border)]
+                                bg-[var(--drawer-control-bg)]
+                                text-[var(--text-secondary)]
+                                shadow-[var(--shadow-card)]
+                                transition
+                                hover:bg-[var(--drawer-control-hover)]
+                                hover:text-[var(--text-primary)]
+                            "
                         >
                             <KeyboardArrowLeftIcon sx={{ fontSize: 24 }} />
                         </button>
@@ -332,17 +327,23 @@ export default function FilterDrawer({
                     <button
                         type="button"
                         onClick={onReset}
-                        className="mr-auto mb-6 text-[1rem] rounded-lg border border-white/10 px-4 py-2 text-sm text-[#a8b3cf]/70 transition hover:bg-white/[0.04] hover:text-white"
+                        disabled={!hasActiveFilters}
+                        className={[
+                            "mr-auto mb-6 rounded-lg border px-4 py-2 text-sm transition",
+                            hasActiveFilters
+                                ? "border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-[0.98]"
+                                : "cursor-not-allowed border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--text-disabled)] opacity-60",
+                        ].join(" ")}
                     >
                         Reset filters
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+                <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
                     <div className="flex flex-col gap-3 px-6">
                         <FilterSection
                             title="Duration"
-                            icon={<AccessTimeIcon sx={{fontSize: 20}} />}
+                            icon={<AccessTimeIcon sx={{fontSize: 18}} />}
                             isOpen={openSections.duration}
                             onToggle={() => toggleSection("duration")}
                             hasActiveFilters={activeSections.duration}
@@ -366,7 +367,7 @@ export default function FilterDrawer({
 
                         <FilterSection
                             title="Difficulty"
-                            icon={<SignalCellularAltIcon sx={{ fontSize: 20 }} />}
+                            icon={<SignalCellularAltIcon sx={{ fontSize: 18 }} />}
                             isOpen={openSections.difficulty}
                             onToggle={() => toggleSection("difficulty")}
                             hasActiveFilters={activeSections.difficulty}
@@ -390,7 +391,7 @@ export default function FilterDrawer({
 
                         <FilterSection
                             title="Cuisine"
-                            icon={<PublicIcon sx={{ fontSize: 20 }} />}
+                            icon={<PublicIcon sx={{ fontSize: 18 }} />}
                             isOpen={openSections.cuisine}
                             onToggle={() => toggleSection("cuisine")}
                             hasActiveFilters={activeSections.cuisine}
@@ -401,8 +402,13 @@ export default function FilterDrawer({
                                     value={cuisineSearch}
                                     onChange={(e) => setCuisineSearch(e.target.value)}
                                     placeholder="Search cuisines..."
-                                    className="mb-2 ml-2 mr-4 w-full rounded-md border border-white/10 bg-[#101215] px-3 py-2 text-sm text-white
-                                    placeholder:text-[#6b7280] outline-none focus:border-white/20"
+                                    className="mb-2 ml-2 mr-4 w-full rounded-md border border-[var(--input-border)] bg-[var(--input-bg)]
+                                    px-3 py-2 text-sm text-[var(--text-primary)]
+                                    outline-none transition
+                                    placeholder:text-[var(--input-placeholder)]
+                                    hover:bg-[var(--input-bg-hover)]
+                                    focus:border-[var(--focus-border)]
+                                    focus:ring-2 focus:ring-[var(--focus-ring)]"
                                 />
 
                                 {filteredCuisines.length ? (
@@ -420,14 +426,14 @@ export default function FilterDrawer({
                                     />
                                     ))
                                 ) : (
-                                    <p className="ml-2 text-sm text-[#8f97b1]">No cuisines available yet.</p>
+                                    <p className="ml-2 text-sm text-[var(--text-muted)]">No cuisines available yet.</p>
                                 )}
                             </div>
                         </FilterSection>
 
                         <FilterSection
                             title="Meal"
-                            icon={<RestaurantIcon sx={{ fontSize: 20 }} />}
+                            icon={<RestaurantIcon sx={{ fontSize: 18 }} />}
                             isOpen={openSections.meal}
                             onToggle={() => toggleSection("meal")}
                             hasActiveFilters={activeSections.meal}
@@ -451,7 +457,7 @@ export default function FilterDrawer({
 
                         <FilterSection
                             title="Rating"
-                            icon={<StarIcon sx={{ fontSize: 22 }} />}
+                            icon={<StarIcon sx={{ fontSize: 18 }} />}
                             isOpen={openSections.rating}
                             onToggle={() => toggleSection("rating")}
                             hasActiveFilters={activeSections.rating}
@@ -475,7 +481,7 @@ export default function FilterDrawer({
 
                         <FilterSection
                             title="Servings"
-                            icon={<Groups2Icon sx={{ fontSize: 22 }} />}
+                            icon={<Groups2Icon sx={{ fontSize: 18 }} />}
                             isOpen={openSections.servings}
                             onToggle={() => toggleSection("servings")}
                             hasActiveFilters={activeSections.servings}
@@ -499,7 +505,7 @@ export default function FilterDrawer({
 
                         <FilterSection
                             title="Saved"
-                            icon={<FavoriteIcon sx={{ fontSize: 22 }} />}
+                            icon={<FavoriteIcon sx={{ fontSize: 18 }} />}
                             isOpen={openSections.saved}
                             onToggle={() => toggleSection("saved")}
                             hasActiveFilters={activeSections.saved}

@@ -37,31 +37,31 @@ export default function ConversationList({
   }, [conversations, currentUserId, search])
   
   return (
-    <aside className="flex min-h-0 flex-col border-r border-white/10 bg-[#16181d]">
-      <header className="border-b border-white/10 p-5">
-        <h1 className="text-xl font-bold text-white">Messages</h1>
-        <p className="mt-1 text-sm text-[#8f97b1]">
+    <aside className="flex min-h-0 flex-col border-r border-[var(--border)] bg-[var(--bg-secondary)]">
+      <header className="border-b border-[var(--border)] p-5">
+        <h1 className="text-xl font-bold text-[var(--text-primary)]">Messages</h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
           Your recent conversations.
         </p>
 
         <div className="relative mt-4">
           <SearchRoundedIcon
             sx={{ fontSize: 18 }}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6f7892]"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--input-placeholder)]"
           />
 
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search conversations..."
-            className="h-11 w-full rounded-lg border border-white/10 bg-[#0b0b0c] pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-[#feaa2b]/20 focus:border-[#feaa2b]/50 focus:ring-2 focus:ring-[#feaa2b]/10"
+            className="h-11 w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] pl-10 pr-4 text-sm text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--input-placeholder)] hover:border-[var(--accent-border)] hover:bg-[var(--input-bg-hover)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
           />
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
         {isLoading ? (
-          <p className="py-10 text-center text-sm text-[#8f97b1]">
+          <p className="py-10 text-center text-sm text-[var(--text-secondary)]">
             Loading conversations...
           </p>
         ) : filteredConversations.length ? (
@@ -76,7 +76,7 @@ export default function ConversationList({
             ))}
           </div>
         ) : (
-          <p className="py-10 text-center text-sm text-[#8f97b1]">
+          <p className="py-10 text-center text-sm text-[var(--text-secondary)]">
             No conversations found.
           </p>
         )}

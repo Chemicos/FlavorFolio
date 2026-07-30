@@ -57,13 +57,13 @@ export default function FloatingMessagesPanel({
           exit={{ opacity: 0, y: 16, scale: 0.96 }}
           transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
           style={{right: rightOffset}}
-          className="fixed bottom-24 right-6 z-50 flex h-[520px] w-[360px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#16181d]/95 shadow-[0_24px_90px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+          className="fixed bottom-24 right-6 z-50 flex h-[520px] w-[360px] flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-dropdown)]"
         >
-          <header className="border-b border-white/10 px-5 py-4">
+          <header className="border-b border-[var(--border)] px-5 py-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-base font-bold text-white">Messages</h2>
-                <p className="mt-1 text-xs text-[#8f97b1]">
+                <h2 className="text-base font-bold text-[var(--text-primary)]">Messages</h2>
+                <p className="mt-1 text-xs text-[var(--text-muted)]">
                   Continue your conversations.
                 </p>
               </div>
@@ -71,7 +71,7 @@ export default function FloatingMessagesPanel({
               <button
                 type="button"
                 onClick={handleOpenFullMessages}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-[#a8b3cf] transition hover:bg-white/[0.08] hover:text-white active:scale-95"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95"
                 aria-label="Open full messages"
               >
                 <OpenInNewRoundedIcon sx={{ fontSize: 18 }} />
@@ -81,19 +81,19 @@ export default function FloatingMessagesPanel({
             <div className="relative mt-4">
               <SearchRoundedIcon
                 sx={{ fontSize: 18 }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6f7892]"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--input-placeholder)]"
               />
 
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search conversations..."
-                className="h-10 w-full rounded-lg border border-white/10 bg-[#0b0b0c] pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-[#feaa2b]/50 focus:ring-2 focus:ring-[#feaa2b]/10"
+                className="h-10 w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] pl-10 pr-4 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
           </header>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-3 [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
             {filteredConversations.length > 0 ? (
               <div className="space-y-2">
                 {filteredConversations.map((conversation) => (
@@ -110,14 +110,14 @@ export default function FloatingMessagesPanel({
               </div>
             ) : (
               <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-[#8f97b1]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--text-muted)]">
                   <SearchRoundedIcon />
                 </div>
 
-                <p className="mt-4 text-sm font-semibold text-white">
+                <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
                   No conversations found
                 </p>
-                <p className="mt-1 text-xs leading-5 text-[#8f97b1]">
+                <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
                   Start a conversation from a user profile or search users in the full messages page.
                 </p>
               </div>
