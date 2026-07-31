@@ -98,8 +98,8 @@ export default function PostRecipeIngredients({ingredients, onChange}: PostRecip
     <section className="mt-8">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-md font-semibold text-white">Ingredients</h3>
-          <p className="mt-1 text-xs text-[#7f89a6]">Add each ingredient with quantity and unit.</p>
+          <h3 className="text-md font-semibold text-[var(--text-primary)]">Ingredients</h3>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">Add each ingredient with quantity and unit.</p>
         </div>
 
         <button
@@ -109,8 +109,7 @@ export default function PostRecipeIngredients({ingredients, onChange}: PostRecip
             setEditingIngredientId(null)
           }}
           disabled={isAdding}
-          className="flex h-9 items-center gap-2 rounded-lg bg-[#0b0b0c] border border-white/10 px-3 text-sm font-medium text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white active:scale-95
-          disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 items-center gap-2 rounded-lg bg-[var(--button-secondary-bg)] border border-[var(--button-secondary-border)] px-3 text-sm font-medium text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span>Add</span>
           <AddRoundedIcon sx={{ fontSize: 18 }} />
@@ -163,20 +162,20 @@ export default function PostRecipeIngredients({ingredients, onChange}: PostRecip
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="group relative flex items-center justify-between gap-3 rounded-lg bg-[#0b0b0c] border border-white/10 px-3 py-3 transition hover:bg-[#0b0b0c]/70"
+                        className="group relative flex items-center justify-between gap-3 rounded-lg bg-[var(--dropdown-bg)] border border-[var(--border)] px-3 py-3 transition hover:bg-[var(--dropdown-hover)]"
                       >
                         <div className="flex min-w-0 items-center gap-3">
                           <p
-                            className="shrink-0 rounded-lg bg-white/[0.06] border border-white/10 px-3 py-1.5 text-sm text-[#a8b3cf]"
+                            className="shrink-0 rounded-lg bg-[var(--surface-muted)] border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text-secondary)]"
                           >
                             {item.quantity}
 
-                            <span className="ml-1 text-[#a8b3cf]/60">
+                            <span className="ml-1 text-[var(--text-muted)]">
                               {item.unit}
                             </span>
                           </p>
 
-                          <p className="truncate text-sm text-white">
+                          <p className="truncate text-sm text-[var(--text-primary)]">
                             {item.ingredient}
                           </p>
                         </div>
@@ -189,7 +188,7 @@ export default function PostRecipeIngredients({ingredients, onChange}: PostRecip
                                 openMenuId === item.id ? null : item.id
                               )
                             }
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#a8b3cf]/55 transition hover:bg-white/[0.04] hover:text-white"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
                           >
                             <MoreHorizRoundedIcon sx={{ fontSize: 18 }} />
                           </button>
@@ -201,12 +200,12 @@ export default function PostRecipeIngredients({ingredients, onChange}: PostRecip
                                 animate={{opacity: 1, y: 0, scale: 1}}
                                 exit={{ opacity: 0, y: -6, scale: 0.96 }}
                                 transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                                className="absolute right-0 top-9 z-50 w-36 overflow-hidden rounded-lg border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+                                className="absolute right-0 top-9 z-50 w-36 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
                               >
                                 <button
                                   type="button"
                                   onClick={() => handleStartEditIngredient(item)}
-                                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[#d7def0] transition hover:bg-[#16181d] hover:text-white"
+                                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
                                 >
                                   <EditRoundedIcon sx={{ fontSize: 17 }} />
                                   Edit
@@ -218,7 +217,7 @@ export default function PostRecipeIngredients({ingredients, onChange}: PostRecip
                                     handleRemoveIngredient(item.id)
                                     setOpenMenuId(null)
                                   }}
-                                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)]"
                                 >
                                   <DeleteOutlineRoundedIcon sx={{ fontSize: 17 }} />
                                   Delete

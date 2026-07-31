@@ -12,7 +12,7 @@ interface PostRecipeCuisineSelectProps {
   placeholder?: string
 }
 
-const fieldClass = "w-full rounded-md border border-white/10 bg-[#0b0b0c] px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50 focus:ring-2 focus:ring-orange-500/10"
+const fieldClass = "w-full rounded-md border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
 
 export default function PostRecipeCuisineSelect({
     value,
@@ -58,14 +58,14 @@ export default function PostRecipeCuisineSelect({
         }}
         className={`${fieldClass} flex h-[46px] items-center justify-between`}
       >
-        <span className={value ? "capitalize" : "text-[#6f7892]"}>
+        <span className={value ? "capitalize text-[var(--text-primary)]" : "text-[var(--input-placeholder)]"}>
           {value || placeholder}
         </span>
 
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.15 }}
-          className="flex items-center text-[#a8b3cf]"
+          className="flex items-center text-[var(--text-secondary)]"
         >
           <KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />
         </motion.span>
@@ -78,12 +78,12 @@ export default function PostRecipeCuisineSelect({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute left-0 right-0 top-[calc(100%+8px)] z-[80] overflow-hidden rounded-lg border border-white/10 bg-[#0b0b0c] p-2 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
+            className="absolute left-0 right-0 top-[calc(100%+8px)] z-[80] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-2 shadow-[var(--shadow-dropdown)]"
           >
             <div className="relative mb-2">
               <SearchRoundedIcon
                 sx={{ fontSize: 18 }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6f7892]"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--input-placeholder)]"
               />
 
               <input
@@ -91,11 +91,11 @@ export default function PostRecipeCuisineSelect({
                 autoFocus
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search..."
-                className="w-full rounded-md border border-white/10 bg-[#16181d] py-2 pl-9 pr-3 text-sm text-white outline-none placeholder:text-[#6f7892] focus:border-orange-400/50"
+                className="w-full rounded-md border border-[var(--input-border)] bg-[var(--input-bg)] py-2 pl-9 pr-3 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
 
-            <div className="max-h-56 overflow-y-auto pr-1">
+            <div className="max-h-56 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
               {filteredOptions.length ? (
                 filteredOptions.map((option) => {
                   const isSelected = value === option
@@ -112,8 +112,8 @@ export default function PostRecipeCuisineSelect({
                       className={[
                         "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition",
                         isSelected
-                          ? "bg-orange-500/15 text-orange-200"
-                          : "text-[#a8b3cf] hover:bg-white/[0.04] hover:text-white",
+                          ? "bg-[var(--dropdown-selected)] text-[var(--accent-text)]"
+                          : "text-[var(--text-secondary)] hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]",
                       ].join(" ")}
                     >
                       <span>{option}</span>
@@ -122,7 +122,7 @@ export default function PostRecipeCuisineSelect({
                   )
                 })
               ) : (
-                <p className="px-3 py-3 text-sm text-[#7f89a6] italic">
+                <p className="px-3 py-3 text-sm text-[var(--text-muted)] italic">
                   No cuisine found.
                 </p>
               )}

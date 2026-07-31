@@ -121,8 +121,8 @@ export default function PostRecipeSteps({
     <section className="mt-8">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <h3 className="font-semibold text-white">Steps</h3>
-          <p className="mt-1 text-xs text-[#7f89a6]">Describe each cooking step clearly.</p>
+          <h3 className="font-semibold text-[var(--text-primary)]">Steps</h3>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">Describe each cooking step clearly.</p>
         </div>
 
         <button
@@ -133,7 +133,7 @@ export default function PostRecipeSteps({
             setDraft(emptyDraft)
           }}
           disabled={isAdding}
-          className="flex h-9 items-center gap-2 rounded-lg bg-[#0b0b0c] border border-white/10 px-3 text-sm font-medium text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 items-center gap-2 rounded-lg bg-[var(--button-secondary-bg)] border border-[var(--button-secondary-border)] px-3 text-sm font-medium text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span>Add</span>
           <AddRoundedIcon sx={{ fontSize: 18 }} />
@@ -181,14 +181,14 @@ export default function PostRecipeSteps({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="group relative rounded-xl border border-white/10 bg-[#0b0b0c] p-4 transition hover:bg-[#0b0b0c]/70"
+                      className="group relative rounded-xl border border-[var(--border)] bg-[var(--dropdown-bg)] p-4 transition hover:bg-[var(--dropdown-hover)]"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] border border-white/10 text-sm font-bold text-white">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-muted)] border border-[var(--border)] text-sm font-bold text-[var(--text-primary)]">
                           {index + 1}
                         </div>
 
-                        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
+                        <p className="min-w-0 flex-1 truncate text-sm font-semibold capitalize text-[var(--text-primary)]">
                           {step.title || `Step ${index + 1}`}
                         </p>
 
@@ -196,7 +196,7 @@ export default function PostRecipeSteps({
                           <button
                             type="button"
                             onClick={() => setOpenMenuId(openMenuId === step.id ? null : step.id)}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#a8b3cf]/55 transition hover:bg-white/[0.04] hover:text-white"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
                           >
                             <MoreHorizRoundedIcon sx={{ fontSize: 19 }} />
                           </button>
@@ -208,12 +208,12 @@ export default function PostRecipeSteps({
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -6, scale: 0.96 }}
                                 transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                                className="absolute right-0 bottom-full z-50 w-36 overflow-hidden rounded-lg border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+                                className="absolute right-0 bottom-full z-50 w-36 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
                               >
                                 <button
                                   type="button"
                                   onClick={() => handleStartEditStep(step)}
-                                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[#d7def0] transition hover:bg-[#16181d] hover:text-white"
+                                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
                                 >
                                   <EditRoundedIcon sx={{ fontSize: 17 }} />
                                   Edit
@@ -222,7 +222,7 @@ export default function PostRecipeSteps({
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveStep(step.id)}
-                                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)]"
                                 >
                                   <DeleteOutlineRoundedIcon sx={{ fontSize: 17 }} />
                                   Delete
@@ -234,7 +234,7 @@ export default function PostRecipeSteps({
                       </div>
 
                       <div className="mt-3 flex gap-4">
-                        <p className="min-w-0 flex-1 line-clamp-4 text-sm leading-6 text-[#a8b3cf]">
+                        <p className="min-w-0 flex-1 line-clamp-4 text-sm leading-6 text-[var(--text-secondary)]">
                           {step.description}
                         </p>
 

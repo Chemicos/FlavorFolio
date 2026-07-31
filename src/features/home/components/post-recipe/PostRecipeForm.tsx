@@ -77,8 +77,8 @@ export default function PostRecipeForm({
   
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
-  const fieldClass = "w-full rounded-md border border-white/10 bg-[#0b0b0c] px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50 focus:ring-2 focus:ring-orange-500/10"
-  const labelClass = "mb-2 block text-xs font-medium text-[#a8b3cf]"
+  const fieldClass = "w-full rounded-md border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
+  const labelClass = "mb-2 block text-xs font-medium text-[var(--text-secondary)]"
 
   const titleTooShort = title.trim().length > 0 && title.trim().length < MIN_TITLE_LENGTH
   const descriptionTooShort =
@@ -262,7 +262,7 @@ export default function PostRecipeForm({
     return (
     <form className="min-h-full">
       <div className="relative">
-        <label className="group relative flex h-[340px] w-full cursor-pointer items-center justify-center overflow-hidden bg-[#0b0b0c]">
+        <label className="group relative flex h-[340px] w-full cursor-pointer items-center justify-center overflow-hidden bg-[var(--input-bg)]">
           {imagePreview ? (
             <img
               src={imagePreview}
@@ -270,8 +270,8 @@ export default function PostRecipeForm({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex flex-col items-center text-[#7f89a6] group-hover:text-orange-200">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/15 bg-white/[0.04] transition group-hover:scale-105 group-active:scale-95 group-hover:border-orange-400/50 group-hover:bg-orange-500/20">
+            <div className="flex flex-col items-center text-[var(--text-muted)] group-hover:text-[var(--accent-text)]">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--surface-subtle)] transition group-hover:scale-105 group-active:scale-95 group-hover:border-[var(--focus-border)] group-hover:bg-[var(--accent-soft-hover)]">
                 <CameraAltRoundedIcon sx={{ fontSize: 32 }} />
               </div>
 
@@ -283,12 +283,11 @@ export default function PostRecipeForm({
             <div className="absolute inset-0 bg-black/0 transition duration-200 group-hover:bg-black/25" />
           )}
 
-          <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#16181d] to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent" />
 
           {imagePreview && (
             <div 
-              className="absolute bottom-16 right-6 z-20 flex items-center gap-2 rounded-lg border border-white/10 bg-[#0b0b0c]/70 px-4 py-2 text-sm text-white backdrop-blur-xl transition
-              group-hover:border-orange-300/30 group-hover:bg-orange-500/20 group-hover:text-orange-100"
+              className="absolute bottom-16 right-6 z-20 flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] px-4 py-2 text-sm text-[var(--text-primary)] backdrop-blur-xl transition group-hover:border-[var(--accent-border)] group-hover:bg-[var(--accent-soft-hover)] group-hover:text-[var(--accent-text)]"
             >
               <CameraAltRoundedIcon sx={{ fontSize: 16 }} />
               <span>Change image</span>
@@ -306,17 +305,17 @@ export default function PostRecipeForm({
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
+          className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
         >
           <CloseRoundedIcon sx={{ fontSize: 20 }} />
         </button>
       </div>
 
-      <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-8 pt-10">
-        <p className="text-sm font-medium text-[#a8b3cf]">
+      <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[var(--bg-secondary)] px-7 pb-8 pt-10">
+        <p className="text-sm font-medium text-[var(--text-secondary)]">
           {isEditMode ? "Edit recipe" : "Create recipe"}
         </p>
-        <h2 className="mt-1 text-[1.5rem] font-medium text-white">
+        <h2 className="mt-1 text-[1.5rem] font-medium text-[var(--text-primary)]">
           {isEditMode ? "Update post" : "New post"}
         </h2>
 
@@ -337,7 +336,7 @@ export default function PostRecipeForm({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 6, scale: 0.98 }}
                 transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                className="pointer-events-none absolute left-0 -top-5 rounded-lg border border-red-400/20 bg-[#140b0b] px-3 py-2 text-xs text-red-200 shadow-[0_12px_32px_rgba(0,0,0,0.35)]"
+                className="pointer-events-none absolute left-0 -top-5 rounded-lg border border-[var(--danger-border)] bg-[var(--button-danger-bg)] px-3 py-2 text-xs text-[var(--danger-text)] shadow-[var(--shadow-card)]"
               >
                 Title must be at least {MIN_TITLE_LENGTH} characters.
               </motion.p>
@@ -362,7 +361,7 @@ export default function PostRecipeForm({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 6, scale: 0.98 }}
                   transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                  className="pointer-events-none absolute left-0 -top-5 rounded-lg border border-red-400/20 bg-[#140b0b] px-3 py-2 text-xs text-red-200 shadow-[0_12px_32px_rgba(0,0,0,0.35)]"
+                  className="pointer-events-none absolute left-0 -top-5 rounded-lg border border-[var(--danger-border)] bg-[var(--button-danger-bg)] px-3 py-2 text-xs text-[var(--danger-text)] shadow-[var(--shadow-card)]"
                 >
                   Description must be at least {MIN_DESCRIPTION_LENGTH} characters.
                 </motion.p>
@@ -391,9 +390,9 @@ export default function PostRecipeForm({
               />
 
               {formattedDuration && (
-                <p className="mt-1.5 text-xs text-[#a8b3cf]">
+                <p className="mt-1.5 text-xs text-[var(--text-secondary)]">
                   Displayed as{" "}
-                  <span className="font-medium text-orange-200">
+                  <span className="font-medium text-[var(--accent-text)]">
                     {formattedDuration}
                   </span>
                 </p>

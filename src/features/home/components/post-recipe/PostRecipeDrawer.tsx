@@ -74,7 +74,7 @@ export default function PostRecipeDrawer({
     >
         {!isSideVariant && !isInlineVariant && (
             <motion.div
-            className="absolute inset-0 bg-[#050506]/50 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-[var(--overlay)] backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -93,11 +93,11 @@ export default function PostRecipeDrawer({
             }
             style={{ width: isInlineVariant ? "100%" : width, }}
             className={[
-                "flex h-full flex-col overflow-hidden bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]",
+                "flex h-full flex-col overflow-hidden bg-[var(--bg-secondary)] shadow-[var(--shadow-panel)]",
                 isInlineVariant
-                    ? "w-full rounded-2xl border border-white/10"
+                    ? "w-full rounded-2xl border border-[var(--border)]"
                     : isSideVariant
-                    ? "absolute right-0 top-0 border-l border-white/10"
+                    ? "absolute right-0 top-0 border-l border-[var(--border)]"
                     : "absolute right-0 top-0 w-full max-w-[580px]",
             ].join(" ")}
         >
@@ -105,11 +105,11 @@ export default function PostRecipeDrawer({
             {onResizeStart && (isSideVariant || isInlineVariant) && (
                 <div
                     onMouseDown={onResizeStart}
-                    className="absolute left-0 top-0 z-50 h-full w-3 -translate-x-1/2 cursor-col-resize before:absolute before:left-1/2 before:top-0 before:h-full before:w-px before:bg-white/10 hover:before:bg-orange-400/60"
+                    className="absolute left-0 top-0 z-50 h-full w-3 -translate-x-1/2 cursor-col-resize before:absolute before:left-1/2 before:top-0 before:h-full before:w-px before:bg-[var(--border)] hover:before:bg-[var(--focus-border)]"
                 />
             )}
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
                 {postType === "reel" && mode !== "edit" ? (
                     <PostReelForm 
                         currentUser={currentUser}
