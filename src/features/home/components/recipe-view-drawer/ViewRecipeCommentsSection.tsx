@@ -92,8 +92,8 @@ export default function ViewRecipeCommentsSection({
   return (
     <div className="mt-4">
       <div className="flex items-center gap-3">
-          <ChatBubbleOutlineRoundedIcon sx={{fontSize: 20, color: "#ffffff"}} />
-          <h2 className="text-[1.2rem] font-bold text-white">
+          <ChatBubbleOutlineRoundedIcon sx={{fontSize: 20, color: "var(--text-primary)"}} />
+          <h2 className="text-[1.2rem] font-bold text-[var(--text-primary)]">
               Comments {formatCompactCount(visibleCommentsCount, true)}
           </h2>
       </div>
@@ -106,7 +106,7 @@ export default function ViewRecipeCommentsSection({
           />
 
           {isLoadingComments ? (
-              <p className="text-sm text-[#7f89a6]">Loading comments...</p>
+              <p className="text-sm text-[var(--text-muted)]">Loading comments...</p>
           ): (
               <ViewRecipeCommentList 
                   comments={visibleComments} 

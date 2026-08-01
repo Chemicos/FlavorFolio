@@ -14,7 +14,7 @@ interface AddStepMiniFormProps {
   onConfirm: () => void
 }
 
-const fieldClass = "w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50 focus:ring-2 focus:ring-orange-500/10"
+const fieldClass = "w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
 
 export default function AddStepMiniForm({
     value,
@@ -43,7 +43,7 @@ export default function AddStepMiniForm({
       transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
       className="overflow-hidden"
     >
-      <div className="rounded-xl border border-white/10 bg-[#0b0b0c]/70 p-3">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
         <div className="flex flex-col gap-3">
           <input
             value={value.title}
@@ -64,7 +64,7 @@ export default function AddStepMiniForm({
             className={`${fieldClass} resize-none leading-7`}
           />
 
-          <label className="group relative flex h-[190px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/10 bg-[#090909] transition hover:border-orange-400/30">
+          <label className="group relative flex h-[190px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-[var(--border-strong)] bg-[var(--input-bg)] transition hover:border-[var(--accent-border)]">
             {value.imagePreview ? (
               <>
                 <img
@@ -75,14 +75,14 @@ export default function AddStepMiniForm({
 
                 <div className="absolute inset-0 bg-black/0 transition duration-200 group-hover:bg-black/25" />
 
-                <div className="absolute right-3 top-3 flex items-center gap-2 rounded-lg border border-white/10 bg-[#0b0b0c]/70 px-4 py-2 text-sm text-white backdrop-blur-xl"
+                <div className="absolute right-3 top-3 flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] px-4 py-2 text-sm text-[var(--text-primary)] backdrop-blur-xl"
                 >
                   <CameraAltRoundedIcon sx={{ fontSize: 15 }} />
                   Change
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center gap-2 text-[#7f89a6] transition group-hover:text-orange-200">
+              <div className="flex flex-col items-center gap-2 text-[var(--text-muted)] transition group-hover:text-[var(--accent-text)]">
                 <ImageOutlinedIcon sx={{ fontSize: 30 }} />
                 <span className="text-sm">Upload step image</span>
               </div>
@@ -100,7 +100,7 @@ export default function AddStepMiniForm({
             <button
               type="button"
               onClick={onCancel}
-              className="flex h-11 w-11 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-300 transition hover:bg-red-500/20 active:scale-95"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--button-danger-border)] bg-[var(--button-danger-bg)] text-[var(--button-danger-text)] transition hover:bg-[var(--button-danger-hover)] active:scale-95"
             >
               <CloseRoundedIcon sx={{ fontSize: 19 }} />
             </button>
@@ -109,7 +109,7 @@ export default function AddStepMiniForm({
               type="button"
               onClick={onConfirm}
               disabled={!canConfirm}
-              className="flex h-11 w-11 items-center justify-center rounded-lg border border-green-500/20 bg-green-500/10 text-green-300 transition hover:bg-green-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--button-success-border)] bg-[var(--button-success-bg)] text-[var(--button-success-text)] transition hover:bg-[var(--button-success-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <CheckRoundedIcon sx={{ fontSize: 20 }} />
             </button>

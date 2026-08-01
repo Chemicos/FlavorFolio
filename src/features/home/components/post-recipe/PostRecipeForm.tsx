@@ -262,7 +262,7 @@ export default function PostRecipeForm({
     return (
     <form className="min-h-full">
       <div className="relative">
-        <label className="group relative flex h-[340px] w-full cursor-pointer items-center justify-center overflow-hidden bg-[var(--input-bg)]">
+        <label className="group relative flex h-[340px] w-full cursor-pointer items-center justify-center overflow-hidden bg-[var(--recipe-upload-bg)]">
           {imagePreview ? (
             <img
               src={imagePreview}
@@ -283,7 +283,7 @@ export default function PostRecipeForm({
             <div className="absolute inset-0 bg-black/0 transition duration-200 group-hover:bg-black/25" />
           )}
 
-          <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[var(--recipe-form-bg)] to-transparent" />
 
           {imagePreview && (
             <div 
@@ -305,7 +305,7 @@ export default function PostRecipeForm({
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
+          className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--recipe-form-bg)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95"
         >
           <CloseRoundedIcon sx={{ fontSize: 20 }} />
         </button>

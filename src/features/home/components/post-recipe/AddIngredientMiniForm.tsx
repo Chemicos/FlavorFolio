@@ -19,7 +19,7 @@ interface AddIngredientMiniFormProps {
 }
 
 const units = ["g", "kg", "ml", "l", "tsp", "tbsp", "cup", "piece"]
-const fieldClass = "w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50 focus:ring-2 focus:ring-orange-500/10"
+const fieldClass = "w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
 
 export default function AddIngredientMiniForm({
     value,
@@ -71,7 +71,7 @@ export default function AddIngredientMiniForm({
       transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
       className="overflow-visible"
     >
-      <div className="rounded-xl border border-white/10 bg-[#0b0b0c]/70 p-3">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
         <div className="relative">
           <input
             value={value.ingredient}
@@ -82,7 +82,7 @@ export default function AddIngredientMiniForm({
             className={[
               fieldClass,
               isIngredientInvalid
-                ? "border-red-400/60 focus:border-red-400/70 focus:ring-red-500/10"
+                ? "border-[var(--danger)] focus:border-[var(--danger)] focus:ring-[var(--danger-soft)]"
                 : "",
             ].join(" ")}
           />
@@ -94,7 +94,7 @@ export default function AddIngredientMiniForm({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 6, scale: 0.98 }}
                 transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                className="pointer-events-none absolute left-0 -top-12 z-50 rounded-lg border border-red-400/20 bg-[#140b0b] px-3 py-2 text-xs text-red-200 shadow-[0_12px_32px_rgba(0,0,0,0.35)]"
+                className="pointer-events-none absolute left-0 -top-12 z-50 rounded-lg border border-[var(--danger-border)] bg-[var(--button-danger-bg)] px-3 py-2 text-xs text-[var(--button-danger-text)] shadow-[var(--shadow-card)]"
               >
                 Ingredient name can contain only letters, spaces and hyphens.
               </motion.div>
@@ -128,7 +128,7 @@ export default function AddIngredientMiniForm({
               <motion.span
                 animate={{ rotate: isUnitOpen ? 180 : 0 }}
                 transition={{ duration: 0.15 }}
-                className="flex items-center text-[#a8b3cf]"
+                className="flex items-center text-[var(--text-secondary)]"
               >
                 <KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />
               </motion.span>
@@ -141,7 +141,7 @@ export default function AddIngredientMiniForm({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.96 }}
                   transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute bottom-full left-0 right-0 z-[80] overflow-hidden rounded-lg border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
+                  className="absolute bottom-full left-0 right-0 z-[80] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
                 >
                   {units.map((unitOption) => {
                     const isSelected = value.unit === unitOption
@@ -157,8 +157,8 @@ export default function AddIngredientMiniForm({
                         className={[
                           "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition",
                           isSelected
-                            ? "bg-orange-500/15 text-orange-200"
-                            : "text-[#a8b3cf] hover:bg-white/[0.04] hover:text-white",
+                            ? "bg-[var(--dropdown-selected)] text-[var(--accent-text)]"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]",
                         ].join(" ")}
                       >
                         {unitOption}
@@ -174,7 +174,7 @@ export default function AddIngredientMiniForm({
           <button
             type="button"
             onClick={onCancel}
-            className="flex h-11 w-11 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 transition hover:bg-red-500/20 active:scale-95"
+            className="flex h-11 w-11 items-center justify-center rounded-lg bg-[var(--button-danger-bg)] border border-[var(--button-danger-border)] text-[var(--button-danger-text)] transition hover:bg-[var(--button-danger-hover)] active:scale-95"
           >
             <CloseRoundedIcon sx={{ fontSize: 19 }} />
           </button>
@@ -183,7 +183,7 @@ export default function AddIngredientMiniForm({
             type="button"
             onClick={onConfirm}
             disabled={!canConfirm}
-            className="flex h-11 w-11 items-center justify-center rounded-lg border border-green-500/20 bg-green-500/10 text-green-300 transition hover:bg-green-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--button-success-border)] bg-[var(--button-success-bg)] text-[var(--button-success-text)] transition hover:bg-[var(--button-success-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <CheckRoundedIcon sx={{ fontSize: 20 }} />
           </button>

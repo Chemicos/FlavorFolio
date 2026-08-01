@@ -14,6 +14,12 @@
   --surface-hover: #f7efe3;
   --surface-active: #f1e3d1;
 
+  /* Recipe composer */
+  --recipe-upload-bg: #f2eadf;
+  --recipe-form-bg: #fffdf9;
+  --recipe-form-border: #e4d8ca;
+  --recipe-form-shadow: 0 -18px 42px rgba(88, 65, 42, 0.09);
+
   /* Borders */
   --border: #e8ded0;
   --border-subtle: #eee6dc;
@@ -76,6 +82,12 @@
   --button-secondary-text: #55483b;
   --button-secondary-border: #e5d8c8;
 
+  /* Success buttons */
+  --button-success-bg: #e9f7f0;
+  --button-success-hover: #d8f0e5;
+  --button-success-border: #b9ddca;
+  --button-success-text: #116847;
+
   /* Danger buttons */
   --button-danger-bg: #fff4f4;
   --button-danger-hover: #ffe6e6;
@@ -128,6 +140,12 @@
   --surface-muted: rgba(255, 255, 255, 0.055);
   --surface-hover: rgba(255, 255, 255, 0.05);
   --surface-active: rgba(255, 255, 255, 0.08);
+
+  /* Recipe composer */
+  --recipe-upload-bg: #0b0b0c;
+  --recipe-form-bg: #16181d;
+  --recipe-form-border: rgba(255, 255, 255, 0.08);
+  --recipe-form-shadow: 0 -18px 42px rgba(0, 0, 0, 0.18);
 
   /* Borders */
   --border: rgba(255, 255, 255, 0.08);
@@ -190,6 +208,12 @@
   --button-secondary-hover: #171a20;
   --button-secondary-text: #a8b3cf;
   --button-secondary-border: rgba(255, 255, 255, 0.1);
+
+  /* Success buttons */
+  --button-success-bg: #14271f;
+  --button-success-hover: #1a3428;
+  --button-success-border: rgba(85, 214, 160, 0.22);
+  --button-success-text: #8ce9bd;
 
   /* Danger buttons */
 

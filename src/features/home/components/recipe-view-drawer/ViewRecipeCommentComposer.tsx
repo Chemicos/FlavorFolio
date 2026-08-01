@@ -49,10 +49,10 @@ export default function ViewRecipeCommentComposer({
             initial={false}
             animate={{height: isExpanded ? 320 : 84}}
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1]}}
-            className="rounded-lg bg-[#0b0b0c]/75 p-4"
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] p-4"
         >
             <div className="flex items-start gap-3">
-                <div className="h-11 w-11 overflow-hidden rounded-lg bg-white/10">
+                <div className="h-11 w-11 overflow-hidden rounded-lg bg-[var(--surface-muted)]">
                     {currentUser?.profileImage ? (
                         <img 
                             src={currentUser.profileImage} 
@@ -60,7 +60,7 @@ export default function ViewRecipeCommentComposer({
                             className="h-full w-full object-cover"
                         />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-white/70">
+                        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[var(--text-secondary)]">
                             {currentUser?.username?.charAt(0)?.toUpperCase() || "U"}
                         </div>
                     )}
@@ -77,13 +77,13 @@ export default function ViewRecipeCommentComposer({
                                 animate={{ opacity: 1}}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                                className="flex min-h-[52px] w-full items-center justify-between gap-3 rounded-2xl px-4 py-2 text-left transition"
+                                className="flex min-h-[52px] w-full items-center justify-between gap-3 rounded-2xl px-4 py-2 text-left transition hover:bg-[var(--hover)]"
                             >
-                                <span className="text-sm text-[#5e6780]">
+                                <span className="text-sm text-[var(--input-placeholder)]">
                                     Share your thoughts...
                                 </span>
 
-                                <SendRoundedIcon className="shrink-0 text-[#a8b3cf]" />
+                                <SendRoundedIcon className="shrink-0 text-[var(--text-secondary)]" />
                             </motion.button>
                         ) : (
                             <motion.div
@@ -100,7 +100,7 @@ export default function ViewRecipeCommentComposer({
                                     onChange={(e) => setCommentText(e.target.value)}
                                     placeholder="Share your thoughts..."
                                     rows={7}
-                                    className="min-h-[190px] w-full resize-none text-sm bg-transparent leading-7 text-white outline-none placeholder:text-[#5e6780]"
+                                    className="min-h-[190px] w-full resize-none text-sm bg-transparent leading-7 text-[var(--text-primary)] outline-none placeholder:text-[var(--input-placeholder)]"
                                 />
 
                                 <div className="mt-3 flex items-center justify-end gap-2">
@@ -108,8 +108,7 @@ export default function ViewRecipeCommentComposer({
                                         type="button"
                                         onClick={handleCancel}
                                         disabled={isSubmiting}
-                                        className="flex h-10 w-10 items-center justify-center rounded-lg text-[#7f89a5] transition hover:bg-white/[0.04] 
-                                        hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="flex h-10 w-10 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                                         aria-label="Cancel comment"
                                     >
                                         <CloseRoundedIcon sx={{ fontSize: 21 }} />
@@ -118,12 +117,11 @@ export default function ViewRecipeCommentComposer({
                                         type="button"
                                         onClick={handleSubmit}
                                         disabled={!commentText.trim() || isSubmiting}
-                                        className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#a8b3cf]/10 text-white transition hover:bg-[#a8b3cf]/20 
-                                        active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                                         aria-label="Submit comment"
                                     >
                                         {isSubmiting ? (
-                                            <CircularProgress size={18} thickness={5} sx={{color: "#a8b3cf"}}/>
+                                            <CircularProgress size={18} thickness={5} sx={{color: "var(--text-secondary)"}}/>
                                         ) : (
                                             <SendRoundedIcon />
                                         )}

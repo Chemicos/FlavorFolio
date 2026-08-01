@@ -89,7 +89,7 @@ export default function ViewRecipeCommentList({
 
     if (!visibleComments.length) {
         return (
-          <p className="text-sm text-[#a8b3cf]/40 text-center">
+          <p className="text-sm text-[var(--text-muted)] text-center">
             No comments yet. Be the first to share your thoughts.
           </p>
         )
@@ -137,7 +137,7 @@ function renderCommentText(comment: ViewRecipeComment) {
 
     return (
         <>
-            <span className="font-semibold text-[#feaa2b]">{mention}</span>
+            <span className="font-semibold text-[var(--accent)]">{mention}</span>
             <span>{rest}</span>
         </>
     )
@@ -271,13 +271,13 @@ function CommentItem({
                     }}
                     className={[
                         "flex shrink-0 items-start gap-4 rounded-lg text-left transition",
-                        comment.userId ? "hover:bg-white/[0.035] active:scale-[0.99]" : "cursor-default",
+                        comment.userId ? "hover:bg-[var(--hover)] active:scale-[0.99]" : "cursor-default",
                     ].join(" ")}
                     >
                     <div
                         className={[
-                        "shrink-0 overflow-hidden bg-white/10",
-                        isReply ? "h-9 w-9 rounded-lg" : "h-11 w-11 rounded-lg",
+                            "shrink-0 overflow-hidden bg-[var(--surface-muted)]",
+                            isReply ? "h-9 w-9 rounded-lg" : "h-11 w-11 rounded-lg",
                         ].join(" ")}
                     >
                         {comment.profileImage ? (
@@ -287,7 +287,7 @@ function CommentItem({
                             className="h-full w-full object-cover"
                         />
                         ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-white/70">
+                        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[var(--text-secondary)]">
                             {comment.username.charAt(0).toUpperCase()}
                         </div>
                         )}
@@ -304,17 +304,17 @@ function CommentItem({
                                     if (!comment.userId) return
                                     onAuthorClick?.(comment.userId)
                                 }}
-                                className="truncate text-sm font-bold text-white transition hover:text-orange-300 disabled:hover:text-white"
+                                className="truncate text-sm font-bold text-[var(--text-primary)] transition hover:text-[var(--accent-text)] disabled:hover:text-[var(--text-primary)]"
                             >
                                 {comment.username}
                             </button>
 
-                            <span className="text-sm text-[#a8b3cf]/60">
+                            <span className="text-sm text-[var(--text-muted)]">
                                 {comment.createdAtLabel || "now"}
                             </span>
 
                             {comment.edited && (
-                                <span className="rounded-full bg-white/[0.04] px-2 py-0.5 text-[0.7rem] text-[#a8b3cf]/50">
+                                <span className="rounded-full bg-[var(--surface-subtle)] px-2 py-0.5 text-[0.7rem] text-[var(--text-muted)]">
                                     Edited
                                 </span>
                             )}
@@ -324,7 +324,7 @@ function CommentItem({
                             <button
                                 type="button"
                                 onClick={() => setIsMenuOpen((prev) => !prev)}
-                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#a8b3cf]/50 transition hover:bg-white/[0.04] hover:text-white active:scale-95"
+                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] active:scale-95"
                                 aria-label="Comment options"
                             >
                                 <MoreHorizIcon sx={{ fontSize: 20 }} />
@@ -337,7 +337,7 @@ function CommentItem({
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: -6, scale: 0.96 }}
                                     transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                                    className="absolute right-0 top-8 z-20 w-44 overflow-hidden rounded-lg border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+                                    className="absolute right-0 top-8 z-20 w-44 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
                                 >
                                     {isOwnComment && (
                                         <>
@@ -346,7 +346,7 @@ function CommentItem({
                                                     setIsMenuOpen(false)
                                                     onStartEditComment?.(comment)
                                                 }}
-                                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[#d7def0] transition hover:bg-[#16181d] hover:text-white"
+                                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
                                             >
                                                 <EditRoundedIcon sx={{ fontSize: 18 }} />
                                                 Edit comment
@@ -357,7 +357,7 @@ function CommentItem({
                                                     setIsMenuOpen(false)
                                                     onDeleteComment?.(comment)
                                                 }}
-                                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)]"
                                             >
                                                 <DeleteOutlineRoundedIcon sx={{ fontSize: 18 }} />
                                                 Delete comment
@@ -379,7 +379,7 @@ function CommentItem({
                                                 profileImage: comment.profileImage || "",
                                                 })
                                             }}
-                                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)]"
                                         >
                                             <BlockRoundedIcon sx={{ fontSize: 18 }} />
                                             Block user
@@ -397,7 +397,7 @@ function CommentItem({
                                 value={editValue}
                                 onChange={(event) => setEditValue(event.target.value)}
                                 rows={3}
-                                className="w-full resize-none rounded-lg border border-white/10 bg-[#0b0b0c] px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-[#5e6780] focus:border-[#a8b3cf]/30"
+                                className="w-full resize-none rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm leading-6 text-[var(--text-primary)] outline-none placeholder:text-[var(--input-placeholder)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
                             />
 
                             <div className="mt-2 flex justify-end gap-2">
@@ -405,7 +405,7 @@ function CommentItem({
                                     type="button"
                                     disabled={isUpdatingComment}
                                     onClick={onCancelEditComment}
-                                    className="rounded-md px-3 py-1.5 text-sm text-[#a8b3cf]/70 transition hover:bg-white/[0.04] hover:text-white disabled:opacity-50"
+                                    className="rounded-md px-3 py-1.5 text-sm text-[var(--text-secondary)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:opacity-50"
                                 >
                                     Cancel
                                 </button>
@@ -414,10 +414,10 @@ function CommentItem({
                                     type="button"
                                     disabled={!editValue.trim() || editValue.trim() === comment.text.trim() || isUpdatingComment}
                                     onClick={() => onUpdateComment?.(comment, editValue.trim())}
-                                    className="rounded-md bg-[#a8b3cf]/10 px-3 py-1.5 text-sm text-white transition hover:bg-[#a8b3cf]/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="rounded-md bg-[var(--button-secondary-bg)] px-3 py-1.5 text-sm text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {isUpdatingComment ? (
-                                        <CircularProgress size={18} thickness={5} sx={{color: "#a8b3cf"}}/>
+                                        <CircularProgress size={18} thickness={5} sx={{color: "var(--text-secondary)"}}/>
                                     ) : 
                                     "Save"
                                     }
@@ -425,20 +425,20 @@ function CommentItem({
                             </div>
                         </div>
                     ) : (
-                        <p className="leading-7 text-white text-sm">
+                        <p className="leading-7 text-[var(--text-primary)] text-sm">
                             {renderCommentText(comment)}
                         </p>
                     )}
 
                     {!isEditing && (
-                        <div className="mt-1 flex items-center gap-3 text-[#a8b3cf]/50">
+                        <div className="mt-1 flex items-center gap-3 text-[var(--text-muted)]">
                             <button 
                                 type="button" 
                                 onClick={() => onToggleCommentReaction?.(comment, "like")}
                                 disabled={!currentUserId}
                                 className={[
                                     "inline-flex items-center gap-1 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40",
-                                    isLiked ? "text-white" : "text-[#a8b3cf]/50 hover:text-white",
+                                    isLiked ? "text-[var(--accent)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
                                 ].join(" ")}
                             >
                                 <ThumbUpRoundedIcon sx={{ fontSize: 18 }} />
@@ -453,7 +453,7 @@ function CommentItem({
                                 disabled={!currentUserId}
                                 className={[
                                     "inline-flex items-center gap-1 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40",
-                                    isDisliked ? "text-white" : "text-[#a8b3cf]/50 hover:text-white",
+                                    isDisliked ? "text-[var(--danger)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
                                 ].join(" ")}
                             >
                                 <ThumbDownRoundedIcon sx={{ fontSize: 18 }} />
@@ -468,7 +468,7 @@ function CommentItem({
                                 <button 
                                     type="button" 
                                     onClick={() => onStartReplyComment?.(comment)}
-                                    className="transition hover:text-white active:scale-95"
+                                    className="transition hover:text-[var(--text-primary)] active:scale-95"
                                 >
                                     <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 18 }} />
                                 </button>
@@ -485,13 +485,13 @@ function CommentItem({
                                 transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
                                 className="overflow-hidden"
                             >
-                                <div className="mt-3 rounded-xl bg-[#0b0b0c]/70 p-3">
+                                <div className="mt-3 rounded-xl bg-[var(--surface-subtle)] p-3">
                                      <textarea
                                         ref={replyTextareaRef}
                                         value={replyValue}
                                         onChange={(event) => setReplyValue(event.target.value)}
                                         rows={3}
-                                        className="w-full resize-none bg-transparent text-sm leading-6 text-white outline-none placeholder:text-[#5e6780]"
+                                        className="w-full resize-none bg-transparent text-sm leading-6 text-[var(--text-primary)] outline-none placeholder:text-[var(--input-placeholder)]"
                                     />
 
                                     <div className="mt-2 flex justify-end gap-2">
@@ -499,7 +499,7 @@ function CommentItem({
                                             type="button"
                                             disabled={isSubmittingReply}
                                             onClick={onCancelReplyComment}
-                                            className="flex h-8 w-8 items-center justify-center rounded-md text-sm text-[#a8b3cf]/70 transition hover:bg-white/[0.04] hover:text-white disabled:opacity-50"
+                                            className="flex h-8 w-8 items-center justify-center rounded-md text-sm text-[var(--text-secondary)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:opacity-50"
                                         >
                                             <CloseRoundedIcon sx={{ fontSize: 18 }} />
                                         </button>
@@ -508,10 +508,10 @@ function CommentItem({
                                             type="button"
                                             disabled={!replyValue.trim() || !hasReplyText || isSubmittingReply}
                                             onClick={() => onReplyComment?.(comment, replyValue.trim())}
-                                            className="flex items-center justify-center rounded-md bg-[#a8b3cf]/10 h-8 w-8 text-sm text-white transition hover:bg-[#a8b3cf]/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="flex items-center justify-center rounded-md bg-[var(--button-secondary-bg)] h-8 w-8 text-sm text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             {isSubmittingReply ? (
-                                                <CircularProgress size={18} thickness={5} sx={{color: "#a8b3cf"}}/>
+                                                <CircularProgress size={18} thickness={5} sx={{color: "var(--text-secondary)"}}/>
                                             ) : (
                                                 <SendRoundedIcon sx={{fontSize: 18}} />
                                             )}
@@ -526,7 +526,7 @@ function CommentItem({
                         <button
                         type="button"
                         onClick={() => setShowReplies((prev) => !prev)}
-                        className="mt-5 flex items-center gap-3 text-sm font-medium text-[#7f89a6] transition hover:text-white"
+                        className="mt-5 flex items-center gap-3 text-sm font-medium text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
                         >
                         {replies.length} replies
 

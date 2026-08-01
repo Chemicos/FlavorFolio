@@ -100,94 +100,94 @@ export default function PostRecipePreview({
     }, [previewSteps])
 
     return (
-        <div className="min-h-full bg-[#16181d] text-white">
-        <div className="relative h-[340px] overflow-hidden bg-[#0b0b0c]">
+        <div className="min-h-full  bg-[var(--bg-secondary)] text-[var(--text-primary)]">
+        <div className="relative h-[340px] overflow-hidden bg-[var(--recipe-upload-bg)]">
             {imagePreview ? (
                 <img src={imagePreview} alt={title || "Recipe preview"} className="h-full w-full object-cover" />
             ) : (
-                <div className="flex h-full w-full items-center justify-center text-sm text-[#a8b3cf]">
+                <div className="flex h-full w-full items-center justify-center text-sm text-[var(--text-secondary)]">
                     No image selected
                 </div>
             )}
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#16181d] via-[#16181d]/20 to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--recipe-form-bg)] via-transparent to-black/30" />
 
             <button
                 type="button"
                 onClick={onBack}
-                className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
+                className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--recipe-form-bg)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
             >
                 <ChevronLeftRoundedIcon sx={{ fontSize: 26 }} />
             </button>
         </div>
         
-        <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-8 pt-10">
-            <div className="flex flex-wrap gap-3 text-sm text-[#c4cbdb]">
+        <div className="relative z-10 -mt-10 rounded-t-[2.8rem] border-[var(--recipe-form-border)] bg-[var(--bg-secondary)] px-7 pb-8 pt-10 shadow-[var(--recipe-form-shadow)]">
+            <div className="flex flex-wrap gap-3 text-sm text-[var(--text-secondary)]">
                 {cuisine && (
-                    <div className="mb-3 flex items-center gap-2 rounded-xl text-xs border border-orange-400/15 bg-orange-500/10 px-3 py-2 text-orange-200 capitalize">
+                    <div className="mb-3 flex items-center gap-2 rounded-xl text-xs border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-[var(--accent-text)] capitalize">
                         <RestaurantRoundedIcon sx={{ fontSize: 17 }} />
                         <span>{cuisine}</span>
                     </div>
                 )}
 
-                <div className="mb-3 flex items-center gap-2 rounded-xl text-xs border border-orange-400/15 bg-orange-500/10 px-3 py-2  text-orange-200 capitalize">
+                <div className="mb-3 flex items-center gap-2 rounded-xl text-xs border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-[var(--accent-text)] capitalize">
                     <span>{meal}</span>
                 </div>
 
-                <div className="mb-3 flex items-center gap-2 rounded-xl text-xs border border-orange-400/15 bg-orange-500/10 px-3 py-2  text-orange-200 capitalize">
+                <div className="mb-3 flex items-center gap-2 rounded-xl text-xs border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-[var(--accent-text)] capitalize">
                     <span>{visibility}</span>
                 </div>
             </div>
             
-            <h1 className="text-[1.6rem] font-bold leading-[2.35rem] text-white capitalize">
+            <h1 className="text-[1.6rem] font-bold leading-[2.35rem] text-[var(--text-primary)] capitalize">
                 {title || "Untitled recipe"}
             </h1>
 
             <div className="mt-10 grid grid-cols-3 gap-3">
-                <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
-                    <div className="flex justify-center text-white">
+                <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-5 text-center">
+                    <div className="flex justify-center text-[var(--text-primary)]">
                         <AccessTimeOutlinedIcon sx={{ fontSize: 22 }} />
                     </div>
 
-                    <p className="mt-3 text-sm font-semibold text-white">duration</p>
+                    <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">duration</p>
                 </div>
 
-                <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
-                    <div className="flex justify-center text-white">
+                <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-5 text-center">
+                    <div className="flex justify-center text-[var(--text-primary)]">
                         <SignalCellularAltRoundedIcon sx={{ fontSize: 22 }} />
                     </div>
-                    <p className="mt-3 text-sm font-semibold text-white">difficulty</p>
+                    <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">difficulty</p>
                 </div>
 
-                <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
-                    <div className="flex justify-center text-white">
+                <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-5 text-center">
+                    <div className="flex justify-center text-[var(--text-primary)]">
                         <GroupsRoundedIcon sx={{ fontSize: 22 }} />
                     </div>
-                    <p className="mt-3 text-sm font-semibold text-white">servings</p>
+                    <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">servings</p>
                 </div>
 
                 <div className="flex justify-center">
-                    <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
+                    <span className="rounded-lg bg-[var(--surface-muted)] border border-[var(--border)] px-5 py-2 text-sm font-semibold text-[var(--text-primary)]">
                         {formattedDuration || "-"}
                     </span>
                 </div>
 
                 <div className="flex justify-center">
-                    <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
+                    <span className="rounded-lg bg-[var(--surface-muted)] border border-[var(--border)] px-5 py-2 text-sm font-semibold text-[var(--text-primary)]">
                         {difficulty}
                     </span>
                 </div>
 
                 <div className="flex justify-center">
-                    <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
+                    <span className="rounded-lg bg-[var(--surface-muted)] border border-[var(--border)] px-5 py-2 text-sm font-semibold text-[var(--text-primary)]">
                         {servings || "-"}
                     </span>
                 </div>
             </div>
 
             <section className="mt-8">
-                <h2 className="text-lg font-semibold text-white">Description</h2>
-                <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#7f89a6]">
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Description</h2>
+                <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--text-muted)]">
                     {description || "No description added yet."}
                 </p>
             </section>
@@ -197,8 +197,8 @@ export default function PostRecipePreview({
                     <ViewRecipeIngredients ingredients={previewIngredients} />
                 ) : (
                     <div>
-                    <h2 className="text-[1.2rem] font-bold text-white">Ingredients</h2>
-                    <p className="mt-3 text-sm text-[#7f89a6]">
+                    <h2 className="text-[1.2rem] font-bold text-[var(--text-primary)]">Ingredients</h2>
+                    <p className="mt-3 text-sm text-[var(--text-muted)]">
                         No ingredients added yet.
                     </p>
                     </div>
@@ -216,8 +216,8 @@ export default function PostRecipePreview({
                     />
                 ) : (
                     <div>
-                        <h2 className="text-[1.2rem] font-bold text-white">Steps</h2>
-                        <p className="mt-3 text-sm text-[#7f89a6]">
+                        <h2 className="text-[1.2rem] font-bold text-[var(--text-primary)]">Steps</h2>
+                        <p className="mt-3 text-sm text-[var(--text-muted)]">
                             No steps added yet.
                         </p>
                     </div>

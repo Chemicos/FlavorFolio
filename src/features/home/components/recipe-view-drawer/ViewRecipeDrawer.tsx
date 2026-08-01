@@ -125,15 +125,15 @@ export default function ViewRecipeDrawer({
     const asideClassName = isInline
         ? [
             "flex h-[calc(100vh-96px)] w-full flex-col overflow-hidden",
-            "rounded-2xl border border-white/10",
-            "bg-gradient-to-b from-[#16181d]/80 via-[#16181d]/95 to-[#16181d]",
-            "shadow-[-24px_0_80px_rgba(0,0,0,0.28)]",
+            "rounded-2xl border border-[var(--border)]",
+            "bg-[var(--bg-secondary)]",
+            "shadow-[var(--shadow-panel)]",
         ].join(" ")
       : [
             "absolute right-0 top-0",
             "flex h-full w-full max-w-[540px] flex-col overflow-hidden",
-            "bg-gradient-to-b from-[#16181d]/40 via-[#16181d]/80 to-[#16181d]",
-            "shadow-[-24px_0_80px_rgba(0,0,0,0.38)]",
+            "bg-[var(--bg-secondary)]",
+            "shadow-[var(--shadow-panel)]",
         ].join(" ")
 
     const [isDeleteRecipeDialogOpen, setIsDeleteRecipeDialogOpen] = useState(false)
@@ -561,11 +561,11 @@ export default function ViewRecipeDrawer({
             style={isInline ? { width, flexShrink: 0 } : undefined}
             className={asideClassName}
         >
-            <div className="flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+            <div className="flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
                 <div className="relative">
                     <div className="relative h-[340px] w-full overflow-hidden">
                         {!imageLoaded && (
-                            <div className="absolute inset-0 animate-pulse bg-white/10" />
+                            <div className="absolute inset-0 animate-pulse bg-[var(--surface-muted)]" />
                         )}
 
                         <img
@@ -580,14 +580,13 @@ export default function ViewRecipeDrawer({
                             ].join(" ")}
                             />
 
-                        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#16181d] to-transparent" />
+                        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent" />
                     </div>
 
                     <button
                         type="button"
                         onClick={onClose}
-                        className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
-                    >
+                        className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"                    >
                         <CloseRoundedIcon sx={{ fontSize: 20 }} />
                     </button>
 
@@ -595,7 +594,7 @@ export default function ViewRecipeDrawer({
                         <button
                             type="button"
                             onClick={() => setIsRecipeMenuOpen((prev) => !prev)}
-                            className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
+                            className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
                         >
                             <MoreVertRoundedIcon sx={{ fontSize: 21 }} />
                         </button>
@@ -607,13 +606,13 @@ export default function ViewRecipeDrawer({
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -6, scale: 0.96 }}
                                 transition={{ duration: 0.16 }}
-                                className="absolute right-0 top-[calc(100%+10px)] w-44 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
+                                className="absolute right-0 top-[calc(100%+10px)] w-44 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
                             >
                                 {showInteractions && (
                                     <button
                                         type="button"
                                         onClick={() => onShareRecipe?.(recipe)}
-                                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+                                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
                                     >
                                         <ShareRoundedIcon sx={{ fontSize: 18 }} />
                                         Share
@@ -625,7 +624,7 @@ export default function ViewRecipeDrawer({
                                     <button
                                         type="button"
                                         onClick={() => onEditRecipe(recipe)}
-                                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+                                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
                                     >
                                     <EditRoundedIcon sx={{ fontSize: 18 }} />
                                         {recipe.status === "needs_revision" ? "Resolve revision" : "Edit recipe"}
@@ -633,7 +632,7 @@ export default function ViewRecipeDrawer({
 
                                     <button
                                         type="button"
-                                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)]"
                                         onClick={() => {
                                             setIsRecipeMenuOpen(false)
                                             setIsDeleteRecipeDialogOpen(true)
@@ -654,11 +653,11 @@ export default function ViewRecipeDrawer({
                             type="button"
                             onClick={handleToggleFavorite}
                             disabled={isFavoriteLoading}
-                            className="absolute bottom-[10px] right-7 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-[#23262f] text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition duration-200 hover:scale-105 active:scale-95 disabled:opacity-60"
+                            className="absolute bottom-[10px] right-7 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--drawer-control-bg)] text-[var(--text-primary)] shadow-[var(--shadow-card)] transition duration-200 hover:scale-105 hover:bg-[var(--drawer-control-hover)] active:scale-95 disabled:opacity-60"
                             >
                             <BookmarkRoundedIcon
                                 sx={{
-                                    color: isFavorite ? "#feaa2b" : "#ffffff",
+                                    color: isFavorite ? "var(--accent)" : "var(--text-primary)",
                                     fontSize: 20,
                                 }}
                             />
@@ -666,26 +665,26 @@ export default function ViewRecipeDrawer({
                     )}
                 </div>
 
-                <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-8 pt-10">
+                <div className="relative z-10 -mt-10 rounded-t-[2.8rem] border-t border-[var(--border)] bg-[var(--bg-secondary)] px-7 pb-8 pt-10 shadow-[var(--recipe-form-shadow)]">
                     <div className="mb-3 flex flex-wrap gap-3">
                         {recipe.cuisine && (
-                            <div className="inline-flex items-center gap-2 rounded-xl text-xs border border-orange-400/15 bg-orange-500/10 px-3 py-2 text-orange-200 capitalize">
+                            <div className="inline-flex items-center gap-2 rounded-xl text-xs border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-[var(--accent-text)] capitalize">
                                 <RestaurantRoundedIcon sx={{ fontSize: 17 }} />
                                 {recipe.cuisine}
                             </div>
                         )}
 
-                        <div className="flex items-center gap-2 rounded-xl text-xs border border-orange-400/15 bg-orange-500/10 px-3 py-2  text-orange-200 capitalize">
+                        <div className="flex items-center gap-2 rounded-xl text-xs border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-[var(--accent-text)] capitalize">
                             <span>{recipe.meal}</span>
                         </div>
                     </div>
                     
-                    <h1 className="max-w-[92%] text-[1.6rem] font-bold leading-[2.35rem] text-white">
+                    <h1 className="max-w-[92%] text-[1.6rem] font-bold leading-[2.35rem] text-[var(--text-primary)]">
                         {recipe.title}
                     </h1>
 
                     {recipeDate && (
-                        <div className="mt-2 flex items-center gap-1.5 text-xs text-[#7f89a6]">
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
                             <CalendarTodayRoundedIcon sx={{ fontSize: 14 }} />
 
                             <span>{recipeDateLabel} {recipeDate}</span>
@@ -693,7 +692,7 @@ export default function ViewRecipeDrawer({
                     )}
 
                     {showInteractions && (
-                        <div className="mt-3 flex items-center gap-2 text-[#d9dde9]">
+                        <div className="mt-3 flex items-center gap-2 text-[var(--text-secondary)]">
                             <MuiRating
                                 value={userRating ?? averageRating}
                                 precision={1}
@@ -701,12 +700,12 @@ export default function ViewRecipeDrawer({
                                 disabled={!currentUser?.uid || ratingLoading}
                                 onChange={handleRatingChange}
                                 sx={{
-                                color: "#feaa2b",
+                                color: "var(--accent)",
                                 "& .MuiRating-iconFilled": {
-                                    color: "#feaa2b",
+                                    color: "var(--accent)",
                                 },
                                 "& .MuiRating-iconEmpty": {
-                                    color: "rgba(242, 193, 75, 0.28)",
+                                    color: "var(--accent-border)",
                                 },
                                 "&.Mui-disabled": {
                                     opacity: 0.8,
@@ -714,25 +713,25 @@ export default function ViewRecipeDrawer({
                                 }}
                             />
                             
-                            <span className="text-sm font-semibold text-white">
+                            <span className="text-sm font-semibold text-[var(--text-primary)]">
                                 {averageRating.toFixed(1)}
                             </span>
 
-                            <span className="text-sm text-[#a8b3cf]">
+                            <span className="text-sm text-[var(--text-secondary)]">
                                 {formatCompactCount(ratingsCount, true)}
                             </span>
 
-                            <span className="text-[#8d97b1]">•</span>
+                            <span className="text-[var(--text-muted)]">•</span>
 
-                            <div className="flex items-center gap-1 text-white  ">
+                            <div className="flex items-center gap-1 text-[var(--text-primary)]">
                                 <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 17 }} />
-                                <span className="text-sm text-[#a8b3cf]">{formatCompactCount(displayedCommentsCount, true)}</span>
+                                <span className="text-sm text-[var(--text-secondary)]">{formatCompactCount(displayedCommentsCount, true)}</span>
                             </div>
                         </div>
                     )}
 
                     <div className="mt-8">
-                        <p className="text-sm font-medium text-[#9aa6c7]">Recipe by</p>
+                        <p className="text-sm font-medium text-[var(--text-secondary)]">Recipe by</p>
 
                         <div className="mt-3 flex items-center gap-8">
                             <button 
@@ -741,9 +740,9 @@ export default function ViewRecipeDrawer({
                                     if (!recipe.userId) return
                                     onAuthorClick?.(recipe.userId)
                                 }}
-                                className="flex min-w-0 items-center gap-3 rounded-lg text-left transition hover:bg-white/[0.04] active:scale-[0.99]"
+                                className="flex min-w-0 items-center gap-3 rounded-lg text-left transition hover:bg-[var(--hover)] active:scale-[0.99]"
                             >
-                                <div className="h-10 w-10 overflow-hidden rounded-lg bg-white/10">
+                                <div className="h-10 w-10 overflow-hidden rounded-lg bg-[var(--surface-muted)]">
                                     {authorProfileImage ? (
                                     <img
                                         src={authorProfileImage}
@@ -751,15 +750,15 @@ export default function ViewRecipeDrawer({
                                         className="h-full w-full object-cover"
                                     />
                                     ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-white/70">
+                                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[var(--text-secondary)]">
                                         {authorUsername.charAt(0).toUpperCase()}
                                     </div>
                                     )}
                                 </div>
 
                                 <div className="min-w-0">
-                                    <p className="truncate text-base font-medium text-[#c7d0e7]">{authorUsername}</p>
-                                    <p className="text-sm text-[#7f89a6]">
+                                    <p className="truncate text-base font-medium text-[var(--text-primary)]">{authorUsername}</p>
+                                    <p className="text-sm text-[var(--text-muted)]">
                                         {formatFollowersLabel(liveAuthorFollowersCount)}
                                     </p>
                                 </div>
@@ -773,8 +772,8 @@ export default function ViewRecipeDrawer({
                                     className={[
                                         "inline-flex min-w-[96px] items-center justify-center rounded-lg border px-5 py-2 text-sm font-medium transition active:scale-95",
                                         isFollowing
-                                        ? "border-[#a8b3cf]/20 bg-white/5 text-white hover:border-white/20 hover:bg-white/10"
-                                        : "border-white/10 bg-[#0b0b0c]/70 text-white hover:border-white/20 hover:bg-[#0b0b0c]",
+                                        ? "border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] hover:bg-[var(--button-secondary-hover)]"
+                                        : "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)] hover:bg-[var(--accent-soft-hover)]",
                                         followButtonDisabled ? "cursor-not-allowed opacity-60" : "",
                                     ].join(" ")}
                                     >
@@ -784,7 +783,7 @@ export default function ViewRecipeDrawer({
                                         <CircularProgress
                                         size={16}
                                         thickness={5}
-                                        sx={{ color: "rgba(255,255,255,0.8)" }}
+                                        sx={{ color: "var(--text-secondary)" }}
                                         />
                                     ) : isFollowing ? (
                                         "Following"
@@ -797,49 +796,49 @@ export default function ViewRecipeDrawer({
                     </div>
 
                     <div className="mt-10 grid grid-cols-3 gap-3">
-                        <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
-                            <div className="flex justify-center text-white">
+                        <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-5 text-center">
+                            <div className="flex justify-center text-[var(--text-primary)]">
                                 <AccessTimeOutlinedIcon sx={{ fontSize: 22 }} />
                             </div>
 
-                            <p className="mt-3 text-sm font-semibold text-white">duration</p>
+                            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">duration</p>
                         </div>
 
-                        <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
-                            <div className="flex justify-center text-white">
+                        <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-5 text-center">
+                            <div className="flex justify-center text-[var(--text-primary)]">
                                 <SignalCellularAltRoundedIcon sx={{ fontSize: 22 }} />
                             </div>
-                            <p className="mt-3 text-sm font-semibold text-white">difficulty</p>
+                            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">difficulty</p>
                         </div>
 
-                        <div className="rounded-xl bg-[#0b0b0c] border border-white/[0.10] px-4 py-5 text-center">
-                            <div className="flex justify-center text-white">
+                        <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-5 text-center">
+                            <div className="flex justify-center text-[var(--text-primary)]">
                                 <RestaurantRoundedIcon sx={{ fontSize: 22 }} />
                             </div>
-                            <p className="mt-3 text-sm font-semibold text-white">portions</p>
+                            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">portions</p>
                         </div>
 
                         <div className="flex justify-center">
-                            <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
+                            <span className="rounded-lg bg-[var(--surface-muted)] border border-[var(--border)] px-5 py-2 text-sm font-semibold text-[var(--text-primary)]">
                                 {formatDurationMinutes(recipe.durationMinutes)}
                             </span>
                         </div>
 
                         <div className="flex justify-center">
-                            <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
+                            <span className="rounded-lg bg-[var(--surface-muted)] border border-[var(--border)] px-5 py-2 text-sm font-semibold text-[var(--text-primary)]">
                                 {recipe.difficulty}
                             </span>
                         </div>
 
                         <div className="flex justify-center">
-                            <span className="rounded-lg bg-[#0b0b0c]/60 border border-white/[0.10] px-5 py-2 text-sm font-semibold text-white">
+                            <span className="rounded-lg bg-[var(--surface-muted)] border border-[var(--border)] px-5 py-2 text-sm font-semibold text-[var(--text-primary)]">
                                 {recipe.servings ? `${recipe.servings}` : "info"}
                             </span>
                         </div>
                     </div>
 
                     <div className="mt-10">
-                        <h2 className="text-[1.2rem] font-bold text-white">Description</h2>
+                        <h2 className="text-[1.2rem] font-bold text-[var(--text-primary)]">Description</h2>
                         <div className="relative mt-3">
                             <motion.div
                             initial={false}
@@ -852,12 +851,12 @@ export default function ViewRecipeDrawer({
                             }}
                             className="relative overflow-hidden"
                             >
-                            <p className="text-[1rem] leading-8 text-[#8f97b1]">
+                            <p className="text-[1rem] leading-8 text-[var(--text-secondary)]">
                                 {description}
                             </p>
 
                             {shouldCollapseDescription && !isDescriptionExpanded && (
-                                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#16181d] via-[#16181d]/80 to-transparent backdrop-blur-[1px]" />
+                                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--bg-secondary)] via-[var(--bg-secondary)] to-transparent backdrop-blur-[1px]" />
                             )}
                             </motion.div>
 
@@ -865,7 +864,7 @@ export default function ViewRecipeDrawer({
                             <button
                                 type="button"
                                 onClick={() => setIsDescriptionExpanded((prev) => !prev)}
-                                className="mt-2 text-sm text-[#a8b3cf] underline underline-offset-2 transition hover:text-white"
+                                className="mt-2 text-sm text-[var(--text-secondary)] underline underline-offset-2 transition hover:text-[var(--text-primary)]"
                             >
                                 {isDescriptionExpanded ? "View less" : "View more"}
                             </button>
@@ -873,9 +872,9 @@ export default function ViewRecipeDrawer({
                         </div>
                     </div>
 
-                    <div className="sticky top-0 z-20 mt-10 bg-[#16181d]/95 py-3 backdrop-blur-xl">
+                    <div className="sticky top-0 z-20 mt-10 bg-[var(--bg-secondary)] py-3 backdrop-blur-xl">
                         <div 
-                            className="grid grid-cols-3 gap-2 rounded-xl bg-[#0b0b0c] p-1"
+                            className="grid grid-cols-3 gap-2 rounded-xl bg-[var(--surface-muted)] p-1"
                             style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
                         >
                             {tabs.map((tab) => {
@@ -889,8 +888,8 @@ export default function ViewRecipeDrawer({
                                         className={[
                                             "flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition active:scale-95",
                                             isActive
-                                                ? "bg-orange-500/20 text-white"
-                                                : "text-[#7f89a6] hover:bg-white/[0.06] hover:text-white",
+                                                ? "bg-[var(--accent-soft-hover)] text-[var(--accent-text)]"
+                                                : "text-[var(--text-muted)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]",
                                         ].join(" ")}
                                     >
                                         <span>{tab.label}</span>
@@ -898,7 +897,7 @@ export default function ViewRecipeDrawer({
                                         {typeof tab.count === "number" && (
                                             <span className={[
                                                     "text-[0.68rem]",
-                                                    isActive ? "text-white/90" : "text-[#7f89a6]"
+                                                    isActive ? "text-[var(--accent-text)]" : "text-[var(--text-muted)]"
                                                 ].join(" ")}
                                             >
                                                 {formatCompactCount(tab.count, true)}
