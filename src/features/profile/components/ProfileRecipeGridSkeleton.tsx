@@ -6,22 +6,36 @@ interface ProfileRecipeGridSkeletonProps {
   count?: number
 }
 
+const skeletonBaseSx = {
+  bgcolor: "var(--surface-muted)",
+  "&::after": {
+    background: "linear-gradient(90deg, transparent, var(--surface-hover), transparent)",
+  },
+}
+
+const skeletonSubtleSx = {
+  bgcolor: "var(--surface-subtle)",
+  "&::after": {
+    background: "linear-gradient(90deg, transparent, var(--surface-hover), transparent)",
+  },
+}
+
 function ProfileRecipeGridCardSkeleton() {
   return (
-    <article className="relative min-h-[370px] overflow-hidden rounded-lg border border-white/10 bg-black shadow-[0_18px_55px_rgba(0,0,0,0.18)]">
+    <article className="relative min-h-[370px] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card-bg)] shadow-[var(--shadow-card)]">
       <Skeleton
         variant="rectangular"
         animation="wave"
         sx={{
+          ...skeletonBaseSx,
           position: "absolute",
           inset: 0,
           height: "100%",
-          bgcolor: "rgba(255,255,255,0.06)",
         }}
       />
 
-      <div className="absolute inset-0 bg-black/25" />
-      <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-black/80 via-black/45 to-transparent" />
+      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
 
       <div className="absolute left-4 top-4">
         <Skeleton
@@ -29,7 +43,7 @@ function ProfileRecipeGridCardSkeleton() {
           width={86}
           height={26}
           animation="wave"
-          sx={{ bgcolor: "rgba(255,255,255,0.12)", borderRadius: "0.375rem" }}
+          sx={{ ...skeletonSubtleSx, borderRadius: "0.375rem" }}
         />
       </div>
 
@@ -39,7 +53,12 @@ function ProfileRecipeGridCardSkeleton() {
           width="72%"
           height={26}
           animation="wave"
-          sx={{ bgcolor: "rgba(255,255,255,0.12)" }}
+          sx={{
+            bgcolor: "rgba(255,255,255,0.16)",
+            "&::after": {
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
+            },
+          }}
         />
 
         <Skeleton
@@ -47,22 +66,63 @@ function ProfileRecipeGridCardSkeleton() {
           width="56%"
           height={22}
           animation="wave"
-          sx={{ mt: 0.5, bgcolor: "rgba(255,255,255,0.08)" }}
+          sx={{
+            mt: 0.5,
+            bgcolor: "rgba(255,255,255,0.10)",
+            "&::after": {
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent)",
+            },
+          }}
         />
 
         <div className="mt-4 border-t border-white/10 pt-3">
           <div className="flex items-center justify-between">
             <div className="flex gap-4">
-              <Skeleton variant="rounded" width={44} height={18} sx={{ bgcolor: "rgba(255,255,255,0.10)" }} />
-              <Skeleton variant="rounded" width={44} height={18} sx={{ bgcolor: "rgba(255,255,255,0.10)" }} />
-              <Skeleton variant="rounded" width={44} height={18} sx={{ bgcolor: "rgba(255,255,255,0.10)" }} />
+              <Skeleton 
+                variant="rounded" 
+                width={44} 
+                height={18} 
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.12)",
+                  "&::after": {
+                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent)",
+                  },
+                }}
+              />
+              <Skeleton 
+                variant="rounded" 
+                width={44} 
+                height={18} 
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.12)",
+                  "&::after": {
+                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent)",
+                  },
+                }}
+              />
+              <Skeleton 
+                variant="rounded" 
+                width={44} 
+                height={18} 
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.12)",
+                  "&::after": {
+                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent)",
+                  },
+                }}
+              />
             </div>
 
             <Skeleton
               variant="circular"
               width={28}
               height={28}
-              sx={{ bgcolor: "rgba(255,255,255,0.10)" }}
+              sx={{
+                bgcolor: "rgba(255,255,255,0.12)",
+                "&::after": {
+                  background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent)",
+                },
+              }}
             />
           </div>
         </div>
@@ -73,30 +133,30 @@ function ProfileRecipeGridCardSkeleton() {
 
 function ProfileRecipeListCardSkeleton() {
   return (
-    <article className="flex gap-4 rounded-2xl border border-white/10 bg-[#0b0b0c] p-3">
+    <article className="flex gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-3 shadow-[var(--shadow-card)]">
       <Skeleton
         variant="rounded"
         width={144}
         height={112}
         animation="wave"
-        sx={{ flexShrink: 0, bgcolor: "rgba(255,255,255,0.08)", borderRadius: "0.75rem" }}
+        sx={{ ...skeletonBaseSx, flexShrink: 0, borderRadius: "0.75rem" }}
       />
 
       <div className="flex flex-1 flex-col justify-between py-1">
         <div>
           <div className="flex items-center justify-between">
-            <Skeleton variant="rounded" width={88} height={24} sx={{ bgcolor: "rgba(255,255,255,0.10)" }} />
-            <Skeleton variant="circular" width={30} height={30} sx={{ bgcolor: "rgba(255,255,255,0.10)" }} />
+            <Skeleton variant="rounded" width={88} height={24} sx={skeletonBaseSx} />
+            <Skeleton variant="circular" width={30} height={30} sx={skeletonBaseSx} />
           </div>
 
-          <Skeleton variant="text" width="44%" height={26} sx={{ mt: 1.5, bgcolor: "rgba(255,255,255,0.10)" }} />
-          <Skeleton variant="text" width="34%" height={20} sx={{ bgcolor: "rgba(255,255,255,0.07)" }} />
+          <Skeleton variant="text" width="44%" height={26} sx={{ mt: 1.5, ...skeletonBaseSx }} />
+          <Skeleton variant="text" width="34%" height={20} sx={skeletonBaseSx} />
         </div>
 
         <div className="flex gap-5">
-          <Skeleton variant="rounded" width={42} height={18} sx={{ bgcolor: "rgba(255,255,255,0.09)" }} />
-          <Skeleton variant="rounded" width={42} height={18} sx={{ bgcolor: "rgba(255,255,255,0.09)" }} />
-          <Skeleton variant="rounded" width={42} height={18} sx={{ bgcolor: "rgba(255,255,255,0.09)" }} />
+          <Skeleton variant="rounded" width={42} height={18} sx={skeletonBaseSx} />
+          <Skeleton variant="rounded" width={42} height={18} sx={skeletonBaseSx} />
+          <Skeleton variant="rounded" width={42} height={18} sx={skeletonBaseSx} />
         </div>
       </div>
     </article>

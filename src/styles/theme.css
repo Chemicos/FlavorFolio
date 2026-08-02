@@ -7,6 +7,40 @@
   --bg-tertiary: #fcf9f5;
   --bg-elevated: #fffdf9;
 
+  /* Profile */
+  --profile-header-bg: #fffdf9;
+  --profile-stats-bg: #fcf8f2;
+  --profile-stat-hover: #f6eee4;
+
+  --profile-banner-fallback:
+    radial-gradient(circle at 20% 20%, rgba(232, 138, 23, 0.2), transparent 34%),
+    linear-gradient(135deg, #f4dfc3, #e9c99f 48%, #c98639);
+
+  --profile-banner-overlay: linear-gradient(to top, rgba(45, 30, 16, 0.9), rgba(45, 30, 16, 0.36) 48%, rgba(45, 30, 16, 0.12));
+
+  --profile-overlay-text: #ffffff;
+  --profile-overlay-text-secondary: rgba(255, 255, 255, 0.82);
+  --profile-overlay-text-muted: rgba(255, 255, 255, 0.68);
+
+  --profile-avatar-ring: #fffdf9;
+  --profile-avatar-bg: #f2eadf;
+
+  --profile-floating-control-bg: rgba(255, 253, 249, 0.9);
+  --profile-floating-control-hover: #ffffff;
+  --profile-floating-control-text: #55483b;
+  --profile-floating-control-border: rgba(255, 255, 255, 0.55);
+  
+  --sticky-profile-bg: rgba(248, 244, 238, 0.94);
+
+  /* Profile edit control */
+  --profile-edit-bg: #fff3df;
+  --profile-edit-hover: #ffe7bf;
+  --profile-edit-border: #e7b96f;
+  --profile-edit-text: #8a4b06;
+
+  --tab-indicator: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  --tab-indicator-shadow: 0 0 18px var(--accent-soft-hover);
+
   /* Surfaces */
   --surface: #fffdf9;
   --surface-subtle: #f7efe5;
@@ -134,6 +168,41 @@
   --bg-tertiary: #1b1d23;
   --bg-elevated: #20232b;
 
+  /* Profile */
+  --profile-header-bg: #0b0b0c;
+  --profile-stats-bg: rgba(17, 19, 24, 0.8);
+  --profile-stat-hover: rgba(255, 255, 255, 0.04);
+
+  --profile-banner-fallback:
+    radial-gradient(circle at 20% 20%, rgba(245, 158, 11, 0.18), transparent 32%),
+    linear-gradient(135deg, #202636, #16181d 45%, #0b0b0c);
+
+  --profile-banner-overlay: linear-gradient(to top, rgba(11, 11, 12, 1), rgba(11, 11, 12, 0.45) 48%, rgba(0, 0, 0, 0.2));
+
+  --profile-overlay-text: #ffffff;
+  --profile-overlay-text-secondary: #d7def0;
+  --profile-overlay-text-muted: #a8b3cf;
+
+  --profile-avatar-ring: #0b0b0c;
+  --profile-avatar-bg: #16181d;
+
+  --profile-floating-control-bg: rgba(11, 11, 12, 0.78);
+  --profile-floating-control-hover: #16181d;
+  --profile-floating-control-text: #d7def0;
+  --profile-floating-control-border: rgba(255, 255, 255, 0.1);
+
+  --sticky-profile-bg: rgba(13, 14, 17, 0.94);
+
+  /* Profile edit control */
+  --profile-edit-bg: rgba(254, 170, 43, 0.16);
+  --profile-edit-hover: rgba(254, 170, 43, 0.24);
+  --profile-edit-border: rgba(254, 170, 43, 0.36);
+  --profile-edit-text: #ffd28a;
+
+  /* Tabs */
+  --tab-indicator: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  --tab-indicator-shadow: 0 0 18px var(--accent-soft-hover);
+
   /* Surfaces */
   --surface: #20232b;
   --surface-subtle: rgba(255, 255, 255, 0.035);
@@ -243,13 +312,10 @@
   /* Overlay and shadows */
   --overlay: rgba(0, 0, 0, 0.6);
 
-  --shadow-panel:
-    0 24px 80px rgba(0, 0, 0, 0.28);
+  --shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.28);
 
-  --shadow-card:
-    0 12px 30px rgba(0, 0, 0, 0.2);
+  --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.2);
 
-  --shadow-dropdown:
-    0 18px 45px rgba(0, 0, 0, 0.45);
+  --shadow-dropdown: 0 18px 45px rgba(0, 0, 0, 0.45);
 }
 

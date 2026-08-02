@@ -34,14 +34,14 @@ import ProfileContentLockedState from "../components/ProfileContentLockedState"
 
 function ViewRecipeDrawerLoading() {
   return (
-    <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#16181d]/80 via-[#16181d]/95 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.28)]">
+    <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-panel)] transition-colors">
       <CircularProgress
         size={34}
         thickness={4.5}
-        sx={{ color: "#feaa2b" }}
+        sx={{ color: "var(--accent)" }}
       />
 
-      <p className="mt-4 text-sm font-medium text-[#a8b3cf]">
+      <p className="mt-4 text-sm font-medium text-[var(--text-secondary)]">
         Loading recipe...
       </p>
     </aside>
@@ -63,7 +63,6 @@ export default function UserProfilePage() {
 
   const { profile, isLoading: isProfileLoading, error: profileError } = useUserProfile(userId)
   const [connectionsModalType, setConnectionsModalType] = useState<ProfileConnectionType | null>(null)
-  const isConnectionsModalOpen = Boolean(connectionsModalType)
   const [isProfileActionsMenuOpen, setIsProfileActionsMenuOpen] = useState(false)
   const profileActionsMenuRef = useRef<HTMLDivElement | null>(null)
 
@@ -94,7 +93,6 @@ export default function UserProfilePage() {
   const RECIPE_DRAWER_WIDTH = 540
   const LAYOUT_GAP = 24
   const FLOATING_EDGE_GAP = 24
-  const DRAWER_TOP_OFFSET = 80
   const recipeDrawerWidth = RECIPE_DRAWER_WIDTH
   const isDrawerOpen = Boolean(selectedRecipe || isRecipeDrawerLoading)
 
@@ -265,7 +263,6 @@ export default function UserProfilePage() {
   const isOwnProfile = currentUserId === userId
   const isFollowingProfile = Boolean(userId && followingUserIds.includes(userId))
   
-  const profileVisibility = profile?.privacy?.profileVisibility
   const canViewRecipes = profile
     ? canViewProfileContent({
         profileVisibility:
@@ -276,7 +273,6 @@ export default function UserProfilePage() {
     : false
   
   const isProfileContentLocked = Boolean(profile) && !hasBlockedRelationship && !canViewRecipes
-  const isFollowersOnlyProfile = profile?.privacy.profileVisibility === "followers"
   const isPrivateProfile = profile?.privacy.profileVisibility === "private"
   
   const {
@@ -649,7 +645,7 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#0d0e11] text-white">
+    <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
       <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
       <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
         <main 
@@ -659,7 +655,7 @@ export default function UserProfilePage() {
           ].join(" ")}
         >
           {error && (
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-6 text-sm text-red-200">
+            <div className="rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-6 text-sm text-[var(--danger-text)]">
               {error}
             </div>
           )}
@@ -690,14 +686,22 @@ export default function UserProfilePage() {
                             onClick={handleToggleFollow}
                             disabled={isFollowLoading}
                             className={[
-                              "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+                              "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold shadow-[var(--shadow-card)] transition disabled:cursor-not-allowed disabled:opacity-60",
                               isFollowingProfile
-                                ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
-                                : "border-white/10 bg-[#0b0b0c]/80 text-white hover:bg-[#202429]/80",
+                                ? "border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] text-[var(--profile-floating-control-text)] hover:bg-[var(--profile-floating-control-hover)]"
+                                : "border-[var(--accent-border)] bg-[var(--accent)] text-[var(--text-on-accent)] hover:bg-[var(--accent-hover)]",
                             ].join(" ")}
                           >
                             {isFollowLoading ? (
-                              <CircularProgress size={15} thickness={5} sx={{ color: "#ffffff" }} />
+                              <CircularProgress 
+                                size={15} 
+                                thickness={5} 
+                                 sx={{
+                                  color: isFollowingProfile
+                                    ? "var(--profile-floating-control-text)"
+                                    : "var(--text-on-accent)",
+                                }}
+                              />
                             ) : isFollowingProfile ? (
                               "Following"
                             ) : (
@@ -709,10 +713,14 @@ export default function UserProfilePage() {
                             type="button"
                             onClick={handleSendMessage}
                             disabled={isMessageLoading}
-                            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[#feaa2b]/20 bg-[#feaa2b]/10 px-4 text-sm font-semibold text-[#ffd28a] transition hover:bg-[#feaa2b]/15 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] px-4 text-sm font-semibold text-[var(--profile-floating-control-text)] shadow-[var(--shadow-card)] transition hover:bg-[var(--profile-floating-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {isMessageLoading ? (
-                              <CircularProgress size={15} thickness={5} sx={{ color: "#ffd28a" }} />
+                              <CircularProgress 
+                                size={15} 
+                                thickness={5} 
+                                sx={{ color: "var(--profile-floating-control-text)" }} 
+                              />
                             ) : (
                               <SendRoundedIcon sx={{ fontSize: 17 }} />
                             )}
@@ -724,8 +732,14 @@ export default function UserProfilePage() {
                       <button
                         type="button"
                         onClick={() => setIsProfileActionsMenuOpen((prev) => !prev)}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-[#0b0b0c]/80 text-[#a8b3cf] transition hover:bg-[#202429]/80 hover:text-white active:scale-95"
+                        className={[
+                          "inline-flex h-9 w-9 items-center justify-center rounded-lg border",
+                          "border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)]",
+                          "text-[var(--profile-floating-control-text)] shadow-[var(--shadow-card)] transition",
+                          "hover:bg-[var(--profile-floating-control-hover)] active:scale-95",
+                        ].join(" ")}
                         aria-label="Profile options"
+                        aria-expanded={isProfileActionsMenuOpen}
                       >
                         <MoreVertRoundedIcon sx={{ fontSize: 20 }} />
                       </button>
@@ -737,16 +751,16 @@ export default function UserProfilePage() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -6, scale: 0.96 }}
                             transition={{ duration: 0.16 }}
-                            className="absolute right-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
+                            className="absolute right-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--account-dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
                           >
                             <button
                               type="button"
                               onClick={handleToggleBlockUser}
                               disabled={isBlockLoading}
-                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d] disabled:opacity-60"
+                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               {isBlockLoading ? (
-                                <CircularProgress size={15} thickness={5} sx={{ color: "#ff8b7d" }} />
+                                <CircularProgress size={15} thickness={5} sx={{ color: "var(--danger)" }} />
                               ) : (
                                 <BlockRoundedIcon sx={{ fontSize: 18 }} />
                               )}
@@ -760,8 +774,8 @@ export default function UserProfilePage() {
                 }
               />
               { canViewRecipes && !hasBlockedRelationship &&
-                <div className="sticky top-16 z-40 bg-[#0d0e11] pb-5">
-                  <div className="border-b border-white/10 pt-6" />
+                <div className="sticky top-16 z-40 bg-[var(--sticky-profile-bg)] pb-5 backdrop-blur-xl transition-colors">
+                  <div className="border-b border-[var(--border)] pt-6" />
 
                   <ProfileRecipeToolbar
                     searchQuery={searchQuery}
@@ -779,14 +793,14 @@ export default function UserProfilePage() {
               }
 
               {hasBlockedRelationship ? (
-                <div className="mt-8 rounded-2xl border border-orange-400/10 bg-orange-500/[0.04] p-8 text-center">
-                  <h3 className="text-lg font-bold text-white">
+                <div className="mt-8 rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-soft)] p-8 text-center shadow-[var(--shadow-card)]">
+                  <h3 className="text-lg font-bold text-[var(--text-primary)]">
                     {isBlockedProfile
                       ? "You blocked this user"
                       : "This profile is unavailable"}
                   </h3>
 
-                  <p className="mx-auto mt-2 max-w-[520px] text-sm leading-6 text-[#8f97b1]">
+                  <p className="mx-auto mt-2 max-w-[520px] text-sm leading-6 text-[var(--text-secondary)]">
                     {isBlockedProfile
                       ? "Recipes and interactions from this profile are hidden. You can manage blocked accounts from Account Settings."
                       : "You cannot view this profile or interact with this user."}

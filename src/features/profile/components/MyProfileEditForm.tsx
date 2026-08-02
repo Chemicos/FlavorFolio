@@ -15,9 +15,21 @@ interface MyProfileEditFormProps {
   onSave: (payload: UpdateMyProfilePayload) => Promise<void> | void
 }
 
-const inputClass = "h-11 w-full rounded-lg border border-white/10 bg-[#0b0b0c] px-4 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50 focus:ring-2 focus:ring-orange-500/10"
+const inputClass = [
+  "h-11 w-full rounded-lg border px-4 text-sm outline-none transition",
+  "border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)]",
+  "placeholder:text-[var(--input-placeholder)]",
+  "hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)]",
+  "focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]",
+].join(" ")
 
-const textareaClass = "min-h-[110px] w-full resize-none rounded-lg border border-white/10 bg-[#0b0b0c] px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50 focus:ring-2 focus:ring-orange-500/10"
+const textareaClass = [
+  "min-h-[110px] w-full resize-none rounded-lg border px-4 py-3 text-sm outline-none transition",
+  "border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)]",
+  "placeholder:text-[var(--input-placeholder)]",
+  "hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)]",
+  "focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]",
+].join(" ")
 
 export default function MyProfileEditForm({
     profile,
@@ -61,13 +73,19 @@ export default function MyProfileEditForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c]"
+      className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--profile-header-bg)] shadow-[var(--shadow-card)] transition-colors"
     >
-      <div className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_20%,rgba(245,158,11,0.12),transparent_32%),linear-gradient(135deg,#171a20,#0b0b0c)] px-8 py-7">
+      <div 
+        className="border-b border-[var(--border)] px-8 py-7" 
+         style={{
+          background:
+            "radial-gradient(circle at 20% 20%, var(--accent-soft-hover), transparent 34%), var(--bg-tertiary)",
+        }}
+      >
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white">Edit profile</h2>
-            <p className="mt-1 text-sm text-[#8f97b1]">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Edit profile</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               Update your public FlavorFolio profile details.
             </p>
           </div>
@@ -76,7 +94,13 @@ export default function MyProfileEditForm({
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-[#a8b3cf] transition hover:bg-white/[0.08] hover:text-white disabled:opacity-60"
+            className={[
+              "flex h-10 w-10 items-center justify-center rounded-lg border transition",
+              "border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)]",
+              "text-[var(--button-secondary-text)]",
+              "hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)]",
+              "disabled:cursor-not-allowed disabled:opacity-60",
+            ].join(" ")}
           >
             <CloseRoundedIcon sx={{ fontSize: 20 }} />
           </button>
@@ -85,7 +109,7 @@ export default function MyProfileEditForm({
 
       <div className="grid gap-5 px-8 py-7 md:grid-cols-2">
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#d7def0]">
+          <label className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
             First name
           </label>
           <input
@@ -97,7 +121,7 @@ export default function MyProfileEditForm({
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#d7def0]">
+          <label className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
             Last name
           </label>
           <input
@@ -109,7 +133,7 @@ export default function MyProfileEditForm({
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#d7def0]">
+          <label className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
             Username
           </label>
           <input
@@ -121,7 +145,7 @@ export default function MyProfileEditForm({
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#d7def0]">
+          <label className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
             Location
           </label>
           <input
@@ -133,7 +157,7 @@ export default function MyProfileEditForm({
         </div>
 
         <div className="md:col-span-2">
-          <label className="mb-2 block text-sm font-medium text-[#d7def0]">
+          <label className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
             Website
           </label>
           <input
@@ -146,8 +170,8 @@ export default function MyProfileEditForm({
 
         <div className="md:col-span-2">
           <div className="mb-2 flex items-center justify-between">
-            <label className="text-sm font-medium text-[#d7def0]">Bio</label>
-            <span className="text-xs text-[#6f7892]">
+            <label className="text-sm font-medium text-[var(--text-secondary)]">Bio</label>
+            <span className="text-xs text-[var(--text-muted)]">
               {form.bio.length}/160 characters
             </span>
           </div>
@@ -162,12 +186,18 @@ export default function MyProfileEditForm({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 border-t border-white/10 bg-[#111318]/70 px-8 py-5">
+      <div className="flex items-center justify-end gap-3 border-t border-[var(--border)] bg-[var(--surface-subtle)] px-8 py-5">
         <button
           type="button"
           onClick={onCancel}
           disabled={isSaving}
-          className="h-10 rounded-lg border border-white/10 px-5 text-sm font-semibold text-[#a8b3cf] transition hover:bg-white/[0.06] hover:text-white disabled:opacity-60"
+          className={[
+            "h-10 rounded-lg border px-5 text-sm font-semibold transition",
+            "border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)]",
+            "text-[var(--button-secondary-text)]",
+            "hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)]",
+            "disabled:cursor-not-allowed disabled:opacity-60",
+          ].join(" ")}
         >
           Cancel
         </button>
@@ -175,10 +205,15 @@ export default function MyProfileEditForm({
         <button
           type="submit"
           disabled={isSaving}
-          className="inline-flex h-10 min-w-[140px] items-center justify-center gap-2 rounded-lg border border-orange-400/25 bg-orange-500/20 px-5 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/30 disabled:cursor-not-allowed disabled:opacity-70"
+          className={[
+            "inline-flex h-10 min-w-[140px] items-center justify-center gap-2 rounded-lg border px-5 text-sm font-semibold transition",
+            "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]",
+            "hover:bg-[var(--accent-soft-hover)]",
+            "disabled:cursor-not-allowed disabled:opacity-70",
+          ].join(" ")}
         >
           {isSaving ? (
-            <CircularProgress size={17} thickness={5} sx={{ color: "#fed7aa" }} />
+            <CircularProgress size={17} thickness={5} sx={{ color: "var(--accent)" }} />
           ) : (
             <SaveRoundedIcon sx={{ fontSize: 18 }} />
           )}

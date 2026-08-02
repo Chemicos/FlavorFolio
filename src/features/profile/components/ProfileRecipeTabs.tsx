@@ -66,13 +66,13 @@ export default function ProfileRecipeTabs({
         scrollButtons={false}
         sx={{
           minHeight: 0,
-          borderBottom: "1px solid rgba(255,255,255,0.10)",
+          borderBottom: "1px solid var(--border)",
           "& .MuiTabs-indicator": {
             height: "2px",
             borderRadius: "999px",
             background:
-              "linear-gradient(90deg, rgba(245,158,11,1), rgba(251,191,36,1))",
-            boxShadow: "0 0 18px rgba(245,158,11,0.45)",
+              "var(--tab-indicator)",
+            boxShadow: "var(--tab-indicator-shadow)",
           },
           "& .MuiTabs-flexContainer": {
             gap: {
@@ -93,10 +93,10 @@ export default function ProfileRecipeTabs({
 
                 <span
                   className={[
-                    "rounded-full px-2 py-0.5 text-[0.7rem] leading-none",
+                    "rounded-full px-2 py-0.5 text-[0.7rem] leading-none transition",
                     activeTab === tab.value
-                      ? "bg-amber-400/15 text-amber-200"
-                      : "bg-white/[0.06] text-[#8f97b1]",
+                      ? "bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                      : "bg-[var(--surface-muted)] text-[var(--text-muted)]",
                   ].join(" ")}
                 >
                   {tab.count}
@@ -111,13 +111,13 @@ export default function ProfileRecipeTabs({
               textTransform: "none",
               fontSize: "0.92rem",
               fontWeight: 400,
-              color: "rgba(168, 179, 207, 0.72)",
+              color: "var(--text-muted)",
               transition: "color 0.2s ease",
               "&.Mui-selected": {
-                color: "#facc15",
+                color: "var(--accent-text)",
               },
               "&:hover": {
-                color: "#ffffff",
+                color: "var(--text-primary)",
               },
             }}
           />

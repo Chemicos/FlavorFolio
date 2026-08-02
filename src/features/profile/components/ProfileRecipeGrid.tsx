@@ -11,6 +11,7 @@ import { ProfileRecipeViewMode } from "./ProfileRecipeToolbar"
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { AnimatePresence, motion } from "motion/react"
+import { useDismissibleLayer } from "../../../hooks/useDismissibleLayer"
 
 export type ProfileRecipeStatus =
   | "published"
@@ -48,24 +49,29 @@ const statusConfig: Record<
   ProfileRecipeStatus,
   {
     label: string
-    className: string
+    gridClassName: string
+    listClassName: string
   }
 > = {
   published: {
     label: "Published",
-    className: "bg-green-800/50 text-white",
+    gridClassName: "border border-[var(--success-border)] bg-[var(--success)] text-[var(--text-on-accent)]",
+    listClassName: "border border-[var(--success-border)] bg-[var(--success-soft)] text-[var(--success-text)]",
   },
   pending: {
     label: "Pending review",
-    className: "bg-yellow-600/70 text-white",
+    gridClassName: "border border-[var(--warning-border)] bg-[var(--warning)] text-[var(--text-on-accent)]",
+    listClassName: "border border-[var(--warning-border)] bg-[var(--warning-soft)] text-[var(--warning-text)]",
   },
   needs_revision: {
     label: "Needs revision",
-    className: "bg-orange-700/70 text-white",
+    gridClassName: "border border-[var(--danger-border)] bg-[var(--danger)] text-[var(--text-on-accent)]",
+    listClassName: "border border-[var(--danger-border)] bg-[var(--danger-soft)] text-[var(--danger-text)]",
   },
   draft: {
     label: "Draft",
-    className: "bg-white/10 text-white",
+    gridClassName: "border border-[var(--border-strong)] bg-[var(--bg-elevated)] text-[var(--text-primary)]",
+    listClassName: "border border-[var(--border-strong)] bg-[var(--surface-muted)] text-[var(--text-secondary)]",
   },
 }
 
@@ -89,16 +95,16 @@ function formatDuration(minutes: number) {
 
 function ProfileRecipeEmptyState() {
   return (
-    <div className="mt-8 flex min-h-[280px] flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 bg-white/[0.025] px-6 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#a8b3cf]">
+    <div className="mt-8 flex min-h-[280px] flex-col items-center justify-center rounded-3xl border border-dashed border-[var(--border)] bg-[var(--surface-subtle)] px-6 text-center transition-colors">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-secondary)]">
         <RestaurantRoundedIcon sx={{ fontSize: 28 }} />
       </div>
 
-      <h3 className="mt-5 text-lg font-semibold text-white">
+      <h3 className="mt-5 text-lg font-semibold text-[var(--text-primary)]">
         No recipes found
       </h3>
 
-      <p className="mt-2 max-w-[420px] text-sm leading-6 text-[#8f97b1]">
+      <p className="mt-2 max-w-[420px] text-sm leading-6 text-[var(--text-muted)]">
         Try changing the search, category, or selected profile tab.
       </p>
     </div>
@@ -127,6 +133,12 @@ function ProfileRecipeActionsMenu({
   const [isOpen, setIsOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
 
+  useDismissibleLayer({
+    isOpen,
+    refs: [wrapperRef, menuRef],
+    onDismiss: () => setIsOpen(false),
+  })
+
   const isPublished = recipe.status === "published"
   const canManageRecipe = recipe.userId === currentUserId
   const editLabel = recipe.status === "needs_revision" ? "Resolve revision" : "Edit recipe"
@@ -143,31 +155,7 @@ function ProfileRecipeActionsMenu({
 
   useEffect(() => {
     if (!isOpen) return
-
     updateMenuPosition()
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node
-
-      if (
-        wrapperRef.current?.contains(target) ||
-        menuRef.current?.contains(target)
-      ) {
-        return
-      }
-
-      setIsOpen(false)
-    }
-
-    window.addEventListener("scroll", updateMenuPosition, true)
-    window.addEventListener("resize", updateMenuPosition)
-    document.addEventListener("mousedown", handleClickOutside)
-
-    return () => {
-      window.removeEventListener("scroll", updateMenuPosition, true)
-      window.removeEventListener("resize", updateMenuPosition)
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
   }, [isOpen])
 
   const handleAction = (
@@ -194,14 +182,14 @@ function ProfileRecipeActionsMenu({
             left: menuPosition.left,
             transform: "translate(-100%, -100%)",
           }}
-          className="z-[80] w-44 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1 shadow-[0_18px_45px_rgba(0,0,0,0.45)]"
+          className="z-[80] w-44 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
           onClick={(event) => event.stopPropagation()}
         >
           {isPublished && (
             <button
               type="button"
               onClick={(event) => handleAction(event, onShare)}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
             >
               <ShareRoundedIcon sx={{ fontSize: 18 }} />
               Share
@@ -213,7 +201,7 @@ function ProfileRecipeActionsMenu({
               <button
                 type="button"
                 onClick={(event) => handleAction(event, onEdit)}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#a8b3cf] transition hover:bg-[#16181d] hover:text-white"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
               >
                 <EditRoundedIcon sx={{ fontSize: 18 }} />
                 {editLabel}
@@ -222,7 +210,7 @@ function ProfileRecipeActionsMenu({
               <button
                 type="button"
                 onClick={(event) => handleAction(event, onDelete)}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[#db7668] transition hover:bg-[#db4633]/10 hover:text-[#ff8b7d]"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)]"
               >
                 <DeleteOutlineRoundedIcon sx={{ fontSize: 18 }} />
                 Delete recipe
@@ -246,6 +234,11 @@ function ProfileRecipeActionsMenu({
         aria-label="Recipe actions"
         onClick={(event) => {
           event.stopPropagation()
+
+          if (!isOpen) {
+            updateMenuPosition()
+          }
+
           setIsOpen((prev) => !prev)
         }}
         className={buttonClassName}
@@ -278,7 +271,7 @@ function ProfileRecipeGridCard({
   return (
     <article
       onClick={() => onRecipeClick?.(recipe)}
-      className="group relative aspect-auto min-h-[370px] cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-black shadow-[0_18px_55px_rgba(0,0,0,0.18)] transition duration-200 hover:-translate-y-1 hover:border-white/15"
+      className="group relative aspect-auto min-h-[370px] cursor-pointer overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card-bg)] shadow-[var(--shadow-card)] transition duration-200 hover:-translate-y-1 hover:border-[var(--border-strong)]"
     >
         <img
             src={recipe.image}
@@ -288,13 +281,13 @@ function ProfileRecipeGridCard({
 
         <div className="absolute inset-0 bg-black/10" />
 
-        <div className="absolute inset-x-0 bottom-0 h-[58%] origin-bottom bg-gradient-to-t from-black/75 via-black/40 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-[58%] origin-bottom opacity-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent transition-opacity duration-200 ease-out group-hover:opacity-100" />
+        <div className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/80 via-black/55 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
         <span
             className={[
-            "absolute left-4 top-4 z-10 rounded-md px-3 py-1 text-xs font-semibold shadow-[0_8px_24px_rgba(0,0,0,0.28)] backdrop-blur-2xl",
-            status.className,
+              "absolute left-4 top-4 z-10 rounded-md px-3 py-1 text-xs font-semibold shadow-[var(--shadow-card)]",
+              status.gridClassName,
             ].join(" ")}
         >
             {status.label}
@@ -302,32 +295,32 @@ function ProfileRecipeGridCard({
 
         <div className="absolute inset-x-0 bottom-0 z-10">
             <div className="px-4 pb-4 pt-3">
-                <h3 className="line-clamp-1 text-[1rem] font-semibold text-white">
+                <h3 className="line-clamp-1 text-[1rem] font-semibold text-[var(--profile-overlay-text)]">
                     {recipe.title}
                 </h3>
 
-                <p className="mt-2 line-clamp-1 text-sm text-[#a8b3cf]">
+                <p className="mt-2 line-clamp-1 text-sm text-[var(--profile-overlay-text-secondary)]">
                     {recipe.meal} · {recipe.difficulty} ·{" "}
                     {formatDuration(recipe.durationMinutes)}
                 </p>
 
                 <div className="mt-4 flex items-center justify-between pt-3">
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 text-amber-300">
+                        <div className="flex items-center gap-1.5 text-[var(--accent)]">
                         <StarRoundedIcon sx={{ fontSize: 18 }} />
-                        <span className="text-sm font-semibold text-[#f8d36b]">
+                        <span className="text-sm font-semibold text-[var(--profile-overlay-text)]">
                             {recipe.rating.toFixed(1)}
                         </span>
                         </div>
 
-                        <div className="flex items-center gap-1.5 text-[#a8b3cf]">
+                        <div className="flex items-center gap-1.5 text-[var(--profile-overlay-text-secondary)]">
                         <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 17 }} />
                         <span className="text-sm font-semibold">
                             {formatCompactNumber(recipe.commentsCount)}
                         </span>
                         </div>
 
-                        <div className="flex items-center gap-1.5 text-[#a8b3cf]">
+                        <div className="flex items-center gap-1.5 text-[var(--profile-overlay-text-secondary)]">
                         <BookmarkRoundedIcon sx={{ fontSize: 17 }} />
                         <span className="text-sm font-semibold">
                             {formatCompactNumber(recipe.savesCount)}
@@ -341,7 +334,7 @@ function ProfileRecipeGridCard({
                       onEdit={onRecipeEdit}
                       onDelete={onRecipeDelete}
                       onShare={onRecipeShare}
-                      buttonClassName="flex h-8 w-8 items-center justify-center rounded-lg text-[#a8b3cf] transition hover:bg-white/[0.10] hover:text-white"
+                      buttonClassName="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--profile-overlay-text-secondary)] transition hover:bg-white/15 hover:text-white"
                     />
                 </div>
             </div>
@@ -372,9 +365,9 @@ function ProfileRecipeListCard({
   return (
     <article
       onClick={() => onRecipeClick?.(recipe)}
-      className="group flex cursor-pointer gap-4 rounded-2xl border border-white/10 bg-[#0b0b0c] p-3 transition hover:-translate-y-0.5 hover:border-white/15 hover:bg-[#111318]"
+      className="group flex cursor-pointer gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-3 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:bg-[var(--card-hover)]"
     >
-      <div className="h-28 w-36 shrink-0 overflow-hidden rounded-xl bg-white/[0.04]">
+      <div className="h-28 w-36 shrink-0 overflow-hidden rounded-xl bg-[var(--surface-muted)]">
         <img
           src={recipe.image}
           alt={recipe.title}
@@ -388,7 +381,7 @@ function ProfileRecipeListCard({
             <span
               className={[
                 "rounded-md px-2.5 py-1 text-[0.7rem] font-semibold",
-                status.className,
+                status.listClassName,
               ].join(" ")}
             >
               {status.label}
@@ -400,32 +393,32 @@ function ProfileRecipeListCard({
               onEdit={onRecipeEdit}
               onDelete={onRecipeDelete}
               onShare={onRecipeShare}
-              buttonClassName="flex h-8 w-8 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-white/[0.06] hover:text-white"
+              buttonClassName="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
             />
           </div>
 
-          <h3 className="mt-3 line-clamp-1 text-base font-semibold text-white">
+          <h3 className="mt-3 line-clamp-1 text-base font-semibold text-[var(--text-primary)]">
             {recipe.title}
           </h3>
 
-          <p className="mt-1 text-sm text-[#8f97b1]">
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
             {recipe.meal} · {recipe.difficulty} ·{" "}
             {formatDuration(recipe.durationMinutes)}
           </p>
         </div>
 
         <div className="flex items-center gap-5 text-sm">
-            <span className="inline-flex items-center gap-1.5 text-[#f8d36b]">
+            <span className="inline-flex items-center gap-1.5 text-[var(--accent-text)]">
                 <StarRoundedIcon sx={{ fontSize: 18 }} />
                 {recipe.rating.toFixed(1)}
             </span>
 
-            <span className="inline-flex items-center gap-1.5 text-[#8f97b1]">
+            <span className="inline-flex items-center gap-1.5 text-[var(--text-secondary)]">
                 <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 17 }} />
                 {formatCompactNumber(recipe.commentsCount)}
             </span>
 
-            <span className="inline-flex items-center gap-1.5 text-[#8f97b1]">
+            <span className="inline-flex items-center gap-1.5 text-[var(--text-secondary)]">
                 <BookmarkRoundedIcon sx={{ fontSize: 17 }} />
                 {formatCompactNumber(recipe.savesCount)}
             </span>

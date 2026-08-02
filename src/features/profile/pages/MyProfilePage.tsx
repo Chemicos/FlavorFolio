@@ -31,14 +31,14 @@ import StickyProfileDrawer from "../components/StickyProfileDrawer";
 
 function ViewRecipeDrawerLoading() {
   return (
-    <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#16181d]/80 via-[#16181d]/95 to-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.28)]">
+    <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-panel)]">
       <CircularProgress
         size={34}
         thickness={4.5}
-        sx={{ color: "#feaa2b" }}
+        sx={{ color: "var(--accent)" }}
       />
 
-      <p className="mt-4 text-sm font-medium text-[#a8b3cf]">
+      <p className="mt-4 text-sm font-medium text-[var(--text-secondary)]">
         Loading recipe...
       </p>
     </aside>
@@ -547,7 +547,7 @@ export default function MyProfilePage() {
         new Date(a.createdAt || "").getTime()
       )
     })
-  }, [recipes, savedRecipes, activeRecipeTab, debouncedSearchQuery, category, sortBy])
+  }, [recipes, savedRecipes, activeRecipeTab, debouncedSearchQuery, category, sortBy, blockedUserIds])
 
   useEffect(() => {
     if (!recipeIdFromUrl) return
@@ -567,7 +567,7 @@ export default function MyProfilePage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#0d0e11] text-white">
+    <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
       <div className="relative z-10">
         <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
 
@@ -619,7 +619,7 @@ export default function MyProfilePage() {
               />
             )}
 
-            <div className="sticky top-16 z-40 bg-[#0d0e11] pb-5">
+            <div className="sticky top-16 z-40 bg-[var(--sticky-profile-bg)] pb-5 backdrop-blur-xl transition-colors">
               <ProfileRecipeTabs
                 activeTab={activeRecipeTab}
                 onTabChange={setActiveRecipeTab}
@@ -646,7 +646,7 @@ export default function MyProfilePage() {
             )}
 
             {recipesError && (
-              <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-500/10 p-6 text-sm text-red-200">
+              <div className="mt-6 rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-6 text-sm text-[var(--danger-text)]">
                 {recipesError}
               </div>
             )}

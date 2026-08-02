@@ -57,7 +57,7 @@ export default function MyProfileHeader({
   const displayName = fullName || username
 
   return (
-    <section className="overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] ">
+    <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--profile-header-bg)] shadow-[var(--shadow-card)] transition-colors">
       <div className="relative h-[300px] overflow-hidden">
         {bannerImage ? (
           <img
@@ -66,13 +66,13 @@ export default function MyProfileHeader({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="h-full w-full bg-[radial-gradient(circle_at_20%_20%,rgba(245,158,11,0.18),transparent_32%),linear-gradient(135deg,#202636,#16181d_45%,#0b0b0c)]" />
+          <div className="h-full w-full bg-[image:var(--profile-banner-fallback)]" />
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0c] via-[#0b0b0c]/45 to-black/20" />
+        <div className="absolute inset-0" style={{background: "var(--profile-banner-overlay)"}} />
 
         {onChangeBanner && (
-          <label className="absolute right-5 top-5 inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-white/10 bg-[#0b0b0c]/70 px-4 text-sm text-[#d7def0] backdrop-blur-xl transition hover:bg-[#16181d] hover:text-white">
+          <label className="absolute right-5 top-5 inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] px-4 text-sm font-medium text-[var(--profile-floating-control-text)] shadow-[var(--shadow-card)] backdrop-blur-xl transition hover:bg-[var(--profile-floating-control-hover)]">
             <CameraAltRoundedIcon sx={{ fontSize: 16 }} />
             {isBannerUploading ? "Uploading..." : "Change banner"}
 
@@ -93,7 +93,7 @@ export default function MyProfileHeader({
         )}
 
         <div className="absolute bottom-8 left-8 right-8 flex items-end gap-6">
-          <div className="relative h-36 w-36 shrink-0 rounded-full border-1 border-[#0b0b0c] bg-[#16181d] p-1 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+          <div className="relative h-36 w-36 shrink-0 rounded-full border border-[var(--profile-avatar-ring)] bg-[var(--profile-avatar-bg)] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
             {profileImage ? (
               <img
                 src={profileImage}
@@ -101,13 +101,13 @@ export default function MyProfileHeader({
                 className="h-full w-full rounded-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-white/10 text-4xl font-bold text-white">
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-[var(--surface-muted)] text-4xl font-bold text-[var(--text-primary)]">
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}
 
             {onChangeAvatar && (
-              <label className="absolute bottom-2 right-2 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-[#202429] text-white shadow-lg transition hover:bg-[#16181d]">
+              <label className="absolute bottom-2 right-2 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] text-[var(--profile-floating-control-text)] shadow-lg transition hover:bg-[var(--profile-floating-control-hover)]">
                 <CameraAltRoundedIcon sx={{ fontSize: 19 }} />
 
                 <input
@@ -129,7 +129,7 @@ export default function MyProfileHeader({
 
           <div className="min-w-0 pb-2">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="truncate text-[2rem] font-bold text-white">
+              <h1 className="truncate text-[2rem] font-bold text-[var(--profile-overlay-text)]">
                 {displayName}
               </h1>
 
@@ -137,7 +137,14 @@ export default function MyProfileHeader({
                 <button
                   type="button"
                   onClick={onEditProfile}
-                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-orange-400/25 bg-orange-500/20 px-4 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/30"
+                  className={[
+                    "inline-flex h-9 items-center gap-2 rounded-lg border px-4",
+                    "border-[var(--profile-edit-border)] bg-[var(--profile-edit-bg)]",
+                    "text-sm font-semibold text-[var(--profile-edit-text)]",
+                    "shadow-[var(--shadow-card)] transition",
+                    "hover:bg-[var(--profile-edit-hover)] active:scale-[0.98]",
+                  ].join(" ")}
+
                 >
                   <EditRoundedIcon sx={{ fontSize: 17 }} />
                   Edit profile
@@ -147,15 +154,15 @@ export default function MyProfileHeader({
               {rightAction}
             </div>
 
-            <p className="mt-1 text-sm font-medium text-[#a8b3cf]">
+            <p className="mt-1 text-sm font-medium text-[var(--profile-overlay-text-muted)]">
               @{username}
             </p>
 
-            <p className="mt-3 max-w-[640px] text-sm leading-6 text-[#d7def0]">
+            <p className="mt-3 max-w-[640px] text-sm leading-6 text-[var(--profile-overlay-text-secondary)]">
               {bio}
             </p>
 
-            <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-[#a8b3cf]">
+            <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-[var(--profile-overlay-text-muted)]">
               <span className="inline-flex items-center gap-1.5">
                 <LocationOnOutlinedIcon sx={{ fontSize: 16 }} />
                 {location}
@@ -175,7 +182,7 @@ export default function MyProfileHeader({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 divide-x divide-white/10 bg-[#111318]/80">
+      <div className="grid grid-cols-3 divide-x divide-[var(--border)] bg-[var(--profile-stats-bg)]">
         {[
           { label: "Recipes", value: recipesCount },
           { label: "Followers", value: followersCount, onClick: onFollowersClick },
@@ -192,14 +199,14 @@ export default function MyProfileHeader({
               className={[
                 "px-6 py-6 text-center transition",
                 isClickable
-                  ? "cursor-pointer hover:bg-white/[0.04]"
+                  ? "cursor-pointer hover:bg-[var(--profile-stat-hover)]"
                   : "cursor-default",
               ].join(" ")}
             >
-              <p className="text-2xl font-bold text-white">
+              <p className="text-2xl font-bold text-[var(--text-primary)]">
                 {formatCompactNumber(stat.value)}
               </p>
-              <p className="mt-1 text-sm text-[#8f97b1]">{stat.label}</p>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">{stat.label}</p>
             </button>
           )
         })}

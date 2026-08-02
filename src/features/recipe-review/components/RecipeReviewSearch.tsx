@@ -19,29 +19,34 @@ export default function RecipeReviewSearch({
     <div className="w-full sm:w-[260px]">
       <div
         className={[
-          "relative flex h-12 items-center rounded-md border bg-[#0b0b0c] transition",
+          "relative flex h-12 items-center rounded-md border bg-[var(--input-bg)] transition",
           hasValue
-            ? "border-orange-400/35 shadow-[0_0_0_1px_rgba(254,170,43,0.08)]"
-            : "border-white/10 hover:border-white/20",
+            ? "border-[var(--focus-border)] shadow-[0_0_0_2px_var(--focus-ring)]"
+            : "border-[var(--input-border)] hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)]",
         ].join(" ")}
       >
         <SearchRoundedIcon
           sx={{ fontSize: 19 }}
-          className="absolute left-4 text-[#7f89a6]"
+          className={[
+            "absolute left-4 transition-colors",
+            hasValue
+              ? "text-[var(--accent)]"
+              : "text-[var(--text-muted)]",
+          ].join(" ")}
         />
 
         <input
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="h-full w-full rounded-lg bg-transparent pl-11 pr-11 text-sm text-white outline-none placeholder:text-[#6f7892]"
+          className="h-full w-full rounded-lg bg-transparent pl-11 pr-11 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--input-placeholder)]"
         />
 
         {hasValue && (
           <button
             type="button"
             onClick={() => onChange("")}
-            className="absolute right-3 flex h-7 w-7 items-center justify-center rounded-lg text-[#7f89a6] transition hover:bg-white/[0.06] hover:text-white active:scale-95"
+            className="absolute right-3 flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] active:scale-95"
           >
             <CloseRoundedIcon sx={{ fontSize: 17 }} />
           </button>
@@ -49,7 +54,7 @@ export default function RecipeReviewSearch({
       </div>
 
       {hasValue && typeof resultCount === "number" && (
-        <p className="mt-2 text-xs text-[#7f89a6]">
+        <p className="mt-2 text-xs text-[var(--text-muted)]">
           Showing {resultCount} result{resultCount === 1 ? "" : "s"} for "{value}"
         </p>
       )}

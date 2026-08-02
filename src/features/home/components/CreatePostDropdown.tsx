@@ -6,6 +6,7 @@ import VideoLibraryRoundedIcon from "@mui/icons-material/VideoLibraryRounded"
 import { useEffect, useRef, useState } from "react"
 import { CreatePostType } from "../pages/Home"
 import { AnimatePresence, motion } from "motion/react"
+import { useDismissibleLayer } from "../../../hooks/useDismissibleLayer"
 
 interface CreatePostDropdownProps {
   onSelect: (postType: CreatePostType) => void
@@ -15,38 +16,44 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
     const dropdownRef = useRef<HTMLDivElement | null>(null)
     const [isOpen, setIsOpen] = useState(false)
 
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target as Node)
-            ) {
-                setIsOpen(false)
-            }
-        }
+    useDismissibleLayer({
+      isOpen,
+      refs: [dropdownRef],
+      onDismiss: () => setIsOpen(false),
+    })
 
-        function handleEscape(event: KeyboardEvent) {
-            if (event.key === "Escape") {
-                setIsOpen(false)
-            }
-        }
+    // useEffect(() => {
+    //     function handleClickOutside(event: MouseEvent) {
+    //         if (
+    //             dropdownRef.current &&
+    //             !dropdownRef.current.contains(event.target as Node)
+    //         ) {
+    //             setIsOpen(false)
+    //         }
+    //     }
 
-        function handleViewportChange() {
-            setIsOpen(false)
-        }
+    //     function handleEscape(event: KeyboardEvent) {
+    //         if (event.key === "Escape") {
+    //             setIsOpen(false)
+    //         }
+    //     }
 
-        document.addEventListener("mousedown", handleClickOutside)
-        document.addEventListener("keydown", handleEscape)
-        window.addEventListener("scroll", handleViewportChange, { passive: true })
-        window.addEventListener("resize", handleViewportChange)
+    //     function handleViewportChange() {
+    //         setIsOpen(false)
+    //     }
 
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside)
-            document.removeEventListener("keydown", handleEscape)
-            window.removeEventListener("scroll", handleViewportChange)
-            window.removeEventListener("resize", handleViewportChange)
-        }
-    }, [])
+    //     document.addEventListener("mousedown", handleClickOutside)
+    //     document.addEventListener("keydown", handleEscape)
+    //     window.addEventListener("scroll", handleViewportChange, { passive: true })
+    //     window.addEventListener("resize", handleViewportChange)
+
+    //     return () => {
+    //         document.removeEventListener("mousedown", handleClickOutside)
+    //         document.removeEventListener("keydown", handleEscape)
+    //         window.removeEventListener("scroll", handleViewportChange)
+    //         window.removeEventListener("resize", handleViewportChange)
+    //     }
+    // }, [])
 
     function handleSelect(postType: CreatePostType) {
         onSelect(postType)

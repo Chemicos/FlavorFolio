@@ -95,7 +95,7 @@ export default function ProfileRecipeToolbar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 self-end rounded-lg border border-white/10 bg-white/[0.035] p-1">
+      <div className="flex items-center gap-2 self-end rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] p-1">
         <button
           type="button"
           aria-label="Grid view"
@@ -103,8 +103,8 @@ export default function ProfileRecipeToolbar({
           className={[
             "flex h-10 w-10 items-center justify-center rounded-lg transition",
             viewMode === "grid"
-              ? "bg-white/[0.09] text-white shadow-[0_10px_30px_rgba(0,0,0,0.22)]"
-              : "text-[#8f97b1] hover:bg-white/[0.06] hover:text-white",
+              ? "bg-[var(--surface-active)] text-[var(--text-primary)] shadow-[var(--shadow-card)]"
+              : "text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
           ].join(" ")}
         >
           <GridViewRoundedIcon sx={{ fontSize: 21 }} />
@@ -117,8 +117,8 @@ export default function ProfileRecipeToolbar({
           className={[
             "flex h-10 w-10 items-center justify-center rounded-lg transition",
             viewMode === "list"
-              ? "bg-white/[0.09] text-white shadow-[0_10px_30px_rgba(0,0,0,0.22)]"
-              : "text-[#8f97b1] hover:bg-white/[0.06] hover:text-white",
+              ? "bg-[var(--surface-active)] text-[var(--text-primary)] shadow-[var(--shadow-card)]"
+              : "text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
           ].join(" ")}
         >
           <ViewListRoundedIcon sx={{ fontSize: 22 }} />
