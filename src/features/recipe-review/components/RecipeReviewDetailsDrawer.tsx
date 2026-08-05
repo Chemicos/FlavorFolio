@@ -1,4 +1,4 @@
-import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded"
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded"
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined"
 import SignalCellularAltRoundedIcon from "@mui/icons-material/SignalCellularAltRounded"
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded"
@@ -81,6 +81,14 @@ export default function RecipeReviewDetailsDrawer({
 
   const ingredients = useMemo(() => recipe.ingredients || [], [recipe.ingredients])
 
+  const metadataBadgeClassName = [
+    "mb-3 flex items-center gap-2 rounded-xl border",
+    "border-[var(--accent-border)]",
+    "bg-[var(--accent-soft)]",
+    "px-3 py-2 text-xs capitalize",
+    "text-[var(--accent-text)]",
+  ].join(" ")
+
   const steps = useMemo(() => {
     return (recipe.cookingSteps || []).map((step) => ({
       title: step.title,
@@ -162,15 +170,30 @@ export default function RecipeReviewDetailsDrawer({
       exit={{ x: "100%" }}
       transition={{ type: "spring", stiffness: 260, damping: 32 }}
       style={{ width }}
-      className="fixed right-0 top-16 z-40 flex h-[calc(100vh-64px)] flex-col overflow-hidden border-l border-white/10 bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]"
+      className={[
+        "fixed right-0 top-16 z-40",
+        "flex h-[calc(100vh-64px)] flex-col overflow-hidden",
+        "border-l border-[var(--border)]",
+        "bg-[var(--bg-secondary)]",
+        "shadow-[var(--shadow-panel)]",
+        "transition-colors",
+      ].join(" ")}
     >
       <div
         onMouseDown={onResizeStart}
-        className="absolute left-0 top-0 z-50 h-full w-3 -translate-x-1/2 cursor-col-resize before:absolute before:left-1/2 before:top-0 before:h-full before:w-px before:bg-white/10 hover:before:bg-orange-400/60"
+        className={[
+          "absolute left-0 top-0 z-50 h-full w-3",
+          "-translate-x-1/2 cursor-col-resize",
+          "before:absolute before:left-1/2 before:top-0",
+          "before:h-full before:w-px",
+          "before:bg-[var(--border)]",
+          "hover:before:w-[2px]",
+          "hover:before:bg-[var(--accent)]",
+        ].join(" ")}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
-        <div className="relative h-[340px] overflow-hidden bg-[#0b0b0c]">
+      <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
+        <div className="relative h-[340px] overflow-hidden bg-[var(--bg-primary)]">
           {recipe.image ? (
             <img
               src={recipe.image}
@@ -178,50 +201,67 @@ export default function RecipeReviewDetailsDrawer({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-[#a8b3cf]">
+            <div className="flex h-full w-full items-center justify-center text-sm text-[var(--text-secondary)]">
               No image selected
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-[#16181d] via-[#16181d]/20 to-black/30" />
+          <div 
+            className="absolute inset-0" 
+            style={{
+              background:
+                "linear-gradient(to top, var(--bg-secondary), transparent 58%, rgba(0,0,0,0.28))",
+            }}
+          />
 
           <button
             type="button"
             onClick={onClose}
-            className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
+            className={[
+              "absolute left-5 top-5 z-20",
+              "flex h-11 w-11 items-center justify-center rounded-lg border",
+              "border-[var(--drawer-control-border)]",
+              "bg-[var(--drawer-control-bg)]",
+              "text-[var(--text-secondary)]",
+              "shadow-[var(--shadow-card)]",
+              "transition",
+              "hover:bg-[var(--drawer-control-hover)]",
+              "hover:text-[var(--text-primary)]",
+              "active:scale-95",
+            ].join(" ")}
           >
-            <ChevronLeftRoundedIcon sx={{ fontSize: 26 }} />
+            <ChevronRightRoundedIcon sx={{ fontSize: 26 }} />
           </button>
         </div>
 
-        <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-10 pt-10">
-          <div className="mt-2 flex flex-wrap gap-3 text-sm text-[#c4cbdb]">
+        <div className="relative z-10 -mt-10 rounded-t-[2.8rem] border-t border-[var(--border)] bg-[var(--bg-secondary)] px-7 pb-10 pt-10">
+          <div className="mt-2 flex flex-wrap gap-3 text-sm text-[var(--text-secondary)]">
             {recipe.cuisine && (
-              <div className="mb-3 flex items-center gap-2 rounded-xl border border-orange-400/15 bg-orange-500/10 px-3 py-2 text-xs text-orange-200 capitalize">
+              <div className={metadataBadgeClassName}>
                 <RestaurantRoundedIcon sx={{ fontSize: 17 }} />
                 <span>{recipe.cuisine}</span>
               </div>
             )}
 
             {recipe.meal && (
-              <div className="mb-3 flex items-center gap-2 rounded-xl border border-orange-400/15 bg-orange-500/10 px-3 py-2 text-xs text-orange-200 capitalize">
+              <div className={metadataBadgeClassName}>
                 <span>{recipe.meal}</span>
               </div>
             )}
 
             {recipe.visibility && (
-              <div className="mb-3 flex items-center gap-2 rounded-xl border border-orange-400/15 bg-orange-500/10 px-3 py-2 text-xs text-orange-200 capitalize">
+              <div className={metadataBadgeClassName}>
                 <span>{recipe.visibility}</span>
               </div>
             )}
           </div>
 
-          <h1 className="text-[1.5rem] font-bold leading-[2.35rem] text-white capitalize">
+          <h1 className="text-[1.5rem] font-bold leading-[2.35rem] text-[var(--text-primary)] capitalize">
             {recipe.title || "Untitled recipe"}
           </h1>
 
           <div className="mt-4 flex items-center gap-3">
-            <div className="h-9 w-9 overflow-hidden rounded-lg bg-white/10">
+            <div className="h-9 w-9 overflow-hidden rounded-lg bg-[var(--surface-muted)]">
               {recipe.author?.profileImage ? (
                 <img
                   src={recipe.author.profileImage}
@@ -229,15 +269,15 @@ export default function RecipeReviewDetailsDrawer({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-white/70">
+                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[var(--text-secondary)]">
                   {(recipe.author?.username || recipe.user || "U").charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
 
             <div className="min-w-0">
-              <p className="text-xs text-[#7f89a6]">Made by</p>
-              <p className="truncate text-sm font-medium text-[#d7def0]">
+              <p className="text-xs text-[var(--text-muted)]">Made by</p>
+              <p className="truncate text-sm font-medium text-[var(--text-primary)]">
                 {recipe.author?.username || recipe.user || "Unknown"}
               </p>
             </div>
@@ -270,7 +310,7 @@ export default function RecipeReviewDetailsDrawer({
               canEdit={isReviewMode}
             />
 
-            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#7f89a6]">
+            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">
               {recipe.description || "No description added yet."}
             </p>
           </section>
@@ -317,20 +357,29 @@ export default function RecipeReviewDetailsDrawer({
                 onToggleStep={handleToggleStep}
               />
             ) : (
-              <p className="mt-3 text-sm text-[#7f89a6]">No steps added yet.</p>
+              <p className="mt-3 text-sm text-[var(--text-muted)]">No steps added yet.</p>
             )}
           </section>
         </div>
       </div>
       
       {isReviewMode && (
-        <div className="shrink-0 border-t border-white/10 bg-[#16181d]/95 px-6 py-4 backdrop-blur-xl">
+        <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)] px-6 py-4 shadow-[var(--recipe-form-shadow)]">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => onDenyRecipe?.(recipe)}
               disabled={isReviewActionLoading}
-              className="flex h-11 flex-1 items-center justify-center rounded-lg border border-red-400/10 bg-red-500/10 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-45 active:scale-[0.98]"
+              className={[
+                "flex h-11 flex-1 items-center justify-center rounded-lg border",
+                "border-[var(--button-danger-border)]",
+                "bg-[var(--button-danger-bg)]",
+                "text-sm font-semibold text-[var(--button-danger-text)]",
+                "transition",
+                "hover:bg-[var(--button-danger-hover)]",
+                "disabled:cursor-not-allowed disabled:opacity-45",
+                "active:scale-[0.98]",
+              ].join(" ")}
             >
               Deny
             </button>
@@ -339,10 +388,19 @@ export default function RecipeReviewDetailsDrawer({
               type="button"
               disabled={isReviewActionLoading}
               onClick={() => onApproveRecipe?.(recipe.recipeId)}
-              className="flex h-11 flex-1 items-center justify-center rounded-lg border border-lime-400/10 bg-lime-500/10 text-sm font-semibold text-lime-300 transition hover:bg-lime-500/15 disabled:cursor-not-allowed disabled:opacity-45 active:scale-[0.98]"
+              className={[
+                "flex h-11 flex-1 items-center justify-center rounded-lg border",
+                "border-[var(--button-success-border)]",
+                "bg-[var(--button-success-bg)]",
+                "text-sm font-semibold text-[var(--button-success-text)]",
+                "transition",
+                "hover:bg-[var(--button-success-hover)]",
+                "disabled:cursor-not-allowed disabled:opacity-45",
+                "active:scale-[0.98]",
+              ].join(" ")}
             >
               {isReviewActionLoading ? (
-                <CircularProgress size={15} thickness={5} sx={{ color: "#bef264" }} />
+                <CircularProgress size={15} thickness={5} sx={{ color: "var(--success)" }} />
               ) : (
                 "Approve"
               )}
@@ -352,12 +410,19 @@ export default function RecipeReviewDetailsDrawer({
       )}
 
       {isRevisionMode && (
-        <div className="shrink-0 border-t border-white/10 bg-[#16181d]/95 px-6 py-4 backdrop-blur-xl">
+        <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)] px-6 py-4 shadow-[var(--recipe-form-shadow)]">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => onDeleteRecipe?.(recipe)}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-red-400/10 bg-red-500/10 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 active:scale-[0.98]"
+              className={[
+                "flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border",
+                "border-[var(--button-danger-border)]",
+                "bg-[var(--button-danger-bg)]",
+                "text-sm font-semibold text-[var(--button-danger-text)]",
+                "transition hover:bg-[var(--button-danger-hover)]",
+                "active:scale-[0.98]",
+              ].join(" ")}
             >
               <DeleteRoundedIcon sx={{ fontSize: 18 }} />
               Delete
@@ -366,7 +431,14 @@ export default function RecipeReviewDetailsDrawer({
             <button
               type="button"
               onClick={() => onEditRecipe?.(recipe)}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-orange-400/10 bg-orange-500/10 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/15 active:scale-[0.98]"
+              className={[
+                "flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border",
+                "border-[var(--accent-border)]",
+                "bg-[var(--accent-soft)]",
+                "text-sm font-semibold text-[var(--accent-text)]",
+                "transition hover:bg-[var(--accent-soft-hover)]",
+                "active:scale-[0.98]",
+              ].join(" ")}
             >
               <EditRoundedIcon sx={{ fontSize: 18 }} />
               Edit
@@ -376,9 +448,26 @@ export default function RecipeReviewDetailsDrawer({
               type="button"
               onClick={() => onSubmitRevision?.(recipe.recipeId)}
               disabled={isRevisionActionLoading}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-lime-400/10 bg-lime-500/10 text-sm font-semibold text-lime-300 transition hover:bg-lime-500/15 disabled:opacity-45"
+              className={[
+                "flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border",
+                "border-[var(--button-success-border)]",
+                "bg-[var(--button-success-bg)]",
+                "text-sm font-semibold text-[var(--button-success-text)]",
+                "transition hover:bg-[var(--button-success-hover)]",
+                "disabled:cursor-not-allowed disabled:opacity-45",
+                "active:scale-[0.98]",
+              ].join(" ")}
             >
-              <SendRoundedIcon sx={{ fontSize: 18 }} />
+              {isRevisionActionLoading ? (
+                <CircularProgress 
+                  size={15}
+                  thickness={5}
+                  sx={{color: "var(--success)"}}
+                />
+              ): (
+                <SendRoundedIcon sx={{ fontSize: 18 }} />
+              )}
+
               Send
             </button>
           </div>
@@ -396,9 +485,9 @@ function InfoBox({
   label: string
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.10] bg-[#0b0b0c] px-4 py-5 text-center">
-      <div className="flex justify-center text-white">{icon}</div>
-      <p className="mt-3 text-xs font-semibold text-white">{label}</p>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card-bg)] px-4 py-5 text-center shadow-[var(--shadow-card)]">
+      <div className="flex justify-center text-[var(--text-primary)]">{icon}</div>
+      <p className="mt-3 text-xs font-semibold text-[var(--text-primary)]">{label}</p>
     </div>
   )
 }
@@ -406,7 +495,7 @@ function InfoBox({
 function InfoValue({ value }: { value: string }) {
   return (
     <div className="flex justify-center">
-      <span className="rounded-lg border border-white/[0.10] bg-[#0b0b0c]/60 px-5 py-2 text-xs font-semibold text-white">
+      <span className="rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-5 py-2 text-xs font-semibold text-[var(--text-primary)]">
         {value}
       </span>
     </div>

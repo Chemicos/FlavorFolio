@@ -60,7 +60,19 @@ function FilterChip({
   onRemove: () => void
 }) {
   return (
-    <div className="group flex h-[38px] items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#111318]/70 px-3.5 text-[#a8b3cf] backdrop-blur-md transition hover:border-white/15 hover:bg-[#181b22]/80">
+    <div 
+      className={[
+        "group flex h-[38px] items-center justify-between gap-2 rounded-lg border px-3.5",
+        "border-[var(--button-secondary-border)]",
+        "bg-[var(--button-secondary-bg)]",
+        "text-[var(--button-secondary-text)]",
+        "shadow-[var(--shadow-card)] backdrop-blur-md",
+        "transition",
+        "hover:border-[var(--border-strong)]",
+        "hover:bg-[var(--button-secondary-hover)]",
+        "hover:text-[var(--text-primary)]",
+      ].join(" ")}
+    >
       <div className="flex items-center gap-2">
         {icon}
         <span className="text-sm">{label}</span>
@@ -69,7 +81,13 @@ function FilterChip({
       <button
         type="button"
         onClick={onRemove}
-        className="ml-1 flex items-center justify-center text-[#a8b3cf]/50 transition hover:text-white"
+        className={[
+          "ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+          "text-[var(--text-muted)] transition",
+          "hover:bg-[var(--surface-hover)]",
+          "hover:text-[var(--text-primary)]",
+          "active:scale-95",
+        ].join(" ")}
       >
         <CloseIcon sx={{ fontSize: 18 }} />
       </button>
@@ -182,7 +200,13 @@ export default function RecipeReviewFilterBar({
         <button
           type="button"
           onClick={onResetFilters}
-          className="px-3 text-sm text-[#a8b3cf]/50 transition hover:text-white"
+          className={[
+            "h-[38px] rounded-lg px-3 text-sm transition",
+            "text-[var(--text-muted)]",
+            "hover:bg-[var(--surface-hover)]",
+            "hover:text-[var(--text-primary)]",
+            "active:scale-[0.98]",
+          ].join(" ")}
         >
           Reset filters
         </button>

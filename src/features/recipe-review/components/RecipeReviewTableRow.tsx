@@ -19,21 +19,21 @@ interface RecipeReviewTableRowProps {
 const viewTooltipProps = {
   tooltip: {
     sx: {
-      bgcolor: "#0b0b0c",
-      color: "#d7def0",
+      bgcolor: "var(--tooltip-bg)",
+      color: "var(--tooltip-text)",
       fontSize: "0.75rem",
-      border: "1px solid rgba(255,255,255,0.08)",
+      border: "1px solid var(--tooltip-border)",
       backdropFilter: "blur(12px)",
-      boxShadow: "0 12px 30px rgba(0,0,0,0.45)",
+      boxShadow: "var(--shadow-dropdown)",
       px: 1.2,
       py: 0.7,
     },
   },
   arrow: {
     sx: {
-      color: "#0b0b0c",
+      color: "var(--tooltip-bg)",
       "&:before": {
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid var(--tooltip-border)",
       },
     },
   },
@@ -85,18 +85,19 @@ function TruncatedTooltipText({
         tooltip: {
           sx: {
             maxWidth: 360,
-            bgcolor: "#0b0b0c",
-            color: "#d7def0",
+            bgcolor: "var(--tooltip-bg)",
+            color: "var(--tooltip-text)",
             fontSize: "0.75rem",
             lineHeight: 1.6,
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid var(--tooltip-border)",
             backdropFilter: "blur(12px)",
+            boxShadow: "var(--shadow-dropdown)",
             padding: "0.5rem"
           },
         },
         arrow: {
           sx: {
-            color: "#0b0b0c",
+            color: "var(--tooltip-bg)",
           },
         },
       }}
@@ -121,10 +122,10 @@ export default function RecipeReviewTableRow({
   const cellClassName = [
     "px-4 py-2 transition-colors",
      isActive
-      ? "bg-[#202636]"
-      : isSelected
-        ? "bg-[#161b24]"
-        : "bg-[#0b0b0c] group-hover:bg-[#202429]",
+        ? "bg-[var(--table-row-active)]"
+        : isSelected
+        ? "bg-[var(--table-row-selected)]"
+        : "bg-[var(--table-row-bg)] group-hover:bg-[var(--table-row-hover)]",
   ].join(" ")
 
   const renderCell = (key: RecipeReviewTableColumn["key"]) => {
@@ -137,8 +138,8 @@ export default function RecipeReviewTableRow({
             size="small"
             sx={{
               padding: 0,
-              color: "rgba(168,179,207,0.75)",
-              "&.Mui-checked": { color: "#a8b3cf" },
+              color: "var(--text-disabled)",
+              "&.Mui-checked": { color: "var(--accent)" },
               "& .MuiSvgIcon-root": { fontSize: 22 },
             }}
           />
@@ -146,21 +147,21 @@ export default function RecipeReviewTableRow({
 
       case "title":
         return (
-          <TruncatedTooltipText className="truncate text-sm font-medium text-[#d7def0]">
+          <TruncatedTooltipText className="truncate text-sm font-medium text-[var(--text-primary)]">
             {recipe.title || "Untitled recipe"}
           </TruncatedTooltipText>
         )
 
       case "description":
         return (
-          <TruncatedTooltipText className="truncate text-sm text-[#a8b3cf]">
+          <TruncatedTooltipText className="truncate text-sm text-[var(--text-secondary)]">
             {recipe.description || "No description"}
           </TruncatedTooltipText>
         )
 
       case "createdAt":
         return (
-          <span className="text-sm text-[#a8b3cf]">
+          <span className="text-sm text-[var(--text-secondary)]">
             {formatCreatedAt(recipe.createdAt)}
           </span>
         )
@@ -168,7 +169,7 @@ export default function RecipeReviewTableRow({
       case "createdBy":
         return (
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 overflow-hidden rounded-full bg-white/10">
+            <div className="h-8 w-8 overflow-hidden rounded-full bg-[var(--surface-muted)]">
               {recipe.author?.profileImage ? (
                 <img
                   src={recipe.author.profileImage}
@@ -176,7 +177,7 @@ export default function RecipeReviewTableRow({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-white/70">
+                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[var(--text-secondary)]">
                   {(recipe.author?.username || recipe.user || "U")
                     .charAt(0)
                     .toUpperCase()}
@@ -184,7 +185,7 @@ export default function RecipeReviewTableRow({
               )}
             </div>
 
-            <span className="truncate text-sm text-[#a8b3cf]">
+            <span className="truncate text-sm text-[var(--text-secondary)]">
               {recipe.author?.username || recipe.user || "Unknown"}
             </span>
           </div>
@@ -192,56 +193,56 @@ export default function RecipeReviewTableRow({
 
       case "difficulty":
         return (
-          <span className="text-sm capitalize text-[#a8b3cf]">
+          <span className="text-sm capitalize text-[var(--text-secondary)]">
             {recipe.difficulty || "-"}
           </span>
         )
 
       case "cuisine":
         return (
-          <span className="text-sm capitalize text-[#a8b3cf]">
+          <span className="text-sm capitalize text-[var(--text-secondary)]">
             {recipe.cuisine || "-"}
           </span>
         )
 
       case "duration":
         return (
-          <span className="text-sm text-[#a8b3cf]">
+          <span className="text-sm text-[var(--text-secondary)]">
             {recipe.durationMinutes ? `${recipe.durationMinutes} min` : "-"}
           </span>
         )
 
       case "steps":
         return (
-          <span className="text-sm text-[#a8b3cf]">
+          <span className="text-sm text-[var(--text-secondary)]">
             {stepsCount}
           </span>
         )
 
       case "ingredients":
         return (
-          <span className="text-sm text-[#a8b3cf]">
+          <span className="text-sm text-[var(--text-secondary)]">
             {recipe.ingredients?.length || 0}
           </span>
         )
 
       case "servings":
         return (
-          <span className="text-sm text-[#a8b3cf]">
+          <span className="text-sm text-[var(--text-secondary)]">
             {recipe.servings || "-"}
           </span>
         )
 
       case "meal":
         return (
-          <span className="text-sm capitalize text-[#a8b3cf]">
+          <span className="text-sm capitalize text-[var(--text-secondary)]">
             {recipe.meal || "-"}
           </span>
         )
 
       case "visibility":
         return (
-          <span className="text-sm capitalize text-[#a8b3cf]">
+          <span className="text-sm capitalize text-[var(--text-secondary)]">
             {recipe.visibility || "-"}
           </span>
         )
@@ -259,7 +260,7 @@ export default function RecipeReviewTableRow({
               <button
                 type="button"
                 onClick={onView}
-                className="inline-flex translate-x-3 items-center justify-center text-[#a8b3cf] opacity-0 transition-all duration-200 ease-out hover:text-white active:scale-95 group-hover:translate-x-0 group-hover:opacity-100"
+                className="inline-flex translate-x-3 items-center justify-center text-[var(--text-secondary)] opacity-0 transition-all duration-200 ease-out hover:text-[var(--text-primary)] active:scale-95 group-hover:translate-x-0 group-hover:opacity-100"
               >
                 <ViewSidebarIcon sx={{ fontSize: 24 }} />
               </button>

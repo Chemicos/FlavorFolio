@@ -28,16 +28,22 @@ export default function NeedsRevisionPageHeader({
     <section>
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-[1.6rem] font-semibold text-white">
+          <h1 className="text-[1.6rem] font-semibold text-[var(--text-primary)]">
             Needs revision
           </h1>
 
-          <span className="text-xs font-medium text-[#6f7892]">
+          <span 
+            className={[
+              "inline-flex min-w-6 items-center justify-center rounded-full",
+              "border border-[var(--warning-border)] bg-[var(--warning-soft)]",
+              "px-2 py-1 text-xs font-semibold text-[var(--warning-text)]",
+            ].join(" ")}
+          >
             {totalCount}
           </span>
         </div>
 
-        <p className="mt-2 text-sm text-[#a8b3cf]">
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">
           Recipes that require changes before they can be published again.
         </p>
       </div>
@@ -55,7 +61,14 @@ export default function NeedsRevisionPageHeader({
               <button
                 type="button"
                 onClick={onDeleteSelected}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-red-400/10 bg-red-500/10 px-4 text-sm font-medium text-red-300 transition hover:bg-red-500/15"
+                className={[
+                  "inline-flex h-10 items-center gap-2 rounded-lg border px-4",
+                  "border-[var(--button-danger-border)]",
+                  "bg-[var(--button-danger-bg)]",
+                  "text-sm font-medium text-[var(--button-danger-text)]",
+                  "transition hover:bg-[var(--button-danger-hover)]",
+                  "active:scale-[0.98]",
+                ].join(" ")}
               >
                 <DeleteRoundedIcon sx={{ fontSize: 17 }} />
                 Delete
@@ -63,15 +76,6 @@ export default function NeedsRevisionPageHeader({
             </div>
           )}
         </div>
-
-        {/* <button
-          type="button"
-          onClick={onOpenViewFilterOptions}
-          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg px-4 text-sm text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
-        >
-          <TuneRoundedIcon sx={{ fontSize: 20 }} />
-          View
-        </button> */}
       </div>
 
       <div className="mt-5 flex h-10 items-center gap-6">
@@ -82,8 +86,8 @@ export default function NeedsRevisionPageHeader({
           className={[
             "text-sm transition",
             allSelected
-              ? "cursor-not-allowed text-[#7f89a6]/40"
-              : "text-[#7f89a6] hover:text-white",
+              ? "cursor-not-allowed text-[var(--text-disabled)]"
+              : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
           ].join(" ")}
         >
           {allSelected ? "All rows selected" : "Select all"}
@@ -94,12 +98,18 @@ export default function NeedsRevisionPageHeader({
             <button
               type="button"
               onClick={onClearSelection}
-              className="text-sm text-[#7f89a6] transition hover:text-white"
+              className="text-sm text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
             >
               Clear selection
             </button>
 
-            <span className="text-xs font-medium text-white">
+            <span 
+              className={[
+                "rounded-full border border-[var(--border)]",
+                "bg-[var(--surface-muted)] px-2.5 py-1",
+                "text-xs font-medium text-[var(--text-secondary)]",
+              ].join(" ")}
+            >
               {selectedCount} row{selectedCount === 1 ? "" : "s"} selected
             </span>
           </>

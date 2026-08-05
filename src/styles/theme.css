@@ -48,6 +48,17 @@
   --surface-hover: #f7efe3;
   --surface-active: #f1e3d1;
 
+  /* Tooltips */
+  --tooltip-bg: #2e251c;
+  --tooltip-text: #fffdf9;
+  --tooltip-border: rgba(255, 255, 255, 0.12);
+
+  /* Tables */
+  --table-row-bg: #fffdf9;
+  --table-row-hover: #f7efe3;
+  --table-row-selected: #f1e3d1;
+  --table-row-active: #fff0d9;
+
   /* Recipe composer */
   --recipe-upload-bg: #f2eadf;
   --recipe-form-bg: #fffdf9;
@@ -209,6 +220,17 @@
   --surface-muted: rgba(255, 255, 255, 0.055);
   --surface-hover: rgba(255, 255, 255, 0.05);
   --surface-active: rgba(255, 255, 255, 0.08);
+
+  /* Tooltips */
+  --tooltip-bg: #20232b;
+  --tooltip-text: #ffffff;
+  --tooltip-border: rgba(255, 255, 255, 0.1);
+
+  /* Tables */
+  --table-row-bg: #0b0b0c;
+  --table-row-hover: #171a20;
+  --table-row-selected: #1b202a;
+  --table-row-active: #202636;
 
   /* Recipe composer */
   --recipe-upload-bg: #0b0b0c;

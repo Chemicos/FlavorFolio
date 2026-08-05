@@ -298,7 +298,7 @@ export default function RecipeReviewTable({
                   }
                   height={column.key === "select" || column.key === "actions" ? 22 : 18}
                   sx={{
-                    bgcolor: "rgba(168,179,207,0.10)",
+                    bgcolor: "var(--surface-muted)",
                     borderRadius: column.key === "select" ? "999px" : "8px",
                   }}
                 />
@@ -312,9 +312,9 @@ export default function RecipeReviewTable({
 
   if (!isLoading && !recipes.length) {
     return (
-      <div className="mt-10 rounded-2xl border border-white/10 bg-[#0b0b0c]/60 p-10 text-center">
-        <h3 className="text-lg font-semibold text-white">No pending recipes</h3>
-        <p className="mt-2 text-sm text-[#8f97b1]">
+      <div className="mt-10 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center shadow-[var(--shadow-card)]">
+        <h3 className="text-lg font-semibold  text-[var(--text-primary)]">No pending recipes</h3>
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">
           There are no recipes waiting for review right now.
         </p>
       </div>
@@ -333,7 +333,7 @@ export default function RecipeReviewTable({
       onDragEnd={handleDragEnd}
     >
       <div className="h-full overflow-hidden">
-        <div className="h-full overflow-auto pr-1 [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+        <div className="h-full overflow-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
           <table
             className="w-full border-separate border-spacing-y-[6px]"
             style={{
@@ -350,12 +350,12 @@ export default function RecipeReviewTable({
               ))}
             </colgroup>
 
-            <thead className="sticky top-0 z-20 bg-[#16181d]">
+            <thead className="sticky top-0 z-20 bg-[var(--bg-primary)]">
               <SortableContext
                 items={draggableColumnKeys}
                 strategy={horizontalListSortingStrategy}
               >
-                <tr className="text-left text-sm font-semibold text-[#a8b3cf]">
+                <tr className="text-left text-sm font-semibold text-[var(--text-secondary)]">
                   {columns.map((column) => (
                     <SortableHeaderCell
                       key={column.key}
@@ -392,7 +392,15 @@ export default function RecipeReviewTable({
 
       <DragOverlay>
         {activeColumn ? (
-          <div className="rounded-lg border border-orange-400/30 bg-[#202429] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)]">
+          <div
+            className={[
+              "rounded-lg border px-4 py-3 text-sm font-semibold",
+              "border-[var(--accent-border)]",
+              "bg-[var(--card-bg)]",
+              "text-[var(--text-primary)]",
+              "shadow-[var(--shadow-dropdown)]",
+            ].join(" ")}
+          >
             {activeColumn.label}
           </div>
         ) : null}
@@ -441,7 +449,7 @@ function SortableHeaderCell({
       className={[
         "group relative px-4 py-3 transition-colors",
         isDragging ? "z-30 opacity-40" : "",
-        isOver ? "bg-orange-500/10" : "",
+        isOver ? "bg-[var(--accent-soft)]" : "",
       ].join(" ")}
     >
       <div
@@ -457,8 +465,8 @@ function SortableHeaderCell({
             type="button"
             onClick={() => onSort(column.key as SortKey)}
             className={[
-              "flex min-w-0 items-center gap-1 truncate pr-2 transition-colors hover:text-white",
-              sort.key === column.key ? "text-white" : "",
+              "flex min-w-0 items-center gap-1 truncate pr-2 transition-colors hover:text-[var(--text-primary)]",
+              sort.key === column.key ? "text-[var(--text-primary)]" : "",
             ].join(" ")}
           >
             <span className="truncate">{column.label}</span>
@@ -473,7 +481,7 @@ function SortableHeaderCell({
             />
           </button>
         ) : (
-          <div className="truncate pr-2 transition-colors group-hover:text-white">
+          <div className="truncate pr-2 transition-colors group-hover:text-[var(--text-primary)]">
             {column.label}
           </div>
         )}
@@ -484,7 +492,7 @@ function SortableHeaderCell({
           onMouseDown={(event) =>
             onResizeStart(event, column.key, column.minWidth)
           }
-          className="absolute right-[-8px] top-0 bottom-0 w-5 cursor-col-resize before:absolute before:left-1/2 before:top-2 before:bottom-2 before:w-px before:-translate-x-1/2 before:bg-white/20 hover:before:w-[3px] hover:before:bg-orange-400/60"
+          className="absolute right-[-8px] top-0 bottom-0 w-5 cursor-col-resize before:absolute before:left-1/2 before:top-2 before:bottom-2 before:w-px before:-translate-x-1/2 before:bg-[var(--border-strong)] hover:before:w-[3px] hover:before:bg-[var(--accent)]"
         />
       )}
     </th>

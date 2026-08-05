@@ -92,15 +92,14 @@ export default function PostReelForm({
     const [formError, setFormError] = useState<string | null>(null)
 
     const fieldClassName = [
-      "w-full rounded-md border border-white/10 bg-[#0b0b0c]",
-      "px-4 py-3 text-sm text-white outline-none transition",
-      "placeholder:text-[#6f7892]",
-      "hover:border-white/20",
-      "focus:border-orange-400/50",
-      "focus:ring-2 focus:ring-orange-500/10",
+      "w-full rounded-md border border-[var(--input-border)] bg-[var(--input-bg)]",
+      "px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition",
+      "placeholder:text-[var(--input-placeholder)]",
+      "hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)]",
+      "focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]",
       "disabled:cursor-not-allowed disabled:opacity-60",
     ].join(" ")
-    const labelClassName = "mb-2 block text-xs font-medium text-[#a8b3cf]"
+    const labelClassName = "mb-2 block text-xs font-medium text-[var(--text-secondary)]"
 
     useEffect(() => {
         return () => {
@@ -265,16 +264,16 @@ export default function PostReelForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex min-h-full flex-col bg-[#16181d]"
+      className="flex min-h-full flex-col bg-[var(--recipe-form-bg)] text-[var(--text-primary)] transition-colors"
     >
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-[#16181d]/95 px-6 py-5 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--border)] bg-[var(--recipe-form-bg)] px-6 py-5">
         <div className="flex min-w-0 items-center gap-3">
           {onBackToRecipe && (
             <button
               type="button"
               onClick={onBackToRecipe}
               disabled={isSubmitting}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-[#0b0b0c]/70 text-[#a8b3cf] transition hover:border-white/20 hover:bg-[#0b0b0c] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Back to recipe form"
             >
               <ArrowBackRoundedIcon
@@ -284,11 +283,11 @@ export default function PostReelForm({
           )}
 
           <div className="min-w-0">
-            <p className="text-sm font-medium text-[#a8b3cf]">
+            <p className="text-sm font-medium text-[var(--text-secondary)]">
               Create reel
             </p>
 
-            <h2 className="mt-0.5 truncate text-[1.35rem] font-medium text-white">
+            <h2 className="mt-0.5 truncate text-[1.35rem] font-medium text-[var(--text-primary)]">
               New post
             </h2>
           </div>
@@ -298,7 +297,7 @@ export default function PostReelForm({
           type="button"
           onClick={onClose}
           disabled={isSubmitting}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-[#0b0b0c]/70 text-[#a8b3cf] transition hover:border-white/20 hover:bg-[#0b0b0c] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Close reel form"
         >
           <CloseRoundedIcon sx={{ fontSize: 20 }} />
@@ -306,14 +305,14 @@ export default function PostReelForm({
       </header>
 
       <div className="flex-1 px-6 py-7">
-        <div className="rounded-[2rem] border border-white/[0.08] bg-[#17181d] p-6 shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+        <div className="rounded-[2rem] border border-[var(--recipe-form-border)] bg-[var(--card-bg)] p-6 shadow-[var(--shadow-card)] transition-colors">
           <section>
             <div className="mb-4">
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                 Reel video
               </h3>
 
-              <p className="mt-1 text-xs leading-5 text-[#8f97b1]">
+              <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
                 Vertical videos work best. MP4, WebM or MOV,
                 maximum 200 MB.
               </p>
@@ -329,7 +328,7 @@ export default function PostReelForm({
             />
 
             {videoPreviewUrl && videoFile ? (
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b0c]">
+              <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--recipe-upload-bg)]">
                 <div className="relative mx-auto aspect-[9/16] max-h-[520px] max-w-[292px] overflow-hidden bg-black">
                   <video
                     src={videoPreviewUrl}
@@ -350,13 +349,13 @@ export default function PostReelForm({
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-4 border-t border-white/10 px-4 py-4">
+                <div className="flex items-center justify-between gap-4 border-t border-[var(--border)] bg-[var(--card-bg)] px-4 py-4">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white">
+                    <p className="truncate text-sm font-medium text-[var(--text-primary)]">
                       {videoFile.name}
                     </p>
 
-                    <p className="mt-1 text-xs text-[#8f97b1]">
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">
                       {formatFileSize(videoFile.size)}
 
                       {durationSeconds > 0
@@ -374,7 +373,7 @@ export default function PostReelForm({
                         fileInputRef.current?.click()
                       }
                       disabled={isSubmitting}
-                      className="inline-flex h-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.035] px-3 text-xs font-semibold text-[#d7def0] transition hover:border-orange-400/30 hover:bg-orange-500/10 hover:text-orange-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] px-3 text-xs font-semibold text-[var(--button-secondary-text)] transition hover:border-[var(--accent-border)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-text)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Replace
                     </button>
@@ -383,7 +382,7 @@ export default function PostReelForm({
                       type="button"
                       onClick={clearVideo}
                       disabled={isSubmitting}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.035] text-[#8f97b1] transition hover:border-red-400/20 hover:bg-red-500/10 hover:text-red-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--button-danger-border)] bg-[var(--button-danger-bg)] text-[var(--button-danger-text)] transition hover:bg-[var(--button-danger-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label="Remove video"
                     >
                       <DeleteOutlineRoundedIcon
@@ -398,26 +397,26 @@ export default function PostReelForm({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSubmitting}
-                className="group flex min-h-[280px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-[#0b0b0c] px-6 text-center transition hover:border-orange-400/40 hover:bg-orange-500/[0.035] active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-50"
+                className="group flex min-h-[280px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--recipe-upload-bg)] px-6 text-center transition hover:border-[var(--accent-border)] hover:bg-[var(--accent-soft)] active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="flex h-20 w-20 items-center justify-center rounded-full border border-white/15 bg-white/[0.04] text-[#7f89a6] transition group-hover:scale-105 group-hover:border-orange-400/50 group-hover:bg-orange-500/20 group-hover:text-orange-200 group-active:scale-95">
+                <span className="flex h-20 w-20 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)] transition group-hover:scale-105 group-hover:border-[var(--accent-border)] group-hover:bg-[var(--accent-soft-hover)] group-hover:text-[var(--accent-text)] group-active:scale-95">
                   <CloudUploadRoundedIcon
                     sx={{ fontSize: 32 }}
                   />
                 </span>
 
-                <span className="mt-5 text-sm font-semibold text-white">
+                <span className="mt-5 text-sm font-semibold text-[var(--text-primary)]">
                   Upload reel video
                 </span>
 
-                <span className="mt-1 text-xs leading-5 text-[#6f7892]">
+                <span className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
                   MP4 • MOV • WebM • Max 200 MB
                 </span>
               </button>
             )}
           </section>
 
-          <div className="my-7 h-px bg-white/[0.07]" />
+          <div className="my-7 h-px bg-[var(--border-subtle)]" />
 
           <section>
             <div className="mb-2 flex items-center justify-between gap-3">
@@ -428,7 +427,7 @@ export default function PostReelForm({
                 Title *
               </label>
 
-              <span className="text-xs text-[#6f7892]">
+              <span className="text-xs text-[var(--text-muted)]">
                 {title.length} / {MAX_TITLE_LENGTH}
               </span>
             </div>
@@ -450,7 +449,7 @@ export default function PostReelForm({
               className={fieldClassName}
             />
 
-            <div className="my-6 h-px bg-white/[0.07]" />
+            <div className="my-6 h-px bg-[var(--border-subtle)]" />
 
             <div className="mb-2 flex items-center justify-between gap-3">
               <label
@@ -460,7 +459,7 @@ export default function PostReelForm({
                 Description *
               </label>
 
-              <span className="text-xs text-[#6f7892]">
+              <span className="text-xs text-[var(--text-muted)]">
                 {description.length} /{" "}
                 {MAX_DESCRIPTION_LENGTH}
               </span>
@@ -502,7 +501,7 @@ export default function PostReelForm({
                 placement="top"
               />
 
-              <p className="mt-2 text-xs leading-5 text-[#8f97b1]">
+              <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">
                 Choose the meal category that best matches your reel.
               </p>
             </div>
@@ -532,7 +531,7 @@ export default function PostReelForm({
                 placement="top"
               />
 
-              <p className="mt-2 text-xs leading-5 text-[#8f97b1]">
+              <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">
                 {visibility === "private"
                   ? "Private reels are only visible to you."
                   : "Public reels can be viewed by other FlavorFolio users."}
@@ -541,20 +540,20 @@ export default function PostReelForm({
           </section>
 
           {formError && (
-            <div className="mt-6 rounded-xl border border-red-400/20 bg-[#140b0b] px-4 py-3 text-sm leading-6 text-red-200 shadow-[0_12px_32px_rgba(0,0,0,0.25)]">
+            <div className="mt-6 rounded-xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-4 py-3 text-sm leading-6 text-[var(--danger-text)] shadow-[var(--shadow-card)]">
               {formError}
             </div>
           )}
         </div>
       </div>
 
-      <footer className="sticky bottom-0 z-50 border-t border-white/10 bg-[#16181d]/95 px-6 py-5 backdrop-blur-xl">
+      <footer className="sticky bottom-0 z-50 border-t border-[var(--border)] bg-[var(--recipe-form-bg)] px-6 py-5">
         <div className="flex items-center justify-end gap-5">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-medium text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-medium text-[var(--text-secondary)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Cancel
           </button>
@@ -565,16 +564,16 @@ export default function PostReelForm({
             className={[
               "relative h-11 min-w-[180px] overflow-hidden rounded-lg border",
               "text-sm font-semibold transition active:scale-95",
-              "disabled:cursor-not-allowed disabled:border-white/5",
+              "disabled:cursor-not-allowed disabled:opacity-60",
               completionPercentage === 100
-                ? "border-orange-400/40 bg-orange-500/20 text-orange-100 hover:bg-orange-500/30"
-                : "border-orange-400/15 bg-[#211a17] text-[#a99576]",
+                ? "border-[var(--accent-border)] bg-[var(--accent-soft-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-soft-hover)]"
+                : "border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--text-muted)]",
             ].join(" ")}
           >
             {!isSubmitting && (
               <span
                 aria-hidden="true"
-                className="absolute inset-y-0 left-0 bg-orange-500/15 transition-[width] duration-300 ease-out"
+                className="absolute inset-y-0 left-0 bg-[var(--accent-soft)] transition-[width] duration-300 ease-out"
                 style={{
                   width: `${completionPercentage}%`,
                 }}
@@ -587,7 +586,7 @@ export default function PostReelForm({
                   <CircularProgress
                     size={17}
                     thickness={5}
-                    sx={{ color: "#fff0d1" }}
+                    sx={{ color: "var(--accent-text)" }}
                   />
 
                   Publishing...

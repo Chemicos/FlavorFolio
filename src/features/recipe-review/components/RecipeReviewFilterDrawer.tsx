@@ -78,20 +78,26 @@ function CheckboxRow({
           sx={{
             padding: 0,
             marginRight: "10px",
-            color: "rgba(168,179,207,0.5)",
-            "&.Mui-checked": { color: "#d8ddeb" },
-            "& .MuiSvgIcon-root": { fontSize: 20 },
+            color: "var(--text-disabled)",
+
+            "&.Mui-checked": {
+              color: "var(--accent)",
+            },
+
+            "& .MuiSvgIcon-root": {
+              fontSize: 20,
+            },
           }}
         />
       }
-      label={<span className="text-sm text-[#a8b3cf]">{label}</span>}
+      label={<span className="text-sm text-[var(--text-secondary)]">{label}</span>}
       sx={{
         margin: 0,
         cursor: "pointer",
         padding: "7px 10px",
         borderTopRightRadius: "5px",
         borderBottomRightRadius: "5px",
-        "&:hover": { backgroundColor: "#202429" },
+        "&:hover": { backgroundColor: "var(--surface-hover)" },
       }}
     />
   )
@@ -119,16 +125,26 @@ function FilterSection({
         onClick={onToggle}
         className={[
           "flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition",
-          hasActiveFilters ? "bg-white/[0.04] text-white" : "hover:bg-[#202429]/80",
+          hasActiveFilters
+            ? "bg-[var(--accent-soft)] text-[var(--accent-text)]"
+            : [
+                "text-[var(--text-secondary)]",
+                "hover:bg-[var(--surface-hover)]",
+                "hover:text-[var(--text-primary)]",
+              ].join(" "),
         ].join(" ")}
       >
-        <div className="flex items-center gap-3 text-[#b8c0d9]">
-          {icon}
+        <div className="flex items-center gap-3">
+          <span className="flex items-center">{icon}</span>
           <span>{title}</span>
-          {hasActiveFilters && <span className="h-2 w-2 rounded-full bg-[#a8b3cf]" />}
+          {hasActiveFilters && <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />}
         </div>
 
-        <motion.span animate={{ rotate: isOpen ? 180 : 0 }}>
+        <motion.span 
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.18 }}
+          className="flex items-center text-[var(--text-muted)]"
+        >
           <KeyboardArrowDownIcon sx={{ fontSize: 22 }} />
         </motion.span>
       </button>
@@ -142,7 +158,7 @@ function FilterSection({
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden pl-6"
           >
-            <div className="mt-2 border-l border-[#a8b3cf]/40 pr-4">
+            <div className="mt-2 border-l border-[var(--border-strong)] pr-4">
               {children}
             </div>
           </motion.div>
@@ -163,6 +179,17 @@ function getOpenSectionsFromFilters(filters: RecipeReviewFilters) {
   }
 }
 
+function hasActiveRecipeReviewFilters(filters: RecipeReviewFilters) {
+  return (
+    filters.durations.length > 0 ||
+    filters.difficulties.length > 0 ||
+    filters.cuisines.length > 0 ||
+    filters.meals.length > 0 ||
+    filters.servings.length > 0 ||
+    filters.steps.length > 0
+  )
+}
+
 export default function RecipeReviewFilterDrawer({
     isOpen,
     filters,
@@ -176,6 +203,8 @@ export default function RecipeReviewFilterDrawer({
     )
 
     const [cuisineSearch, setCuisineSearch] = useState("")
+
+    const hasActiveFilters = hasActiveRecipeReviewFilters(filters)
 
     useEffect(() => {
         if (!isOpen) return
@@ -212,7 +241,7 @@ export default function RecipeReviewFilterDrawer({
   return (
     <div className="fixed inset-0 z-[90]">
       <motion.div
-        className="absolute inset-0 bg-[#0b0b0c]/35"
+        className="absolute inset-0 bg-[var(--overlay)]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -224,16 +253,30 @@ export default function RecipeReviewFilterDrawer({
         animate={{ x: 0 }}
         exit={{ x: "-110%" }}
         transition={{ type: "spring", stiffness: 240, damping: 28 }}
-        className="relative left-0 top-0 flex h-full w-full max-w-[300px] flex-col border-r border-white/10 bg-[#050506]/70 py-8 shadow-[20px_0_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+        className={[
+          "relative left-0 top-0 flex h-full w-full max-w-[300px] flex-col",
+          "border-r border-[var(--border)]",
+          "bg-[var(--bg-elevated)] py-8",
+          "shadow-[var(--shadow-panel)]",
+        ].join(" ")}
       >
         <div className="px-6">
-          <h2 className="text-[1.4rem] text-[#d7def0]">Review filters</h2>
-          <p className="mt-1 text-sm text-[#7f89a6]">Refine pending submissions</p>
+          <h2 className="text-[1.4rem] text-[var(--text-primary)]">Review filters</h2>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">Refine pending submissions</p>
 
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-0 top-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 hover:bg-[#202429] text-[#a8b3cf] transition hover:text-white"
+            className={[
+              "absolute right-0 top-10 flex h-10 w-10 translate-x-1/2",
+              "items-center justify-center rounded-lg border",
+              "border-[var(--drawer-control-border)]",
+              "bg-[var(--drawer-control-bg)]",
+              "text-[var(--text-secondary)]",
+              "shadow-[var(--shadow-card)] transition",
+              "hover:bg-[var(--drawer-control-hover)]",
+              "hover:text-[var(--text-primary)]",
+            ].join(" ")}
           >
             <KeyboardArrowLeftIcon sx={{ fontSize: 24 }} />
           </button>
@@ -241,13 +284,26 @@ export default function RecipeReviewFilterDrawer({
           <button
             type="button"
             onClick={onReset}
-            className="mb-6 mt-8 rounded-lg border border-white/10 px-4 py-2 text-sm text-[#a8b3cf]/70 transition hover:bg-white/[0.04] hover:text-white"
+            disabled={!hasActiveFilters}
+            className={[
+              "mb-6 mt-8 rounded-lg border px-4 py-2 text-sm transition",
+              "border-[var(--button-secondary-border)]",
+              "bg-[var(--button-secondary-bg)]",
+              "text-[var(--button-secondary-text)]",
+              "hover:bg-[var(--button-secondary-hover)]",
+              "hover:text-[var(--text-primary)]",
+              "disabled:cursor-not-allowed",
+              "disabled:border-[var(--border-subtle)]",
+              "disabled:bg-[var(--surface-subtle)]",
+              "disabled:text-[var(--text-disabled)]",
+              "disabled:opacity-70",
+            ].join(" ")}
           >
             Reset filters
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+        <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
           <div className="flex flex-col gap-3 px-6">
             <FilterSection title="Duration" icon={<AccessTimeIcon sx={{ fontSize: 20 }} />} isOpen={openSections.duration} hasActiveFilters={active.duration} onToggle={() => toggleSection("duration")}>
               <div className="flex flex-col">
@@ -271,11 +327,20 @@ export default function RecipeReviewFilterDrawer({
                   value={cuisineSearch}
                   onChange={(event) => setCuisineSearch(event.target.value)}
                   placeholder="Search cuisines..."
-                  className="mb-2 ml-2 rounded-md border border-white/10 bg-[#101215] px-3 py-2 text-sm text-white outline-none placeholder:text-[#6b7280] focus:border-white/20"
+                  className={[
+                    "mb-2 ml-2 w-[calc(100%-0.5rem)] rounded-md border",
+                    "border-[var(--input-border)] bg-[var(--input-bg)]",
+                    "px-3 py-2 text-sm text-[var(--text-primary)]",
+                    "outline-none transition",
+                    "placeholder:text-[var(--input-placeholder)]",
+                    "hover:bg-[var(--input-bg-hover)]",
+                    "focus:border-[var(--focus-border)]",
+                    "focus:ring-2 focus:ring-[var(--focus-ring)]",
+                  ].join(" ")}
                 />
 
                 {hasNoCuisineResults && (
-                    <p className="ml-2 text-sm text-[#7f89a6]">
+                    <p className="ml-2 text-sm text-[var(--text-muted)]">
                         No cuisines found for "{cuisineSearch}"
                     </p>
                 )}

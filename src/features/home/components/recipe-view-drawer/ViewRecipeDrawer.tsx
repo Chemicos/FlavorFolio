@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Recipe, SavedRecipe } from "../../types"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
 import { useRecipeCardActions } from "../../hooks/useRecipeCardActions"
@@ -38,6 +38,7 @@ import DeleteWarningDialog from "./DeleteWarningDialog"
 import { deleteRecipe } from "../../services/recipes.service"
 import { doc, onSnapshot } from "@firebase/firestore"
 import { db } from "../../../../firebase-config"
+import { useDismissibleLayer } from "../../../../hooks/useDismissibleLayer"
 
 interface ViewRecipeDrawerProps {
     recipe: Recipe,
@@ -144,6 +145,14 @@ export default function ViewRecipeDrawer({
 
     const canManageRecipe = Boolean(currentUser?.uid && recipe.userId === currentUser.uid)
     const [isRecipeMenuOpen, setIsRecipeMenuOpen] = useState(false)
+    const recipeMenuRef = useRef<HTMLDivElement | null>(null)
+
+    useDismissibleLayer({
+        isOpen: isRecipeMenuOpen,
+        refs: [recipeMenuRef],
+        onDismiss: () => setIsRecipeMenuOpen(false)
+    })
+    
     const [userRating, setUserRating] = useState<number | null>(null)
     const [ratingLoading, setRatingLoading] = useState(false)
     const [activeTab, setActiveTab] = useState<ViewRecipeTab>("ingredients")
@@ -586,15 +595,19 @@ export default function ViewRecipeDrawer({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"                    >
+                        className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
+                    >
                         <CloseRoundedIcon sx={{ fontSize: 20 }} />
                     </button>
 
-                    <div className="absolute right-5 top-5 z-30">
+                    <div ref={recipeMenuRef} className="absolute right-5 top-5 z-30">
                         <button
                             type="button"
                             onClick={() => setIsRecipeMenuOpen((prev) => !prev)}
                             className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
+                            aria-label="Recipe options"
+                            aria-haspopup="menu"
+                            aria-expanded={isRecipeMenuOpen}
                         >
                             <MoreVertRoundedIcon sx={{ fontSize: 21 }} />
                         </button>
@@ -602,6 +615,7 @@ export default function ViewRecipeDrawer({
                         <AnimatePresence>
                             {isRecipeMenuOpen && (
                             <motion.div
+                                role="menu"
                                 initial={{ opacity: 0, y: -6, scale: 0.96 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -6, scale: 0.96 }}
@@ -611,7 +625,11 @@ export default function ViewRecipeDrawer({
                                 {showInteractions && (
                                     <button
                                         type="button"
-                                        onClick={() => onShareRecipe?.(recipe)}
+                                        role="menuitem"
+                                        onClick={() => {
+                                            setIsRecipeMenuOpen(false)
+                                            onShareRecipe?.(recipe)
+                                        }}
                                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
                                     >
                                         <ShareRoundedIcon sx={{ fontSize: 18 }} />

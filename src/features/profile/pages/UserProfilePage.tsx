@@ -31,6 +31,7 @@ import StickyProfileDrawer from "../components/StickyProfileDrawer"
 import { canViewProfileContent } from "../utils/profilePrivacy"
 import { useUserProfileRecipes } from "../hooks/useUserProfileRecipes"
 import ProfileContentLockedState from "../components/ProfileContentLockedState"
+import { useDismissibleLayer } from "../../../hooks/useDismissibleLayer"
 
 function ViewRecipeDrawerLoading() {
   return (
@@ -65,6 +66,12 @@ export default function UserProfilePage() {
   const [connectionsModalType, setConnectionsModalType] = useState<ProfileConnectionType | null>(null)
   const [isProfileActionsMenuOpen, setIsProfileActionsMenuOpen] = useState(false)
   const profileActionsMenuRef = useRef<HTMLDivElement | null>(null)
+
+  useDismissibleLayer({
+    isOpen: isProfileActionsMenuOpen,
+    refs: [profileActionsMenuRef],
+    onDismiss: () => setIsProfileActionsMenuOpen(false)
+  })
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [currentUserProfile, setCurrentUserProfile] = useState<MyProfileData | null>(null)
@@ -178,25 +185,6 @@ export default function UserProfilePage() {
 
     return () => unsubscribe()
   }, [currentUserId])
-
-  useEffect(() => {
-    if (!isProfileActionsMenuOpen) return
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        profileActionsMenuRef.current &&
-        !profileActionsMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsProfileActionsMenuOpen(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [isProfileActionsMenuOpen])
 
   useEffect(() => {
     if (!currentUserId) {

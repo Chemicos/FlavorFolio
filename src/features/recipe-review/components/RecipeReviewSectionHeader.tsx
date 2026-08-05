@@ -27,6 +27,21 @@ interface RecipeReviewSectionHeaderProps {
   canEdit?: boolean
 }
 
+const severityStyles = {
+    info: {
+        selected: "border-[var(--info-border)] bg-[var(--info-soft)] text-[var(--info-text)]",
+        icon: "text-[var(--info)]",
+    },
+    warning: {
+        selected: "border-[var(--warning-border)] bg-[var(--warning-soft)] text-[var(--warning-text)]",
+        icon: "text-[var(--warning)]",
+    },
+    critical: {
+        selected: "border-[var(--danger-border)] bg-[var(--danger-soft)] text-[var(--danger-text)]",
+        icon: "text-[var(--danger)]",
+    }
+}
+
 export default function RecipeReviewSectionHeader({
     title,
     feedback,
@@ -42,12 +57,13 @@ export default function RecipeReviewSectionHeader({
     canEdit = true,
 }: RecipeReviewSectionHeaderProps) {
     const hasFeedback = Boolean(feedback?.message?.trim())
+    const feedbackSeverity = feedback?.severity && feedback.severity in severityStyles ? feedback.severity : "warning"
 
   return (
     <div className="mb-3">
         <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-white">{title}</h2>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
 
             {hasFeedback && (
             <Tooltip
@@ -55,26 +71,33 @@ export default function RecipeReviewSectionHeader({
                 arrow
                 placement="top"
                 slotProps={{
-                tooltip: {
-                    sx: {
-                    bgcolor: "#0b0b0c",
-                    color: "#d7def0",
-                    fontSize: "0.75rem",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    tooltip: {
+                        sx: {
+                        maxWidth: 360,
+                            bgcolor: "var(--tooltip-bg)",
+                            color: "var(--tooltip-text)",
+                            fontSize: "0.75rem",
+                            lineHeight: 1.55,
+                            border: "1px solid var(--tooltip-border)",
+                            boxShadow: "var(--shadow-dropdown)",
+                            px: 1.2,
+                            py: 0.8,r: "1px solid rgba(255,255,255,0.08)",
+                        },
                     },
-                },
-                arrow: { sx: { color: "#0b0b0c" } },
+                    arrow: {
+                        sx: {
+                            color: "var(--tooltip-bg)",
+                            "&:before": {
+                            border:
+                                "1px solid var(--tooltip-border)",
+                            },
+                        },
+                    },
                 }}
             >
                 <WarningIcon
-                sx={{ fontSize: 19 }}
-                className={
-                    feedback?.severity === "critical"
-                    ? "text-red-300"
-                    : feedback?.severity === "warning"
-                    ? "text-orange-300"
-                    : "text-sky-300"
-                }
+                    sx={{ fontSize: 19 }}
+                    className={severityStyles[feedbackSeverity].icon}
                 />
             </Tooltip>
             )}
@@ -83,7 +106,14 @@ export default function RecipeReviewSectionHeader({
             <button
                 type="button"
                 onClick={onStartEdit}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
+                className={[
+                    "inline-flex shrink-0 items-center gap-1.5 rounded-lg",
+                    "px-3 py-1.5 text-xs",
+                    "text-[var(--text-secondary)] transition",
+                    "hover:bg-[var(--surface-hover)]",
+                    "hover:text-[var(--text-primary)]",
+                    "active:scale-[0.98]",
+                ].join(" ")}
             >
                 <AddCommentRoundedIcon sx={{ fontSize: 16 }} />
                 Feedback
@@ -98,50 +128,95 @@ export default function RecipeReviewSectionHeader({
                     animate={{ opacity: 1, y: 0, height: "auto" }}
                     exit={{ opacity: 0, y: -6, height: 0 }}
                     transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                    className="mt-3 rounded-xl border border-white/10 bg-[#0b0b0c] p-3"
+                    className={[
+                        "mt-3 overflow-hidden rounded-xl border p-3",
+                        "border-[var(--border)]",
+                        "bg-[var(--surface-subtle)]",
+                    ].join(" ")}
                 >
-                <div className="flex gap-2">
-                    {(["info", "warning", "critical"] as const).map((severity) => (
+                <div className="flex flex-wrap gap-2">
+                    {(["info", "warning", "critical"] as const).map((severity) => {
+                    const isSelected = draftSeverity === severity
+
+                    return (
                     <button
                         key={severity}
                         type="button"
-                        onClick={() => onSeverityChange(severity)}
+                        onClick={() =>
+                        onSeverityChange(severity)
+                        }
                         className={[
-                        "rounded-lg px-3 py-1.5 text-xs capitalize transition",
-                        draftSeverity === severity
-                            ? "bg-orange-500/15 text-orange-200"
-                            : "text-[#7f89a6] hover:bg-white/[0.04] hover:text-white",
+                        "rounded-lg border px-3 py-1.5",
+                        "text-xs capitalize transition",
+                        isSelected
+                            ? severityStyles[severity].selected
+                            : [
+                                "border-transparent",
+                                "text-[var(--text-muted)]",
+                                "hover:border-[var(--border)]",
+                                "hover:bg-[var(--surface-hover)]",
+                                "hover:text-[var(--text-primary)]",
+                            ].join(" "),
                         ].join(" ")}
                     >
                         {severity}
                     </button>
-                    ))}
+                    )
+                })}
                 </div>
 
                 <textarea
                     value={draftMessage}
                     onChange={(event) => onMessageChange(event.target.value)}
                     placeholder="Write what needs to be corrected..."
-                    className="mt-3 min-h-[90px] w-full resize-none rounded-lg border border-white/10 bg-[#101215] px-3 py-2 text-sm text-white outline-none placeholder:text-[#6f7892] focus:border-orange-400/30"
+                    className={[
+                        "mt-3 min-h-[90px] w-full resize-none rounded-lg border",
+                        "border-[var(--input-border)]",
+                        "bg-[var(--input-bg)]",
+                        "px-3 py-2 text-sm text-[var(--text-primary)]",
+                        "outline-none transition",
+                        "placeholder:text-[var(--input-placeholder)]",
+                        "hover:bg-[var(--input-bg-hover)]",
+                        "focus:border-[var(--focus-border)]",
+                        "focus:ring-2 focus:ring-[var(--focus-ring)]",
+                    ].join(" ")}    
                 />
 
                 <div className="mt-3 flex justify-end gap-2">
                     <button
-                    type="button"
-                    onClick={onCancelEdit}
-                    className="rounded-lg px-3 py-2 text-xs text-[#7f89a6] transition hover:bg-white/[0.04] hover:text-white"
+                        type="button"
+                        onClick={onCancelEdit}
+                        disabled={isSaving}
+                        className={[
+                            "rounded-lg px-3 py-2 text-xs",
+                            "text-[var(--text-muted)] transition",
+                            "hover:bg-[var(--surface-hover)]",
+                            "hover:text-[var(--text-primary)]",
+                            "disabled:cursor-not-allowed",
+                            "disabled:opacity-50",
+                        ].join(" ")}
                     >
-                    Cancel
+                        Cancel
                     </button>
 
                     <button
-                    type="button"
-                    disabled={isSaving}
-                    onClick={onSave}
-                    className="rounded-lg bg-orange-500/15 px-3 py-2 text-xs font-medium text-orange-200 transition hover:bg-orange-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+                        type="button"
+                        disabled={isSaving}
+                        onClick={onSave}
+                        className={[
+                            "inline-flex min-w-[104px] items-center justify-center",
+                            "rounded-lg border px-3 py-2",
+                            "border-[var(--accent-border)]",
+                            "bg-[var(--accent-soft)]",
+                            "text-xs font-medium text-[var(--accent-text)]",
+                            "transition",
+                            "hover:bg-[var(--accent-soft-hover)]",
+                            "disabled:cursor-not-allowed",
+                            "disabled:opacity-50",
+                        ].join(" ")}
                     >
                     {isSaving ? (
-                        <CircularProgress size={14} thickness={5} sx={{color: "#fed7aa"}} />
+                        <CircularProgress size={14} thickness={5} sx={{color: "var(--accent)"}} />
                     ) : (
                         "Save feedback"
                     )}

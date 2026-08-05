@@ -106,18 +106,29 @@ export default function RecipeGridCard({
   return (
     <article
       onClick={handleCardClick}
-      className="group relative h-[370px] cursor-pointer overflow-hidden rounded-md bg-black shadow-[0_18px_55px_rgba(0,0,0,0.18)] transition duration-200 hover:-translate-y-1 hover:border-white/15"
+      className={[
+        "group relative h-[370px] cursor-pointer overflow-hidden rounded-lg",
+        "border border-[var(--border)] bg-[var(--card-bg)]",
+        "shadow-[var(--shadow-card)]",
+        "transition duration-200",
+        "hover:-translate-y-1 hover:border-[var(--border-strong)]",
+      ].join(" ")}
     >
       <img
         src={recipe.image}
         alt={recipe.title}
-        className="absolute inset-0 h-full w-full object-cover"
+        loading="lazy"
+        className={[
+          "absolute inset-0 h-full w-full object-cover",
+          "transition-transform duration-500",
+          "group-hover:scale-[1.025]",
+        ].join(" ")}
       />
 
       <div className="absolute inset-0 bg-black/10" />
 
-      <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-black/75 via-black/40 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-black/70 via-black/50 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+      <div className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/85 via-black/55 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
       <button
         type="button"
@@ -125,24 +136,40 @@ export default function RecipeGridCard({
         data-no-card-click
         disabled={isFavoriteLoading}
         className={[
-            "absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-xl transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60",
-            isFavorite
-            ? "bg-[#0b0b0c]/20 text-[#feaa2b] hover:bg-[#0b0b0c]/80"
-            : "bg-[#0b0b0c]/20 text-white hover:bg-[#0b0b0c]/80",
+          "absolute right-4 top-4 z-10",
+          "flex h-10 w-10 items-center justify-center rounded-full",
+          "border border-[var(--profile-floating-control-border)]",
+          "bg-[var(--profile-floating-control-bg)]",
+          "text-[var(--profile-floating-control-text)]",
+          "shadow-[var(--shadow-card)] backdrop-blur-xl",
+          "transition",
+          "hover:bg-[var(--profile-floating-control-hover)]",
+          "active:scale-95",
+          "disabled:cursor-not-allowed disabled:opacity-60",
         ].join(" ")}
         aria-label={isFavorite ? "Unsave recipe" : "Save recipe"}
       >
         {isFavoriteLoading ? (
-            <CircularProgress size={18} sx={{ color: "#feaa2b" }} />
+            <CircularProgress size={18} thickness={5} sx={{ color: "var(--accent)" }} />
         ) : isFavorite ? (
-            <BookmarkRoundedIcon sx={{ fontSize: 21 }} />
+            <BookmarkRoundedIcon sx={{ fontSize: 21, color: "var(--accent)" }} />
         ) : (
             <BookmarkBorderRoundedIcon sx={{ fontSize: 21 }} />
         )}
       </button>
 
-      <div className="absolute left-4 top-4 z-10 flex max-w-[70%] items-center gap-2 rounded-full border border-white/10 bg-[#0b0b0c]/20 px-2.5 py-2 backdrop-blur-xl">
-        <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[#0b0b0c]/10">
+      <div 
+        className={[
+          "absolute left-4 top-4 z-10",
+          "flex max-w-[70%] items-center gap-2 rounded-full",
+          "border border-[var(--profile-floating-control-border)]",
+          "bg-[var(--profile-floating-control-bg)]",
+          "px-2.5 py-2",
+          "text-[var(--profile-floating-control-text)]",
+          "shadow-[var(--shadow-card)] backdrop-blur-xl",
+        ].join(" ")}
+      >
+        <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[var(--profile-avatar-bg)]">
           {authorImage ? (
             <img
               src={authorImage}
@@ -150,45 +177,45 @@ export default function RecipeGridCard({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-[0.7rem] font-bold text-white">
+            <div className="flex h-full w-full items-center justify-center text-[0.7rem] font-bold text-[var(--profile-floating-control-text)]">
               {authorUsername.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
 
-        <p className="truncate text-xs font-semibold text-white">
+        <p className="truncate text-xs font-semibold">
           {authorUsername}
         </p>
       </div>  
 
       <div className="absolute inset-x-0 bottom-0 z-10">
         <div className="px-4 pb-4 pt-3">
-          <h3 className="line-clamp-1 text-[1rem] font-semibold text-white">
+          <h3 className="line-clamp-1 text-[1rem] font-semibold text-[var(--profile-overlay-text)]">
             {recipe.title}
           </h3>
 
-          <p className="mt-2 line-clamp-1 text-sm text-[#a8b3cf]">
+          <p className="mt-2 line-clamp-1 text-sm text-[var(--profile-overlay-text-secondary)]">
             {recipe.meal} · {recipe.difficulty} ·{" "}
             {formatDuration(recipe.durationMinutes)}
           </p>
 
           <div className="mt-4 flex items-center pt-3">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 text-amber-300">
+              <div className="flex items-center gap-1.5 text-[var(--accent)]">
                 <StarRoundedIcon sx={{ fontSize: 18 }} />
-                <span className="text-sm font-semibold text-[#f8d36b]">
+                <span className="text-sm font-semibold text-[var(--profile-overlay-text)]">
                   {rating.toFixed(1)}
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5 text-[#a8b3cf]">
+              <div className="flex items-center gap-1.5 text-[var(--profile-overlay-text-secondary)]">
                 <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 17 }} />
                 <span className="text-sm font-semibold">
                   {formatCompactNumber(commentsCount)}
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5 text-[#a8b3cf]">
+              <div className="flex items-center gap-1.5 text-[var(--profile-overlay-text-secondary)]">
                 <BookmarkRoundedIcon sx={{ fontSize: 17 }} />
                 <span className="text-sm font-semibold">
                   {formatCompactNumber(savesCount)}

@@ -18,23 +18,23 @@ interface AppSnackbarProps {
 const snackbarConfig = {
   success: {
     icon: <CheckCircleRoundedIcon sx={{ fontSize: 20 }} />,
-    iconClass: "bg-emerald-500/10 text-emerald-300",
-    borderClass: "border-emerald-400/20",
+    iconClass: "border border-[var(--success-border)] bg-[var(--success-soft)] text-[var(--success-text)]",
+    borderClass: "border-[var(--success-border)]",
   },
   error: {
     icon: <ErrorRoundedIcon sx={{ fontSize: 20 }} />,
-    iconClass: "bg-red-500/10 text-red-300",
-    borderClass: "border-red-400/20",
+    iconClass: "border border-[var(--danger-border)] bg-[var(--danger-soft)] text-[var(--danger-text)]",
+    borderClass: "border-[var(--danger-border)]",
   },
   warning: {
     icon: <WarningAmberRoundedIcon sx={{ fontSize: 20 }} />,
-    iconClass: "bg-orange-500/10 text-orange-200",
-    borderClass: "border-orange-400/20",
+    iconClass: "border border-[var(--warning-border)] bg-[var(--warning-soft)] text-[var(--warning-text)]",
+    borderClass: "border-[var(--warning-border)]",
   },
   info: {
     icon: <InfoRoundedIcon sx={{ fontSize: 20 }} />,
-    iconClass: "bg-sky-500/10 text-sky-300",
-    borderClass: "border-sky-400/20",
+    iconClass: "border border-[var(--info-border)] bg-[var(--info-soft)] text-[var(--info-text)]",
+    borderClass: "border-[var(--info-border)]",
   },
 }
 
@@ -59,9 +59,11 @@ export default function AppSnackbar({
             >
             <div
                 className={[
-                "flex min-w-[340px] max-w-[440px] items-start gap-3 rounded-2xl border bg-[#1b1d22] px-4 py-3 text-[#d7def0]",
-                "shadow-[0_24px_90px_rgba(0,0,0,0.65)] backdrop-blur-xl",
-                config.borderClass,
+                    "flex w-full min-w-0 items-start gap-3 rounded-2xl border px-4 py-3",
+                    "bg-[var(--bg-elevated)] text-[var(--text-primary)]",
+                    "shadow-[var(--shadow-dropdown)] transition-colors duration-200",
+                    "sm:min-w-[340px] sm:max-w-[440px]",
+                    config.borderClass,
                 ].join(" ")}
             >
                 <div
@@ -74,7 +76,7 @@ export default function AppSnackbar({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
                     {type === "success"
                     ? "Success"
                     : type === "error"
@@ -84,7 +86,7 @@ export default function AppSnackbar({
                         : "Info"}
                 </p>
 
-                <p className="mt-0.5 text-sm leading-5 text-[#a8b3cf]">
+                <p className="mt-0.5 text-sm leading-5 text-[var(--text-secondary)]">
                     {message}
                 </p>
                 </div>
@@ -92,7 +94,7 @@ export default function AppSnackbar({
                 <button
                 type="button"
                 onClick={onClose}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-white/[0.06] hover:text-white"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] active:scale-95"
                 aria-label="Close snackbar"
                 >
                 <CloseRoundedIcon sx={{ fontSize: 17 }} />

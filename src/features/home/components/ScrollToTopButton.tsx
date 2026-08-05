@@ -31,27 +31,30 @@ export default function ScrollToTopButton({rightOffset = 24,}: ScrollToTopButton
     <AnimatePresence>
         {isVisible && (
             <motion.div
-                initial={{opacity: 0, y:10, filter: "blur(8px)"}}
+                initial={{opacity: 0, y:10, filter: "blur(6px)"}}
                 animate={{opacity: 1, y:0, filter: "blur(0px)"}}
-                exit={{opacity: 0, y: 10, filter: "blur(8px)"}}
+                exit={{opacity: 0, y: 10, filter: "blur(6px)"}}
                 transition={{
-                    duration: 0.5,
+                    duration: 0.3,
                     ease: [0.22, 1, 0.36, 1]
                 }}
-                className="fixed bottom-24 right-6 z-40 2xl-plus:right-8"
+                className="fixed bottom-24 z-40"
                 style={{right: rightOffset}}
             >
                 <button
                     type="button"
                     onClick={handleScrollToTop}
                     aria-label="Scroll to top"
-                    className="group relative flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-[#0b0b0c] backdrop-blur-xl
-                    transition duration-200 hover:border-white/20 hover:bg-[#16181d] active:scale-95"
+                    className={[
+                        "group relative flex h-11 w-11 items-center justify-center rounded-full border",
+                        "border-[var(--drawer-control-border)] bg-[var(--drawer-control-bg)]",
+                        "text-[var(--text-secondary)] shadow-[var(--shadow-card)]",
+                        "transition duration-200",
+                        "hover:bg-[var(--drawer-control-hover)] hover:text-[var(--text-primary)]",
+                        "active:scale-95",
+                    ].join(" ")}
                 >
-                    <KeyboardArrowUpIcon
-                        sx={{fontSize: 30}}
-                        className="text-[#a8b3cf] transition duration-200 group-hover:text-white"     
-                    />
+                    <KeyboardArrowUpIcon sx={{fontSize: 24}} />
                 </button>
             </motion.div>
         )}

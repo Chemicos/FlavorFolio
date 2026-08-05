@@ -9,13 +9,13 @@ export default function RecipeReviewIngredientsSection({
 }:RecipeReviewIngredientsSectionProps) {
     if (!ingredients.length) {
         return (
-            <p className="mt-3 text-sm text-[#7f89a6]">No ingredients added yet.</p>
+            <p className="mt-3 text-sm text-[var(--text-muted)]">No ingredients added yet.</p>
         )
     }
 
 
   return (
-    <div className="mt-5 flex flex-col gap-2 border-l-[1px] border-[#a8b3cf]/20 pl-4">
+    <div className="mt-5 flex flex-col gap-2 border-l-[1px] border-[var(--border-strong)] pl-4">
       {ingredients.map((ingredient, index) => {
         const quantity = ingredient?.quantity ? String(ingredient.quantity) : ""
         const unit = ingredient?.unit || ""
@@ -26,12 +26,21 @@ export default function RecipeReviewIngredientsSection({
             key={`${ingredient?.ingredient || "ingredient"}-${index}`}
             className="flex items-center gap-3"
           >
-            <div className="shrink-0 rounded-lg border border-white/[0.10] bg-[#0b0b0c] px-3 py-1.5 text-sm text-[#cbd3ea]">
+            <div
+              className={[
+                "shrink-0 rounded-lg border px-3 py-1.5",
+                "border-[var(--border)]",
+                "bg-[var(--surface-muted)]",
+                "text-sm font-medium text-[var(--text-secondary)]",
+                "transition-colors",
+                "group-hover:border-[var(--border-strong)]",
+              ].join(" ")}
+            >
               {amountLabel || "-"}
             </div>
 
             <div className="min-w-0">
-              <p className="truncate text-[0.98rem] text-white">
+              <p className="truncate text-[0.98rem] text-[var(--text-primary)]">
                 {ingredient?.ingredient || "Unknown ingredient"}
               </p>
             </div>

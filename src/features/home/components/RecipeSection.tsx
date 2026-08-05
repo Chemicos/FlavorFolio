@@ -171,7 +171,7 @@ export default function RecipeSection({
             </div>
         </div>
 
-        {/* {isLoading ? (
+        {isLoading ? (
             <RecipeGridSkeleton count={8} />
         ) : recipes.length === 0 ? (
             <div className="flex min-h-[360px] w-full items-center justify-center">
@@ -242,7 +242,7 @@ export default function RecipeSection({
                         })}
                 </div>
                 </div>
-        )} */}
+        )}
     </section>
   )
 }

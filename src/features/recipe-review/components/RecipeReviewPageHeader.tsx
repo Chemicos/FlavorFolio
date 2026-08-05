@@ -45,16 +45,20 @@ export default function RecipeReviewPageHeader({
     <section>
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-[1.6rem] font-semibold text-white">
+          <h1 className="text-[1.6rem] font-semibold text-[var(--text-primary)]">
             Pending recipes
           </h1>
 
-          <span className="text-xs font-medium text-[#6f7892]">
+          <span className={[
+            "inline-flex min-w-6 items-center justify-center rounded-full",
+            "border border-[var(--warning-border)] bg-[var(--warning-soft)]",
+            "px-2 py-1 text-xs font-semibold text-[var(--warning-text)]",
+          ].join(" ")}>
             {totalCount}
           </span>
         </div>
 
-        <p className="mt-2 text-sm text-[#a8b3cf]">
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">
           Here's a list of pending recipes that need your verification
         </p>
       </div>
@@ -72,7 +76,14 @@ export default function RecipeReviewPageHeader({
               <button
                 type="button"
                 onClick={onDenySelected}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-red-400/10 bg-red-500/10 px-4 text-sm font-medium text-red-300 transition hover:bg-red-500/15"
+                className={[
+                  "inline-flex h-10 items-center gap-2 rounded-lg border px-4",
+                  "border-[var(--button-danger-border)]",
+                  "bg-[var(--button-danger-bg)]",
+                  "text-sm font-medium text-[var(--button-danger-text)]",
+                  "transition hover:bg-[var(--button-danger-hover)]",
+                  "active:scale-[0.98]",
+                ].join(" ")}
               >
                 <BlockRoundedIcon sx={{ fontSize: 17 }} />
                 Deny
@@ -82,10 +93,19 @@ export default function RecipeReviewPageHeader({
                 type="button"
                 disabled={isReviewActionLoading}
                 onClick={onApproveSelected}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-lime-400/10 bg-lime-500/10 px-4 text-sm font-medium text-lime-300 transition hover:bg-lime-500/15 disabled:cursor-not-allowed disabled:opacity-45"
+                className={[
+                  "inline-flex h-10 min-w-[104px] items-center justify-center gap-2",
+                  "rounded-lg border px-4 text-sm font-medium transition",
+                  "active:scale-[0.98]",
+                  "border-[var(--button-success-border)]",
+                  "bg-[var(--button-success-bg)]",
+                  "text-[var(--button-success-text)]",
+                  "hover:bg-[var(--button-success-hover)]",
+                  "disabled:cursor-not-allowed disabled:opacity-45",
+                ].join(" ")}
               >
                 {isReviewActionLoading ? (
-                  <CircularProgress size={14} thickness={5} sx={{ color: "#bef264" }} />
+                  <CircularProgress size={14} thickness={5} sx={{ color: "var(--button-success-text)" }} />
                 ) : (
                   <>
                     <CheckRoundedIcon sx={{ fontSize: 17 }} />
@@ -100,7 +120,16 @@ export default function RecipeReviewPageHeader({
         <button
           type="button"
           onClick={onOpenViewFilterOptions}
-          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg px-4 text-sm text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
+          className={[
+            "inline-flex h-10 shrink-0 items-center gap-2 rounded-lg border px-4",
+            "text-sm transition active:scale-[0.98]",
+            "border-[var(--button-secondary-border)]",
+            "bg-[var(--button-secondary-bg)]",
+            "text-[var(--button-secondary-text)]",
+            "hover:bg-[var(--button-secondary-hover)]",
+            "hover:text-[var(--text-primary)]",
+            "disabled:cursor-not-allowed disabled:opacity-50",
+          ].join(" ")}
         >
           <TuneRoundedIcon sx={{ fontSize: 20 }} />
           View
@@ -121,8 +150,11 @@ export default function RecipeReviewPageHeader({
           className={[
             "text-sm transition",
             allSelected
-              ? "cursor-not-allowed text-[#7f89a6]/40"
-              : "text-[#7f89a6] hover:text-white",
+              ? "cursor-not-allowed text-[var(--text-disabled)]"
+              : [
+                  "text-[var(--text-muted)]",
+                  "hover:text-[var(--text-primary)]",
+                ].join(" "),
           ].join(" ")}
         >
           {allSelected ? "All rows selected" : "Select all"}
@@ -133,12 +165,15 @@ export default function RecipeReviewPageHeader({
             <button
               type="button"
               onClick={onClearSelection}
-              className="text-sm text-[#7f89a6] transition hover:text-white"
+              className={[
+                "text-sm text-[var(--text-muted)] transition",
+                "hover:text-[var(--text-primary)]",
+              ].join(" ")}
             >
               Clear selection
             </button>
 
-            <span className="text-xs font-medium text-white">
+            <span className="text-xs font-medium text-[var(--text-primary)]">
               {selectedCount} row{selectedCount === 1 ? "" : "s"} selected
             </span>
           </>

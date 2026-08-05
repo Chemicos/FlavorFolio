@@ -356,7 +356,7 @@ export default function PendingRecipesPage() {
 
     return (
         <div 
-            className="min-h-screen bg-[#16181d] text-white transition-[padding] duration-300"
+            className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-[padding,background-color,color] duration-300"
             style={{
                 paddingRight: selectedRecipe ? detailsDrawerWidth : 0
             }}
@@ -381,12 +381,19 @@ export default function PendingRecipesPage() {
                 />
 
                 {error && (
-                    <div className="mt-8 rounded-xl border border-red-400/20 bg-red-500/10 px-5 py-4 text-sm text-red-200">
+                    <div 
+                        className={[
+                            "mt-6 rounded-xl border px-5 py-4 text-sm",
+                            "border-[var(--danger-border)]",
+                            "bg-[var(--danger-soft)]",
+                            "text-[var(--danger-text)]",
+                        ].join(" ")}
+                    >
                         {error}
                     </div>
                 )}
 
-                <div className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl">
+                <div className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden">
                     <div className="min-h-0 flex-1 overflow-hidden">
                         <RecipeReviewTable 
                             recipes={paginatedRecipes}

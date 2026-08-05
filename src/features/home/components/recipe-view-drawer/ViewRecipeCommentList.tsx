@@ -13,6 +13,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
 import { AnimatePresence, motion } from "motion/react"
 import { CircularProgress } from "@mui/material"
+import { useDismissibleLayer } from "../../../../hooks/useDismissibleLayer"
 
 export interface ViewRecipeComment {
   id: string
@@ -197,8 +198,13 @@ function CommentItem({
     const isOwnComment = Boolean(currentUserId && comment.userId === currentUserId)
     const [showReplies, setShowReplies] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
-
     const menuRef = useRef<HTMLDivElement | null>(null)
+
+    useDismissibleLayer({
+        isOpen: isMenuOpen,
+        refs: [menuRef],
+        onDismiss: () => setIsMenuOpen(false)
+    })
 
     const [replyValue, setReplyValue] = useState("")
     const replyTextareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -240,24 +246,6 @@ function CommentItem({
             setEditValue(comment.text)
         }
     }, [isEditing, comment.text])
-
-    useEffect(() => {
-        if (!isMenuOpen) return
-
-        const handlePointerDown = (event: PointerEvent) => {
-            if (!menuRef.current) return
-
-            if (!menuRef.current.contains(event.target as Node)) {
-                setIsMenuOpen(false)
-            }
-        }
-
-        document.addEventListener("pointerdown", handlePointerDown)
-
-        return () => {
-            document.removeEventListener("pointerdown", handlePointerDown)
-        }
-    }, [isMenuOpen])
 
     return (
         <div className={isReply ? "ml-2" : ""}>

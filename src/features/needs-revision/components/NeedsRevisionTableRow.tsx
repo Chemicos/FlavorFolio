@@ -17,21 +17,21 @@ interface NeedsRevisionTableRowProps {
 const viewTooltipProps = {
   tooltip: {
     sx: {
-      bgcolor: "#0b0b0c",
-      color: "#d7def0",
+      bgcolor: "var(--tooltip-bg)",
+      color: "var(--tooltip-text)",
       fontSize: "0.75rem",
-      border: "1px solid rgba(255,255,255,0.08)",
+      border: "1px solid var(--tooltip-border)",
       backdropFilter: "blur(12px)",
-      boxShadow: "0 12px 30px rgba(0,0,0,0.45)",
+      boxShadow: "var(--shadow-dropdown)",
       px: 1.2,
       py: 0.7,
     },
   },
   arrow: {
     sx: {
-      color: "#0b0b0c",
+      color: "var(--tooltip-bg)",
       "&:before": {
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid var(--tooltip-border)",
       },
     },
   },
@@ -83,18 +83,19 @@ function TruncatedTooltipText({
         tooltip: {
           sx: {
             maxWidth: 360,
-            bgcolor: "#0b0b0c",
-            color: "#d7def0",
+            bgcolor: "var(--tooltip-bg)",
+            color: "var(--tooltip-text)",
             fontSize: "0.75rem",
             lineHeight: 1.6,
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid var(--tooltip-border)",
             backdropFilter: "blur(12px)",
+            boxShadow: "var(--shadow-dropdown)",
             padding: "0.5rem"
           },
         },
         arrow: {
           sx: {
-            color: "#0b0b0c",
+            color: "var(--tooltip-bg)",
           },
         },
       }}
@@ -117,10 +118,10 @@ export default function NeedsRevisionTableRow({
     const cellClassName = [
     "px-4 py-3 transition-colors",
     isActive
-        ? "bg-[#202636]"
+        ? "bg-[var(--table-row-active)]"
         : isSelected
-        ? "bg-[#161b24]"
-        : "bg-[#0b0b0c] group-hover:bg-[#202429]",
+        ? "bg-[var(--table-row-selected)]"
+        : "bg-[var(--table-row-bg)] group-hover:bg-[var(--table-row-hover)]",
     ].join(" ")
 
     const renderCell = (key: NeedsRevisionTableColumn["key"]) => {
@@ -129,27 +130,27 @@ export default function NeedsRevisionTableRow({
         case "select":
             return (
                 <Checkbox
-                checked={isSelected}
-                onChange={onToggle}
-                size="small"
-                sx={{
-                    padding: 0,
-                    color: "rgba(168,179,207,0.75)",
-                    "&.Mui-checked": { color: "#a8b3cf" },
-                    "& .MuiSvgIcon-root": { fontSize: 22 },
-                }}
+                    checked={isSelected}
+                    onChange={onToggle}
+                    size="small"
+                    sx={{
+                        padding: 0,
+                        color: "var(--text-disabled)",
+                        "&.Mui-checked": { color: "var(--accent)" },
+                        "& .MuiSvgIcon-root": { fontSize: 22 },
+                    }}
                 />
             )
         case "title":
             return (
-                <TruncatedTooltipText className="text-sm font-medium text-[#d7def0]">
+                <TruncatedTooltipText className="text-sm font-medium text-[var(--text-primary)]">
                     {recipe.title || "Untitled recipe"}
                 </TruncatedTooltipText>
             )
 
         case "reason":
             return (
-            <TruncatedTooltipText className="text-sm capitalize text-[#a8b3cf]">
+            <TruncatedTooltipText className="text-sm capitalize text-[var(--text-secondary)]">
                 {recipe.denialFeedback?.reasonLabel ||
                     recipe.denialFeedback?.reason?.replaceAll("_", " ") ||
                     "-"}
@@ -158,35 +159,35 @@ export default function NeedsRevisionTableRow({
 
         case "description":
             return (
-                <TruncatedTooltipText className="text-sm text-[#a8b3cf]">
+                <TruncatedTooltipText className="text-sm text-[var(--text-secondary)]">
                     {recipe.reviewFeedback?.description?.message || "-"}
                 </TruncatedTooltipText>
             )
 
         case "ingredients":
             return (
-                <TruncatedTooltipText className="text-sm text-[#a8b3cf]">
+                <TruncatedTooltipText className="text-sm text-[var(--text-secondary)]">
                     {recipe.reviewFeedback?.ingredients?.message || "-"}
                 </TruncatedTooltipText>
             )
 
         case "steps":
             return (
-                <TruncatedTooltipText className="text-sm text-[#a8b3cf]">
+                <TruncatedTooltipText className="text-sm text-[var(--text-secondary)]">
                     {recipe.reviewFeedback?.steps?.message || "-"}
                 </TruncatedTooltipText>
             )
 
         case "updatedAt":
             return (
-            <span className="text-sm text-[#a8b3cf]">
+            <span className="text-sm text-[var(--text-secondary)]">
                 {formatDate(recipe.updatedAt)}
             </span>
             )
 
         case "visibility":
             return (
-            <span className="text-sm capitalize text-[#a8b3cf]">
+            <span className="text-sm capitalize text-[var(--text-secondary)]">
                 {recipe.visibility || "-"}
             </span>
             )
@@ -203,7 +204,7 @@ export default function NeedsRevisionTableRow({
                         <button
                             type="button"
                             onClick={onView}
-                            className="inline-flex translate-x-3 items-center justify-center text-[#a8b3cf] opacity-0 transition-all duration-200 ease-out hover:text-white active:scale-95 group-hover:translate-x-0 group-hover:opacity-100"
+                            className="inline-flex translate-x-3 items-center justify-center text-[var(--text-secondary)] opacity-0 transition-all duration-200 ease-out hover:text-[var(--text-primary)] active:scale-95 group-hover:translate-x-0 group-hover:opacity-100"
                         >
                             <ViewSidebarIcon sx={{ fontSize: 24 }} />
                         </button>
@@ -235,8 +236,8 @@ export default function NeedsRevisionTableRow({
                     <div className={[
                         "truncate",
                         column.key === "title"
-                        ? "text-[#d7def0]"
-                        : "text-[#9aa6c7]",
+                        ? "text-[var(--text-primary)]"
+                        : "text-[var(--text-secondary)]",
                     ].join(" ")}>
                         {renderCell(column.key)}
                     </div>
