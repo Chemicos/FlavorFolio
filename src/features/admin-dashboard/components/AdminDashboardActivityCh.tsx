@@ -27,7 +27,7 @@ export default function AdminDashboardActivityCh({
 }) {
   if (!activities.length) {
     return (
-      <p className="rounded-xl bg-white/[0.03] p-4 text-sm text-[#8f97b1]">
+      <p className="rounded-xl bg-[var(--surface-subtle)] p-4 text-sm text-[var(--text-muted)]">
         No moderation activity yet.
       </p>
     )
@@ -42,15 +42,15 @@ export default function AdminDashboardActivityCh({
         return (
           <div
             key={item.id}
-            className="flex items-center gap-3 rounded-xl bg-white/[0.03] p-3"
+            className="flex items-center gap-3 rounded-xl bg-[var(--surface-subtle)] p-3 transition hover:bg-[var(--surface-hover)]"
           >
             <div
                 className={
                     isApproved
-                    ? "text-emerald-400"
+                    ? "text-[var(--success)]"
                     : isResubmitted
-                        ? "text-[#feaa2b]"
-                        : "text-orange-300"
+                        ? "text-[var(--accent)]"
+                        : "text-[var(--warning)]"
                 }
             >
                 {isApproved ? (
@@ -63,7 +63,7 @@ export default function AdminDashboardActivityCh({
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-white">
+              <p className="truncate text-sm text-[var(--text-primary)]">
                 {isApproved
                 ? "Recipe approved"
                 : isResubmitted
@@ -71,12 +71,12 @@ export default function AdminDashboardActivityCh({
                     : "Recipe needs revision"
                 }
               </p>
-              <p className="truncate text-xs text-[#8f97b1]">
+              <p className="truncate text-xs text-[var(--text-muted)]">
                 {item.recipeTitle} · by {item.adminUsername}
               </p>
             </div>
 
-            <span className="text-xs text-[#8f97b1]">
+            <span className="text-xs text-[var(--text-muted)]">
               {formatRelativeTime(item.createdAtMs)}
             </span>
           </div>

@@ -19,21 +19,21 @@ interface AdminRecipesTableRowProps {
 const viewTooltipProps = {
   tooltip: {
     sx: {
-      bgcolor: "#0b0b0c",
-      color: "#d7def0",
+      bgcolor: "var(--tooltip-bg)",
+      color: "var(--tooltip-text)",
       fontSize: "0.75rem",
-      border: "1px solid rgba(255,255,255,0.08)",
+      border: "1px solid var(--tooltip-border)",
       backdropFilter: "blur(12px)",
-      boxShadow: "0 12px 30px rgba(0,0,0,0.45)",
+      boxShadow: "var(--shadow-dropdown)",
       px: 1.2,
       py: 0.7,
     },
   },
   arrow: {
     sx: {
-      color: "#0b0b0c",
+      color: "var(--tooltip-bg)",
       "&:before": {
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid var(--tooltip-border)",
       },
     },
   },
@@ -51,14 +51,14 @@ function formatDate(ms: number) {
 
 function getStatusClass(status: string) {
   if (status === "published") {
-    return "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+    return "border-[var(--success-border)] bg-[var(--success-soft)] text-[var(--success-text)]"
   }
 
   if (status === "pending") {
-    return "border-violet-400/20 bg-violet-500/10 text-violet-300"
+    return "border-[var(--info-border)] bg-[var(--info-soft)] text-[var(--info-text)]"
   }
 
-  return "border-orange-400/20 bg-orange-500/10 text-orange-200"
+  return "border-[var(--warning-border)] bg-[var(--warning-soft)] text-[var(--warning-text)]"
 }
 
 function getStatusLabel(status: string) {
@@ -80,10 +80,10 @@ export default function AdminRecipesTableRow({
     const cellClassName = [
         "px-4 py-3 transition-colors",
         isActive
-        ? "bg-[#202636]"
+        ? "bg-[var(--table-row-active)]"
         : isSelected
-            ? "bg-[#161b24]"
-            : "bg-[#0b0b0c] group-hover:bg-[#202429]",
+            ? "bg-[var(--table-row-selected)]"
+            : "bg-[var(--table-row-bg)] group-hover:bg-[var(--table-row-hover)]",
     ].join(" ")
 
     const renderCell = (key: AdminRecipesTableColumn["key"]) => {
@@ -95,10 +95,10 @@ export default function AdminRecipesTableRow({
                 onChange={onToggle}
                 size="small"
                 sx={{
-                padding: 0,
-                color: "rgba(168,179,207,0.75)",
-                "&.Mui-checked": { color: "#a8b3cf" },
-                "& .MuiSvgIcon-root": { fontSize: 22 },
+                  padding: 0,
+                  color: "var(--text-muted)",
+                  "&.Mui-checked": { color: "var(--accent)" },
+                  "& .MuiSvgIcon-root": { fontSize: 22 },
                 }}
             />
             )
@@ -106,10 +106,10 @@ export default function AdminRecipesTableRow({
         case "title":
             return (
                 <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-white">
+                    <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
                     {recipe.title}
                     </p>
-                    <p className="truncate text-xs capitalize text-[#8f97b1]">
+                    <p className="truncate text-xs capitalize text-[var(--text-muted)]">
                     {recipe.cuisine} · {recipe.difficulty}
                     </p>
                 </div>
@@ -117,7 +117,7 @@ export default function AdminRecipesTableRow({
 
         case "author":
             return (
-            <span className="truncate text-sm text-[#a8b3cf]">
+            <span className="truncate text-sm text-[var(--text-secondary)]">
                 {recipe.authorUsername}
             </span>
             )
@@ -136,25 +136,25 @@ export default function AdminRecipesTableRow({
 
         case "meal":
             return (
-            <span className="text-sm capitalize text-[#a8b3cf]">
+            <span className="text-sm capitalize text-[var(--text-secondary)]">
                 {recipe.meal}
             </span>
             )
 
         case "stats":
             return (
-                <div className="flex items-center gap-3 text-sm text-[#a8b3cf]">
-                <span className="inline-flex items-center gap-1 text-[#f8d36b]">
+                <div className="flex items-center gap-3 text-sm">
+                <span className="inline-flex items-center gap-1 text-[var(--accent-text)]">
                     <StarRoundedIcon sx={{ fontSize: 17 }} />
                     {recipe.averageRating.toFixed(1)}
                 </span>
 
-                <span className="inline-flex items-center gap-1 text-[#a8b3cf]">
+                <span className="inline-flex items-center gap-1 text-[var(--text-secondary)]">
                     <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 16 }} />
                     {recipe.commentsCount}
                 </span>
 
-                <span className="inline-flex items-center gap-1 text-[#feaa2b]">
+                <span className="inline-flex items-center gap-1 text-[var(--accent)]">
                     <BookmarkRoundedIcon sx={{ fontSize: 16 }} />
                     {recipe.savesCount}
                 </span>
@@ -163,7 +163,7 @@ export default function AdminRecipesTableRow({
 
         case "updatedAt":
             return (
-            <span className="text-sm text-[#8f97b1]">
+            <span className="text-sm text-[var(--text-muted)]">
                 {formatDate(recipe.updatedAtMs)}
             </span>
             )
@@ -180,7 +180,14 @@ export default function AdminRecipesTableRow({
                 <button
                     type="button"
                     onClick={onView}
-                    className="inline-flex translate-x-3 items-center justify-center text-[#a8b3cf] opacity-0 transition-all duration-200 ease-out hover:text-white active:scale-95 group-hover:translate-x-0 group-hover:opacity-100"
+                    className={[
+                      "inline-flex translate-x-3 items-center justify-center",
+                      "text-[var(--text-secondary)] opacity-0",
+                      "transition-all duration-200 ease-out",
+                      "hover:text-[var(--text-primary)]",
+                      "active:scale-95",
+                      "group-hover:translate-x-0 group-hover:opacity-100",
+                    ].join(" ")}
                 >
                     <ViewSidebarIcon sx={{ fontSize: 24 }} />
                 </button>

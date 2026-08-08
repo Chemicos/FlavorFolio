@@ -147,12 +147,18 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminLayout>
-      <header className="flex flex-col gap-5 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
+      <header
+        className={[
+          "flex flex-col gap-5 border-b pb-6",
+          "border-[var(--border)]",
+          "lg:flex-row lg:items-end lg:justify-between",
+        ].join(" ")}
+      >
         <div>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-[var(--text-primary)]">
             Admin Dashboard
           </h1>
-          <p className="mt-2 text-sm text-[#8f97b1]">
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
             Overview of platform activity, moderation and recipe performance.
           </p>
         </div>
@@ -167,7 +173,18 @@ export default function AdminDashboardPage() {
             type="button"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="rounded-lg border border-white/10 bg-white/[0.04] p-[5px] text-sm font-semibold text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className={[
+              "flex h-10 w-10 items-center justify-center rounded-lg border",
+              "border-[var(--button-secondary-border)]",
+              "bg-[var(--button-secondary-bg)]",
+              "text-[var(--button-secondary-text)]",
+              "shadow-[var(--shadow-card)]",
+              "transition",
+              "hover:bg-[var(--button-secondary-hover)]",
+              "hover:text-[var(--text-primary)]",
+              "active:scale-95",
+              "disabled:cursor-not-allowed disabled:opacity-60",
+            ].join(" ")}
           >
             <RefreshRoundedIcon
               sx={{ fontSize: 26 }}
@@ -179,7 +196,18 @@ export default function AdminDashboardPage() {
             type="button"
             onClick={handleExportPdf}
             disabled={!stats}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-[#feaa2b]/10 px-4 py-2 text-sm font-semibold text-[#ffd28a] transition hover:bg-[#feaa2b]/15 disabled:cursor-not-allowed disabled:opacity-50"
+            className={[
+              "inline-flex h-10 items-center gap-2 rounded-lg border px-4",
+              "border-[var(--accent-border)]",
+              "bg-[var(--accent-soft)]",
+              "text-sm font-semibold",
+              "text-[var(--accent-text)]",
+              "shadow-[var(--shadow-card)]",
+              "transition",
+              "hover:bg-[var(--accent-soft-hover)]",
+              "active:scale-[0.98]",
+              "disabled:cursor-not-allowed disabled:opacity-50",
+            ].join(" ")}
           >
             <FileDownloadRoundedIcon sx={{ fontSize: 18 }} />
             Export PDF
@@ -190,7 +218,14 @@ export default function AdminDashboardPage() {
       {isLoading && <AdminDashboardPageSkeleton />}
 
       {!isLoading && error && (
-        <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-sm text-red-200">
+        <div 
+          className={[
+            "mt-8 rounded-2xl border p-5 text-sm",
+            "border-[var(--danger-border)]",
+            "bg-[var(--danger-soft)]",
+            "text-[var(--danger-text)]",
+          ].join(" ")}
+        >
           {error}
         </div>
       )}
@@ -294,20 +329,20 @@ export default function AdminDashboardPage() {
 
             <AdminDashboardChartCard title="Moderation Queue">
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-4">
-                  <span className="text-sm text-[#d7def0]">Pending Recipes</span>
-                  <strong className="text-white">{stats.pendingRecipes}</strong>
-                </div>
+                <DashboardQueueRow
+                  label="Pending Recipes"
+                  value={stats.pendingRecipes}
+                />
 
-                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-4">
-                  <span className="text-sm text-[#d7def0]">Needs Revision</span>
-                  <strong className="text-white">{stats.needsRevisionRecipes}</strong>
-                </div>
+                <DashboardQueueRow
+                  label="Needs Revision"
+                  value={stats.needsRevisionRecipes}
+                />
 
-                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-4">
-                  <span className="text-sm text-[#d7def0]">Published Recipes</span>
-                  <strong className="text-white">{stats.publishedRecipes}</strong>
-                </div>
+                <DashboardQueueRow
+                  label="Published Recipes"
+                  value={stats.publishedRecipes}
+                />
               </div>
             </AdminDashboardChartCard>
           </section>
@@ -316,5 +351,30 @@ export default function AdminDashboardPage() {
         {/* </div> */}
       {/* </main> */}
     </AdminLayout>
+  )
+}
+
+function DashboardQueueRow({ label, value, }: {
+  label: string
+  value: number
+}) {
+  return (
+    <div
+      className={[
+        "flex items-center justify-between rounded-xl border p-4",
+        "border-[var(--border-subtle)]",
+        "bg-[var(--surface-subtle)]",
+        "transition-colors",
+        "hover:bg-[var(--surface-hover)]",
+      ].join(" ")}
+    >
+      <span className="text-sm text-[var(--text-secondary)]">
+        {label}
+      </span>
+
+      <strong className="text-[var(--text-primary)]">
+        {value}
+      </strong>
+    </div>
   )
 }

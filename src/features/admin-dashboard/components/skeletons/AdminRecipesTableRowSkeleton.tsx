@@ -3,21 +3,21 @@ import { Skeleton } from "@mui/material"
 export default function AdminRecipesTableRowSkeleton() {
     return (
         <tr>
-            <td className="rounded-l-lg bg-[#0b0b0c] px-4 py-4">
+            <td className="rounded-l-lg bg-[var(--table-row-bg)] px-4 py-4">
                 <Skeleton
                     variant="circular"
                     width={22}
                     height={22}
-                    sx={{ bgcolor: "rgba(168,179,207,.08)" }}
+                    sx={{ bgcolor: "var(--skeleton-bg)" }}
                 />
             </td>
 
-            <td className="bg-[#0b0b0c] px-4 py-4">
+            <td className="bg-[var(--table-row-bg)] px-4 py-4">
                 <Skeleton
                     variant="text"
                     width="62%"
                     height={18}
-                    sx={{ bgcolor: "rgba(168,179,207,.08)" }}
+                    sx={{ bgcolor: "var(--skeleton-bg)" }}
                 />
 
                 <Skeleton
@@ -26,16 +26,16 @@ export default function AdminRecipesTableRowSkeleton() {
                     height={14}
                     sx={{
                         mt: .6,
-                        bgcolor: "rgba(168,179,207,.06)"
+                        bgcolor: "var(--skeleton-bg)"
                     }}
                 />
             </td>
 
-            <td className="bg-[#0b0b0c] px-4">
+            <td className="bg-[var(--table-row-bg)] px-4">
                 <Skeleton variant="text" width={80}/>
             </td>
 
-            <td className="bg-[#0b0b0c] px-4">
+            <td className="bg-[var(--table-row-bg)] px-4">
                 <Skeleton
                     variant="rounded"
                     width={88}
@@ -43,11 +43,11 @@ export default function AdminRecipesTableRowSkeleton() {
                 />
             </td>
 
-            <td className="bg-[#0b0b0c] px-4">
+            <td className="bg-[var(--table-row-bg)] px-4">
                 <Skeleton width={70}/>
             </td>
 
-            <td className="bg-[#0b0b0c] px-4">
+            <td className="bg-[var(--table-row-bg)] px-4">
                 <div className="flex gap-3">
                     <Skeleton variant="circular" width={18} height={18}/>
                     <Skeleton variant="circular" width={18} height={18}/>
@@ -55,11 +55,11 @@ export default function AdminRecipesTableRowSkeleton() {
                 </div>
             </td>
 
-            <td className="bg-[#0b0b0c] px-4">
+            <td className="bg-[var(--table-row-bg)] px-4">
                 <Skeleton width={90}/>
             </td>
 
-            <td className="rounded-r-xl bg-[#0b0b0c] px-4">
+            <td className="rounded-r-xl bg-[var(--table-row-bg)] px-4">
                 <Skeleton
                     variant="circular"
                     width={24}

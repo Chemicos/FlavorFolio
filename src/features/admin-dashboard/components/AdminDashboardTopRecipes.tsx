@@ -5,6 +5,15 @@ import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboardTopRecipes({recipes}: {recipes: AdminDashboardTopRecipe[]}) {
   const navigate = useNavigate()
+
+  if (!recipes.length) {
+    return (
+      <p className="rounded-xl bg-[var(--surface-subtle)] p-4 text-sm text-[var(--text-muted)]">
+        No saved recipes available.
+      </p>
+    )
+  }
+
   return (
     <div className="space-y-3">
       {recipes.map((recipe, index) => (
@@ -12,11 +21,16 @@ export default function AdminDashboardTopRecipes({recipes}: {recipes: AdminDashb
           key={recipe.recipeId}
           type="button"
           onClick={() => navigate(`/admin/recipes?recipeId=${recipe.recipeId}`)}
-          className="flex w-full items-center gap-3 rounded-xl bg-white/[0.03] p-2 text-left transition hover:bg-white/[0.06] active:scale-[0.99]"
+          className={[
+            "flex w-full items-center gap-3 rounded-xl p-2 text-left",
+            "bg-[var(--surface-subtle)] transition",
+            "hover:bg-[var(--surface-hover)]",
+            "active:scale-[0.99]",
+          ].join(" ")}
         >
-          <span className="w-5 text-sm text-[#a8b3cf]">{index + 1}</span>
+          <span className="w-5 text-sm text-[var(--text-secondary)]">{index + 1}</span>
 
-          <div className="h-11 w-11 overflow-hidden rounded-lg bg-white/10">
+          <div className="h-11 w-11 overflow-hidden rounded-lg bg-[var(--surface-muted)]">
             {recipe.image && (
               <img
                 src={recipe.image}
@@ -27,13 +41,13 @@ export default function AdminDashboardTopRecipes({recipes}: {recipes: AdminDashb
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-white">{recipe.title}</p>
-            <p className="truncate text-xs text-[#8f97b1]">
+            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{recipe.title}</p>
+            <p className="truncate text-xs text-[var(--text-muted)]">
               by {recipe.authorUsername}
             </p>
           </div>
 
-          <div className="flex items-center gap-1 text-sm font-semibold text-[#feaa2b]">
+          <div className="flex items-center gap-1 text-sm font-semibold text-[var(--accent)]">
             {recipe.savesCount}
             <BookmarkRoundedIcon sx={{ fontSize: 17 }} />
           </div>

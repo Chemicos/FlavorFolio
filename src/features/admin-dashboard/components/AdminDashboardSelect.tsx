@@ -52,14 +52,21 @@ export default function AdminDashboardSelect({
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-[38px] w-full items-center justify-between rounded-lg border border-white/10 bg-[#16181d] px-3 text-sm text-[#d7def0] transition hover:border-white/20 hover:bg-white/[0.03]"
+        className={[
+          "flex h-[38px] w-full items-center justify-between rounded-lg border px-3 text-sm",
+          "border-[var(--input-border)] bg-[var(--input-bg)]",
+          "text-[var(--text-primary)] transition",
+          "hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)]",
+          "focus-visible:border-[var(--focus-border)] focus-visible:outline-none",
+          "focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]",
+        ].join(" ")}
       >
         <span>{selectedOption?.label}</span>
 
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.16 }}
-          className="text-[#8f97b1]"
+          className="text-[var(--text-muted)]"
         >
           <KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />
         </motion.span>
@@ -68,26 +75,15 @@ export default function AdminDashboardSelect({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{
-              opacity: 0,
-              y: -6,
-              scale: 0.96,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
-            exit={{
-              opacity: 0,
-              y: -6,
-              scale: 0.96,
-            }}
-            transition={{
-              duration: 0.16,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className="absolute right-0 top-[calc(100%+8px)] w-full overflow-hidden rounded-lg border border-white/10 bg-[#16181d] p-1 shadow-[0_20px_55px_rgba(0,0,0,0.55)]"
+            initial={{ opacity: 0, y: -6, scale: 0.96, }}
+            animate={{ opacity: 1, y: 0, scale: 1, }}
+            exit={{ opacity: 0, y: -6, scale: 0.96, }}
+            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1], }}
+            className={[
+              "absolute right-0 top-[calc(100%+8px)] w-full overflow-hidden rounded-lg border p-1",
+              "border-[var(--border)] bg-[var(--dropdown-bg)]",
+              "shadow-[var(--shadow-dropdown)]",
+            ].join(" ")}
           >
             {options.map((option) => {
               const isSelected = option.value === value
@@ -103,8 +99,8 @@ export default function AdminDashboardSelect({
                   className={[
                     "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition",
                     isSelected
-                      ? "bg-[#feaa2b]/15 text-[#ffd28a]"
-                      : "text-[#a8b3cf] hover:bg-white/[0.05] hover:text-white",
+                      ? "bg-[var(--dropdown-selected)] text-[var(--accent-text)]"
+                      : "text-[var(--text-secondary)] hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]",
                   ].join(" ")}
                 >
                   <span>{option.label}</span>

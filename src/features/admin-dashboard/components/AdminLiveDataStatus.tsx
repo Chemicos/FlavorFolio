@@ -21,21 +21,27 @@ export default function AdminLiveDataStatus({
     lastUpdatedAt,
 }: AdminLiveDataStatusProps) {
   return (
-    <div className="hidden rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-right lg:block">
+    <div 
+      className={[
+        "hidden rounded-xl border border-[var(--border)]",
+        "bg-[var(--surface-subtle)] px-4 py-2 text-right",
+        "shadow-[var(--shadow-card)] lg:block",
+      ].join(" ")}
+    >
       <div className="flex items-center justify-end gap-2">
         <span
           className={[
             "h-2 w-2 rounded-full",
-            isRefreshing ? "bg-[#feaa2b]" : "bg-emerald-400",
+            isRefreshing ? "bg-[var(--accent)]" : "bg-[var(--success)]",
           ].join(" ")}
         />
 
-        <p className="text-xs font-semibold text-[#d7def0]">
+        <p className="text-xs font-semibold text-[var(--text-primary)]">
           {isRefreshing ? "Refreshing..." : "Live data"}
         </p>
       </div>
 
-      <p className="mt-1 text-[0.7rem] text-[#8f97b1]">
+      <p className="mt-1 text-[0.7rem] text-[var(--text-muted)]">
         {isRefreshing ? "Syncing data" : formatLastUpdated(lastUpdatedAt)}
       </p>
     </div>

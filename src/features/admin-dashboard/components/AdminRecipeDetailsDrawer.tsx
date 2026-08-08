@@ -68,15 +68,15 @@ export default function AdminRecipeDetailsDrawer({
       exit={{ x: "100%" }}
       transition={{ type: "spring", stiffness: 260, damping: 32 }}
       style={{ width }}
-      className="fixed right-0 top-16 z-40 flex h-[calc(100vh-64px)] flex-col overflow-hidden border-l border-white/10 bg-[#16181d] shadow-[-24px_0_80px_rgba(0,0,0,0.42)]"
+      className="fixed right-0 top-16 z-40 flex h-[calc(100vh-64px)] flex-col overflow-hidden border-l border-[var(--border)] bg-[var(--bg-secondary)] shadow-[var(--shadow-panel)] transition-colors"
     >
       <div
         onMouseDown={onResizeStart}
-        className="absolute left-0 top-0 z-50 h-full w-3 -translate-x-1/2 cursor-col-resize before:absolute before:left-1/2 before:top-0 before:h-full before:w-px before:bg-white/10 hover:before:bg-orange-400/60"
+        className="absolute left-0 top-0 z-50 h-full w-3 -translate-x-1/2 cursor-col-resize before:absolute before:left-1/2 before:top-0 before:h-full before:w-px before:bg-[var(--border)] hover:before:bg-[var(--accent)]"
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
-        <div className="relative h-[320px] overflow-hidden bg-[#0b0b0c]">
+      <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
+        <div className="relative h-[320px] overflow-hidden bg-[var(--bg-tertiary)]">
           {recipe.image ? (
             <img
               src={recipe.image}
@@ -84,23 +84,23 @@ export default function AdminRecipeDetailsDrawer({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-[#8f97b1]">
+            <div className="flex h-full w-full items-center justify-center text-sm text-[var(--text-muted)]">
               No image available
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-[#16181d] via-[#16181d]/20 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-secondary)] via-transparent to-black/30" />
 
           <button
             type="button"
             onClick={onClose}
-            className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#16181d]/90 text-[#a8b3cf] backdrop-blur-xl transition hover:bg-[#0b0b0c] hover:text-white active:scale-95"
+            className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--profile-floating-control-bg)] text-[var(--profile-floating-control-text)] backdrop-blur-xl transition hover:bg-[var(--profile-floating-control-hover)] active:scale-95"
           >
             <ChevronLeftRoundedIcon sx={{ fontSize: 26 }} />
           </button>
         </div>
 
-        <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[#16181d] px-7 pb-10 pt-10">
+        <div className="relative z-10 -mt-10 rounded-t-[2.8rem] bg-[var(--bg-secondary)] px-7 pb-10 pt-10 transition-colors">
           <div className="flex flex-wrap gap-3">
             <Badge icon={<RestaurantRoundedIcon sx={{ fontSize: 16 }} />} label={recipe.cuisine} />
             <Badge label={recipe.meal} />
@@ -108,12 +108,12 @@ export default function AdminRecipeDetailsDrawer({
             <Badge label={getStatusLabel(recipe.status)} />
           </div>
 
-          <h1 className="mt-4 text-[1.5rem] font-bold leading-[2.35rem] text-white">
+          <h1 className="mt-4 text-[1.5rem] font-bold leading-[2.35rem] text-[var(--text-primary)]">
             {recipe.title}
           </h1>
 
             <div className="mt-4 flex items-center gap-3">
-                <div className="h-9 w-9 overflow-hidden rounded-lg bg-white/10">
+                <div className="h-9 w-9 overflow-hidden rounded-lg bg-[var(--surface-muted)]">
                     {recipe.authorProfileImage ? (
                     <img
                         src={recipe.authorProfileImage}
@@ -121,16 +121,16 @@ export default function AdminRecipeDetailsDrawer({
                         className="h-full w-full object-cover"
                     />
                     ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-white/70">
+                    <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[var(--text-secondary)]">
                         {(recipe.authorUsername || "U").charAt(0).toUpperCase()}
                     </div>
                     )}
                 </div>
 
                 <div className="min-w-0">
-                    <p className="text-xs text-[#7f89a6]">Made by</p>
-                    <p className="truncate text-sm font-medium text-[#d7def0]">
-                    {recipe.authorUsername || "Unknown"}
+                    <p className="text-xs text-[var(--text-muted)]">Made by</p>
+                    <p className="truncate text-sm font-medium text-[var(--text-primary)]">
+                      {recipe.authorUsername || "Unknown"}
                     </p>
                 </div>
             </div>
@@ -146,14 +146,14 @@ export default function AdminRecipeDetailsDrawer({
           </div>
 
           <section className="mt-8">
-            <h2 className="text-base font-bold text-white">Description</h2>
-            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#8f97b1]">
+            <h2 className="text-base font-bold text-[var(--text-primary)]">Description</h2>
+            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">
               {recipe.description || "No description added."}
             </p>
           </section>
 
             <section className="mt-8">
-                <h2 className="text-base font-bold text-white">
+                <h2 className="text-base font-bold text-[var(--text-primary)]">
                     Ingredients ({ingredients.length})
                 </h2>
 
@@ -161,7 +161,7 @@ export default function AdminRecipeDetailsDrawer({
             </section>
 
             <section className="mt-8">
-            <h2 className="text-base font-bold text-white">
+            <h2 className="text-base font-bold text-[var(--text-primary)]">
                 Steps ({steps.length})
             </h2>
 
@@ -172,18 +172,18 @@ export default function AdminRecipeDetailsDrawer({
                 onToggleStep={handleToggleStep}
                 />
             ) : (
-                <p className="mt-3 text-sm text-[#7f89a6]">No steps added yet.</p>
+                <p className="mt-3 text-sm text-[var(--text-muted)]">No steps added yet.</p>
             )}
             </section>
         </div>
       </div>
 
       {recipe.status === "pending" && (
-        <div className="shrink-0 border-t border-white/10 bg-[#16181d]/95 px-6 py-4 backdrop-blur-xl">
+        <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)]/95 px-6 py-4 backdrop-blur-xl">
           <button
             type="button"
             onClick={() => navigate(`/pending?recipeId=${recipe.recipeId}`)}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-orange-400/10 bg-orange-500/10 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/15 active:scale-[0.98]"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-soft)] text-sm font-semibold text-[var(--accent-text)] transition hover:bg-[var(--accent-soft-hover)] active:scale-[0.98]"
           >
             <OpenInNewRoundedIcon sx={{ fontSize: 18 }} />
             Open in moderation
@@ -198,7 +198,7 @@ function Badge({ icon, label }: { icon?: React.ReactNode; label: string }) {
   if (!label) return null
 
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-orange-400/15 bg-orange-500/10 px-3 py-2 text-xs capitalize text-orange-200">
+    <div className="flex items-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-xs capitalize text-[var(--accent-text)]">
       {icon}
       {label.replace("_", " ")}
     </div>
@@ -207,9 +207,9 @@ function Badge({ icon, label }: { icon?: React.ReactNode; label: string }) {
 
 function InfoBox({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="rounded-xl border border-white/[0.10] bg-[#0b0b0c] px-4 py-5 text-center">
-      <div className="flex justify-center text-white">{icon}</div>
-      <p className="mt-3 text-xs font-semibold text-white">{label}</p>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card-bg)] px-4 py-5 text-center">
+      <div className="flex justify-center text-[var(--text-primary)]">{icon}</div>
+      <p className="mt-3 text-xs font-semibold text-[var(--text-primary)]">{label}</p>
     </div>
   )
 }
@@ -217,7 +217,7 @@ function InfoBox({ icon, label }: { icon: React.ReactNode; label: string }) {
 function InfoValue({ value }: { value: string }) {
   return (
     <div className="flex justify-center">
-      <span className="rounded-lg border border-white/[0.10] bg-[#0b0b0c]/60 px-5 py-2 text-xs font-semibold text-white">
+      <span className="rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-5 py-2 text-xs font-semibold text-[var(--text-primary)]">
         {value}
       </span>
     </div>

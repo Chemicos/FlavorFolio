@@ -1,12 +1,18 @@
 import { Skeleton } from "@mui/material"
 
 const skeletonSx = {
-  bgcolor: "rgba(168,179,207,.08)",
+  bgcolor: "var(--surface-muted)",
 }
+
+const cardClassName = [
+  "rounded-2xl border border-[var(--border)]",
+  "bg-[var(--card-bg)] p-5",
+  "shadow-[var(--shadow-card)]",
+].join(" ")
 
 function MetricSkeleton() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#16181d]/80 p-5">
+    <div className={cardClassName}>
       <div className="flex items-start justify-between">
         <div>
           <Skeleton width={96} height={18} sx={skeletonSx} />
@@ -27,7 +33,7 @@ function MetricSkeleton() {
 
 function ChartSkeleton() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#16181d]/80 p-5">
+    <div className={cardClassName}>
       <Skeleton width={180} height={24} sx={skeletonSx} />
 
       <div className="mt-6 h-[220px]">
@@ -44,7 +50,7 @@ function ChartSkeleton() {
 
 function ListSkeleton() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#16181d]/80 p-5">
+    <div className={cardClassName}>
       <Skeleton width={170} height={24} sx={skeletonSx} />
 
       <div className="mt-5 space-y-3">

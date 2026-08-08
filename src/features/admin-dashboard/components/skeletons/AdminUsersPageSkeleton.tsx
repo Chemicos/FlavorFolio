@@ -13,15 +13,15 @@ export default function AdminUsersPageSkeleton() {
         <AdminUserStatCardSkeleton />
       </section>
 
-      <section className="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#16181d] p-5">
+      <section className="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 transition-colors">
         <div className="mb-5 flex shrink-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <Skeleton width={140} height={26} sx={{ bgcolor: "rgba(168,179,207,.08)" }} />
+          <Skeleton width={140} height={26} sx={{ bgcolor: "var(--surface-muted)" }} />
 
           <Skeleton
             variant="rounded"
             width={360}
             height={44}
-            sx={{ borderRadius: "10px", bgcolor: "rgba(168,179,207,.08)" }}
+            sx={{ borderRadius: "10px", bgcolor: "var(--surface-muted)" }}
           />
         </div>
 

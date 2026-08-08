@@ -118,12 +118,12 @@ export default function AdminUsersPage() {
       fullHeight
       rightOffset={selectedUser ? detailsDrawerWidth : 0}
     >
-      <header className="flex shrink-0 flex-col gap-5 border-b border-white/10 pb-5 lg:flex-row lg:items-end lg:justify-between">
+      <header className="flex shrink-0 flex-col gap-5 border-b border-[var(--border)] pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
             Users
           </h1>
-          <p className="mt-2 text-sm text-[#8f97b1]">
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
             Manage and inspect FlavorFolio user profiles.
           </p>
         </div>
@@ -138,7 +138,15 @@ export default function AdminUsersPage() {
             type="button"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="self-start rounded-lg border border-white/10 bg-white/[0.04] p-[5px] text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60 lg:self-auto"
+            className={[
+              "self-start rounded-lg border p-[5px] transition lg:self-auto",
+              "border-[var(--button-secondary-border)]",
+              "bg-[var(--button-secondary-bg)]",
+              "text-[var(--button-secondary-text)]",
+              "hover:bg-[var(--button-secondary-hover)]",
+              "hover:text-[var(--text-primary)]",
+              "disabled:cursor-not-allowed disabled:opacity-60",
+            ].join(" ")}
           >
             <RefreshRoundedIcon
               sx={{ fontSize: 26 }}
@@ -182,29 +190,45 @@ export default function AdminUsersPage() {
                 />
             </section>
 
-            <section className="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#16181d] p-5">
+            <section className="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden">
                 <div className="mb-5 flex shrink-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <h2 className="text-base font-bold text-white">User Directory</h2>
+                    <h2 className="text-base font-bold text-[var(--text-primary)]">User Directory</h2>
 
                     <div className="relative w-full md:w-[360px]">
                         <SearchRoundedIcon
-                        sx={{ fontSize: 18 }}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6f7892]"
+                          sx={{ fontSize: 18 }}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
                         />
 
                         <input
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                        placeholder="Search users, email, role..."
-                        className="h-11 w-full rounded-lg border border-white/10 bg-[#0b0b0c] pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/50"
+                          value={search}
+                          onChange={(event) => setSearch(event.target.value)}
+                          placeholder="Search users, email, role..."
+                          className={[
+                            "h-11 w-full rounded-lg border pl-10 pr-4 text-sm outline-none transition",
+                            "border-[var(--input-border)]",
+                            "bg-[var(--input-bg)]",
+                            "text-[var(--text-primary)]",
+                            "placeholder:text-[var(--input-placeholder)]",
+                            "hover:border-[var(--border-strong)]",
+                            "hover:bg-[var(--input-bg-hover)]",
+                            "focus:border-[var(--focus-border)]",
+                            "focus:ring-2 focus:ring-[var(--focus-ring)]",
+                          ].join(" ")}
                         />
                     </div>
                 </div>
 
                 {selectedIds.length > 0 && (
-                    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0b0b0c]/70 px-4 py-3">
+                    <div
+                      className={[
+                        "mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3",
+                        "border-[var(--border)]",
+                        "bg-[var(--surface-subtle)]",
+                      ].join(" ")}
+                    >
                         <div className="flex items-center">
-                        <p className="text-sm text-[#8f97b1]">
+                        <p className="text-sm text-[var(--text-muted)]">
                             {selectedIds.length}{" "}
                             {selectedIds.length === 1 ? "user" : "users"} selected
                         </p>
@@ -212,18 +236,31 @@ export default function AdminUsersPage() {
 
                         <div className="flex flex-wrap items-center gap-2">
                         <button
-                            type="button"
-                            onClick={() => setSelectedIds([])}
-                            className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-semibold text-[#a8b3cf] transition hover:bg-white/[0.08] hover:text-white"
+                          type="button"
+                          onClick={() => setSelectedIds([])}
+                          className={[
+                            "inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition",
+                            "border-[var(--button-secondary-border)]",
+                            "bg-[var(--button-secondary-bg)]",
+                            "text-[var(--button-secondary-text)]",
+                            "hover:bg-[var(--button-secondary-hover)]",
+                            "hover:text-[var(--text-primary)]",
+                          ].join(" ")}
                         >
-                            <CloseRoundedIcon sx={{ fontSize: 18 }} />
-                            Clear
+                          <CloseRoundedIcon sx={{ fontSize: 18 }} />
+                          Clear
                         </button>
 
                         <button
                             type="button"
                             onClick={() => setIsDeleteDialogOpen(true)}
-                            className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-400/15 bg-red-500/10 px-3 text-sm font-semibold text-red-200 transition hover:bg-red-500/15"
+                            className={[
+                              "inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition",
+                              "border-[var(--danger-border)]",
+                              "bg-[var(--danger-soft)]",
+                              "text-[var(--danger-text)]",
+                              "hover:bg-[var(--danger-soft-hover)]",
+                            ].join(" ")}
                         >
                             <DeleteRoundedIcon sx={{ fontSize: 18 }} />
                             Delete selected
@@ -286,15 +323,23 @@ function MetricCard({
     icon: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#16181d]/80 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.22)]">
+    <div
+      className={[
+        "rounded-2xl border p-5",
+        "border-[var(--border)]",
+        "bg-[var(--card-bg)]",
+        "shadow-[var(--shadow-card)]",
+        "transition-colors",
+      ].join(" ")}
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-[#8f97b1]">{label}</p>
-          <h2 className="mt-2 text-2xl font-bold text-white">{value}</h2>
-          <p className="mt-4 text-xs font-medium text-emerald-300">{helper}</p>
+          <p className="text-sm text-[var(--text-muted)]">{label}</p>
+          <h2 className="mt-2 text-2xl font-bold text-[var(--text-primary)]">{value}</h2>
+          <p className="mt-4 text-xs font-medium text-[var(--success-text)]">{helper}</p>
         </div>
 
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#feaa2b]/10 text-[#feaa2b]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
           {icon}
         </div>
       </div>

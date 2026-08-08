@@ -2,12 +2,12 @@ import { Skeleton } from "@mui/material"
 
 export default function AdminRecipeStatCardSkeleton() {
     return (
-        <div className="rounded-2xl border border-white/10 bg-[#16181d]/80 p-5">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5">
             <Skeleton
                 variant="text"
                 width={95}
                 height={18}
-                sx={{ bgcolor: "rgba(168,179,207,.08)" }}
+                sx={{ bgcolor: "var(--skeleton-bg)" }}
             />
 
             <Skeleton
@@ -17,7 +17,7 @@ export default function AdminRecipeStatCardSkeleton() {
                 sx={{
                     mt: 2,
                     borderRadius: "10px",
-                    bgcolor: "rgba(168,179,207,.08)"
+                    bgcolor: "var(--skeleton-bg)"
                 }}
             />
         </div>

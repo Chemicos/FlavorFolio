@@ -12,12 +12,12 @@ export default function AdminRecipesPageSkeleton() {
         <AdminRecipeStatCardSkeleton />
       </section>
 
-      <section className="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#16181d] px-5 pt-5">
+      <section className="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] px-5 pt-5">
         <div className="mb-5 flex shrink-0 items-center justify-between">
           <Skeleton
             width={140}
             height={26}
-            sx={{ bgcolor: "rgba(168,179,207,.08)" }}
+            sx={{ bgcolor: "var(--skeleton-bg)" }}
           />
 
           <Skeleton
@@ -26,7 +26,7 @@ export default function AdminRecipesPageSkeleton() {
             variant="rounded"
             sx={{
               borderRadius: "10px",
-              bgcolor: "rgba(168,179,207,.08)",
+              bgcolor: "var(--skeleton-bg)",
             }}
           />
         </div>

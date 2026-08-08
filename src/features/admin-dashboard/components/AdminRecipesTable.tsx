@@ -25,6 +25,7 @@ import type { AdminRecipeRow, AdminRecipeStatus } from "../types/adminRecipes.ty
 import AdminRecipesTableRow from "./AdminRecipesTableRow"
 import AdminRecipesTableSkeleton from "./skeletons/AdminRecipesTableSkeleton"
 import { AnimatePresence, motion } from "motion/react"
+import { useDismissibleLayer } from "../../../hooks/useDismissibleLayer"
 
 
 export type AdminRecipeColumnKey =
@@ -80,17 +81,17 @@ const STATUS_OPTIONS: {
   {
     value: "published",
     label: "Published",
-    className: "border-emerald-400/20 bg-emerald-500/10 text-emerald-300",
+    className: "border-[var(--success-border)] bg-[var(--success-soft)] text-[var(--success-text)]",
   },
   {
     value: "pending",
     label: "Pending",
-    className: "border-violet-400/20 bg-violet-500/10 text-violet-300",
+    className: "border-[var(--info-border)] bg-[var(--info-soft)] text-[var(--info-text)]",
   },
   {
     value: "needs_revision",
     label: "Needs Revision",
-    className: "border-orange-400/20 bg-orange-500/10 text-orange-200",
+    className: "border-[var(--warning-border)] bg-[var(--warning-soft)] text-[var(--warning-text)]",
   },
 ]
 
@@ -115,16 +116,11 @@ function StatusFilterHeaderCell({
   const safeSelectedStatuses = selectedStatuses ?? []
   const safeOnStatusFilterChange = onStatusFilterChange ?? (() => {})
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!wrapperRef.current?.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  useDismissibleLayer({
+    isOpen,
+    refs: [wrapperRef],
+    onDismiss: () => setIsOpen(false)
+  })
 
   const toggleStatus = (status: AdminRecipeStatus) => {
     safeOnStatusFilterChange(
@@ -141,14 +137,14 @@ function StatusFilterHeaderCell({
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
           className={[
-            "flex min-w-0 items-center gap-1 truncate pr-2 transition-colors hover:text-white",
-            safeSelectedStatuses.length ? "text-white" : "text-[#a8b3cf]",
+            "flex min-w-0 items-center gap-1 truncate pr-2 transition-colors hover:text-[var(--text-primary)]",
+            safeSelectedStatuses.length ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]",
           ].join(" ")}
         >
           <span className="truncate">{column.label}</span>
 
           {safeSelectedStatuses.length > 0 && (
-            <span className="ml-1 rounded-full bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-bold text-orange-200">
+            <span className="ml-1 rounded-full bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               {safeSelectedStatuses.length}
             </span>
           )}
@@ -166,9 +162,9 @@ function StatusFilterHeaderCell({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.96 }}
               transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute left-0 top-[calc(100%+10px)] z-[80] w-[230px] overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-2 shadow-[0_18px_45px_rgba(0,0,0,0.55)]"
+              className="absolute left-0 top-[calc(100%+10px)] z-[80] w-[230px] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--account-dropdown-bg)] p-2 shadow-[var(--shadow-dropdown)]"
             >
-              <div className="mb-1 px-2 py-1 text-xs font-semibold text-[#7f89a6]">
+              <div className="mb-1 px-2 py-1 text-xs font-semibold text-[var(--text-muted)]">
                 Filter by status
               </div>
 
@@ -180,9 +176,9 @@ function StatusFilterHeaderCell({
                     key={option.value}
                     type="button"
                     onClick={() => toggleStatus(option.value)}
-                    className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-white/[0.04]"
+                    className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-[var(--dropdown-hover)]"
                   >
-                    <span className={isSelected ? "text-orange-200" : "text-[#7f89a6]"}>
+                    <span className={isSelected ? "text-[var(--accent-text)]" : "text-[var(--text-muted)]"}>
                       {isSelected ? (
                         <CheckBoxRoundedIcon sx={{ fontSize: 20 }} />
                       ) : (
@@ -206,7 +202,7 @@ function StatusFilterHeaderCell({
                 <button
                   type="button"
                   onClick={() => safeOnStatusFilterChange([])}
-                  className="mt-1 w-full rounded-lg px-2 py-2 text-left text-xs font-semibold text-[#a8b3cf] transition hover:bg-white/[0.04] hover:text-white"
+                  className="mt-1 w-full rounded-lg px-2 py-2 text-left text-xs font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
                 >
                   Clear filter
                 </button>
@@ -221,7 +217,7 @@ function StatusFilterHeaderCell({
           onMouseDown={(event) =>
             onResizeStart(event, column.key, column.minWidth)
           }
-          className="absolute bottom-0 right-[-8px] top-0 w-5 cursor-col-resize before:absolute before:bottom-2 before:left-1/2 before:top-2 before:w-px before:-translate-x-1/2 before:bg-white/20 hover:before:w-[3px] hover:before:bg-orange-400/60"
+          className="absolute bottom-0 right-[-8px] top-0 w-5 cursor-col-resize before:absolute before:bottom-2 before:left-1/2 before:top-2 before:w-px before:-translate-x-1/2 before:bg-[var(--border-strong)] hover:before:w-[3px] hover:before:bg-[var(--accent)]"
         />
       )}
     </th>
@@ -415,7 +411,7 @@ export default function AdminRecipesTable({
       onDragEnd={handleDragEnd}
     >
       <div className="h-full overflow-visible">
-        <div className="h-full overflow-auto pr-1 [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+        <div className="h-full overflow-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
           <table
             className="w-full border-separate border-spacing-y-[6px]"
             style={{
@@ -429,12 +425,12 @@ export default function AdminRecipesTable({
               ))}
             </colgroup>
 
-            <thead className="sticky top-0 z-20 bg-[#16181d]">
+            <thead className="sticky top-0 z-20 bg-[var(--card-bg)]">
               <SortableContext
                 items={draggableColumnKeys}
                 strategy={horizontalListSortingStrategy}
               >
-                <tr className="text-left text-sm font-semibold text-[#a8b3cf]">
+                <tr className="text-left text-sm font-semibold text-[var(--text-secondary)]">
                   {columns.map((column) => (
                     <SortableHeaderCell
                       key={column.key}
@@ -470,7 +466,7 @@ export default function AdminRecipesTable({
           </table>
 
           {!isLoading && !displayedRecipes.length && (
-            <div className="py-16 text-center text-sm text-[#8f97b1]">
+            <div className="py-16 text-center text-sm text-[var(--text-muted)]">
               No recipes found.
             </div>
           )}
@@ -479,7 +475,7 @@ export default function AdminRecipesTable({
 
       <DragOverlay>
         {activeColumn ? (
-          <div className="rounded-lg border border-orange-400/30 bg-[#202429] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)]">
+          <div className="rounded-lg border border-[var(--accent-border)] bg-[var(--bg-elevated)] px-4 py-3 text-sm font-semibold text-[var(--text-primary)] shadow-[var(--shadow-dropdown)]">
             {activeColumn.label}
           </div>
         ) : null}
@@ -543,7 +539,7 @@ function SortableHeaderCell({
       className={[
         "group relative px-4 py-3 transition-colors",
         isDragging ? "z-30 opacity-40" : "",
-        isOver ? "bg-orange-500/10" : "",
+        isOver ? "bg-[var(--accent-soft)]" : "",
       ].join(" ")}
     >
       <div
@@ -559,8 +555,8 @@ function SortableHeaderCell({
             type="button"
             onClick={() => onSort(column.key as SortKey)}
             className={[
-              "flex min-w-0 items-center gap-1 truncate pr-2 transition-colors hover:text-white",
-              sort.key === column.key ? "text-white" : "",
+              "flex min-w-0 items-center gap-1 truncate pr-2 transition-colors hover:text-[var(--text-primary)]",
+              sort.key === column.key ? "text-[var(--text-primary)]" : "",
             ].join(" ")}
           >
             <span className="truncate">{column.label}</span>
@@ -575,7 +571,7 @@ function SortableHeaderCell({
             />
           </button>
         ) : (
-          <div className="truncate pr-2 transition-colors group-hover:text-white">
+          <div className="truncate pr-2 transition-colors group-hover:text-[var(--text-primary)]">
             {column.label}
           </div>
         )}
@@ -586,7 +582,7 @@ function SortableHeaderCell({
           onMouseDown={(event) =>
             onResizeStart(event, column.key, column.minWidth)
           }
-          className="absolute bottom-0 right-[-8px] top-0 w-5 cursor-col-resize before:absolute before:bottom-2 before:left-1/2 before:top-2 before:w-px before:-translate-x-1/2 before:bg-white/20 hover:before:w-[3px] hover:before:bg-orange-400/60"
+          className="absolute bottom-0 right-[-8px] top-0 w-5 cursor-col-resize before:absolute before:bottom-2 before:left-1/2 before:top-2 before:w-px before:-translate-x-1/2 before:bg-[var(--border-strong)] hover:before:w-[3px] hover:before:bg-[var(--accent)]"
         />
       )}
     </th>
