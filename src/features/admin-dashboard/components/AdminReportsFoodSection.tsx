@@ -1,22 +1,21 @@
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import AdminDashboardChartCard from "./AdminDashboardChartCard"
 import { useAdminReportsFood } from "../hooks/useAdminReportsFood"
-import { CircularProgress } from "@mui/material"
 import { ReportsChartSkeleton } from "./skeletons/AdminReportsSkeletons"
-// import { useEffect, useRef } from "react"
 
 interface AdminReportsFoodSectionProps {
   refreshKey?: number
   highlightedSection?: "top-cuisines" | "top-ingredients" | "meal-types" | null
 }
 
-const PIE_COLORS = ["#feaa2b", "#8b5cf6", "#7bc96f", "#38bdf8", "#f97316"]
+const PIE_COLORS = ["var(--chart-series-1)", "var(--chart-series-2)", "var(--chart-series-3)", "var(--chart-series-4)", "var(--chart-series-5)"]
 
 const tooltipStyle = {
-  background: "#0d0e11",
-  border: "1px solid rgba(255,255,255,0.1)",
+  background: "var(--tooltip-bg)",
+  border: "1px solid var(--tooltip-border)",
   borderRadius: 12,
-  color: "#fff",
+  color: "var(--tooltip-text)",
+  boxShadow: "var(--shadow-dropdown)",
 }
 
 function BarChartBlock({
@@ -30,11 +29,16 @@ function BarChartBlock({
     <div className="h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>
-          <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-          <XAxis dataKey="name" stroke="#8f97b1" tickLine={false} axisLine={false} />
-          <YAxis stroke="#8f97b1" tickLine={false} axisLine={false} allowDecimals={false} />
-          <Tooltip contentStyle={tooltipStyle} />
-          <Bar dataKey={dataKey} fill="#feaa2b" radius={[8, 8, 0, 0]} />
+          <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
+          <XAxis dataKey="name" stroke="var(--chart-axis)" tickLine={false} axisLine={false} />
+          <YAxis stroke="var(--chart-axis)" tickLine={false} axisLine={false} allowDecimals={false} />
+          <Tooltip 
+            contentStyle={tooltipStyle} 
+            labelStyle={{ color: "var(--tooltip-text)", }}
+            itemStyle={{ color: "var(--tooltip-text)", }}
+            cursor={{ fill: "var(--accent-soft)", }} 
+          />
+          <Bar dataKey={dataKey} fill="var(--accent)" radius={[8, 8, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -72,10 +76,10 @@ function PieChartBlock({ data }: { data: { name: string; value: number }[] }) {
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
               />
-              <span className="text-sm text-[#d7def0]">{item.name}</span>
+              <span className="text-sm text-[var(--text-secondary)]">{item.name}</span>
             </div>
 
-            <span className="text-sm font-bold text-white">{item.value}</span>
+            <span className="text-sm font-bold text-[var(--text-primary)]">{item.value}</span>
           </div>
         ))}
       </div>
@@ -95,15 +99,15 @@ function ProgressList({
   return (
     <div className="space-y-4">
       {data.map((item) => (
-        <div key={item[labelKey]} className="rounded-xl bg-white/[0.03] p-4">
+        <div key={item[labelKey]} className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-4">
           <div className="mb-2 flex items-center justify-between gap-4">
-            <p className="text-sm font-semibold text-white">{item[labelKey]}</p>
-            <p className="text-sm font-semibold text-[#feaa2b]">{item.value}</p>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">{item[labelKey]}</p>
+            <p className="text-sm font-semibold text-[var(--accent-text)]">{item.value}</p>
           </div>
 
-          <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+          <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-muted)]">
             <div
-              className="h-full rounded-full bg-[#feaa2b]"
+              className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-300"
               style={{ width: `${(item.value / maxValue) * 100}%` }}
             />
           </div>
@@ -118,7 +122,7 @@ function getHighlightClass(
   highlighted?: string | null
 ) {
   return current === highlighted
-    ? "animate-pulse rounded-2xl ring-2 ring-orange-400/60 shadow-[0_0_45px_rgba(254,170,43,0.20)]"
+    ? "animate-pulse rounded-2xl ring-2 ring-[var(--accent-border)] shadow-[0_0_45px_var(--accent-soft-hover)]"
     : ""
 }
 
@@ -148,7 +152,7 @@ export default function AdminReportsFoodSection({
 
   if (error) {
     return (
-      <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-sm text-red-200">
+      <div className="mt-8 rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-5 text-sm text-[var(--danger-text)]">
         {error}
       </div>
     )
@@ -175,6 +179,14 @@ export default function AdminReportsFoodSection({
             </AdminDashboardChartCard>
         </div>
       </section>
+      
+      <div
+        className={getHighlightClass("top-ingredients", highlightedSection)}
+      >
+        <AdminDashboardChartCard title="Top 20 Ingredients">
+            <BarChartBlock data={food.topIngredients.slice(0, 20)} />
+        </AdminDashboardChartCard>
+      </div>
 
       <section className="grid gap-6 xl:grid-cols-2">
         <AdminDashboardChartCard title="Difficulty Distribution">
@@ -185,14 +197,6 @@ export default function AdminReportsFoodSection({
           <ProgressList data={food.cookingTimeDistribution} labelKey="label" />
         </AdminDashboardChartCard>
       </section>
-
-      <div
-        className={getHighlightClass("top-ingredients", highlightedSection)}
-      >
-        <AdminDashboardChartCard title="Top 20 Ingredients">
-            <BarChartBlock data={food.topIngredients.slice(0, 20)} />
-        </AdminDashboardChartCard>
-      </div>
     </div>
   )
 }

@@ -209,10 +209,10 @@ export default function AdminRecipesTableRow({
             index === 0 ? "rounded-l-lg" : "",
             index === columns.length - 1 ? "rounded-r-xl" : "",
             column.key === "select"
-              ? "sticky left-0 z-10 backdrop-blur-xl"
+              ? "sticky left-0 z-10"
               : "",
             column.key === "actions"
-              ? "sticky right-0 z-10 text-right backdrop-blur-xl"
+              ? "sticky right-0 z-10 text-right"
               : "",
           ].join(" ")}
         >

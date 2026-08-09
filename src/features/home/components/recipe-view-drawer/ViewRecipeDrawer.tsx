@@ -671,7 +671,7 @@ export default function ViewRecipeDrawer({
                             type="button"
                             onClick={handleToggleFavorite}
                             disabled={isFavoriteLoading}
-                            className="absolute bottom-[10px] right-7 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--drawer-control-bg)] text-[var(--text-primary)] shadow-[var(--shadow-card)] transition duration-200 hover:scale-105 hover:bg-[var(--drawer-control-hover)] active:scale-95 disabled:opacity-60"
+                            className="absolute bottom-[10px] right-7 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--drawer-control-border)] bg-[var(--drawer-control-bg)] text-[var(--text-primary)] shadow-[var(--shadow-card)] transition duration-200 hover:scale-105 hover:bg-[var(--drawer-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                             <BookmarkRoundedIcon
                                 sx={{

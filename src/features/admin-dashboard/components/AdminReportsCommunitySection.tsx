@@ -20,10 +20,11 @@ interface AdminReportsCommunitySectionProps {
 }
 
 const tooltipStyle = {
-  background: "#0d0e11",
-  border: "1px solid rgba(255,255,255,0.1)",
+  background: "var(--tooltip-bg)",
+  border: "1px solid var(--tooltip-border)",
   borderRadius: 12,
-  color: "#fff",
+  color: "var(--tooltip-text)",
+  boxShadow: "var(--shadow-dropdown)"
 }
 
 function getGrowthPercent(current: number, previous: number) {
@@ -68,18 +69,18 @@ function CommunityMetricCard({
   const isPositive = growth >= 0
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#16181d]/80 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.22)]">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-[var(--shadow-card)] transition-colors">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-[#8f97b1]">{label}</p>
-          <h2 className="mt-2 text-2xl font-bold text-white">{value}</h2>
+          <p className="text-sm text-[var(--text-muted)]">{label}</p>
+          <h2 className="mt-2 text-2xl font-bold text-[var(--text-primary)]">{value}</h2>
 
           <div
             className={[
               "mt-4 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
               isPositive
-                ? "bg-emerald-500/10 text-emerald-300"
-                : "bg-red-500/10 text-red-300",
+                ? "bg-[var(--success-soft)] text-[var(--success-text)]"
+                : "bg-[var(--danger-soft)] text-[var(--danger-text)]",
             ].join(" ")}
           >
             {isPositive ? (
@@ -90,10 +91,10 @@ function CommunityMetricCard({
             {formatGrowth(growth)}
           </div>
 
-          <p className="mt-2 text-xs text-[#7f89a6]">vs previous month</p>
+          <p className="mt-2 text-xs text-[var(--text-muted)]">vs previous month</p>
         </div>
 
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#feaa2b]/10 text-[#feaa2b]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
           {icon}
         </div>
       </div>
@@ -123,18 +124,18 @@ function CommunityLineChart({
     <div className="h-[260px]">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData}>
-          <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+          <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
 
           <XAxis
             dataKey="label"
-            stroke="#8f97b1"
+            stroke="var(--chart-axis)"
             tickLine={false}
             axisLine={false}
             minTickGap={18}
           />
 
           <YAxis
-            stroke="#8f97b1"
+            stroke="var(--chart-axis)"
             tickLine={false}
             axisLine={false}
             allowDecimals={mode === "growth"}
@@ -145,8 +146,8 @@ function CommunityLineChart({
 
           <Tooltip
             contentStyle={tooltipStyle}
-            cursor={{ stroke: "rgba(254,170,43,0.25)" }}
-            labelStyle={{ color: "#d7def0" }}
+            cursor={{ stroke: "var(--accent-border)" }}
+            labelStyle={{ color: "var(--tooltip-text)" }}
             formatter={(value) => [
               mode === "growth" ? `${Number(value).toFixed(1)}%` : value,
               mode === "growth" ? `${name} growth` : name,
@@ -157,7 +158,7 @@ function CommunityLineChart({
             type="monotone"
             dataKey={activeDataKey}
             name={name}
-            stroke="#feaa2b"
+            stroke="var(--accent)"
             strokeWidth={2.5}
             dot={{ r: 3 }}
             activeDot={{ r: 5 }}
@@ -194,7 +195,7 @@ export default function AdminReportsCommunitySection({
 
   if (error) {
     return (
-      <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-sm text-red-200">
+      <div className="mt-8 rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-5 text-sm text-[var(--danger-text)]">
         {error}
       </div>
     )
@@ -252,15 +253,15 @@ export default function AdminReportsCommunitySection({
       </section>
 
       <div className="flex justify-end">
-        <div className="inline-flex rounded-xl border border-white/10 bg-[#0b0b0c] p-1">
+        <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-1 transition-colors">
           <button
             type="button"
             onClick={() => setChartMode("absolute")}
             className={[
               "rounded-lg px-4 py-2 text-sm font-semibold transition",
               chartMode === "absolute"
-                ? "bg-[#feaa2b]/15 text-[#ffd28a]"
-                : "text-[#8f97b1] hover:text-white",
+                ? "bg-[var(--accent-soft-hover)] text-[var(--accent-text)]"
+                : "text-[var(--text-muted)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]",
             ].join(" ")}
           >
             Absolute values
@@ -272,8 +273,8 @@ export default function AdminReportsCommunitySection({
             className={[
               "rounded-lg px-4 py-2 text-sm font-semibold transition",
               chartMode === "growth"
-                ? "bg-[#feaa2b]/15 text-[#ffd28a]"
-                : "text-[#8f97b1] hover:text-white",
+                ? "bg-[var(--accent-soft-hover)] text-[var(--accent-text)]"
+                : "text-[var(--text-muted)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]",
             ].join(" ")}
           >
             Growth %

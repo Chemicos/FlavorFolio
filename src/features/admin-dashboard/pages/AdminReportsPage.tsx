@@ -104,32 +104,32 @@ export default function AdminReportsPage() {
 
   return (
      <AdminLayout>
-      <header className="flex flex-col gap-5 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
+      <header className="flex flex-col gap-5 border-b border-[var(--border)] pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-[var(--text-primary)]">
             Reports Dashboard
           </h1>
-          <p className="mt-2 text-sm text-[#8f97b1]">
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
             Analyze platform activity, food trends and recipe performance.
           </p>
         </div>
 
 
         <div className="flex items-center gap-3">
-            <div className="hidden rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-right lg:block">
+            <div className="hidden rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] px-4 py-2 text-right lg:block">
                 <div className="flex items-center justify-end gap-2">
                     <span
                     className={[
                         "h-2 w-2 rounded-full",
-                        isRefreshing ? "bg-[#feaa2b]" : "bg-emerald-400",
+                        isRefreshing ? "bg-[var(--accent)]" : "bg-[var(--success)]",
                     ].join(" ")}
                     />
-                    <p className="text-xs font-semibold text-[#d7def0]">
+                    <p className="text-xs font-semibold text-[var(--text-primary)]">
                     {isRefreshing ? "Refreshing..." : "Live data"}
                     </p>
                 </div>
 
-                <p className="mt-1 text-[0.7rem] text-[#8f97b1]">
+                <p className="mt-1 text-[0.7rem] text-[var(--text-muted)]">
                     {isRefreshing
                     ? "Syncing reports"
                     : lastUpdatedAt
@@ -142,7 +142,15 @@ export default function AdminReportsPage() {
                 type="button"
                 onClick={handleRefreshReports}
                 disabled={isRefreshing}
-                className="self-start rounded-lg border border-white/10 bg-white/[0.04] p-[5px] text-[#d7def0] transition hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60 lg:self-auto"
+                className={[
+                    "self-start rounded-lg border p-[5px] transition lg:self-auto",
+                    "border-[var(--button-secondary-border)]",
+                    "bg-[var(--button-secondary-bg)]",
+                    "text-[var(--button-secondary-text)]",
+                    "hover:bg-[var(--button-secondary-hover)]",
+                    "hover:text-[var(--text-primary)]",
+                    "disabled:cursor-not-allowed disabled:opacity-60",
+                ].join(" ")}
             >
                 <RefreshRoundedIcon
                     sx={{ fontSize: 26 }}
@@ -174,7 +182,7 @@ export default function AdminReportsPage() {
             )}
 
             {!isLoading && error && (
-            <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-sm text-red-200">
+            <div className="mt-8 rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-5 text-sm text-[var(--danger-text)]">
                 {error}
             </div>
             )}
@@ -219,13 +227,13 @@ export default function AdminReportsPage() {
                             key={recipe.recipeId}
                             type="button"
                             onClick={() => navigate(`/admin/recipes?recipeId=${recipe.recipeId}`)}
-                            className="flex w-full items-center gap-3 rounded-xl bg-white/[0.03] p-2 text-left transition hover:bg-white/[0.06] active:scale-[0.99]"
+                            className="flex w-full items-center gap-3 rounded-xl bg-[var(--surface-subtle)] p-2 text-left transition hover:bg-[var(--surface-hover)] active:scale-[0.99]"
                         >
-                            <span className="w-5 text-sm text-[#a8b3cf]">
+                            <span className="w-5 text-sm text-[var(--text-secondary)]">
                                 {index + 1}
                             </span>
 
-                            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-white/10">
+                            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-[var(--surface-muted)]">
                                 {recipe.image ? (
                                 <img
                                     src={recipe.image}
@@ -233,22 +241,22 @@ export default function AdminReportsPage() {
                                     className="h-full w-full object-cover"
                                 />
                                 ) : (
-                                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-white/60">
+                                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[var(--text-secondary)]">
                                     {recipe.title.charAt(0).toUpperCase()}
                                 </div>
                                 )}
                             </div>
 
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-semibold text-white">
+                                <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
                                 {recipe.title}
                                 </p>
-                                <p className="truncate text-xs text-[#8f97b1]">
+                                <p className="truncate text-xs text-[var(--text-muted)]">
                                 by {recipe.authorUsername}
                                 </p>
                             </div>
 
-                            <div className="flex items-center gap-1 text-sm font-semibold text-[#feaa2b]">
+                            <div className="flex items-center gap-1 text-sm font-semibold text-[var(--accent-text)]">
                                 {recipe.savesCount}
                                 <BookmarkRoundedIcon sx={{ fontSize: 17 }} />
                             </div>
@@ -256,7 +264,7 @@ export default function AdminReportsPage() {
                     ))}
 
                     {!overview.topSavedRecipes.length && (
-                        <p className="py-8 text-center text-sm text-[#8f97b1]">
+                        <p className="py-8 text-center text-sm text-[var(--text-muted)]">
                         No saved recipes data yet.
                         </p>
                     )}
@@ -271,9 +279,9 @@ export default function AdminReportsPage() {
                             type="button"
                             onClick={() => handleInsightClick(insight.target)}
                             disabled={!insight.target}
-                            className="flex w-full gap-3 rounded-xl border border-white/10 bg-[#0b0b0c]/60 p-4 text-left transition hover:border-orange-400/30 hover:bg-orange-500/[0.04] disabled:cursor-default disabled:hover:border-white/10 disabled:hover:bg-[#0b0b0c]/60"
+                            className="flex w-full gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-4 text-left transition hover:border-[var(--accent-border)] hover:bg-[var(--accent-soft)] disabled:cursor-default disabled:hover:border-[var(--border)] disabled:hover:bg-[var(--surface-subtle)]"
                         >
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#feaa2b]/10 text-[#feaa2b]">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-text)]">
                                 {index === 0 ? (
                                 <InsightsRoundedIcon />
                                 ) : index === 1 ? (
@@ -283,7 +291,7 @@ export default function AdminReportsPage() {
                                 )}
                             </div>
 
-                            <p className="text-sm leading-6 text-[#d7def0]">
+                            <p className="text-sm leading-6 text-[var(--text-secondary)]">
                                 {insight.text}
                             </p>
                         </button>

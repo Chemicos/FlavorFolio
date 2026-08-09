@@ -34,7 +34,7 @@ export default function ReelsFeed({
     if (isLoading) {
         return (
         <div className="flex h-full items-center justify-center">
-            <CircularProgress size={34} sx={{ color: "#feaa2b" }} />
+            <CircularProgress size={34} sx={{ color: "var(--accent)" }} />
         </div>
         )
     }
@@ -42,7 +42,7 @@ export default function ReelsFeed({
     if (error) {
         return (
         <div className="flex h-full items-center justify-center px-6 text-center">
-            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-4 text-sm text-red-200">
+            <div className="rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-5 py-4 text-sm text-[var(--danger-text)]">
                 {error}
             </div>
         </div>

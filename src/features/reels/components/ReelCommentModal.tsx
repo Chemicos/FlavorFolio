@@ -123,7 +123,7 @@ export default function ReelCommentModal({
         exit={{ opacity: 0 }}
         onClick={onClose}
         aria-label="Close comments"
-        className="absolute inset-0 z-[70] cursor-default bg-black/20 backdrop-blur-[1px]"
+        className="absolute inset-0 z-[70] cursor-default bg-[var(--overlay)] backdrop-blur-[1px]"
       />
 
       <div className="absolute z-[80] right-4 top-4 bottom-4 w-[min(420px,calc(100vw-32px))] xl:left-[calc(50%+231px)] xl:right-auto xl:top-1/2 xl:bottom-auto xl:h-[min(820px,calc(100%_-_3rem))] xl:w-[420px] xl:-translate-y-1/2">
@@ -132,11 +132,11 @@ export default function ReelCommentModal({
           animate={{opacity: 1, x: 0, scale: 1,}}
           exit={{ opacity: 0, x: 28, scale: 0.98,}}
           transition={{duration: 0.2, ease: [0.22, 1, 0.36, 1],}}
-          className="flex h-full w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#1b1d22] shadow-[0_24px_90px_rgba(0,0,0,0.65)]"
+          className="flex h-full w-full flex-col overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-[var(--shadow-panel)]"
         >
-          <header className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-4">
+          <header className="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-4 py-4">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.06]">
+              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[var(--border)] bg-[var(--surface-muted)]">
                 {reel.author.profileImage ? (
                   <img
                     src={reel.author.profileImage}
@@ -144,23 +144,23 @@ export default function ReelCommentModal({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
+                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-[var(--text-primary)]">
                     {reel.author.username.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
 
               <div className="min-w-0">
-                <h2 className="text-base font-bold text-white">
+                <h2 className="text-base font-bold text-[var(--text-primary)]">
                   Comments
                 </h2>
 
-                <p className="truncate text-xs text-[#8f97b1]">
+                <p className="truncate text-xs text-[var(--text-muted)]">
                   {reel.author.username}
                 </p>
               </div>
 
-              <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs font-semibold text-[#a8b3cf]">
+              <span className="rounded-full bg-[var(--surface-muted)] px-2 py-0.5 text-xs font-semibold text-[var(--text-secondary)]">
                 {comments.length}
               </span>
             </div>
@@ -168,48 +168,47 @@ export default function ReelCommentModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-[#8f97b1] transition hover:bg-white/[0.06] hover:text-white"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
               aria-label="Close comments"
             >
               <CloseRoundedIcon sx={{ fontSize: 20 }} />
             </button>
           </header>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-color:rgba(168,179,207,0.35)_transparent] [scrollbar-width:thin]">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-color:var(--border-strong)_transparent] [scrollbar-width:thin]">
             {isLoading ? (
               <div className="flex h-full items-center justify-center">
                 <CircularProgress
                   size={30}
-                  sx={{ color: "#feaa2b" }}
+                  sx={{ color: "var(--accent)" }}
                 />
               </div>
             ) : error && comments.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center px-8 text-center">
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
                   Comments could not be loaded
                 </p>
 
-                <p className="mt-2 text-sm text-[#8f97b1]">
+                <p className="mt-2 text-sm text-[var(--text-muted)]">
                   Please close the panel and try again.
                 </p>
               </div>
             ) : comments.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center px-8 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#feaa2b]">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--accent)]">
                   <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 26 }} />
                 </div>
 
-                <h3 className="mt-4 text-base font-bold text-white">
+                <h3 className="mt-4 text-base font-bold text-[var(--text-primary)]">
                   No comments yet
                 </h3>
 
-                <p className="mt-2 max-w-[260px] text-sm leading-6 text-[#8f97b1]">
-                  Start the conversation and share what you think about this
-                  reel.
+                <p className="mt-2 max-w-[260px] text-sm leading-6 text-[var(--text-muted)]">
+                  Start the conversation and share what you think about this reel.
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-white/[0.045] py-1">
+              <div className="divide-y divide-[var(--border-subtle)] py-1">
                 {comments.map((comment) => (
                   <ReelCommentItem
                     key={comment.id}

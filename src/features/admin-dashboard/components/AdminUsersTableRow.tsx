@@ -17,21 +17,21 @@ interface AdminUsersTableRowProps {
 const viewTooltipProps = {
   tooltip: {
     sx: {
-      bgcolor: "#0b0b0c",
-      color: "#d7def0",
+      bgcolor: "var(--tooltip-bg)",
+      color: "var(--tooltip-text)",
       fontSize: "0.75rem",
-      border: "1px solid rgba(255,255,255,0.08)",
+      border: "1px solid var(--tooltip-border)",
       backdropFilter: "blur(12px)",
-      boxShadow: "0 12px 30px rgba(0,0,0,0.45)",
+      boxShadow: "var(--shadow-dropdown)",
       px: 1.2,
       py: 0.7,
     },
   },
   arrow: {
     sx: {
-      color: "#0b0b0c",
+      color: "var(--tooltip-bg)",
       "&:before": {
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid var(--tooltip-border)",
       },
     },
   },
@@ -49,28 +49,28 @@ function formatDate(ms: number) {
 
 function getRoleClass(role: string) {
     if (role === "admin") {
-        return "border-orange-400/20 bg-orange-500/10 text-orange-200"
+        return "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
     }
 
-    return "border-sky-400/20 bg-sky-500/10 text-sky-300"
+    return "border-[var(--info-border)] bg-[var(--info-soft)] text-[var(--info-text)]"
 }
 
 export default function AdminUsersTableRow({
-    user,
-    isActive = false,
-    onView,
-    isSelected = false,
-    onToggle,
+  user,
+  isActive = false,
+  onView,
+  isSelected = false,
+  onToggle,
 }: AdminUsersTableRowProps) {
     const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ")
 
     const cellClassName = [
-        "px-4 py-3 transition-colors",
-        isActive
-            ? "bg-[#202636]"
-            : isSelected
-            ? "bg-[#161b24]"
-            : "bg-[#0b0b0c] group-hover:bg-[#202429]",
+      "px-4 py-3 transition-colors",
+      isActive
+          ? "bg-[var(--table-row-active)]"
+          : isSelected
+          ? "bg-[var(--table-row-selected)]"
+          : "bg-[var(--table-row-bg)] group-hover:bg-[var(--table-row-hover)]",
     ].join(" ")
 
   return (
@@ -83,13 +83,13 @@ export default function AdminUsersTableRow({
                 size="small"
                 sx={{
                     padding: 0,
-                    color: "rgba(168,179,207,0.75)",
-                    "&.Mui-checked": { color: "#a8b3cf" },
+                    color: "var(--text-muted)",
+                    "&.Mui-checked": { color: "var(--accent)" },
                     "& .MuiSvgIcon-root": { fontSize: 22 },
                 }}
             />
 
-          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-white/10">
+          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-[var(--surface-muted)]">
             {user.profileImage ? (
               <img
                 src={user.profileImage}
@@ -97,17 +97,17 @@ export default function AdminUsersTableRow({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-white/70">
+              <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[var(--text-secondary)]">
                 {(user.username || "U").charAt(0).toUpperCase()}
               </div>
             )}
           </div>
 
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-white">
+            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
               {user.username}
             </p>
-            <p className="truncate text-xs text-[#8f97b1]">
+            <p className="truncate text-xs text-[var(--text-muted)]">
               {fullName || user.email || "No profile details"}
             </p>
           </div>
@@ -126,8 +126,8 @@ export default function AdminUsersTableRow({
       </td>
 
       <td className={cellClassName}>
-        <div className="flex items-center gap-3 text-sm text-[#a8b3cf]">
-          <span className="inline-flex items-center gap-1 text-[#feaa2b]">
+        <div className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
+          <span className="inline-flex items-center gap-1 text-[var(--accent-text)]">
             <MenuBookRoundedIcon sx={{ fontSize: 16 }} />
             {user.recipesCount}
           </span>
@@ -137,7 +137,7 @@ export default function AdminUsersTableRow({
             {user.followersCount}
           </span>
 
-          <span className="inline-flex items-center gap-1 text-[#feaa2b]">
+          <span className="inline-flex items-center gap-1 text-[var(--accent)]">
             <BookmarkRoundedIcon sx={{ fontSize: 16 }} />
             {user.savedRecipesCount}
           </span>
@@ -145,13 +145,13 @@ export default function AdminUsersTableRow({
       </td>
 
       <td className={cellClassName}>
-        <span className="text-sm text-[#a8b3cf]">
+        <span className="text-sm text-[var(--text-secondary)]">
           {user.location || "-"}
         </span>
       </td>
 
       <td className={cellClassName}>
-        <span className="text-sm text-[#8f97b1]">
+        <span className="text-sm text-[var(--text-muted)]">
           {formatDate(user.createdAtMs)}
         </span>
       </td>
@@ -166,7 +166,7 @@ export default function AdminUsersTableRow({
           <button
             type="button"
             onClick={onView}
-            className="inline-flex translate-x-3 items-center justify-center text-[#a8b3cf] opacity-0 transition-all duration-200 ease-out hover:text-white active:scale-95 group-hover:translate-x-0 group-hover:opacity-100"
+            className="inline-flex translate-x-3 items-center justify-center text-[var(--text-secondary)] opacity-0 transition-all duration-200 ease-out hover:text-[var(--text-primary)] active:scale-95 group-hover:translate-x-0 group-hover:opacity-100"
           >
             <ViewSidebarIcon sx={{ fontSize: 24 }} />
           </button>

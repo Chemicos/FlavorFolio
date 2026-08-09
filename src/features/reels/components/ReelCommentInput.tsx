@@ -52,10 +52,10 @@ export default function ReelCommentInput({
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-t border-white/10 bg-[#1b1d22] p-4"
+      className="border-t border-[var(--border)] bg-[var(--bg-secondary)] p-4"
     >
       <div className="flex items-center gap-3">
-        <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.06]">
+        <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[var(--border)] bg-[var(--surface-muted)]">
           {profileImage ? (
             <img
               src={profileImage}
@@ -63,13 +63,13 @@ export default function ReelCommentInput({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs font-bold text-[#a8b3cf]">
+            <div className="flex h-full w-full items-center justify-center text-xs font-bold text-[var(--text-secondary)]">
               U
             </div>
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 items-center rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 transition focus-within:border-[#feaa2b]/50 focus-within:bg-white/[0.05]">
+        <div className="flex min-w-0 flex-1 items-center rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] hover:border-[var(--border-strong)] px-3 py-2 transition focus-within:border-[var(--focus-border)] ffocus-within:bg-[var(--input-bg-hover)] focus-within:ring-2 focus-within:ring-[var(--focus-ring)]">
           <textarea
             value={value}
             onChange={(event) =>
@@ -88,19 +88,19 @@ export default function ReelCommentInput({
                 ? "Add a comment..."
                 : "Sign in to comment"
             }
-            className="max-h-28 min-h-[24px] flex-1 resize-none bg-transparent text-sm leading-6 text-white outline-none placeholder:text-[#737b94] disabled:cursor-not-allowed"
+            className="max-h-28 min-h-[24px] flex-1 resize-none bg-transparent text-sm leading-6 text-[var(--text-primary)] outline-none placeholder:text-[var(--input-placeholder)] disabled:cursor-not-allowed"
           />
 
           <button
             type="submit"
             disabled={!canSubmit}
-            className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#feaa2b] transition hover:bg-[#feaa2b]/10 disabled:cursor-not-allowed disabled:opacity-35"
+            className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--accent)] transition hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Publish comment"
           >
             {isSubmitting ? (
               <CircularProgress
                 size={16}
-                sx={{ color: "#feaa2b" }}
+                sx={{ color: "var(--accent)" }}
               />
             ) : (
               <SendRoundedIcon
@@ -112,7 +112,7 @@ export default function ReelCommentInput({
       </div>
 
       {value.length > 400 && (
-        <p className="mt-2 text-right text-xs text-[#737b94]">
+        <p className="mt-2 text-right text-xs text-[var(--text-muted)]">
           {value.length}/{MAX_COMMENT_LENGTH}
         </p>
       )}

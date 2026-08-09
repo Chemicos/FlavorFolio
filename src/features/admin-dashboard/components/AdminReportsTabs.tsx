@@ -37,7 +37,7 @@ export default function AdminReportsTabs({
     }
 
   return (
-    <section className="mt-8">
+    <section className="mt-6">
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -47,13 +47,12 @@ export default function AdminReportsTabs({
         scrollButtons={false}
         sx={{
           minHeight: 0,
-          borderBottom: "1px solid rgba(255,255,255,0.10)",
+          borderBottom: "1px solid var(--border)",
           "& .MuiTabs-indicator": {
             height: "2px",
             borderRadius: "999px",
-            background:
-              "linear-gradient(90deg, rgba(245,158,11,1), rgba(251,191,36,1))",
-            boxShadow: "0 0 18px rgba(245,158,11,0.45)",
+            background: "var(--tab-indicator)",
+            boxShadow: "var(--tab-indicator-shadow)",
           },
           "& .MuiTabs-flexContainer": {
             gap: {
@@ -79,14 +78,10 @@ export default function AdminReportsTabs({
               textTransform: "none",
               fontSize: "0.92rem",
               fontWeight: 400,
-              color: "rgba(168, 179, 207, 0.72)",
+              color: "var(--text-muted)",
               transition: "color 0.2s ease",
-              "&.Mui-selected": {
-                color: "#facc15",
-              },
-              "&:hover": {
-                color: "#ffffff",
-              },
+              "&.Mui-selected": { color: "var(--accent-text)", },
+              "&:hover": { color: "var(--text-primary)", },
             }}
           />
         ))}

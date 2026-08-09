@@ -28,7 +28,7 @@ export default function AdminDashboardSidebar({
     <aside
       className={[
         "fixed left-0 top-16 z-30 hidden h-[calc(100vh-64px)]",
-        "border-r border-[var(--border)] bg-[var(--bg-primary)]",
+        "border-r border-[var(--border)] bg-[var(--bg-secondary)]",
         "px-3 py-6",
         "transition-[width,background-color,border-color] duration-300 xl:block",
         isCollapsed ? "w-[82px]" : "w-[260px]",

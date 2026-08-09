@@ -162,31 +162,31 @@ export default function AdminUsersPage() {
         <>
             <section className="mt-5 grid shrink-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <MetricCard
-                label="Total Users"
-                value={users.length}
-                helper="Registered accounts"
-                icon={<PeopleAltRoundedIcon />}
+                  label="Total Users"
+                  value={users.length}
+                  helper="Registered accounts"
+                  icon={<PeopleAltRoundedIcon />}
                 />
 
                 <MetricCard
-                label="Admins"
-                value={adminCount}
-                helper="Platform managers"
-                icon={<AdminPanelSettingsRoundedIcon />}
+                  label="Admins"
+                  value={adminCount}
+                  helper="Platform managers"
+                  icon={<AdminPanelSettingsRoundedIcon />}
                 />
 
                 <MetricCard
-                label="Members"
-                value={memberCount}
-                helper="Regular users"
-                icon={<PersonRoundedIcon />}
+                  label="Members"
+                  value={memberCount}
+                  helper="Regular users"
+                  icon={<PersonRoundedIcon />}
                 />
 
                 <MetricCard
-                label="New Users"
-                value={newUsersThisMonthCount}
-                helper="Joined this month"
-                icon={<PersonAddAltRoundedIcon />}
+                  label="New Users"
+                  value={newUsersThisMonthCount}
+                  helper="Joined this month"
+                  icon={<PersonAddAltRoundedIcon />}
                 />
             </section>
 
@@ -221,11 +221,7 @@ export default function AdminUsersPage() {
 
                 {selectedIds.length > 0 && (
                     <div
-                      className={[
-                        "mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3",
-                        "border-[var(--border)]",
-                        "bg-[var(--surface-subtle)]",
-                      ].join(" ")}
+                      className= "mb-5 flex flex-wrap items-center justify-between gap-3"
                     >
                         <div className="flex items-center">
                         <p className="text-sm text-[var(--text-muted)]">

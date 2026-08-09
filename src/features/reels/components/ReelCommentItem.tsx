@@ -150,11 +150,11 @@ export default function ReelCommentItem({
   }
 
   return (
-    <article className="group relative flex gap-3 px-4 py-3 transition hover:bg-white/[0.025]">
+    <article className="group relative flex gap-3 px-4 py-3 transition hover:bg-[var(--hover)]">
       <button
         type="button"
         onClick={() => onAuthorClick(comment.userId)}
-        className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.06] transition hover:border-orange-400/40 hover:ring-2 hover:ring-orange-500/10 active:scale-95"
+        className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[var(--border)] bg-[var(--surface-muted)] transition hover:border-[var(--accent-border)] hover:ring-2 hover:ring-[var(--focus-ring)] active:scale-95"
         aria-label={`Open ${comment.username}'s profile`}
       >
         {comment.profileImage ? (
@@ -164,7 +164,7 @@ export default function ReelCommentItem({
             className="h-full w-full object-cover"
           />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
+          <span className="flex h-full w-full items-center justify-center text-xs font-bold text-[var(--text-primary)]">
             {comment.username.charAt(0).toUpperCase()}
           </span>
         )}
@@ -173,7 +173,7 @@ export default function ReelCommentItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-white">
+            <p className="truncate text-sm font-bold text-[var(--text-primary)]">
               {comment.username}
             </p>
 
@@ -208,17 +208,17 @@ export default function ReelCommentItem({
                       handleSaveEdit()
                     }
                   }}
-                  className="w-full resize-none rounded-xl border border-white/10 bg-[#0b0b0c] px-3 py-2.5 text-sm leading-5 text-[#d7def0] outline-none transition placeholder:text-[#6f7892] hover:border-white/20 focus:border-orange-400/40 focus:ring-2 focus:ring-orange-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full resize-none rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2.5 text-sm leading-5 text-[var(--text-primary)] outline-none transition placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)] disabled:cursor-not-allowed disabled:opacity-60"
                 />
 
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <div>
                     {editError ? (
-                      <p className="text-xs text-red-300">
+                      <p className="text-xs text-[var(--danger-text)]">
                         {editError}
                       </p>
                     ) : (
-                      <p className="text-xs text-[#737b94]">
+                      <p className="text-xs text-[var(--text-muted)]">
                         {draftText.length}/500
                       </p>
                     )}
@@ -229,7 +229,7 @@ export default function ReelCommentItem({
                       type="button"
                       disabled={isUpdating}
                       onClick={handleCancelEditing}
-                      className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-[#8f97b1] transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <CloseRoundedIcon sx={{ fontSize: 15 }} />
                       Cancel
@@ -239,12 +239,12 @@ export default function ReelCommentItem({
                       type="button"
                       disabled={!canSubmitEdit}
                       onClick={handleSaveEdit}
-                      className="flex h-8 min-w-[70px] items-center justify-center gap-1.5 rounded-lg bg-orange-500/15 px-3 text-xs font-semibold text-orange-200 transition hover:bg-orange-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-8 min-w-[70px] items-center justify-center gap-1.5 rounded-lg bg-[var(--accent-soft)] px-3 text-xs font-semibold text-[var(--accent-text)] transition hover:bg-[var(--accent-soft-hover)] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {isUpdating ? (
                         <CircularProgress
                           size={14}
-                          sx={{ color: "#fed7aa" }}
+                          sx={{ color: "var(--accent-text)" }}
                         />
                       ) : (
                         <>
@@ -259,7 +259,7 @@ export default function ReelCommentItem({
                 </div>
               </div>
             ) : (
-              <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-5 text-[#d7def0]">
+              <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-5 text-[var(--text-secondary)]">
                 {comment.text}
               </p>
             )}
@@ -277,9 +277,9 @@ export default function ReelCommentItem({
                   setIsMenuOpen((previous) => !previous)
                 }
                 className={[
-                  "flex h-8 w-8 items-center justify-center rounded-lg text-[#737b94] transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-50",
+                  "flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-50",
                   isMenuOpen
-                    ? "bg-white/[0.06] text-white"
+                    ? "bg-[var(--surface-muted)] text-[var(--text-primary)]"
                     : "opacity-0 group-hover:opacity-100",
                 ].join(" ")}
                 aria-label="Comment actions"
@@ -288,7 +288,7 @@ export default function ReelCommentItem({
                 {isDeleting ? (
                   <CircularProgress
                     size={15}
-                    sx={{ color: "#a8b3cf" }}
+                    sx={{ color: "var(--text-secondary)" }}
                   />
                 ) : (
                   <MoreHorizRoundedIcon
@@ -304,12 +304,12 @@ export default function ReelCommentItem({
                     animate={{opacity: 1, y: 0, scale: 1,}}
                     exit={{opacity: 0, y: -4, scale: 0.96,}}
                     transition={{duration: 0.14, ease: "easeOut",}}
-                    className="absolute right-0 top-10 z-30 w-36 overflow-hidden rounded-xl border border-white/10 bg-[#0b0b0c] p-1.5 shadow-[0_18px_55px_rgba(0,0,0,0.6)]"
+                    className="absolute right-0 top-10 z-30 w-36 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--dropdown-bg)] p-1.5 shadow-[var(--shadow-dropdown)]"
                   >
                     <button
                       type="button"
                       onClick={handleStartEditing}
-                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[#d7def0] transition hover:bg-white/[0.05] hover:text-white"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
                     >
                       <EditRoundedIcon sx={{ fontSize: 17 }} />
                       Edit
@@ -322,7 +322,7 @@ export default function ReelCommentItem({
                         setIsMenuOpen(false)
                         onDelete(comment.id)
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-red-300 transition hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <DeleteOutlineRoundedIcon sx={{ fontSize: 17 }} />
                       Delete
@@ -335,7 +335,7 @@ export default function ReelCommentItem({
         </div>
 
         {!isEditing && (
-          <div className="mt-1.5 flex items-center gap-2 text-xs text-[#737b94]">
+          <div className="mt-1.5 flex items-center gap-2 text-xs text-[var(--text-muted)]">
             <span>
               {formatCommentDate(comment.createdAt)}
             </span>

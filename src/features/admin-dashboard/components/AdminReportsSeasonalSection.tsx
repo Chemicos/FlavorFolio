@@ -5,8 +5,6 @@ import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded"
 import YardRoundedIcon from "@mui/icons-material/YardRounded"
 import ForestRoundedIcon from "@mui/icons-material/ForestRounded"
 
-import { CircularProgress } from "@mui/material"
-
 import { useAdminReportsSeasonal } from "../hooks/useAdminReportsSeasonal"
 import AdminDashboardChartCard from "./AdminDashboardChartCard"
 import { ReportsListSkeleton } from "./skeletons/AdminReportsSkeletons"
@@ -44,7 +42,7 @@ export default function AdminReportsSeasonalSection({
 
   if (error) {
     return (
-      <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-500/10 p-5 text-sm text-red-200">
+      <div className="mt-8 rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-5 text-sm text-[var(--danger-text)]">
         {error}
       </div>
     )
@@ -59,24 +57,24 @@ export default function AdminReportsSeasonalSection({
           {seasonal.topIngredientByMonth.map((item) => (
             <div
               key={item.month}
-              className="flex items-center justify-between gap-4 rounded-xl bg-white/[0.03] p-4 transition hover:bg-white/[0.05]"
+              className="flex items-center justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-4 transition hover:bg-[var(--surface-hover)]"
             >
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#feaa2b]/10 text-[#feaa2b]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
                   <CalendarMonthRoundedIcon sx={{ fontSize: 20 }} />
                 </div>
 
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
                     {item.month}
                   </p>
-                  <p className="truncate text-xs text-[#8f97b1]">
+                  <p className="truncate text-xs text-[var(--text-muted)]">
                     {item.ingredient}
                   </p>
                 </div>
               </div>
 
-              <span className="rounded-lg border border-orange-400/15 bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-200">
+              <span className="rounded-lg border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-text)]">
                 {item.count}
               </span>
             </div>
@@ -92,15 +90,15 @@ export default function AdminReportsSeasonalSection({
           >
             <div className="space-y-3">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#feaa2b]/10 text-[#feaa2b]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
                   {getSeasonIcon(group.season)}
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
                     {group.season}
                   </p>
-                  <p className="text-xs text-[#8f97b1]">
+                  <p className="text-xs text-[var(--text-muted)]">
                     Most recurring ingredients in this season.
                   </p>
                 </div>
@@ -110,29 +108,29 @@ export default function AdminReportsSeasonalSection({
                 group.ingredients.map((item, index) => (
                   <div
                     key={`${group.season}-${item.ingredient}`}
-                    className="flex items-center justify-between gap-4 rounded-xl bg-[#0b0b0c]/60 p-4"
+                    className="flex items-center justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-4"
                   >
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className="w-5 text-sm text-[#8f97b1]">
+                      <span className="w-5 text-sm text-[var(--text-muted)]">
                         {index + 1}
                       </span>
 
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04] text-[#feaa2b]">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-muted)] text-[var(--accent)]">
                         <LocalDiningRoundedIcon sx={{ fontSize: 18 }} />
                       </div>
 
-                      <p className="truncate text-sm font-semibold text-white">
+                      <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
                         {item.ingredient}
                       </p>
                     </div>
 
-                    <span className="text-sm font-bold text-[#feaa2b]">
+                    <span className="text-sm font-bold text-[var(--accent-text)]">
                       {item.count}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="rounded-xl bg-[#0b0b0c]/60 p-4 text-sm text-[#8f97b1]">
+                <p className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-4 text-sm text-[var(--text-muted)]">
                   No seasonal ingredient data yet.
                 </p>
               )}

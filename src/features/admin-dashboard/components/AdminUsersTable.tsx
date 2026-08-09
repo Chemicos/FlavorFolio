@@ -101,10 +101,10 @@ export default function AdminUsersTable({
 
   return (
     <div className="h-full overflow-hidden">
-      <div className="h-full overflow-auto pr-1 [scrollbar-width:thin] [scrollbar-color:rgba(168,179,207,0.35)_transparent]">
+      <div className="h-full overflow-auto pr-1 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
         <table className="w-full min-w-[980px] border-separate border-spacing-y-[6px]">
-          <thead className="sticky top-0 z-20 bg-[#16181d]">
-            <tr className="text-left text-sm font-semibold text-[#a8b3cf]">
+          <thead className="sticky top-0 z-20 bg-[var(--bg-secondary)]">
+            <tr className="text-left text-sm font-semibold text-[var(--text-secondary)]">
               {columns.map((column) => {
                 const isSortable = Boolean(column.sortable)
                 const isActive = sortKey === column.key
@@ -122,8 +122,8 @@ export default function AdminUsersTable({
                         type="button"
                         onClick={() => handleSort(column.key as AdminUsersSortKey)}
                         className={[
-                          "inline-flex items-center gap-1 transition hover:text-white",
-                          isActive ? "text-white" : "text-[#a8b3cf]",
+                          "inline-flex items-center gap-1 transition hover:text-[var(--text-primary)]",
+                          isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]",
                         ].join(" ")}
                       >
                         <span>{column.label}</span>
@@ -163,7 +163,7 @@ export default function AdminUsersTable({
         </table>
 
         {!sortedUsers.length && (
-          <div className="py-16 text-center text-sm text-[#8f97b1]">
+          <div className="py-16 text-center text-sm text-[var(--text-muted)]">
             No users found.
           </div>
         )}
