@@ -8,5 +8,8 @@ export interface DenialFeedback {
   reason?: string
   reasonLabel?: string
   message?: string
-  createdAt?: any
+  createdAt?: {
+    seconds: number
+    nanoseconds: number
+  }
 }

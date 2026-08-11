@@ -22,11 +22,12 @@ const defaultColumns: NeedsRevisionTableColumn[] = [
   { key: "select", label: "", width: 56, minWidth: 56, sortable: false, resizable: false, draggable: false },
   { key: "title", label: "Title", width: 260, minWidth: 180, sortable: true, resizable: true, draggable: true },
   { key: "reason", label: "Revision reason", width: 220, minWidth: 160, sortable: true, resizable: true, draggable: true },
+  { key: "message", label: "Admin message", width: 340, minWidth: 220, sortable: true, resizable: true, draggable: true},
   { key: "description", label: "Description feedback", width: 220, minWidth: 200, sortable: true, resizable: true, draggable: true },
   { key: "ingredients", label: "Ingredients feedback", width: 300, minWidth: 200, sortable: true, resizable: true, draggable: true },
   { key: "steps", label: "Steps feedback", width: 300, minWidth: 200, sortable: true, resizable: true, draggable: true },
   { key: "updatedAt", label: "Updated At", width: 150, minWidth: 120, sortable: true, resizable: true, draggable: true },
-  { key: "visibility", label: "Visibility", width: 120, minWidth: 110, sortable: true, resizable: true, draggable: true},
+  { key: "visibility", label: "Visibility", width: 120, minWidth: 110, sortable: true, resizable: true, draggable: true },
   { key: "actions", label: "", width: 70, minWidth: 70, sortable: false, resizable: false, draggable: false },
 ] as const
 
@@ -34,6 +35,7 @@ type ColumnKey =
   | "select"
   | "title"
   | "reason"
+  | "message"
   | "description"
   | "ingredients"
   | "steps"
@@ -175,21 +177,23 @@ export default function NeedsRevisionTable({
     const getSortValue = (recipe: NeedsRevisionRecipe, key: SortKey) => {
         switch (key) {
         case "title":
-            return recipe.title || ""
+          return recipe.title || ""
         case "reason":
-            return recipe.denialFeedback?.reasonLabel || recipe.denialFeedback?.reason || ""
+          return recipe.denialFeedback?.reasonLabel || recipe.denialFeedback?.reason || ""
+        case "message":
+          return recipe.denialFeedback?.message || ""
         case "description":
-            return recipe.reviewFeedback?.description?.message || ""
+          return recipe.reviewFeedback?.description?.message || ""
         case "ingredients":
-            return recipe.reviewFeedback?.ingredients?.message || ""
+          return recipe.reviewFeedback?.ingredients?.message || ""
         case "steps":
-            return recipe.reviewFeedback?.steps?.message || ""
+          return recipe.reviewFeedback?.steps?.message || ""
         case "updatedAt":
-            return recipe.updatedAt?.seconds || 0
+          return recipe.updatedAt?.seconds || 0
         case "visibility":
-            return recipe.visibility || ""
+          return recipe.visibility || ""
         default:
-            return ""
+          return ""
         }
     }
 

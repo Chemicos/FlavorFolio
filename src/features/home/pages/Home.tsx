@@ -12,11 +12,12 @@ import { Recipe } from "../types"
 import ViewRecipeDrawer from "../components/recipe-view-drawer/ViewRecipeDrawer"
 import PostRecipeDrawer from "../components/post-recipe/PostRecipeDrawer"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service"
+import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service"
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
 import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 import { CircularProgress, useMediaQuery } from "@mui/material"
 import { fetchRecipeById } from "../services/recipes.service"
+import DeleteWarningDialog from "../components/recipe-view-drawer/DeleteWarningDialog"
 
 export type CreatePostType = "recipe" | "reel"
 
@@ -43,6 +44,12 @@ export default function Home() {
 
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([])
   const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
+  const [userToBlock, setUserToBlock] = useState<{
+    userId: string
+    username: string
+    profileImage?: string
+  } | null>(null)
+  const [isBlockingUser, setIsBlockingUser] = useState(false)
 
   const isAnyOverlayOpen = isFilterDrawerOpen
 
@@ -54,7 +61,6 @@ export default function Home() {
   const floatingActionsRightOffset = isInlineDrawerOpen && !isLargeDesktop
     ? RECIPE_DRAWER_WIDTH + LAYOUT_GAP + 24
     : 24
-
 
   const {
     activeRecipes,
@@ -213,12 +219,32 @@ export default function Home() {
     navigate(`/users/${authorId}`)
   }
 
+  const handleConfirmBlockUser = async () => {
+    if (!currentUser?.uid || !userToBlock) return
+
+    try {
+      setIsBlockingUser(true)
+
+      await blockUser({
+        currentUserId: currentUser.uid,
+        targetUserId: userToBlock.userId,
+        targetUsername: userToBlock.username,
+        targetProfileImage: userToBlock.profileImage || "",
+      })
+
+      showSnackbar(`${userToBlock.username} has been blocked.`, "success")
+
+      setUserToBlock(null)
+    } catch (error) {
+      console.error(error)
+      showSnackbar("Failed to block user.", "error")
+    } finally {
+      setIsBlockingUser(false)
+    }
+  }
+
   const handleRecipeSubmitSuccess = () => {
     showSnackbar("Recipe submitted successfully. You'll be notified once it has been reviewed by an administrator.", "success")
-    // setsnackbarMessage(
-    //   "Recipe submitted successfully. You'll be notified once it has been reviewed by an administrator."
-    // )
-    // setSnackbarOpen(true)
     setIsPostFormVisible(false)
   }
 
@@ -244,10 +270,6 @@ export default function Home() {
       replace: true,
     })
   }
-
-  // const handleFeedbackClick = () => {
-  //   setIsFeedbackVisible(true)
-  // }
 
   const handleRecipeClick = (recipe: Recipe) => {
     const recipeId = recipe.recipeId || recipe.id
@@ -356,7 +378,6 @@ export default function Home() {
   }, [searchedRecipes, blockedRelationshipUserIds])
 
   const handleShareRecipe = (recipe: Recipe) => {
-    // setSelectedRecipe(null)
     setRecipeToShare(recipe)
     setIsShareModalOpen(true)
   }
@@ -571,6 +592,7 @@ export default function Home() {
                     onCommentStateChange={handleCommentStateChange}
                     onEditRecipe={handleEditRecipe}
                     onDeleteRecipe={handleRecipeDeleteSuccess}
+                    onBlockUser={setUserToBlock}
                     blockedUserIds={blockedUserIds}
                     blockedByUserIds={blockedByUserIds}
                   />
@@ -581,23 +603,7 @@ export default function Home() {
           </AnimatePresence>
         </div>
 
-        {/* <FloatingSpeedDial /> */}
         <ScrollToTopButton rightOffset={floatingActionsRightOffset} />
-
-        {/* <AnimatePresence>
-          {isPostFormVisible && (
-            <PostRecipeDrawer 
-              onClose={handleClosePostRecipeDrawer} 
-              currentUser={currentUser} 
-              onSubmitSuccess={handleRecipeSubmitSuccess}
-              mode={editingRecipe ?  "edit" : "create"}
-              recipeToEdit={editingRecipe}
-              onUpdateSuccess={handleRecipeUpdateSuccess}
-            />
-          )}
-        </AnimatePresence> */}
-
-        {/* {isFeedbackVisible && <Feedback onClose={handleClose} />} */}
         
         <AnimatePresence>
           {isFilterDrawerOpen && (
@@ -624,6 +630,16 @@ export default function Home() {
             onShared={(username) => {
                 showSnackbar(`Recipe shared with ${username}`, "success")
             }}
+        />
+
+        <DeleteWarningDialog 
+          isOpen={Boolean(userToBlock)}
+          isDeleting={isBlockingUser}
+          title={`Block ${userToBlock?.username}?`}
+          description="You won't see this user's recipes, comments or profile anymore. They also won't be able to interact with your content."
+          confirmLabel="Block"
+          onCancel={() => setUserToBlock(null)}
+          onConfirm={handleConfirmBlockUser}
         />
       </div>
     </div>

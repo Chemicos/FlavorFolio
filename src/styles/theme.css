@@ -30,7 +30,7 @@
   --profile-floating-control-text: #55483b;
   --profile-floating-control-border: rgba(255, 255, 255, 0.55);
   
-  --sticky-profile-bg: rgba(248, 244, 238, 0.94);
+  --sticky-profile-bg: rgba(248, 244, 238, 1);
 
   /* Profile edit control */
   --profile-edit-bg: #fff3df;

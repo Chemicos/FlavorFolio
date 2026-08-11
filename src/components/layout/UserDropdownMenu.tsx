@@ -174,7 +174,7 @@ export default function UserDropdownMenu({
 
         <MenuActionItem
           icon={<BlockIcon fontSize="small" />}
-          label="Needs revision"
+          label="Revisions/Drafts"
           onClick={onNeedsRevision}
           badgeCount={needsRevisionCount}
         />

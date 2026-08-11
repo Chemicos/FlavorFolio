@@ -50,9 +50,9 @@ interface ViewRecipeCommentListProps {
     onDeleteComment?: (comment: ViewRecipeComment) => void
     onAuthorClick?: (userId: string) => void
     onBlockUser?: (user: {
-    userId: string
-    username: string
-    profileImage?: string
+        userId: string
+        username: string
+        profileImage?: string
     }) => void
     blockedUserIds?: string[]
     blockedByUserIds?: string[]
@@ -218,6 +218,8 @@ function CommentItem({
     const isLiked = comment.currentUserReaction === "like"
     const isDisliked = comment.currentUserReaction === "dislike"
 
+    const isBlocked = !!comment.userId && (blockedUserIds.includes(comment.userId) || blockedByUserIds.includes(comment.userId))
+
     const [editValue, setEditValue] = useState(comment.text)
 
     useEffect(() => {
@@ -353,7 +355,7 @@ function CommentItem({
                                         </>
                                     )}
 
-                                    {!isOwnComment && (
+                                    {!isOwnComment && !isBlocked && (
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -362,9 +364,9 @@ function CommentItem({
                                                 setIsMenuOpen(false)
 
                                                 onBlockUser?.({
-                                                userId: comment.userId,
-                                                username: comment.username,
-                                                profileImage: comment.profileImage || "",
+                                                    userId: comment.userId,
+                                                    username: comment.username,
+                                                    profileImage: comment.profileImage || "",
                                                 })
                                             }}
                                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)]"

@@ -34,14 +34,6 @@ export function useRecipeCardActions({
   }, [currentUser?.uid, recipe.userId, followingUserIds, isOwner])
 
   const isFavorite = useMemo(() => {
-    // if (!currentUser?.uid || !recipe.recipeId) return false
-
-    // return savedRecipes.some((savedRecipe) => {
-    //   if (typeof savedRecipe === "string") return savedRecipe === recipe.recipeId
-    //   if (savedRecipe?.recipeId) return savedRecipe.recipeId === recipe.recipeId
-    //   if (savedRecipe?.id) return savedRecipe.id === recipe.recipeId
-    //   return false
-    // })
     if (!currentUser?.uid || !recipe.recipeId) return false
 
     return savedRecipes.some((savedRecipe) => savedRecipe.recipeId === recipe.recipeId)

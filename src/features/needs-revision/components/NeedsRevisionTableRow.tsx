@@ -157,6 +157,12 @@ export default function NeedsRevisionTableRow({
             </TruncatedTooltipText>
             )
 
+        case "message":
+            return (
+                <TruncatedTooltipText className="text-sm text-[var(--text-secondary)]">
+                    {recipe.denialFeedback?.message || "-"}
+                </TruncatedTooltipText>
+            )
         case "description":
             return (
                 <TruncatedTooltipText className="text-sm text-[var(--text-secondary)]">

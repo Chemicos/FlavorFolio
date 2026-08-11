@@ -293,8 +293,19 @@ export default function RecipeReviewDetailsDrawer({
             <InfoValue value={recipe.servings ? String(recipe.servings) : "-"} />
           </div>
 
+          {mode === "revision" && recipe.denialFeedback?.message && (
+            <section className="mt-6 rounded-xl border border-[var(--warning-border)] bg-[var(--warning-soft)] p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--warning-text)]">
+                Revision message
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]">
+                {recipe.denialFeedback.message}
+              </p>
+            </section>
+          )}
+
           <section className="mt-8">
-            
             <RecipeReviewSectionHeader 
               title="Description"
               feedback={reviewFeedback.description}

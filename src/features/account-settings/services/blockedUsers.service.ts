@@ -67,13 +67,21 @@ export async function blockUser({
   const targetFollowingCurrentRef = doc(db, "users", targetUserId, "following", currentUserId)
   const currentFollowerTargetRef = doc(db, "users", currentUserId, "followers", targetUserId)
 
+  const targetUserRef = doc(db, "users", targetUserId)
+
   const [
     currentFollowsTargetSnap,
     targetFollowsCurrentSnap,
+    targetUserSnap,
   ] = await Promise.all([
     getDoc(currentFollowingTargetRef),
     getDoc(targetFollowingCurrentRef),
+    getDoc(targetUserRef)
   ])
+
+  const targetUserData = targetUserSnap.exists() ? targetUserSnap.data() : null
+  const canonicalUsername = targetUserData?.username || targetUsername || "User"
+  const canonicalProfileImage = targetUserData?.profileImage || targetUserData?.profileImageUrl || targetProfileImage || ""
 
   const targetRecipesSnapshot = await getDocs(
     query(
@@ -96,8 +104,8 @@ export async function blockUser({
 
   batch.set(currentBlockedRef, {
     userId: targetUserId,
-    username: targetUsername,
-    profileImageUrl: targetProfileImage,
+    username: canonicalUsername,
+    profileImageUrl: canonicalProfileImage,
     blockedAt: serverTimestamp(),
   })
 
