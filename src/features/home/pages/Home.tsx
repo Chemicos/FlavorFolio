@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import FilterDrawer, { defaultRecipeFilters, RecipeFilters } from "../components/FilterDrawer"
-import Navigation from "../../../components/layout/Navigation"
+// import Navigation from "../../../components/layout/Navigation"
 import Content from "../components/Content.js"
 
 import ScrollToTopButton from "../components/ScrollToTopButton"
@@ -18,6 +18,7 @@ import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 import { CircularProgress, useMediaQuery } from "@mui/material"
 import { fetchRecipeById } from "../services/recipes.service"
 import DeleteWarningDialog from "../components/recipe-view-drawer/DeleteWarningDialog"
+import { useAppLayout } from "../../../components/layout/AppLayoutContext"
 
 export type CreatePostType = "recipe" | "reel"
 
@@ -58,6 +59,7 @@ export default function Home() {
   const LAYOUT_GAP = 24
   const isInlineDrawerOpen = Boolean(selectedRecipe) || isPostFormVisible || Boolean(editingRecipe) || isRecipeDrawerLoading
 
+  const {setFloatingMessagesRightOffset} = useAppLayout()
   const floatingActionsRightOffset = isInlineDrawerOpen && !isLargeDesktop
     ? RECIPE_DRAWER_WIDTH + LAYOUT_GAP + 24
     : 24
@@ -84,6 +86,14 @@ export default function Home() {
   const handleResetFilters = () => {
     setFilters(defaultRecipeFilters)
   }
+
+  useEffect(() => {
+    setFloatingMessagesRightOffset(floatingActionsRightOffset)
+
+    return () => {
+      setFloatingMessagesRightOffset(24)
+    }
+  }, [floatingActionsRightOffset, setFloatingMessagesRightOffset])
 
   useEffect(() => {
     if (!recipeIdFromUrl) {
@@ -464,8 +474,6 @@ export default function Home() {
         />
 
       <div className="relative z-10">
-        <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
-
         <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
           <main
             className={[

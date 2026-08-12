@@ -2,7 +2,7 @@ import { ReviewRecipe } from "../types/recipeReview.types"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePendingRecipes } from "../hooks/usePendingRecipes"
-import Navigation from "../../../components/layout/Navigation"
+// import Navigation from "../../../components/layout/Navigation"
 import RecipeReviewPageHeader from "../components/RecipeReviewPageHeader"
 import RecipeReviewTable from "../components/RecipeReviewTable"
 import { useDebounce } from "../hooks/useDebounce"
@@ -212,7 +212,7 @@ export default function PendingRecipesPage() {
             const nextParams = new URLSearchParams(searchParams)
             nextParams.set("recipeId", recipe.recipeId)
 
-            setSearchParams(nextParams)
+            setSearchParams(nextParams, { replace: true })
         },
         [searchParams, setSearchParams]
     )
@@ -361,7 +361,7 @@ export default function PendingRecipesPage() {
                 paddingRight: selectedRecipe ? detailsDrawerWidth : 0
             }}
         >
-            <Navigation />
+            {/* <Navigation /> */}
 
             <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-20">
                 <RecipeReviewPageHeader 

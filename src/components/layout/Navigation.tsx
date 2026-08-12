@@ -13,15 +13,10 @@ import NotificationsIcon from '@mui/icons-material/Notifications'
 import UserDropdownMenu from './UserDropdownMenu'
 import { useNotifications } from '../../features/notifications/hooks/useNotifications'
 import NotificationsPopover from '../../features/notifications/components/NotificationsPopover'
-import FloatingMessagesButton from '../../features/messages/components/FloatingMessagesButton'
+// import FloatingMessagesButton from '../../features/messages/components/FloatingMessagesButton'
 import GlobalSearchBar from '../../features/search/components/GlobalSearchBar'
 
-interface NavigationProps {
-  onFeedbackClick?: () => void
-  floatingMessagesRightOffset?: number
-}
-
-export default function Navigation({ onFeedbackClick, floatingMessagesRightOffset = 24, }: NavigationProps) {
+export default function Navigation() {
     const navigate = useNavigate()
     const location = useLocation()
     const auth = getAuth()
@@ -34,7 +29,6 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
     const [isAdmin, setIsAdmin] = useState(false)
     const [needsRevisionCount, setNeedsRevisionCount] = useState(0)
     const [pendingCount, setPendingCount] = useState(0)
-    const [feedbackCount, setFeedbackCount] = useState(0)
     // const [isDarkMode, setIsDarkMode] = useState(false)
     
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
@@ -61,15 +55,8 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
         setPendingCount(pendingSnapshot.size)
       }
 
-      const fetchFeedbackCount = async () => {
-        const feedbackCollection = collection(db, 'feedbacks')
-        const feedbackSnapshot = await getDocs(feedbackCollection)
-        setFeedbackCount(feedbackSnapshot.size)
-      }
-
       if (isAdmin) {
         fetchPendingCount()
-        fetchFeedbackCount()
       }
     }, [isAdmin])
 
@@ -187,17 +174,6 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
     } catch (error) {
       console.error("Sign out error", error)
     }
-  }
-
-  const handleFeedbackMenuClick = () => {
-    handleMenuClose()
-
-    if(isAdmin) {
-      navigate("/manage-feedback")
-      return
-    }
-
-    onFeedbackClick?.()
   }
   return (
     <>
@@ -331,12 +307,10 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
                   onPending={() => handleNavigate("/pending")}
                   onNeedsRevision={() => handleNavigate("/needs-revision")}
                   onDashboard={() => handleNavigate("/admin/dashboard")}
-                  onFeedbacks={handleFeedbackMenuClick}
                   onSettings={() => handleNavigate("/settings")}
                   onSignOut={handleSignOut}
                   isAdmin={isAdmin}
                   pendingCount={pendingCount}
-                  feedbackCount={feedbackCount}
                   needsRevisionCount={needsRevisionCount}
                 />
               </div>
@@ -344,7 +318,7 @@ export default function Navigation({ onFeedbackClick, floatingMessagesRightOffse
           </nav>
       </div>
 
-      <FloatingMessagesButton rightOffset={floatingMessagesRightOffset} />
+      {/* <FloatingMessagesButton rightOffset={floatingMessagesRightOffset} /> */}
     </>
 
   )

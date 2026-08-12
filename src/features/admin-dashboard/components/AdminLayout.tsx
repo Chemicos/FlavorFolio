@@ -1,5 +1,4 @@
 import { ReactNode, useState } from "react"
-import Navigation from "../../../components/layout/Navigation"
 import AdminDashboardSidebar from "./AdminDashboardSidebar"
 import { useLocalStorage } from "../hooks/useLocalStorage"
 
@@ -24,8 +23,6 @@ export default function AdminLayout({
       ].join(" ")}
       style={{ paddingRight: rightOffset }}
     >
-      <Navigation />
-
       <AdminDashboardSidebar
         isCollapsed={isCollapsed}
         onToggleCollapsed={() => setIsCollapsed((prev) => !prev)}

@@ -23,12 +23,12 @@ export interface UserDropdownMenuProps {
     onPending: () => void
     onNeedsRevision: () => void
     onDashboard: () => void
-    onFeedbacks: () => void
+    // onFeedbacks: () => void
     onSettings: () => void
     onSignOut: () => void
     isAdmin: boolean
     pendingCount?: number
-    feedbackCount?: number
+    // feedbackCount?: number
     needsRevisionCount?: number
 }
 
@@ -129,12 +129,10 @@ export default function UserDropdownMenu({
     onPending,
     onNeedsRevision,
     onDashboard,
-    onFeedbacks,
     onSettings,
     onSignOut,
     isAdmin,
     pendingCount = 0,
-    feedbackCount = 0,
     needsRevisionCount = 0,
 }: UserDropdownMenuProps) {
   const location = useLocation()

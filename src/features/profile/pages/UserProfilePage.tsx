@@ -9,7 +9,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useDebounce } from "../../recipe-review/hooks/useDebounce"
 
 import ProfileRecipeToolbar, { ProfileRecipeSortValue, ProfileRecipeViewMode } from "../components/ProfileRecipeToolbar"
-import Navigation from "../../../components/layout/Navigation"
 import MyProfileHeader from "../components/MyProfileHeader"
 import ProfileRecipeGridSkeleton from "../components/ProfileRecipeGridSkeleton"
 import ProfileRecipeGrid from "../components/ProfileRecipeGrid"
@@ -634,7 +633,6 @@ export default function UserProfilePage() {
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
-      <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
       <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
         <main 
           className={[

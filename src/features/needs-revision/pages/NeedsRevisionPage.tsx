@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import Navigation from "../../../components/layout/Navigation";
 import NeedsRevisionPageHeader from "../components/NeedsRevisionPageHeader";
 import { NeedsRevisionRecipe } from "../types/needsRevision.types";
 import { useNeedsRevisionRecipes } from "../hooks/useNeedsRevisionRecipes";
@@ -292,7 +291,7 @@ export default function NeedsRevisionPage() {
     const nextParams = new URLSearchParams(searchParams)
     nextParams.set("recipeId", recipe.recipeId)
 
-    setSearchParams(nextParams)
+    setSearchParams(nextParams, {replace: true})
   }
 
   const handleOpenDeleteSelected = () => {
@@ -319,8 +318,6 @@ export default function NeedsRevisionPage() {
             : 0,
       }}
     >
-      <Navigation />
-
       <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-20">
         <NeedsRevisionPageHeader 
           search={search}

@@ -1,8 +1,6 @@
 import { useParams } from "react-router-dom"
 import { auth } from "../../../firebase-config"
 import ChatLayout from "../components/ChatLayout"
-import Navigation from "../../../components/layout/Navigation"
-
 
 export default function MessagesPage() {
   const { conversationId } = useParams()
@@ -12,7 +10,6 @@ export default function MessagesPage() {
 
   return (
     <>
-      <Navigation />
       <ChatLayout
         currentUserId={currentUserId}
         activeConversationId={conversationId || null}

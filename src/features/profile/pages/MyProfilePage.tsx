@@ -6,7 +6,6 @@ import { useDebounce } from "../../recipe-review/hooks/useDebounce";
 import { AnimatePresence, motion } from "motion/react";
 import { useMyProfileRecipes } from "../hooks/useMyProfileRecipes";
 
-import Navigation from "../../../components/layout/Navigation";
 import MyProfileHeader from "../components/MyProfileHeader";
 import ProfileRecipeTabs, { ProfileRecipeTabItem, ProfileRecipeTabValue } from "../components/ProfileRecipeTabs";
 import ProfileRecipeToolbar, { ProfileRecipeSortValue, ProfileRecipeViewMode } from "../components/ProfileRecipeToolbar";
@@ -76,7 +75,6 @@ export default function MyProfilePage() {
   const RECIPE_DRAWER_WIDTH = 540
   const LAYOUT_GAP = 24
   const FLOATING_EDGE_GAP = 24
-  const DRAWER_TOP_OFFSET = 80
 
   const recipeDrawerWidth = RECIPE_DRAWER_WIDTH
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
@@ -569,8 +567,6 @@ export default function MyProfilePage() {
   return (
     <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
       <div className="relative z-10">
-        <Navigation floatingMessagesRightOffset={floatingActionsRightOffset} />
-
         <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
           <main 
             className={[

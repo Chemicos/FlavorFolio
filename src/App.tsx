@@ -1,14 +1,5 @@
-// import { useEffect, useState } from 'react'
 import Home from './features/home/pages/Home'
-// import Cookies from 'universal-cookie'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-// import PendingRecipes from './components/PendingRecipes'
-// import ProfilePage from './components/myProfile/ProfilePage'
-// import AccountSettings from './components/AccountSettings/AccountSettings'
-// import ViewUserProfile from './components/UsersProfile/ViewUserProfile'
-// import Dashboard from './components/DashboardAdmin/Dashboard'
-// import ManageFeedback from './components/Feedback/ManageFeedback'
-// import Register from './features/auth/pages/Register'
 import Login from './features/auth/pages/Login'
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -27,6 +18,7 @@ import MessagesPage from './features/messages/pages/MessagesPage'
 import ReelsPage from './features/reels/pages/ReelsPage'
 import PresenceHeartbeat from './features/messages/components/PresenceHeartbeat'
 import AppThemeController from './features/account-settings/components/AppThemeController'
+import AppLayout from './AppLayout'
 
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -39,10 +31,6 @@ function App() {
     return () => unsubscribe()
   }, [])
 
-  // if (user === undefined) {
-  //   return <div className='min-h-screen bg-[#0b0b0c]'></div>
-  // }
-
   return (
     <>
       <AppThemeController />
@@ -53,25 +41,31 @@ function App() {
       <Router>
         <PresenceHeartbeat currentUserId={user?.uid} />
         
-        {/* <div> */}
           <Routes>
-            <Route path="/" element={user ? <Navigate replace to="/home" /> : <Login />} />
-            <Route path="/home" element={user ? <Home /> : <Navigate replace to="/" />} />
-            <Route path="/reels" element={user ? <ReelsPage /> : <Navigate replace to="/" />} />
-            <Route path='/pending' element={user ? <PendingRecipesPage /> : <Navigate replace to="/" />} />
-            <Route path='/needs-revision' element={user ? <NeedsRevisionPage /> : <Navigate replace to="/" />} />
-            <Route path='/profile' element={user ? <MyProfilePage /> : <Navigate replace to="/" />} />
-            <Route path="/users/:userId" element={user ? <UserProfilePage /> : <Navigate replace to="/" />} />
-            <Route path='/settings' element={user ? <AccountSettingsPage /> : <Navigate replace to="/" />} />
-            <Route path='/admin/dashboard' element={user ? <AdminDashboardPage/> : <Navigate replace to="/" />} />
-            <Route path="/admin/recipes" element={user ? <AdminRecipesPage /> : <Navigate replace to="/" />}/>
-            <Route path="/admin/users" element={user ? <AdminUsersPage /> : <Navigate replace to="/" />} />
-            <Route path="/admin/reports" element={user ? <AdminReportsPage /> : <Navigate replace to="/" />} />
-            <Route path="/messages" element={user ? <MessagesPage /> : <Navigate replace to="/" />} />
-            <Route path="/messages/:conversationId" element={user ? <MessagesPage /> : <Navigate replace to="/" /> } />
-            {/* <Route path='/manage-feedback' element={user ? <ManageFeedback /> : <Navigate replace to="/" />} /> */}
+            <Route path='/' element={user ? <Navigate replace to="/home" /> : <Login />} />
+
+            {user && (
+              <Route element={<AppLayout />}>
+                <Route path='/home' element={<Home />} />
+                <Route path='/reels' element={<ReelsPage />} />
+                <Route path='/pending' element={<PendingRecipesPage />} />
+                <Route path='/needs-revision' element={<NeedsRevisionPage />} />
+                <Route path='/profile' element={<MyProfilePage />} />
+                <Route path='/users/:userId' element={<UserProfilePage />} />
+                <Route path='/settings' element={<AccountSettingsPage />} />
+                <Route path='/admin/dashboard' element={<AdminDashboardPage />} />
+                <Route path='/admin/recipes' element={<AdminRecipesPage />} />
+                <Route path='/admin/users' element={<AdminUsersPage />} />
+                <Route path='/admin/reports' element={<AdminReportsPage />} />
+                <Route path='/messages' element={<MessagesPage />} />
+                <Route path='/messages/:conversationId' element={<MessagesPage />} />
+              </Route>
+            )}
+
+            {!user && (
+              <Route path='*' element={<Navigate replace to="/" />} />
+            )}
           </Routes>
-        {/* </div> */}
       </Router>
       )}
     </>

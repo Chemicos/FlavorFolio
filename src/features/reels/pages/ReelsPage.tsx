@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navigation from "../../../components/layout/Navigation";
+// import Navigation from "../../../components/layout/Navigation";
 import ReelsFeed from "../components/ReelsFeed";
 import { Reel } from "../types/reel.types";
 import { useReels } from "../hooks/useReels";
@@ -58,7 +58,7 @@ export default function ReelsPage() {
 
   return (
      <>
-        <Navigation />
+        {/* <Navigation /> */}
         <main className="fixed inset-x-0 bottom-0 top-16 overflow-hidden bg-[var(--bg-primary)]">
           <ReelsFeed
             reels={reels}
