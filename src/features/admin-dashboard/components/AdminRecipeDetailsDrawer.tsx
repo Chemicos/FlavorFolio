@@ -7,14 +7,14 @@ import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 
 import { useNavigate } from "react-router-dom"
 import { formatDurationFromMinutes } from "../../home/utils/recipeDuration"
-import { AdminRecipeRow } from "../types/adminRecipes.types"
+import { AdminRecipeDetails } from "../types/adminRecipes.types"
 import { motion } from "motion/react"
 import { useEffect, useMemo, useState } from "react"
 import RecipeReviewIngredientsSection from "../../recipe-review/components/RecipeReviewIngredientsSection"
 import RecipeReviewStepsSection from "../../recipe-review/components/RecipeReviewStepsSection"
 
 interface AdminRecipeDetailsDrawerProps {
-  recipe: AdminRecipeRow
+  recipe: AdminRecipeDetails
   width: number
   onClose: () => void
   onResizeStart: (event: React.MouseEvent<HTMLDivElement>) => void

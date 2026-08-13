@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { AdminReportsOverviewStats } from "../types/adminReports.types"
 import { fetchAdminReportsOverview } from "../services/adminReports.service"
 
-export function useAdminReportsOverview() {
+export function useAdminReportsOverview(refreshKey = 0) {
   const [overview, setOverview] = useState<AdminReportsOverviewStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -23,8 +23,8 @@ export function useAdminReportsOverview() {
   }, [])
 
   useEffect(() => {
-    loadOverview()
-  }, [loadOverview])
+    void loadOverview()
+  }, [loadOverview, refreshKey])
 
   return {
     overview,

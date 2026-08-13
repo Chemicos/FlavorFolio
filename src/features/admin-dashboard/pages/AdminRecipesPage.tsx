@@ -7,7 +7,7 @@ import SelectAllRoundedIcon from "@mui/icons-material/SelectAllRounded"
 import { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../components/AdminLayout";
 import { useAdminRecipes } from "../hooks/useAdminRecipes";
-import { AdminRecipeRow, AdminRecipeStatus } from "../types/adminRecipes.types";
+import { AdminRecipeDetails, AdminRecipeListItem, AdminRecipeStatus } from "../types/adminRecipes.types";
 import AdminRecipesTable from "../components/AdminRecipesTable";
 import RecipeReviewPagination from "../../recipe-review/components/RecipeReviewPagination";
 import AdminRecipeDetailsDrawer from "../components/AdminRecipeDetailsDrawer";
@@ -18,15 +18,18 @@ import { useDebounce } from "../../recipe-review/hooks/useDebounce"
 import { useSearchParams } from "react-router-dom"
 import { useAdminLiveRefresh } from "../hooks/useAdminLiveRefresh"
 import AdminLiveDataStatus from "../components/AdminLiveDataStatus"
+import { CircularProgress } from "@mui/material"
 
 
 export default function AdminRecipesPage() {
-    const { recipes, isLoading, error, refetch, isDeleting, deleteRecipes } = useAdminRecipes()
+    const { recipes, isLoading, error, refetch, loadRecipeDetails, isDeleting, deleteRecipes } = useAdminRecipes()
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
     const [selectedStatuses, setSelectedStatuses] = useState<AdminRecipeStatus[]>([])
     const [selectedIds, setSelectedIds] = useState<string[]>([])
-    const [selectedRecipe, setSelectedRecipe] = useState<AdminRecipeRow | null>(null)
+    const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
+    const [selectedRecipe, setSelectedRecipe] = useState<AdminRecipeDetails | null>(null)
+    const [isRecipeDetailsLoading, setIsRecipeDetailsLoading] = useState(false)
 
     const { isRefreshing, lastUpdatedAt, handleRefresh } = useAdminLiveRefresh({
         isLoading,
@@ -80,6 +83,43 @@ export default function AdminRecipesPage() {
     }
 
     useEffect(() => {
+        if (!selectedRecipeId) {
+            setSelectedRecipe(null)
+            setIsRecipeDetailsLoading(false)
+
+            return
+        }
+
+        let isCancelled = false
+
+        async function loadDetails() {
+            try {
+                setIsRecipeDetailsLoading(true)
+
+                const result = await loadRecipeDetails(selectedRecipeId!)
+
+                if (isCancelled) return
+
+                setSelectedRecipe(result)
+            } catch (error) {
+                console.error("Failed to load recipe details:", error)
+
+                if (!isCancelled) {
+                    setSelectedRecipe(null)
+                }
+            } finally {
+                if (!isCancelled) {
+                    setIsRecipeDetailsLoading(false)
+                }
+            }
+        }
+
+        void loadDetails()
+
+        return () => {isCancelled = true}
+    }, [selectedRecipeId, loadRecipeDetails,])
+
+    useEffect(() => {
         if (debouncedSearchQuery.trim() === visibleSearchQuery.trim()) return
 
         setIsSearchLoading(true)
@@ -127,7 +167,7 @@ export default function AdminRecipesPage() {
 
         if (!targetRecipe) return
 
-        setSelectedRecipe(targetRecipe)
+        setSelectedRecipeId(targetRecipe.recipeId)
 
         const targetIndex = filteredRecipes.findIndex(
             (recipe) => recipe.recipeId === targetRecipeId
@@ -137,7 +177,17 @@ export default function AdminRecipesPage() {
             setCurrentPage(Math.floor(targetIndex / rowsPerPage) + 1)
         }
 
-        setSearchParams({}, { replace: true })
+        setSearchParams(
+            (currentParams) => {
+                const nextParams = new URLSearchParams(currentParams)
+                nextParams.delete("recipeId")
+
+                return nextParams
+            },
+            {
+                replace: true,
+            }
+        )
     }, [targetRecipeId, isLoading, recipes, filteredRecipes, rowsPerPage, setSearchParams,])
 
     const totalPages = Math.ceil(filteredRecipes.length / rowsPerPage)
@@ -167,7 +217,8 @@ export default function AdminRecipesPage() {
 
         await deleteRecipes(selectedIds)
 
-        if (selectedRecipe && selectedIds.includes(selectedRecipe.recipeId)) {
+        if (selectedRecipeId && selectedIds.includes(selectedRecipeId)) {
+            setSelectedRecipeId(null)
             setSelectedRecipe(null)
         }
 
@@ -186,8 +237,20 @@ export default function AdminRecipesPage() {
         }
     }, [currentPage, totalPages])
 
+    const handleViewRecipe = (
+        recipe: AdminRecipeListItem
+    ) => {
+        setSelectedRecipe(null)
+        setSelectedRecipeId(recipe.recipeId)
+    }
+
+    const handleCloseRecipeDetails = () => {
+        setSelectedRecipeId(null)
+        setSelectedRecipe(null)
+    }
+
   return (
-    <AdminLayout fullHeight rightOffset={selectedRecipe ? detailsDrawerWidth : 0}>
+    <AdminLayout fullHeight rightOffset={selectedRecipeId ? detailsDrawerWidth : 0}>
         <header className="shrink-0 flex flex-col gap-5 border-b border-[var(--border)] pb-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
@@ -376,10 +439,10 @@ export default function AdminRecipesPage() {
                         selectedIds={selectedIds}
                         selectedStatuses={selectedStatuses}
                         isLoading={isSearchLoading}
-                        activeRecipeId={selectedRecipe?.recipeId || null}
+                        activeRecipeId={selectedRecipeId}
                         onToggleRecipe={handleToggleRecipe}
                         onStatusFilterChange={setSelectedStatuses}
-                        onViewRecipe={setSelectedRecipe}
+                        onViewRecipe={handleViewRecipe}
                     />
                 </div>
 
@@ -404,14 +467,25 @@ export default function AdminRecipesPage() {
         )}
 
         <AnimatePresence>
-            {selectedRecipe && (
-                <AdminRecipeDetailsDrawer
-                key={selectedRecipe.recipeId}
-                recipe={selectedRecipe}
-                width={detailsDrawerWidth}
-                onClose={() => setSelectedRecipe(null)}
-                onResizeStart={handleDetailsResizeStart}
-                />
+            {selectedRecipeId && (
+                <>
+                    {isRecipeDetailsLoading ? (
+                        <aside 
+                            style={{width: detailsDrawerWidth}}
+                            className="fixed right-0 top-16 z-40 flex h-[calc(100vh-64px)] items-center justify-center border-l border-[var(--border)] bg-[var(--bg-secondary)] shadow-[var(--shadow-panel)]"
+                        >
+                            <CircularProgress size={30} sx={{color: "var(--accent)"}} />
+                        </aside>
+                    ) : selectedRecipe ? (
+                        <AdminRecipeDetailsDrawer
+                            key={selectedRecipe.recipeId}
+                            recipe={selectedRecipe}
+                            width={detailsDrawerWidth}
+                            onClose={handleCloseRecipeDetails}
+                            onResizeStart={handleDetailsResizeStart}
+                        />
+                    ): null}
+                </>
             )}
         </AnimatePresence>
 

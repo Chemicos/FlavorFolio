@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 
-import type { AdminRecipeRow, AdminRecipeStatus } from "../types/adminRecipes.types"
+import type { AdminRecipeListItem, AdminRecipeStatus } from "../types/adminRecipes.types"
 import AdminRecipesTableRow from "./AdminRecipesTableRow"
 import AdminRecipesTableSkeleton from "./skeletons/AdminRecipesTableSkeleton"
 import { AnimatePresence, motion } from "motion/react"
@@ -63,12 +63,12 @@ const defaultColumns: AdminRecipesTableColumn[] = [
 ]
 
 interface Props {
-  recipes: AdminRecipeRow[]
+  recipes: AdminRecipeListItem[]
   selectedIds: string[]
   isLoading: boolean
   activeRecipeId?: string | null
   onToggleRecipe: (recipeId: string) => void
-  onViewRecipe: (recipe: AdminRecipeRow) => void
+  onViewRecipe: (recipe: AdminRecipeListItem) => void
   selectedStatuses: AdminRecipeStatus[]
   onStatusFilterChange: (statuses: AdminRecipeStatus[]) => void
 }
@@ -235,6 +235,7 @@ export default function AdminRecipesTable({
   onStatusFilterChange = () => {},
 }: Props) {
   const TABLE_PREFS_KEY = "flavorfolio.adminRecipesTablePrefs"
+  const resizeCleanupRef = useRef<(() => void) | null>(null)
 
   const savedPrefs = useMemo(() => {
     try {
@@ -274,6 +275,12 @@ export default function AdminRecipesTable({
     key: savedPrefs.sort?.key || "updatedAt",
     direction: savedPrefs.sort?.direction || "desc",
   }))
+
+  useEffect(() => {
+    return () => {
+      resizeCleanupRef.current?.()
+    }
+  }, [])
 
   useEffect(() => {
     localStorage.setItem(
@@ -326,6 +333,8 @@ export default function AdminRecipesTable({
   ) => {
     event.preventDefault()
 
+    resizeCleanupRef.current?.()
+
     const startX = event.clientX
     const startWidth = columnWidths[columnKey]
 
@@ -338,16 +347,25 @@ export default function AdminRecipesTable({
       }))
     }
 
-    const handleMouseUp = () => {
+    const cleanup = () => {
       document.removeEventListener("mousemove", handleMouseMove)
+
       document.removeEventListener("mouseup", handleMouseUp)
+
+      resizeCleanupRef.current = null
     }
+
+    const handleMouseUp = () => {
+      cleanup()
+    }
+
+    resizeCleanupRef.current = cleanup
 
     document.addEventListener("mousemove", handleMouseMove)
     document.addEventListener("mouseup", handleMouseUp)
   }
 
-    const getSortValue = (recipe: AdminRecipeRow, key: SortKey) => {
+    const getSortValue = (recipe: AdminRecipeListItem, key: SortKey) => {
         switch (key) {
             case "title":
             return recipe.title

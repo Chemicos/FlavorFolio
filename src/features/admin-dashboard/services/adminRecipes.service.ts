@@ -9,7 +9,7 @@ import {
   writeBatch,
 } from "@firebase/firestore"
 import { db, storage } from "../../../firebase-config"
-import type { AdminRecipeRow, AdminRecipeStatus } from "../types/adminRecipes.types"
+import type { AdminRecipeDetails, AdminRecipeListItem, AdminRecipeStatus } from "../types/adminRecipes.types"
 import { deleteObject, ref } from "firebase/storage"
 
 function getDateMs(value: any) {
@@ -25,7 +25,145 @@ function normalizeStatus(value: unknown): AdminRecipeStatus {
   return "published"
 }
 
-export async function fetchAdminRecipes(): Promise<AdminRecipeRow[]> {
+function mapAdminRecipeListItem(
+  documentId: string,
+  data: any
+): AdminRecipeListItem {
+  const stats = data.stats || {}
+
+  return {
+    recipeId: data.recipeId || documentId,
+    title: data.title || "Untitled recipe",
+    image: data.image || "",
+
+    authorUsername:
+      data.author?.username ||
+      data.user ||
+      "Unknown",
+
+    authorProfileImage:
+      data.author?.profileImage ||
+      data.authorProfileImage ||
+      "",
+
+    userId: data.userId || "",
+
+    status: normalizeStatus(data.status),
+
+    visibility:
+      data.visibility === "private"
+        ? "private"
+        : "public",
+
+    meal: data.meal || "-",
+    cuisine: data.cuisine || "-",
+    difficulty: data.difficulty || "-",
+    savesCount: Number(stats.savesCount || 0),
+    commentsCount: Number(stats.commentsCount || 0),
+    averageRating: Number(stats.averageRating || 0),
+
+    updatedAtMs:
+      getDateMs(
+        data.updatedAt ||
+        data.createdAt
+      ),
+  }
+}
+
+function mapAdminRecipeDetails(
+  documentId: string,
+  data: any
+): AdminRecipeDetails {
+  return {
+    ...mapAdminRecipeListItem(
+      documentId,
+      data
+    ),
+
+    description: data.description || "",
+    durationMinutes: Number(data.durationMinutes || 0),
+    servings: Number(data.servings || 0),
+
+    ingredients:
+      Array.isArray(data.ingredients)
+        ? data.ingredients.map(
+            (ingredient: any) => ({
+              ingredient:
+                ingredient?.ingredient || "",
+              quantity:
+                ingredient?.quantity || "",
+              unit:
+                ingredient?.unit || "",
+            })
+          )
+        : [],
+
+    cookingSteps:
+      Array.isArray(data.cookingSteps)
+        ? data.cookingSteps.map(
+            (step: any) => ({
+              title: step?.title || "",
+
+              description: step?.description || "",
+
+              image: step?.image || "",
+
+              imageUrl:
+                step?.imageUrl ||
+                step?.image ||
+                "",
+            })
+          )
+        : [],
+  }
+}
+
+// export async function fetchAdminRecipes(): Promise<AdminRecipeRow[]> {
+//   const recipesQuery = query(
+//     collection(db, "recipes"),
+//     orderBy("updatedAt", "desc"),
+//     limit(100)
+//   )
+
+//   const snapshot = await getDocs(recipesQuery)
+
+//   return snapshot.docs.map((docSnap) => {
+//     const data = docSnap.data()
+//     const stats = data.stats || {}
+
+//     return {
+//       recipeId: data.recipeId || docSnap.id,
+//       title: data.title || "Untitled recipe",
+//       image: data.image || "",
+//       authorUsername: data.author?.username || data.user || "Unknown",
+//       authorProfileImage: data.author?.profileImage || data.authorProfileImage || "",
+//       userId: data.userId || "",
+//       status: normalizeStatus(data.status),
+//       visibility: data.visibility || "public",
+//       meal: data.meal || "-",
+//       cuisine: data.cuisine || "-",
+//       difficulty: data.difficulty || "-",
+//       durationMinutes: Number(data.durationMinutes || 0),
+//       savesCount: Number(stats.savesCount || 0),
+//       commentsCount: Number(stats.commentsCount || 0),
+//       averageRating: Number(stats.averageRating || 0),
+//       updatedAtMs: getDateMs(data.updatedAt || data.createdAt),
+//       description: data.description || "",
+//       servings: Number(data.servings || 0),
+//       ingredients: Array.isArray(data.ingredients) ? data.ingredients : [],
+//       cookingSteps: Array.isArray(data.cookingSteps)
+//         ? data.cookingSteps.map((step: any) => ({
+//             title: step.title || "",
+//             description: step.description || "",
+//             image: step.image || "",
+//             imageUrl: step.imageUrl || step.image || "",
+//             }))
+//         : [],
+//     }
+//   })
+// }
+
+export async function fetchAdminRecipes(): Promise<AdminRecipeListItem[]> {
   const recipesQuery = query(
     collection(db, "recipes"),
     orderBy("updatedAt", "desc"),
@@ -34,40 +172,28 @@ export async function fetchAdminRecipes(): Promise<AdminRecipeRow[]> {
 
   const snapshot = await getDocs(recipesQuery)
 
-  return snapshot.docs.map((docSnap) => {
-    const data = docSnap.data()
-    const stats = data.stats || {}
+  return snapshot.docs.map(
+    (docSnap) =>
+      mapAdminRecipeListItem(
+        docSnap.id,
+        docSnap.data()
+      )
+  )
+}
 
-    return {
-      recipeId: data.recipeId || docSnap.id,
-      title: data.title || "Untitled recipe",
-      image: data.image || "",
-      authorUsername: data.author?.username || data.user || "Unknown",
-      authorProfileImage: data.author?.profileImage || data.authorProfileImage || "",
-      userId: data.userId || "",
-      status: normalizeStatus(data.status),
-      visibility: data.visibility || "public",
-      meal: data.meal || "-",
-      cuisine: data.cuisine || "-",
-      difficulty: data.difficulty || "-",
-      durationMinutes: Number(data.durationMinutes || 0),
-      savesCount: Number(stats.savesCount || 0),
-      commentsCount: Number(stats.commentsCount || 0),
-      averageRating: Number(stats.averageRating || 0),
-      updatedAtMs: getDateMs(data.updatedAt || data.createdAt),
-      description: data.description || "",
-      servings: Number(data.servings || 0),
-      ingredients: Array.isArray(data.ingredients) ? data.ingredients : [],
-      cookingSteps: Array.isArray(data.cookingSteps)
-        ? data.cookingSteps.map((step: any) => ({
-            title: step.title || "",
-            description: step.description || "",
-            image: step.image || "",
-            imageUrl: step.imageUrl || step.image || "",
-            }))
-        : [],
-    }
-  })
+export async function fetchAdminRecipeDetails(recipeId: string): Promise<AdminRecipeDetails | null> {
+  const recipeRef = doc(db, "recipes", recipeId)
+
+  const snapshot = await getDoc(recipeRef)
+
+  if (!snapshot.exists()) {
+    return null
+  }
+
+  return mapAdminRecipeDetails(
+    snapshot.id,
+    snapshot.data()
+  )
 }
 
 async function deleteStorageFile(path: string) {

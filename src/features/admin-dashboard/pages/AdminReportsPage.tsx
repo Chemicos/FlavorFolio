@@ -45,9 +45,9 @@ export default function AdminReportsPage() {
     const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
 
     const [activeTab, setActiveTab] = useState<AdminReportTabValue>("overview")
-    const { isLoading, error, refetch } = useAdminReportsOverview()
+    // const {  } = useAdminReportsOverview()
 
-    const { overview } = useAdminReportsOverview(reportsRefreshKey)
+    const { overview, isLoading, error, refetch } = useAdminReportsOverview(reportsRefreshKey)
     const { community } = useAdminReportsCommunity(reportsRefreshKey)
     const { food } = useAdminReportsFood(reportsRefreshKey)
     const { seasonal } = useAdminReportsSeasonal(reportsRefreshKey)
