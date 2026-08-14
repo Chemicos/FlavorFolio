@@ -49,16 +49,20 @@ export interface AdminDashboardModerationActivity {
 export interface AdminDashboardStats {
   totalUsers: number
   totalRecipes: number
+  publishedRecipes: number
   pendingRecipes: number
   needsRevisionRecipes: number
-  publishedRecipes: number
   totalSaves: number
   totalComments: number
   averageRating: number
-  statusDistribution: AdminDashboardStatusItem[]
-  mealDistribution: AdminDashboardMealItem[]
+  statusDistribution: {
+    status: RecipeStatus
+    label: string
+    value: number
+  }[]
   topSavedRecipes: AdminDashboardTopRecipe[]
-  recipesOverTime: AdminDashboardActivityItem[]
-  recipeTimelineSource: AdminDashboardRecipeTimelineSource[]
+  recipeTimelineSource: {
+    createdAtMs: number
+  }[]
   recentModerationActivity: AdminDashboardModerationActivity[]
 }

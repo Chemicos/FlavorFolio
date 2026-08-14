@@ -10,20 +10,19 @@ import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded"
 import AdminLayout from "../components/AdminLayout"
 import AdminDashboardMetricsCard from "../components/AdminDashboardMetricsCard"
 import AdminDashboardChartCard from "../components/AdminDashboardChartCard"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import AdminReportsTabs, { AdminReportTabValue } from "../components/AdminReportsTabs"
 import { useAdminReportsOverview } from "../hooks/useAdminReportsOverview"
-import { CircularProgress } from "@mui/material"
 import { useNavigate } from "react-router-dom"
 import AdminReportsCommunitySection from "../components/AdminReportsCommunitySection"
 import AdminReportsFoodSection from "../components/AdminReportsFoodSection"
 import AdminReportsSeasonalSection from "../components/AdminReportsSeasonalSection"
-import { useAdminReportsCommunity } from "../hooks/useAdminReportsCommunity"
-import { useAdminReportsFood } from "../hooks/useAdminReportsFood"
-import { useAdminReportsSeasonal } from "../hooks/useAdminReportsSeasonal"
+// import { useAdminReportsCommunity } from "../hooks/useAdminReportsCommunity"
+// import { useAdminReportsFood } from "../hooks/useAdminReportsFood"
+// import { useAdminReportsSeasonal } from "../hooks/useAdminReportsSeasonal"
 import { AdminReportsPdfExportMode, exportAdminReportsPdf } from "../services/adminReportsPdf.service"
 import AdminReportsExportDropdown from "../components/AdminReportsExportDropdown"
-import { getCurrentAdminDisplayName } from "../services/adminReports.service"
+import { fetchAdminReportsCommunity, fetchAdminReportsFood, fetchAdminReportsSeasonal, getCurrentAdminDisplayName } from "../services/adminReports.service"
 import { ReportsListSkeleton, ReportsMetricSkeleton } from "../components/skeletons/AdminReportsSkeletons"
 
 function formatLastUpdated(date: Date | null) {
@@ -47,23 +46,93 @@ export default function AdminReportsPage() {
     const [activeTab, setActiveTab] = useState<AdminReportTabValue>("overview")
     // const {  } = useAdminReportsOverview()
 
-    const { overview, isLoading, error, refetch } = useAdminReportsOverview(reportsRefreshKey)
-    const { community } = useAdminReportsCommunity(reportsRefreshKey)
-    const { food } = useAdminReportsFood(reportsRefreshKey)
-    const { seasonal } = useAdminReportsSeasonal(reportsRefreshKey)
+    const { overview, isLoading, error, refetch } = useAdminReportsOverview()
+    const refreshTimeoutRef = useRef<number | null>(null)
+    const highlightTimeoutRef = useRef<number | null>(null)
+
+    // const { community } = useAdminReportsCommunity()
+    // const { food } = useAdminReportsFood()
+    // const { seasonal } = useAdminReportsSeasonal()
 
     const handleExportReport = async (mode: AdminReportsPdfExportMode) => {
-        const adminName = await getCurrentAdminDisplayName()
+        try {
+            const adminName =
+            await getCurrentAdminDisplayName()
 
-        exportAdminReportsPdf({
-            activeTab,
-            exportMode: mode,
-            adminName,
-            overview,
-            community,
-            food,
-            seasonal,
-        })
+            if (mode === "full") {
+                const [
+                    community,
+                    food,
+                    seasonal,
+                ] = await Promise.all([
+                    fetchAdminReportsCommunity(),
+                    fetchAdminReportsFood(),
+                    fetchAdminReportsSeasonal(),
+                ])
+
+                exportAdminReportsPdf({
+                    activeTab,
+                    exportMode: mode,
+                    adminName,
+                    overview,
+                    community,
+                    food,
+                    seasonal,
+                })
+
+                return
+            }
+
+            if (activeTab === "overview") {
+                exportAdminReportsPdf({
+                    activeTab,
+                    exportMode: mode,
+                    adminName,
+                    overview,
+                })
+
+                return
+            }
+
+            if (activeTab === "community") {
+                const community =
+                    await fetchAdminReportsCommunity()
+
+                exportAdminReportsPdf({
+                    activeTab,
+                    exportMode: mode,
+                    adminName,
+                    community,
+                })
+
+                return
+            }
+
+            if (activeTab === "food") {
+                const food =
+                    await fetchAdminReportsFood()
+
+                exportAdminReportsPdf({
+                    activeTab,
+                    exportMode: mode,
+                    adminName,
+                    food,
+                })
+
+                return
+            }
+
+            const seasonal = await fetchAdminReportsSeasonal()
+
+            exportAdminReportsPdf({
+                activeTab,
+                exportMode: mode,
+                adminName,
+                seasonal,
+            })
+        } catch (error) {
+            console.error("Failed to export reports:", error)
+        }
     }
 
     const [highlightedFoodSection, setHighlightedFoodSection] =
@@ -75,16 +144,37 @@ export default function AdminReportsPage() {
         }
     }, [isLoading, overview, lastUpdatedAt])
 
+    useEffect(() => {
+        return () => {
+            if (refreshTimeoutRef.current !== null) {
+                window.clearTimeout(refreshTimeoutRef.current)
+            }
+
+            if (highlightTimeoutRef.current !== null) {
+                window.clearTimeout(highlightTimeoutRef.current)
+            }
+        }
+    }, [])
+
     const handleRefreshReports = async () => {
         try {
             setIsRefreshing(true)
 
-            await refetch()
-            setReportsRefreshKey((prev) => prev + 1)
+            if (activeTab === "overview") {
+                await refetch()
+            } else {
+                setReportsRefreshKey((prev) => prev + 1)
+            }
+
             setLastUpdatedAt(new Date())
         } finally {
-            window.setTimeout(() => {
-            setIsRefreshing(false)
+            if (refreshTimeoutRef.current !== null) {
+                window.clearTimeout(refreshTimeoutRef.current)
+            }
+
+            refreshTimeoutRef.current = window.setTimeout(() => {
+                setIsRefreshing(false)
+                refreshTimeoutRef.current = null
             }, 650)
         }
     }
@@ -97,9 +187,15 @@ export default function AdminReportsPage() {
         setActiveTab("food")
         setHighlightedFoodSection(target)
 
-        window.setTimeout(() => {
-            setHighlightedFoodSection(null)
-        }, 1800)
+        if (highlightTimeoutRef.current !== null) {
+            window.clearTimeout(highlightTimeoutRef.current)
+        }
+
+        highlightTimeoutRef.current =
+            window.setTimeout(() => {
+                setHighlightedFoodSection(null)
+                highlightTimeoutRef.current = null
+            }, 1800)
     }
 
   return (
@@ -307,7 +403,7 @@ export default function AdminReportsPage() {
 
       {activeTab === "community" && <AdminReportsCommunitySection refreshKey={reportsRefreshKey} />}
 
-      {activeTab === "food" && (<AdminReportsFoodSection refreshKey={reportsRefreshKey} highlightedSection={highlightedFoodSection} />)}
+      {activeTab === "food" && (<AdminReportsFoodSection highlightedSection={highlightedFoodSection} refreshKey={reportsRefreshKey} />)}
 
       {activeTab === "seasonal" && (<AdminReportsSeasonalSection refreshKey={reportsRefreshKey} />)}
     </AdminLayout>

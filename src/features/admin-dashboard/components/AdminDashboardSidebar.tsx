@@ -70,6 +70,7 @@ export default function AdminDashboardSidebar({
           <NavLink
             key={item.to}
             to={item.to}
+            replace
             title={isCollapsed ? item.label : undefined}
             className={({ isActive }) =>
               [

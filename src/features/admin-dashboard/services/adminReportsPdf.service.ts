@@ -2,6 +2,7 @@ import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import { AdminReportTabValue } from "../components/AdminReportsTabs"
 import { AdminReportsCommunityStats, AdminReportsFoodStats, AdminReportsOverviewStats, AdminReportsSeasonalStats } from "../types/adminReports.types"
+import { fetchAdminReportsCommunity, fetchAdminReportsFood, fetchAdminReportsOverview, fetchAdminReportsSeasonal } from "./adminReports.service"
 
 export type AdminReportsPdfExportMode = "current" | "full"
 
@@ -110,6 +111,27 @@ function sectionTitle(doc: jsPDF, title: string, y: number) {
     doc.setTextColor(33, 37, 41)
     doc.text(title, MARGIN_X, y)
     return y + 7
+}
+
+export async function fetchFullAdminReports() {
+  const [
+    overview,
+    community,
+    food,
+    seasonal,
+  ] = await Promise.all([
+    fetchAdminReportsOverview(),
+    fetchAdminReportsCommunity(),
+    fetchAdminReportsFood(),
+    fetchAdminReportsSeasonal(),
+  ])
+
+  return {
+    overview,
+    community,
+    food,
+    seasonal,
+  }
 }
 
 export function exportAdminReportsPdf({

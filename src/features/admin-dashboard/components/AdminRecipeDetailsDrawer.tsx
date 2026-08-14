@@ -1,4 +1,4 @@
-import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded"
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded"
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined"
 import SignalCellularAltRoundedIcon from "@mui/icons-material/SignalCellularAltRounded"
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded"
@@ -94,9 +94,20 @@ export default function AdminRecipeDetailsDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--profile-floating-control-bg)] text-[var(--profile-floating-control-text)] backdrop-blur-xl transition hover:bg-[var(--profile-floating-control-hover)] active:scale-95"
+            className={[
+              "absolute left-5 top-5 z-20",
+              "flex h-11 w-11 items-center justify-center rounded-lg border",
+              "border-[var(--drawer-control-border)]",
+              "bg-[var(--drawer-control-bg)]",
+              "text-[var(--text-secondary)]",
+              "shadow-[var(--shadow-card)]",
+              "transition",
+              "hover:bg-[var(--drawer-control-hover)]",
+              "hover:text-[var(--text-primary)]",
+              "active:scale-95",
+            ].join(" ")}
           >
-            <ChevronLeftRoundedIcon sx={{ fontSize: 26 }} />
+            <ChevronRightRoundedIcon sx={{ fontSize: 26 }} />
           </button>
         </div>
 

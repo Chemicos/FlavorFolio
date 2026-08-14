@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { fetchAdminDashboardStats } from "../services/adminDashboard.service"
 import { AdminDashboardStats } from "../types/adminDashboard.types"
 
@@ -7,24 +7,43 @@ export function useAdminDashboardStats() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadStats = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
+   const isMountedRef = useRef(true)
 
-      const data = await fetchAdminDashboardStats()
+  const loadStats = useCallback(async () => {
+    try {
+      if (isMountedRef.current) {
+        setIsLoading(true)
+        setError(null)
+      }
+
+      const data =
+        await fetchAdminDashboardStats()
+
+      if (!isMountedRef.current) return
+
       setStats(data)
     } catch (error) {
-      console.error("Failed to load admin dashboard stats:", error)
+      console.error( "Failed to load admin dashboard stats:", error)
+
+      if (!isMountedRef.current) return
+
       setError("Failed to load dashboard stats.")
     } finally {
-      setIsLoading(false)
+      if (isMountedRef.current) {
+        setIsLoading(false)
+      }
     }
-  }
+  }, [])
 
   useEffect(() => {
-    loadStats()
-  }, [])
+    isMountedRef.current = true
+
+    void loadStats()
+
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [loadStats])
 
   return {
     stats,

@@ -4,7 +4,6 @@ import ChatBubbleRoundedIcon from "@mui/icons-material/ChatBubbleRounded"
 import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded"
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded"
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded"
-import { CircularProgress } from "@mui/material"
 
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { useAdminReportsCommunity } from "../hooks/useAdminReportsCommunity"

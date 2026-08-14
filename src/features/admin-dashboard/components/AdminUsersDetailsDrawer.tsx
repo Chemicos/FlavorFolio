@@ -1,4 +1,4 @@
-import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded"
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded"
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded"
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded"
@@ -51,7 +51,7 @@ export default function AdminUsersDetailsDrawer({
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
-        <div className="relative h-[250px] overflow-hidden bg-[var(--bg-tertiary)]">
+        <div className="relative h-[190px] overflow-hidden bg-[var(--bg-tertiary)]">
           {user.bannerImage ? (
             <img
               src={user.bannerImage}
@@ -68,70 +68,101 @@ export default function AdminUsersDetailsDrawer({
             type="button"
             onClick={onClose}
             className={[
-              "absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border",
-              "border-[var(--profile-floating-control-border)]",
-              "bg-[var(--profile-floating-control-bg)]",
-              "text-[var(--profile-floating-control-text)]",
-              "backdrop-blur-xl transition",
-              "hover:bg-[var(--profile-floating-control-hover)]",
+              "absolute left-5 top-5 z-20",
+              "flex h-11 w-11 items-center justify-center rounded-lg border",
+              "border-[var(--drawer-control-border)]",
+              "bg-[var(--drawer-control-bg)]",
+              "text-[var(--text-secondary)]",
+              "shadow-[var(--shadow-card)]",
+              "transition",
+              "hover:bg-[var(--drawer-control-hover)]",
+              "hover:text-[var(--text-primary)]",
               "active:scale-95",
             ].join(" ")}
           >
-            <ChevronLeftRoundedIcon sx={{ fontSize: 26 }} />
+            <ChevronRightRoundedIcon sx={{ fontSize: 26 }} />
           </button>
         </div>
 
-        <div className="relative z-10 -mt-14 rounded-t-[2.8rem] bg-[var(--bg-secondary)] px-7 pb-10 pt-8">
-          <div className="h-24 w-24 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] shadow-[var(--shadow-card)]">
-            {user.profileImage ? (
-              <img
-                src={user.profileImage}
-                alt={user.username}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[var(--text-secondary)]">
-                {(user.username || "U").charAt(0).toUpperCase()}
+        <div className="relative z-10 -mt-10 rounded-t-[2.4rem] bg-[var(--bg-secondary)] px-7 pb-10 pt-6">
+          <div className="flex items-end gap-4">
+            <div
+              className={[
+                "h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4",
+                "border-[var(--bg-secondary)]",
+                "bg-[var(--surface-muted)]",
+                "shadow-[var(--shadow-card)]",
+              ].join(" ")}
+            >
+              {user.profileImage ? (
+                <img
+                  src={user.profileImage}
+                  alt={user.username}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[var(--text-secondary)]">
+                  {(user.username || "U").charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1 pb-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate text-xl font-bold text-[var(--text-primary)]">
+                  {user.username}
+                </h1>
+
+                <span
+                  className={[
+                    "rounded-lg border px-2 py-1 text-[11px] font-semibold capitalize",
+                    user.role === "admin"
+                      ? "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                      : "border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--text-secondary)]",
+                  ].join(" ")}
+                >
+                  {user.role}
+                </span>
               </div>
-            )}
+
+              <p className="mt-1 truncate text-sm text-[var(--text-secondary)]">
+                {fullName || "No public name"}
+              </p>
+
+              <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
+                {user.email || "No email"}
+              </p>
+            </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span className="rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-xs font-semibold capitalize text-[var(--accent-text)]">
-              {user.role}
-            </span>
-          </div>
-
-          <h1 className="mt-4 text-2xl font-bold text-[var(--text-primary)]">
-            {user.username}
-          </h1>
-
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {fullName || user.email || "No public name"}
-          </p>
-
-          <div className="mt-8 grid grid-cols-3 gap-3">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <InfoBox icon={<MenuBookRoundedIcon />} label="recipes" value={user.recipesCount} />
             <InfoBox icon={<PeopleAltRoundedIcon />} label="followers" value={user.followersCount} />
+            <InfoBox icon={<PeopleAltRoundedIcon />} label="Following" value={user.followingCount} />
             <InfoBox icon={<BookmarkRoundedIcon />} label="saved" value={user.savedRecipesCount} />
           </div>
 
           <section className="mt-8">
-            <h2 className="text-base font-bold text-[var(--text-primary)]">Profile</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+              Account details
+            </h2>
 
-            <div className="mt-4 space-y-3 text-sm">
+            <div className="mt-3 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card-bg)]">
               <InfoRow label="Email" value={user.email || "-"} />
               <InfoRow label="Location" value={user.location || "-"} />
               <InfoRow label="Website" value={user.website || "-"} />
               <InfoRow label="Joined" value={formatDate(user.createdAtMs)} />
+              <InfoRow label="User ID" value={user.uid} />
             </div>
           </section>
 
           <section className="mt-8">
-            <h2 className="text-base font-bold text-[var(--text-primary)]">Bio</h2>
-            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--text-muted)]">
-              {user.bio || "No bio added."}
-            </p>
+            <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">Bio</h2>
+              <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-4">
+                <p className="whitespace-pre-line text-sm leading-7 text-[var(--text-secondary)]">
+                  {user.bio || "No bio added."}
+                </p>
+              </div>
           </section>
         </div>
       </div>
@@ -160,19 +191,45 @@ function InfoBox({
     value: number
 }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card-bg)] px-4 py-5 text-center">
-      <div className="flex justify-center text-[var(--text-primary)]">{icon}</div>
-      <p className="mt-3 text-lg font-bold text-[var(--text-primary)]">{value}</p>
-      <p className="mt-1 text-xs text-[var(--text-muted)]">{label}</p>
+    <div
+      className={[
+        "rounded-xl border px-3 py-4 text-center",
+        "border-[var(--border)]",
+        "bg-[var(--surface-subtle)]",
+        "transition hover:bg-[var(--surface-hover)]",
+      ].join(" ")}
+    >
+      <div className="flex justify-center text-[var(--accent)]">
+        {icon}
+      </div>
+
+      <p className="mt-2 text-lg font-bold text-[var(--text-primary)]">
+        {value}
+      </p>
+
+      <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">
+        {label}
+      </p>
     </div>
   )
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4 rounded-xl bg-[var(--surface-subtle)] px-4 py-3">
-      <span className="text-[var(--text-muted)]">{label}</span>
-      <span className="truncate text-right font-medium text-[var(--text-secondary)]">
+    <div
+      className={[
+        "flex items-center justify-between gap-5 px-4 py-3.5",
+        "border-b border-[var(--border-subtle)] last:border-b-0",
+      ].join(" ")}
+    >
+      <span className="shrink-0 text-xs font-medium text-[var(--text-muted)]">
+        {label}
+      </span>
+
+      <span
+        className="min-w-0 truncate text-right text-sm font-medium text-[var(--text-secondary)]"
+        title={value}
+      >
         {value}
       </span>
     </div>

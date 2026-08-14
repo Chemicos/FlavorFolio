@@ -23,7 +23,7 @@ export function useAdminReportsCommunity(refreshKey = 0) {
   }, [])
 
   useEffect(() => {
-    loadCommunity()
+    void loadCommunity()
   }, [loadCommunity, refreshKey])
 
   return {

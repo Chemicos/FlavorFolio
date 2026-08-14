@@ -612,20 +612,6 @@ export default function Home() {
         </div>
 
         <ScrollToTopButton rightOffset={floatingActionsRightOffset} />
-        
-        <AnimatePresence>
-          {isFilterDrawerOpen && (
-            <FilterDrawer
-              isOpen={isFilterDrawerOpen}
-              filters={filters}
-              availableCuisines={availableCuisines}
-              onClose={() => setIsFilterDrawerOpen(false)}
-              onChange={setFilters}
-              onReset={() => setFilters(defaultRecipeFilters)}
-            />
-          )}
-        </AnimatePresence>
-
 
         <ShareRecipeModal
             isOpen={isShareModalOpen}
@@ -650,6 +636,19 @@ export default function Home() {
           onConfirm={handleConfirmBlockUser}
         />
       </div>
+
+      <AnimatePresence>
+        {isFilterDrawerOpen && (
+          <FilterDrawer
+            isOpen={isFilterDrawerOpen}
+            filters={filters}
+            availableCuisines={availableCuisines}
+            onClose={() => setIsFilterDrawerOpen(false)}
+            onChange={setFilters}
+            onReset={() => setFilters(defaultRecipeFilters)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

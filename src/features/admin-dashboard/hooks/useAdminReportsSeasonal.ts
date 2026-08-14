@@ -23,7 +23,7 @@ export function useAdminReportsSeasonal(refreshKey = 0) {
   }, [])
 
   useEffect(() => {
-    loadSeasonal()
+    void loadSeasonal()
   }, [loadSeasonal, refreshKey])
 
   return {

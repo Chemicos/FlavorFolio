@@ -23,7 +23,7 @@ export function useAdminReportsFood(refreshKey = 0) {
   }, [])
 
   useEffect(() => {
-    loadFood()
+    void loadFood()
   }, [loadFood, refreshKey])
 
   return {
