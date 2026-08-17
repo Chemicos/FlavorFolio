@@ -8,12 +8,21 @@
     padding: 0;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
 body {
-    background-color: #F0DDC0;
-    display: flex;
-    height: 100vh;
-    justify-content: center;
-    align-items: center;
+  overflow-x: hidden;
+  background: #0b0b0c;
+  font-family: "Manrope", sans-serif;
 }
 
 input:focus{
@@ -29,3 +38,15 @@ input:focus{
     animation: dropdown 300ms ease-out forwards;
     overflow: hidden;
   }
+  
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    } to {
+        opacity: 1;
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 1s forwards;
+}

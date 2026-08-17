@@ -1,0 +1,891 @@
+import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded"
+import SendRoundedIcon from "@mui/icons-material/SendRounded"
+import BlockRoundedIcon from "@mui/icons-material/BlockRounded"
+import { CircularProgress, useMediaQuery } from "@mui/material"
+
+import { useNavigate, useParams } from "react-router-dom"
+import { useUserProfile } from "../hooks/useUserProfile"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useDebounce } from "../../recipe-review/hooks/useDebounce"
+
+import ProfileRecipeToolbar, { ProfileRecipeSortValue, ProfileRecipeViewMode } from "../components/ProfileRecipeToolbar"
+import MyProfileHeader from "../components/MyProfileHeader"
+import ProfileRecipeGridSkeleton from "../components/ProfileRecipeGridSkeleton"
+import ProfileRecipeGrid from "../components/ProfileRecipeGrid"
+import { getAuth, onAuthStateChanged } from "firebase/auth"
+import { ProfileConnectionType, subscribeToMyFollowingUserIds, subscribeToMySavedRecipeIds, toggleProfileFollow } from "../services/profileConnections.service"
+import { useSnackbar } from "../../../components/layout/SnackbarProvider"
+import ProfileConnectionsModal from "../components/ProfileConnectionsModal"
+import { Recipe } from "../../home/types"
+import { CurrentUserCardData } from "../../home/types/recipeCard.types"
+import { subscribeToProfileRecipeById } from "../services/profileRecipes.service"
+import { AnimatePresence, motion } from "motion/react"
+import ViewRecipeDrawer from "../../home/components/recipe-view-drawer/ViewRecipeDrawer"
+import { MyProfileData, subscribeToMyProfile } from "../services/profile.service"
+import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds, unblockUser } from "../../account-settings/services/blockedUsers.service"
+import { createOrOpenDirectConversation } from "../../messages/services/messages.service"
+import { SharedRecipeMessage } from "../../messages/types/messages.types"
+import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
+import StickyProfileDrawer from "../components/StickyProfileDrawer"
+import { canViewProfileContent } from "../utils/profilePrivacy"
+import { useUserProfileRecipes } from "../hooks/useUserProfileRecipes"
+import ProfileContentLockedState from "../components/ProfileContentLockedState"
+import { useDismissibleLayer } from "../../../hooks/useDismissibleLayer"
+
+function ViewRecipeDrawerLoading() {
+  return (
+    <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-panel)] transition-colors">
+      <CircularProgress
+        size={34}
+        thickness={4.5}
+        sx={{ color: "var(--accent)" }}
+      />
+
+      <p className="mt-4 text-sm font-medium text-[var(--text-secondary)]">
+        Loading recipe...
+      </p>
+    </aside>
+  )
+}
+
+export default function UserProfilePage() {
+  const navigate = useNavigate()
+  const { userId } = useParams<{ userId: string }>()
+  const { showSnackbar } = useSnackbar()
+
+  const [blockedUserIds, setBlockedUserIds] = useState<string[]>([])
+  const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
+  const [isBlockLoading, setIsBlockLoading] = useState(false)
+
+  const isBlockedProfile = Boolean(userId && blockedUserIds.includes(userId))
+  const isBlockedByProfile = Boolean(userId && blockedByUserIds.includes(userId))
+  const hasBlockedRelationship = isBlockedProfile || isBlockedByProfile
+
+  const { profile, isLoading: isProfileLoading, error: profileError } = useUserProfile(userId)
+  const [connectionsModalType, setConnectionsModalType] = useState<ProfileConnectionType | null>(null)
+  const [isProfileActionsMenuOpen, setIsProfileActionsMenuOpen] = useState(false)
+  const profileActionsMenuRef = useRef<HTMLDivElement | null>(null)
+
+  useDismissibleLayer({
+    isOpen: isProfileActionsMenuOpen,
+    refs: [profileActionsMenuRef],
+    onDismiss: () => setIsProfileActionsMenuOpen(false)
+  })
+
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUserProfile, setCurrentUserProfile] = useState<MyProfileData | null>(null)
+  const [followingUserIds, setFollowingUserIds] = useState<string[]>([])
+  const [isFollowLoading, setIsFollowLoading] = useState(false)
+  const [isMessageLoading, setIsMessageLoading] = useState(false)
+
+  const [searchQuery, setSearchQuery] = useState("")
+  const debouncedSearchQuery = useDebounce(searchQuery, 1000)
+  const isSearching = searchQuery.trim() !== debouncedSearchQuery.trim()
+
+  const [sortBy, setSortBy] = useState<ProfileRecipeSortValue>("latest")
+  const [category, setCategory] = useState("all")
+  const [viewMode, setViewMode] = useState<ProfileRecipeViewMode>("grid")
+
+  const [savedRecipeIds, setSavedRecipeIds] = useState<string[]>([])
+  
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
+  const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
+  
+  const [recipeToShare, setRecipeToShare] = useState<SharedRecipeMessage | null>(null)
+
+  const isLargeDesktop = useMediaQuery("(min-width:1930px)")
+  const RECIPE_DRAWER_WIDTH = 540
+  const LAYOUT_GAP = 24
+  const FLOATING_EDGE_GAP = 24
+  const recipeDrawerWidth = RECIPE_DRAWER_WIDTH
+  const isDrawerOpen = Boolean(selectedRecipe || isRecipeDrawerLoading)
+
+  const floatingActionsRightOffset = isDrawerOpen && !isLargeDesktop
+    ? RECIPE_DRAWER_WIDTH + LAYOUT_GAP + FLOATING_EDGE_GAP
+    : FLOATING_EDGE_GAP
+  
+  const buildSharedRecipeFromRecipe = (recipe: Recipe): SharedRecipeMessage => ({
+    recipeId: recipe.recipeId || recipe.id || "",
+    title: recipe.title || "Untitled recipe",
+    image: recipe.image || "",
+    authorUsername:
+      recipe.author?.username ||
+      recipe.user ||
+      profile?.username ||
+      "Unknown",
+    cuisine: recipe.cuisine || "",
+    meal: recipe.meal || "",
+    difficulty: recipe.difficulty || "",
+    durationMinutes: Number(recipe.durationMinutes || 0),
+  })
+
+  const buildSharedRecipeFromGridItem = (recipe: any): SharedRecipeMessage => ({
+    recipeId: recipe.id || recipe.recipeId || "",
+    title: recipe.title || "Untitled recipe",
+    image: recipe.image || "",
+    authorUsername: profile?.username || "Unknown",
+    cuisine: recipe.category || recipe.cuisine || "",
+    meal: recipe.meal || "",
+    difficulty: recipe.difficulty || "",
+    durationMinutes: Number(recipe.durationMinutes || 0),
+  })
+
+  const handleShareRecipeFromDrawer = (recipe: Recipe) => {
+    setRecipeToShare(buildSharedRecipeFromRecipe(recipe))
+  }
+
+  const handleShareRecipeFromGrid = (recipe: any) => {
+    setRecipeToShare(buildSharedRecipeFromGridItem(recipe))
+  }
+
+
+  const categories = useMemo(() => ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],[])
+
+  useEffect(() => {
+    if (!currentUserId) {
+      setBlockedByUserIds([])
+      return
+    }
+
+    const unsubscribe = subscribeToBlockedByUserIds({
+      userId: currentUserId,
+      onChange: setBlockedByUserIds,
+      onError: (error) => {
+        console.error("Failed to load blocked by users:", error)
+      },
+    })
+
+    return () => unsubscribe()
+  }, [currentUserId])
+
+  useEffect(() => {
+    const auth = getAuth()
+
+    return onAuthStateChanged(auth, (user) => {
+      setCurrentUserId(user?.uid || null)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!currentUserId) {
+      setFollowingUserIds([])
+      return
+    }
+
+    const unsubscribe = subscribeToMyFollowingUserIds({
+      userId: currentUserId,
+      onChange: setFollowingUserIds,
+      onError: (error) => {
+        console.error("Failed to load following ids:", error)
+      },
+    })
+
+    return () => unsubscribe()
+  }, [currentUserId])
+
+  useEffect(() => {
+    if (!currentUserId) {
+      setBlockedUserIds([])
+      return
+    }
+
+    const unsubscribe = subscribeToBlockedUserIds({
+      userId: currentUserId,
+      onChange: setBlockedUserIds,
+      onError: (error) => {
+        console.error("Failed to load blocked users:", error)
+      },
+    })
+
+    return () => unsubscribe()
+  }, [currentUserId])
+
+  useEffect(() => {
+    if (!currentUserId) {
+      setSavedRecipeIds([])
+      return
+    }
+
+    const unsubscribe = subscribeToMySavedRecipeIds({
+      userId: currentUserId,
+      onChange: setSavedRecipeIds,
+      onError: (error) => {
+        console.error("Failed to load saved recipe ids:", error)
+      },
+    })
+
+    return () => unsubscribe()
+  }, [currentUserId])
+
+  useEffect(() => {
+  if (!currentUserId) {
+    setCurrentUserProfile(null)
+    return
+  }
+
+  const unsubscribe = subscribeToMyProfile(
+      currentUserId,
+      setCurrentUserProfile,
+      (error) => {
+        console.error("Failed to load current user profile:", error)
+      }
+    )
+
+    return () => unsubscribe()
+  }, [currentUserId])
+
+  const currentUser = useMemo<CurrentUserCardData | null>(() => {
+    if (!currentUserId) return null
+
+    return {
+      uid: currentUserId,
+      username: currentUserProfile?.username || "User",
+      profileImage: currentUserProfile?.profileImage || "",
+    }
+  }, [currentUserId, currentUserProfile])
+
+  
+  const isOwnProfile = currentUserId === userId
+  const isFollowingProfile = Boolean(userId && followingUserIds.includes(userId))
+  
+  const canViewRecipes = profile
+    ? canViewProfileContent({
+        profileVisibility:
+          profile.privacy.profileVisibility,
+        isOwnProfile,
+        isFollowingProfile,
+      })
+    : false
+  
+  const isProfileContentLocked = Boolean(profile) && !hasBlockedRelationship && !canViewRecipes
+  const isPrivateProfile = profile?.privacy.profileVisibility === "private"
+  
+  const {
+    recipes,
+    setRecipes,
+    publishedRecipesCount,
+    isLoading: areRecipesLoading,
+    error: recipesError,
+  } = useUserProfileRecipes({
+    userId,
+    enabled: canViewRecipes && !hasBlockedRelationship,
+  })
+  
+  const isLoading = isProfileLoading || ( canViewRecipes && !hasBlockedRelationship && areRecipesLoading )
+  const error = profileError || recipesError
+  
+  useEffect(() => {
+    if ( !selectedRecipeId || !canViewRecipes || hasBlockedRelationship ) {
+      setSelectedRecipe(null)
+      setIsRecipeDrawerLoading(false)
+      return
+    }
+
+    setIsRecipeDrawerLoading(true)
+
+    const unsubscribe =
+      subscribeToProfileRecipeById(
+        selectedRecipeId,
+        (recipe) => {
+          if (
+            recipe &&
+            recipe.userId !== userId
+          ) {
+            setSelectedRecipe(null)
+            setSelectedRecipeId(null)
+            setIsRecipeDrawerLoading(false)
+
+            showSnackbar( "This recipe is not part of this profile.", "error")
+
+            return
+          }
+
+          setSelectedRecipe(recipe)
+          setIsRecipeDrawerLoading(false)
+        },
+        (error) => {
+          console.error(
+            "Failed to load selected recipe:",
+            error
+          )
+
+          showSnackbar( "Failed to load recipe.", "error")
+
+          setSelectedRecipe(null)
+          setIsRecipeDrawerLoading(false)
+        }
+      )
+
+    return () => unsubscribe()
+  }, [selectedRecipeId, canViewRecipes, hasBlockedRelationship, userId, showSnackbar])
+
+  useEffect(() => {
+    if (canViewRecipes && !hasBlockedRelationship) {
+      return
+    }
+
+    setSelectedRecipeId(null)
+    setSelectedRecipe(null)
+    setIsRecipeDrawerLoading(false)
+  }, [canViewRecipes, hasBlockedRelationship,])
+
+  const handleToggleFollow = async () => {
+    if (!currentUserId || !userId || !profile || isOwnProfile || isFollowLoading) return
+
+    try {
+      setIsFollowLoading(true)
+
+      const nextIsFollowing = await toggleProfileFollow({
+        currentUserId,
+        targetUserId: userId,
+        isCurrentlyFollowing: isFollowingProfile,
+        currentUsername: currentUserProfile?.username || "User",
+        currentProfileImage: currentUserProfile?.profileImage || "",
+        targetUsername: profile.username || "User",
+        targetProfileImage: profile.profileImage || "",
+      })
+
+      showSnackbar(
+        nextIsFollowing
+          ? `You are now following ${profile.username}.`
+          : `You unfollowed ${profile.username}.`,
+        "success"
+      )
+    } catch (error) {
+      console.error("Failed to toggle follow:", error)
+      showSnackbar("Failed to update follow status. Please try again.", "error")
+    } finally {
+      setIsFollowLoading(false)
+    }
+  }
+
+  const handleRatingStateChange = useCallback((
+    recipeId: string,
+    stats: {
+      averageRating: number
+      ratingsCount: number
+      ratingSum?: number
+    }
+  ) => {
+    const nextRating = Number(stats.averageRating || 0)
+
+    setRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.id === recipeId
+          ? {
+              ...recipe,
+              rating: nextRating,
+            }
+          : recipe
+      )
+    )
+
+    setSelectedRecipe((prev) => {
+      if (!prev || prev.recipeId !== recipeId) return prev
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          averageRating: nextRating,
+          ratingsCount: stats.ratingsCount,
+          ratingsSum: stats.ratingSum ?? prev.stats?.ratingsSum ?? 0,
+        },
+      }
+    })
+
+    showSnackbar("Recipe rating updated successfully.", "success")
+  }, [setRecipes, showSnackbar])
+
+  const handleFollowStateChange = useCallback((
+    authorUserId: string,
+    isNowFollowing: boolean,
+    nextFollowersCount?: number
+  ) => {
+    setFollowingUserIds((prev) =>
+      isNowFollowing
+        ? Array.from(new Set([...prev, authorUserId]))
+        : prev.filter((id) => id !== authorUserId)
+    )
+
+    setSelectedRecipe((prev) => {
+      if (!prev || prev.userId !== authorUserId) return prev
+
+      const currentCount = Number(prev.author?.followersCount || 0)
+
+      return {
+        ...prev,
+        author: {
+          ...prev.author,
+          followersCount:
+            typeof nextFollowersCount === "number"
+              ? nextFollowersCount
+              : Math.max(0, currentCount + (isNowFollowing ? 1 : -1)),
+        },
+      }
+    })
+
+    showSnackbar(
+      isNowFollowing ? "Creator followed." : "Creator unfollowed.",
+      isNowFollowing ? "success" : "info"
+    )
+  }, [showSnackbar])
+
+  const handleFavoriteStateChange = useCallback((
+    recipeId: string,
+    isNowSaved: boolean,
+    nextSavesCount?: number
+  ) => {
+    setSavedRecipeIds((prev) =>
+      isNowSaved
+        ? Array.from(new Set([...prev, recipeId]))
+        : prev.filter((id) => id !== recipeId)
+    )
+
+    setRecipes((prev) =>
+      prev.map((recipe) => {
+        if (recipe.id !== recipeId) return recipe
+
+        const currentCount = Number(recipe.savesCount || 0)
+
+        return {
+          ...recipe,
+          savesCount:
+            typeof nextSavesCount === "number"
+              ? nextSavesCount
+              : Math.max(0, currentCount + (isNowSaved ? 1 : -1)),
+        }
+      })
+    )
+
+    setSelectedRecipe((prev) => {
+      if (!prev || prev.recipeId !== recipeId) return prev
+
+      const currentCount = Number(prev.stats?.savesCount || 0)
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          savesCount:
+            typeof nextSavesCount === "number"
+              ? nextSavesCount
+              : Math.max(0, currentCount + (isNowSaved ? 1 : -1)),
+        },
+      }
+    })
+
+    showSnackbar(
+      isNowSaved ? "Recipe saved." : "Recipe removed from saved recipes.",
+      isNowSaved ? "success" : "info"
+    )
+  }, [setRecipes, showSnackbar])
+
+  const handleCommentStateChange = useCallback((
+    recipeId: string,
+    nextCommentsCount: number
+  ) => {
+    const normalizedCount = Number(nextCommentsCount || 0)
+
+    setRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.id === recipeId
+          ? { ...recipe, commentsCount: normalizedCount }
+          : recipe
+      )
+    )
+
+    setSelectedRecipe((prev) => {
+      if (!prev || prev.recipeId !== recipeId) return prev
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          commentsCount: normalizedCount,
+        },
+      }
+    })
+  }, [setRecipes])
+
+  const visibleRecipes = useMemo(() => {
+    const query = debouncedSearchQuery.trim().toLowerCase()
+
+    const filteredBySearch = recipes.filter((recipe) => {
+      if (!query) return true
+
+      return [
+        recipe.title,
+        recipe.meal,
+        recipe.difficulty,
+        recipe.category,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query)
+    })
+
+    const filteredByCategory = filteredBySearch.filter((recipe) => {
+      if (category === "all") return true
+
+      return recipe.category.toLowerCase() === category.toLowerCase()
+    })
+
+    return [...filteredByCategory].sort((a, b) => {
+      if (sortBy === "oldest") {
+        return (
+          new Date(a.createdAt || "").getTime() -
+          new Date(b.createdAt || "").getTime()
+        )
+      }
+
+      if (sortBy === "popular") {
+        return b.savesCount + b.commentsCount - (a.savesCount + a.commentsCount)
+      }
+
+      if (sortBy === "highest-rated") {
+        return b.rating - a.rating
+      }
+
+      return (
+        new Date(b.createdAt || "").getTime() -
+        new Date(a.createdAt || "").getTime()
+      )
+    })
+  }, [recipes, debouncedSearchQuery, category, sortBy])
+
+  const handleAuthorProfileClick = useCallback((authorId: string) => {
+    setSelectedRecipeId(null)
+    setSelectedRecipe(null)
+
+    if (authorId === currentUserId) {
+      navigate("/profile")
+      return
+    }
+
+    navigate(`/users/${authorId}`)
+  }, [navigate, currentUserId])
+
+  const handleSendMessage = async () => {
+    if (!currentUserId || !userId || isOwnProfile || isMessageLoading) return
+
+    try {
+      setIsMessageLoading(true)
+      setIsProfileActionsMenuOpen(false)
+
+      const conversationId = await createOrOpenDirectConversation({
+        currentUserId,
+        targetUserId: userId,
+      })
+
+      navigate(`/messages/${conversationId}`)
+    } catch (error) {
+      console.error("Failed to start conversation:", error)
+      showSnackbar(
+        "You can only message users who mutually follow you.",
+        "error"
+      )
+    } finally {
+      setIsMessageLoading(false)
+    }
+  }
+
+  const handleToggleBlockUser = async () => {
+    if (!currentUserId || !userId || !profile || isOwnProfile || isBlockLoading) return
+
+    try {
+      setIsProfileActionsMenuOpen(false)
+      setIsBlockLoading(true)
+
+      if (isBlockedProfile) {
+        await unblockUser({
+          currentUserId,
+          targetUserId: userId,
+        })
+
+        setBlockedUserIds((prev) => prev.filter((id) => id !== userId))
+        showSnackbar(`${profile.username} has been unblocked.`, "success")
+        return
+      }
+
+      await blockUser({
+        currentUserId,
+        targetUserId: userId,
+        targetUsername: profile.username || "User",
+        targetProfileImage: profile.profileImage || "",
+      })
+
+      setBlockedUserIds((prev) =>
+        prev.includes(userId) ? prev : [...prev, userId]
+      )
+
+      setFollowingUserIds((prev) => prev.filter((id) => id !== userId))
+      showSnackbar(`${profile.username} has been blocked.`, "success")
+    } catch (error) {
+      console.error("Failed to update block status:", error)
+      showSnackbar("Failed to update block status. Please try again.", "error")
+    } finally {
+      setIsBlockLoading(false)
+    }
+  }
+
+  return (
+    <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
+      <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
+        <main 
+          className={[
+            "min-w-0 flex-1 transition-all duration-300",
+            isDrawerOpen ? "max-w-none" : "mx-auto max-w-[1400px]",
+          ].join(" ")}
+        >
+          {error && (
+            <div className="rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-6 text-sm text-[var(--danger-text)]">
+              {error}
+            </div>
+          )}
+
+          {!error && profile && (
+            <>
+              <MyProfileHeader
+                username={profile.username || "User"}
+                fullName={profile.fullName || profile.username || "User"}
+                bio={profile.bio || "Food lover & recipe creator."}
+                profileImage={profile.profileImage || ""}
+                bannerImage={profile.bannerImage || ""}
+                location={profile.location || "Location not set"}
+                website={profile.website || "Website not set"}
+                joinedLabel={profile.joinedLabel || "Joined recently"}
+                recipesCount={publishedRecipesCount}
+                followersCount={profile.stats.followersCount || 0}
+                followingCount={profile.stats.followingCount || 0}
+                restrictions={profile.restrictions}
+                onFollowersClick={() => setConnectionsModalType("followers")}
+                onFollowingClick={() => setConnectionsModalType("following")}
+                rightAction={
+                  !isOwnProfile ? (
+                    <div ref={profileActionsMenuRef} className="relative flex items-center gap-2">
+                      {!hasBlockedRelationship && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleToggleFollow}
+                            disabled={isFollowLoading}
+                            className={[
+                              "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold shadow-[var(--shadow-card)] transition disabled:cursor-not-allowed disabled:opacity-60",
+                              isFollowingProfile
+                                ? "border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] text-[var(--profile-floating-control-text)] hover:bg-[var(--profile-floating-control-hover)]"
+                                : "border-[var(--accent-border)] bg-[var(--accent)] text-[var(--text-on-accent)] hover:bg-[var(--accent-hover)]",
+                            ].join(" ")}
+                          >
+                            {isFollowLoading ? (
+                              <CircularProgress 
+                                size={15} 
+                                thickness={5} 
+                                 sx={{
+                                  color: isFollowingProfile
+                                    ? "var(--profile-floating-control-text)"
+                                    : "var(--text-on-accent)",
+                                }}
+                              />
+                            ) : isFollowingProfile ? (
+                              "Following"
+                            ) : (
+                              "Follow"
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleSendMessage}
+                            disabled={isMessageLoading}
+                            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] px-4 text-sm font-semibold text-[var(--profile-floating-control-text)] shadow-[var(--shadow-card)] transition hover:bg-[var(--profile-floating-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isMessageLoading ? (
+                              <CircularProgress 
+                                size={15} 
+                                thickness={5} 
+                                sx={{ color: "var(--profile-floating-control-text)" }} 
+                              />
+                            ) : (
+                              <SendRoundedIcon sx={{ fontSize: 17 }} />
+                            )}
+                            Message
+                          </button>
+                        </>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setIsProfileActionsMenuOpen((prev) => !prev)}
+                        className={[
+                          "inline-flex h-9 w-9 items-center justify-center rounded-lg border",
+                          "border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)]",
+                          "text-[var(--profile-floating-control-text)] shadow-[var(--shadow-card)] transition",
+                          "hover:bg-[var(--profile-floating-control-hover)] active:scale-95",
+                        ].join(" ")}
+                        aria-label="Profile options"
+                        aria-expanded={isProfileActionsMenuOpen}
+                      >
+                        <MoreVertRoundedIcon sx={{ fontSize: 20 }} />
+                      </button>
+
+                      <AnimatePresence>
+                        {isProfileActionsMenuOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                            transition={{ duration: 0.16 }}
+                            className="absolute right-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--account-dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
+                          >
+                            <button
+                              type="button"
+                              onClick={handleToggleBlockUser}
+                              disabled={isBlockLoading}
+                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {isBlockLoading ? (
+                                <CircularProgress size={15} thickness={5} sx={{ color: "var(--danger)" }} />
+                              ) : (
+                                <BlockRoundedIcon sx={{ fontSize: 18 }} />
+                              )}
+                              {isBlockedProfile ? "Unblock user" : "Block user"}
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ) : null
+                }
+              />
+              { canViewRecipes && !hasBlockedRelationship &&
+                <div className="sticky top-16 z-40 bg-[var(--sticky-profile-bg)] pb-5 backdrop-blur-xl transition-colors">
+                  <div className="border-b border-[var(--border)] pt-6" />
+
+                  <ProfileRecipeToolbar
+                    searchQuery={searchQuery}
+                    onSearchQueryChange={setSearchQuery}
+                    resultCount={visibleRecipes.length}
+                    sortBy={sortBy}
+                    onSortByChange={setSortBy}
+                    category={category}
+                    onCategoryChange={setCategory}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    categories={categories}
+                  />
+                </div>
+              }
+
+              {hasBlockedRelationship ? (
+                <div className="mt-8 rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-soft)] p-8 text-center shadow-[var(--shadow-card)]">
+                  <h3 className="text-lg font-bold text-[var(--text-primary)]">
+                    {isBlockedProfile
+                      ? "You blocked this user"
+                      : "This profile is unavailable"}
+                  </h3>
+
+                  <p className="mx-auto mt-2 max-w-[520px] text-sm leading-6 text-[var(--text-secondary)]">
+                    {isBlockedProfile
+                      ? "Recipes and interactions from this profile are hidden. You can manage blocked accounts from Account Settings."
+                      : "You cannot view this profile or interact with this user."}
+                  </p>
+                </div>
+              ) : isProfileContentLocked ? (
+                <ProfileContentLockedState
+                  username={profile.username || profile.fullName || "This user"}
+                  isFollowLoading={isFollowLoading}
+                  isPrivate={isPrivateProfile}
+                  onFollow={handleToggleFollow}
+                />
+              ) : (
+                <>
+                  {(isLoading || isSearching) && (
+                    <ProfileRecipeGridSkeleton
+                      viewMode={viewMode}
+                      count={8}
+                    />
+                  )}
+
+                  {!isLoading && !isSearching && (
+                    <ProfileRecipeGrid
+                      recipes={visibleRecipes}
+                      viewMode={viewMode}
+                      currentUserId={null}
+                      onRecipeClick={(recipe) => {
+                        setSelectedRecipeId(recipe.id)
+                      }}
+                      onRecipeShare={(recipe) => {
+                        handleShareRecipeFromGrid(recipe)
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </main>
+
+        <AnimatePresence mode="wait">
+          {isRecipeDrawerLoading && (
+            <StickyProfileDrawer
+              key="user-recipe-drawer-loading"
+              width={recipeDrawerWidth}
+            >
+              <ViewRecipeDrawerLoading />
+            </StickyProfileDrawer>
+          )}
+
+          {!isRecipeDrawerLoading && selectedRecipe && currentUser && (
+            <StickyProfileDrawer
+              key={`user-recipe-${selectedRecipe.recipeId || selectedRecipe.id}`}
+              width={recipeDrawerWidth}
+            >
+              <ViewRecipeDrawer
+                presentation="inline"
+                width={recipeDrawerWidth}
+                recipe={selectedRecipe}
+                currentUser={currentUser}
+                savedRecipes={savedRecipeIds.map((recipeId) => ({ recipeId }))}
+                followingUserIds={followingUserIds}
+                authorFollowersCount={Number(selectedRecipe.author?.followersCount || 0)}
+                onAuthorClick={handleAuthorProfileClick}
+                onShareRecipe={handleShareRecipeFromDrawer}
+                onClose={() => {
+                  setSelectedRecipeId(null)
+                  setSelectedRecipe(null)
+                }}
+                onFollowStateChange={handleFollowStateChange}
+                onFavoriteStateChange={handleFavoriteStateChange}
+                onRatingStateChange={handleRatingStateChange}
+                onCommentStateChange={handleCommentStateChange}
+              />
+            </StickyProfileDrawer>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {connectionsModalType && (
+        <ProfileConnectionsModal
+          isOpen={true}
+          userId={userId || null}
+          currentUserId={currentUserId}
+          type={connectionsModalType}
+          onClose={() => setConnectionsModalType(null)}
+        />
+      )}
+
+      <ShareRecipeModal
+        isOpen={Boolean(recipeToShare)}
+        currentUserId={currentUserId}
+        recipe={recipeToShare}
+        onClose={() => setRecipeToShare(null)}
+        onShared={(username) => {
+          showSnackbar(`Recipe shared with ${username}.`, "success")
+          setRecipeToShare(null)
+        }}
+      />
+    </div>
+  )
+}

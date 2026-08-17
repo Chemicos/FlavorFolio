@@ -1,0 +1,369 @@
+:root {
+    color-scheme: light;
+
+  /* Application backgrounds */
+  --bg-primary: #f8f4ee;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #fcf9f5;
+  --bg-elevated: #fffdf9;
+
+  /* Profile */
+  --profile-header-bg: #fffdf9;
+  --profile-stats-bg: #fcf8f2;
+  --profile-stat-hover: #f6eee4;
+
+  --profile-banner-fallback:
+    radial-gradient(circle at 20% 20%, rgba(232, 138, 23, 0.2), transparent 34%),
+    linear-gradient(135deg, #f4dfc3, #e9c99f 48%, #c98639);
+
+  --profile-banner-overlay: linear-gradient(to top, rgba(45, 30, 16, 0.9), rgba(45, 30, 16, 0.36) 48%, rgba(45, 30, 16, 0.12));
+
+  --profile-overlay-text: #ffffff;
+  --profile-overlay-text-secondary: rgba(255, 255, 255, 0.82);
+  --profile-overlay-text-muted: rgba(255, 255, 255, 0.68);
+
+  --profile-avatar-ring: #fffdf9;
+  --profile-avatar-bg: #f2eadf;
+
+  --profile-floating-control-bg: rgba(255, 253, 249, 0.9);
+  --profile-floating-control-hover: #ffffff;
+  --profile-floating-control-text: #55483b;
+  --profile-floating-control-border: rgba(255, 255, 255, 0.55);
+  
+  --sticky-profile-bg: rgba(248, 244, 238, 1);
+
+  /* Profile edit control */
+  --profile-edit-bg: #fff3df;
+  --profile-edit-hover: #ffe7bf;
+  --profile-edit-border: #e7b96f;
+  --profile-edit-text: #8a4b06;
+
+  --tab-indicator: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  --tab-indicator-shadow: 0 0 18px var(--accent-soft-hover);
+
+  /* Surfaces */
+  --surface: #fffdf9;
+  --surface-subtle: #f7efe5;
+  --surface-muted: #f2eadf;
+  --surface-hover: #f7efe3;
+  --surface-active: #f1e3d1;
+
+  /* Skeletons */
+  --skeleton: rgba(109, 98, 86, 0.11);
+  --skeleton-subtle: rgba(109, 98, 86, 0.07);
+
+  /* Tooltips */
+  --tooltip-bg: #2e251c;
+  --tooltip-text: #fffdf9;
+  --tooltip-border: rgba(255, 255, 255, 0.12);
+
+  /* Charts */
+  --chart-grid: rgba(109, 98, 86, 0.14);
+  --chart-axis: #918575;
+  --chart-series-1: #e88a17;
+  --chart-series-2: #7c6fc9;
+  --chart-series-3: #5f9f5a;
+  --chart-series-4: #3f91b8;
+  --chart-series-5: #c96f35;
+
+  /* Tables */
+  --table-row-bg: #fffdf9;
+  --table-row-hover: #f7efe3;
+  --table-row-selected: #f1e3d1;
+  --table-row-active: #fff0d9;
+
+  /* Recipe composer */
+  --recipe-upload-bg: #f2eadf;
+  --recipe-form-bg: #fffdf9;
+  --recipe-form-border: #e4d8ca;
+  --recipe-form-shadow: 0 -18px 42px rgba(88, 65, 42, 0.09);
+
+  /* Borders */
+  --border: #e8ded0;
+  --border-subtle: #eee6dc;
+  --border-strong: #d7c8b7;
+
+  /* Text */
+  --text-primary: #2e251c;
+  --text-secondary: #6d6256;
+  --text-muted: #918575;
+  --text-disabled: #b1a79c;
+  --text-on-accent: #ffffff;
+
+  /* Brand */
+  --accent: #e88a17;
+  --accent-hover: #d97c0a;
+  --accent-active: #c96f05;
+  --accent-soft: rgba(232, 138, 23, 0.12);
+  --accent-soft-hover: rgba(232, 138, 23, 0.18);
+  --accent-border: rgba(232, 138, 23, 0.32);
+  --accent-text: #9a5608;
+
+  /* Semantic states */
+  --success: #16845b;
+  --success-text: #116847;
+  --success-soft: rgba(22, 132, 91, 0.12);
+  --success-border: rgba(22, 132, 91, 0.25);
+
+  --warning: #c77a08;
+  --warning-text: #955a05;
+  --warning-soft: rgba(199, 122, 8, 0.12);
+  --warning-border: rgba(199, 122, 8, 0.25);
+
+  --danger: #dc4c4c;
+  --danger-text: #b53737;
+  --danger-soft: rgba(220, 76, 76, 0.11);
+  --danger-border: rgba(220, 76, 76, 0.24);
+
+  --danger-soft-hover: rgba(220, 76, 76, 0.18);
+
+  --info: #3977c4;
+  --info-text: #2b5f9e;
+  --info-soft: rgba(57, 119, 196, 0.11);
+  --info-border: rgba(57, 119, 196, 0.24);
+
+  /* Interactive states */
+  --hover: rgba(80, 55, 30, 0.055);
+  --active: rgba(80, 55, 30, 0.09);
+  --focus-ring: rgba(232, 138, 23, 0.18);
+  --focus-border: rgba(232, 138, 23, 0.55);
+
+  /* Inputs */
+  --input-bg: #fffdf9;
+  --input-bg-hover: #ffffff;
+  --input-border: #e3d8ca;
+  --input-placeholder: #9a8e81;
+
+  /* Buttons */
+  --button-secondary-bg: #f6eee4;
+  --button-secondary-hover: #eee2d3;
+  --button-secondary-text: #55483b;
+  --button-secondary-border: #e5d8c8;
+
+  /* Success buttons */
+  --button-success-bg: #e9f7f0;
+  --button-success-hover: #d8f0e5;
+  --button-success-border: #b9ddca;
+  --button-success-text: #116847;
+
+  /* Danger buttons */
+  --button-danger-bg: #fff4f4;
+  --button-danger-hover: #ffe6e6;
+  --button-danger-border: #f2caca;
+  --button-danger-text: #b53737;
+
+  /* Drawer controls */
+  --drawer-control-bg: #f7ede0;
+  --drawer-control-hover: #efe0cf;
+  --drawer-control-border: #d9c6af;
+
+  /* Menu */
+  --menu-hover: rgba(251,191,36,.10);
+  --menu-active: rgba(251,191,36,.14);
+
+  /* Cards and dropdowns */
+  --card-bg: #ffffff;
+  --card-hover: #fffaf4;
+  --dropdown-bg: #fffdf9;
+  --dropdown-hover: #f7efe3;
+  --dropdown-selected: rgba(232, 138, 23, 0.13);
+
+  --account-dropdown-bg: #fffaf3;
+
+  /* Overlay and shadows */
+  --overlay: rgba(45, 32, 20, 0.38);
+
+  --shadow-panel:
+    0 24px 80px rgba(88, 65, 42, 0.09);
+
+  --shadow-card:
+    0 8px 24px rgba(88, 65, 42, 0.08);
+
+  --shadow-dropdown:
+    0 18px 45px rgba(88, 65, 42, 0.16);
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Application backgrounds */
+  --bg-primary: #0d0e11;
+  --bg-secondary: #16181d;
+  --bg-tertiary: #1b1d23;
+  --bg-elevated: #20232b;
+
+  /* Profile */
+  --profile-header-bg: #0b0b0c;
+  --profile-stats-bg: rgba(17, 19, 24, 0.8);
+  --profile-stat-hover: rgba(255, 255, 255, 0.04);
+
+  --profile-banner-fallback:
+    radial-gradient(circle at 20% 20%, rgba(245, 158, 11, 0.18), transparent 32%),
+    linear-gradient(135deg, #202636, #16181d 45%, #0b0b0c);
+
+  --profile-banner-overlay: linear-gradient(to top, rgba(11, 11, 12, 1), rgba(11, 11, 12, 0.45) 48%, rgba(0, 0, 0, 0.2));
+
+  --profile-overlay-text: #ffffff;
+  --profile-overlay-text-secondary: #d7def0;
+  --profile-overlay-text-muted: #a8b3cf;
+
+  --profile-avatar-ring: #0b0b0c;
+  --profile-avatar-bg: #16181d;
+
+  --profile-floating-control-bg: rgba(11, 11, 12, 0.78);
+  --profile-floating-control-hover: #16181d;
+  --profile-floating-control-text: #d7def0;
+  --profile-floating-control-border: rgba(255, 255, 255, 0.1);
+
+  --sticky-profile-bg: rgba(13, 14, 17, 0.94);
+
+  /* Profile edit control */
+  --profile-edit-bg: rgba(254, 170, 43, 0.16);
+  --profile-edit-hover: rgba(254, 170, 43, 0.24);
+  --profile-edit-border: rgba(254, 170, 43, 0.36);
+  --profile-edit-text: #ffd28a;
+
+  /* Tabs */
+  --tab-indicator: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  --tab-indicator-shadow: 0 0 18px var(--accent-soft-hover);
+
+  /* Surfaces */
+  --surface: #20232b;
+  --surface-subtle: rgba(255, 255, 255, 0.035);
+  --surface-muted: rgba(255, 255, 255, 0.055);
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --surface-active: rgba(255, 255, 255, 0.08);
+
+  /* Skeletons */
+  --skeleton: rgba(168, 179, 207, 0.10);
+  --skeleton-subtle: rgba(168, 179, 207, 0.06);
+
+  /* Tooltips */
+  --tooltip-bg: #20232b;
+  --tooltip-text: #ffffff;
+  --tooltip-border: rgba(255, 255, 255, 0.1);
+
+  /* Charts */
+  --chart-grid: rgba(255, 255, 255, 0.06);
+  --chart-axis: #8f97b1;
+  --chart-series-1: #feaa2b;
+  --chart-series-2: #8b5cf6;
+  --chart-series-3: #7bc96f;
+  --chart-series-4: #38bdf8;
+  --chart-series-5: #f97316;
+
+  /* Tables */
+  --table-row-bg: #16181d;
+  --table-row-hover: #1d2026;
+  --table-row-selected: #24272d;
+  --table-row-active: #252d3a;
+
+  /* Recipe composer */
+  --recipe-upload-bg: #0b0b0c;
+  --recipe-form-bg: #16181d;
+  --recipe-form-border: rgba(255, 255, 255, 0.08);
+  --recipe-form-shadow: 0 -18px 42px rgba(0, 0, 0, 0.18);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.055);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #a8b3cf;
+  --text-muted: #7f89a6;
+  --text-disabled: #596176;
+  --text-on-accent: #0b0b0c;
+
+  /* Brand */
+  --accent: #feaa2b;
+  --accent-hover: #ffb84d;
+  --accent-active: #ec9514;
+  --accent-soft: rgba(254, 170, 43, 0.1);
+  --accent-soft-hover: rgba(254, 170, 43, 0.16);
+  --accent-border: rgba(254, 170, 43, 0.25);
+  --accent-text: #ffd28a;
+
+  /* Semantic states */
+  --success: #55d6a0;
+  --success-text: #8ce9bd;
+  --success-soft: rgba(85, 214, 160, 0.1);
+  --success-border: rgba(85, 214, 160, 0.22);
+
+  --warning: #f6b94d;
+  --warning-text: #ffd388;
+  --warning-soft: rgba(246, 185, 77, 0.1);
+  --warning-border: rgba(246, 185, 77, 0.22);
+
+  --danger: #f87171;
+  --danger-text: #fca5a5;
+  --danger-soft: rgba(248, 113, 113, 0.1);
+  --danger-border: rgba(248, 113, 113, 0.22);
+
+  --danger-soft-hover: rgba(248, 113, 113, 0.17);
+
+  --info: #6ba7f2;
+  --info-text: #9dc7fa;
+  --info-soft: rgba(107, 167, 242, 0.1);
+  --info-border: rgba(107, 167, 242, 0.22);
+
+  /* Interactive states */
+  --hover: rgba(255, 255, 255, 0.04);
+  --active: rgba(255, 255, 255, 0.075);
+  --focus-ring: rgba(254, 170, 43, 0.1);
+  --focus-border: rgba(254, 170, 43, 0.5);
+
+  /* Inputs */
+  --input-bg: #0b0b0c;
+  --input-bg-hover: #101114;
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-placeholder: #6f7892;
+
+  /* Buttons */
+  --button-secondary-bg: rgba(255, 255, 255, 0.04);
+  --button-secondary-hover: #171a20;
+  --button-secondary-text: #a8b3cf;
+  --button-secondary-border: rgba(255, 255, 255, 0.1);
+
+  /* Success buttons */
+  --button-success-bg: #14271f;
+  --button-success-hover: #1a3428;
+  --button-success-border: rgba(85, 214, 160, 0.22);
+  --button-success-text: #8ce9bd;
+
+  /* Danger buttons */
+
+  --button-danger-bg: #2a1717;
+  --button-danger-hover: #3a1d1d;
+  --button-danger-border: rgba(248, 113, 113, 0.22);
+  --button-danger-text: #fca5a5;
+
+  /* Drawer controls */
+  --drawer-control-bg: #2a2e37;
+  --drawer-control-hover: #343944;
+  --drawer-control-border: rgba(255, 255, 255, 0.14);
+
+  /* Menu */
+  --menu-hover: rgba(254,170,43,.10);
+  --menu-active: rgba(254,170,43,.14);
+
+  /* Cards and dropdowns */
+  --card-bg: #16181d;
+  --card-hover: #1b1e24;
+  --dropdown-bg: #0b0b0c;
+  --dropdown-hover: rgba(255, 255, 255, 0.04);
+  --dropdown-selected: rgba(254, 170, 43, 0.15);
+
+  --account-dropdown-bg: #171a20;
+
+  /* Overlay and shadows */
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.28);
+
+  --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.2);
+
+  --shadow-dropdown: 0 18px 45px rgba(0, 0, 0, 0.45);
+}
+
