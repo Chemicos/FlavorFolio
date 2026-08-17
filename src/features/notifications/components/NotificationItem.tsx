@@ -8,6 +8,7 @@ import ReportProblemRoundedIcon from "@mui/icons-material/ReportProblemRounded"
 import ThumbUpRoundedIcon from "@mui/icons-material/ThumbUpRounded"
 import ThumbDownRoundedIcon from "@mui/icons-material/ThumbDownRounded"
 import PendingActionsRoundedIcon from "@mui/icons-material/PendingActionsRounded"
+import GppBadRoundedIcon from "@mui/icons-material/GppBadRounded"
 
 import { FlavorFolioNotification, NotificationType } from "../services/notifications.service"
 import { useNavigate } from "react-router-dom"
@@ -58,6 +59,8 @@ function getNotificationIcon(type: NotificationType) {
     case "comment_dislike":
     case "reply_dislike":
       return <ThumbDownRoundedIcon className={iconClass} sx={{ fontSize: 18 }} />
+    case "account_restriction":
+      return <GppBadRoundedIcon className={iconClass} sx={{ fontSize: 18}} />
     default:
       return <ChatBubbleOutlineRoundedIcon className={iconClass} sx={{ fontSize: 14 }} />
   }

@@ -3,9 +3,13 @@ import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded"
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded"
 import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded"
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined"
+import SmartDisplayOutlinedIcon from "@mui/icons-material/SmartDisplayOutlined"
+import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded"
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 
 import { useNavigate } from "react-router-dom"
-import { AdminUserRow } from "../types/adminUsers.types"
+import { AdminUserRestrictionKey, AdminUserRow } from "../types/adminUsers.types"
 import { motion } from "motion/react"
 
 interface AdminUsersDetailsDrawerProps {
@@ -13,6 +17,14 @@ interface AdminUsersDetailsDrawerProps {
     width: number
     onClose: () => void
     onResizeStart: (event: React.MouseEvent<HTMLDivElement>) => void
+    updatingRestriction: {
+      userId: string
+      restriction: AdminUserRestrictionKey
+    } | null
+    onRestrictionChange: (
+      restriction: AdminUserRestrictionKey,
+      allowed: boolean
+    ) => Promise<void>
 }
 
 function formatDate(ms: number) {
@@ -28,6 +40,8 @@ export default function AdminUsersDetailsDrawer({
     width,
     onClose,
     onResizeStart,
+    updatingRestriction,
+    onRestrictionChange,
 }: AdminUsersDetailsDrawerProps) {
     const navigate = useNavigate()
     const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ")
@@ -164,6 +178,101 @@ export default function AdminUsersDetailsDrawer({
                 </p>
               </div>
           </section>
+
+
+          <section className="mt-8">
+            <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+              Account restrictions
+            </h2>
+
+            <p className="mt-2 text-xs text-[var(--text-muted)]">
+              Limit what this user can do on the platform.
+            </p>
+
+            <div
+              className={[
+                "mt-4 overflow-hidden rounded-xl border",
+                "border-[var(--border)]",
+                "bg-[var(--card-bg)]",
+              ].join(" ")}
+            >
+              <RestrictionRow
+                icon={<DescriptionOutlinedIcon />}
+                title="Restrict posting recipes"
+                description="User will not be able to create new recipes."
+                isRestricted={!user.restrictions.canPostRecipes}
+                isLoading={
+                  updatingRestriction?.userId === user.uid &&
+                  updatingRestriction?.restriction ===
+                    "canPostRecipes"
+                }
+                onChange={(restricted) =>
+                  onRestrictionChange(
+                    "canPostRecipes",
+                    !restricted
+                  )
+                }
+              />
+
+              <RestrictionRow
+                icon={<SmartDisplayOutlinedIcon />}
+                title="Restrict posting reels"
+                description="User will not be able to create new reels."
+                isRestricted={!user.restrictions.canPostReels}
+                isLoading={
+                  updatingRestriction?.userId === user.uid &&
+                  updatingRestriction?.restriction ===
+                    "canPostReels"
+                }
+                onChange={(restricted) =>
+                  onRestrictionChange(
+                    "canPostReels",
+                    !restricted
+                  )
+                }
+              />
+
+              <RestrictionRow
+                icon={<ChatBubbleOutlineRoundedIcon />}
+                title="Restrict sending comments"
+                description="User will not be able to send comments."
+                isRestricted={!user.restrictions.canComment}
+                isLoading={
+                  updatingRestriction?.userId === user.uid &&
+                  updatingRestriction?.restriction ===
+                    "canComment"
+                }
+                onChange={(restricted) =>
+                  onRestrictionChange(
+                    "canComment",
+                    !restricted
+                  )
+                }
+              />
+            </div>
+
+            <div
+              className={[
+                "mt-4 flex gap-3 rounded-xl border p-4",
+                "border-[var(--info-border)]",
+                "bg-[var(--info-soft)]",
+              ].join(" ")}
+            >
+              <div className="mt-0.5 shrink-0 text-[var(--info)]">
+                <InfoOutlinedIcon sx={{ fontSize: 22 }} />
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-[var(--text-secondary)]">
+                  These restrictions only affect this user.
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
+                  They can be changed at any time.
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -232,6 +341,106 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       >
         {value}
       </span>
+    </div>
+  )
+}
+
+function RestrictionRow({
+  icon,
+  title,
+  description,
+  isRestricted,
+  isLoading,
+  onChange,
+}: {
+  icon: React.ReactNode
+  title: string
+  description: string
+  isRestricted: boolean
+  isLoading: boolean
+  onChange: (restricted: boolean) => void
+}) {
+  return (
+    <div
+      className={[
+        "flex items-center gap-4 px-4 py-4",
+        "border-b border-[var(--border-subtle)]",
+        "last:border-b-0",
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "flex h-10 w-10 shrink-0 items-center justify-center",
+          "rounded-lg",
+          isRestricted
+            ? "bg-[var(--danger-soft)] text-[var(--danger-text)]"
+            : "bg-[var(--surface-subtle)] text-[var(--text-secondary)]",
+        ].join(" ")}
+      >
+        {icon}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-[var(--text-primary)]">
+          {title}
+        </p>
+
+        <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
+          {description}
+        </p>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-3">
+        <span
+          className={[
+            "hidden rounded-lg px-2.5 py-1",
+            "text-[11px] font-medium sm:inline-flex",
+            isRestricted
+              ? "bg-[var(--danger-soft)] text-[var(--danger-text)]"
+              : "bg-[var(--surface-subtle)] text-[var(--text-muted)]",
+          ].join(" ")}
+        >
+          {isRestricted ? "Restricted" : "Allowed"}
+        </span>
+
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isRestricted}
+          aria-label={title}
+          disabled={isLoading}
+          onClick={() => onChange(!isRestricted)}
+          className={[
+            "relative h-7 w-12 shrink-0 rounded-full border",
+            "transition-[background-color,border-color,opacity] duration-200",
+            "disabled:cursor-not-allowed disabled:opacity-60",
+
+            isRestricted
+              ? [
+                  "border-[var(--danger-border)]",
+                  "bg-[var(--danger)]",
+                ].join(" ")
+              : [
+                  "border-[var(--border-strong)]",
+                  "bg-[var(--surface-muted)]",
+                ].join(" "),
+          ].join(" ")}
+        >
+          <span
+            className={[
+              "absolute left-[3px] top-[3px]",
+              "h-[19px] w-[19px] rounded-full",
+              "bg-white",
+              "shadow-sm",
+              "transition-transform duration-200 ease-out",
+
+              isRestricted
+                ? "translate-x-[20px]"
+                : "translate-x-0",
+            ].join(" ")}
+          />
+        </button>
+      </div>
     </div>
   )
 }

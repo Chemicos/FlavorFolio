@@ -87,7 +87,6 @@ export default function UserProfilePage() {
   const [viewMode, setViewMode] = useState<ProfileRecipeViewMode>("grid")
 
   const [savedRecipeIds, setSavedRecipeIds] = useState<string[]>([])
-
   
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
@@ -660,6 +659,7 @@ export default function UserProfilePage() {
                 recipesCount={publishedRecipesCount}
                 followersCount={profile.stats.followersCount || 0}
                 followingCount={profile.stats.followingCount || 0}
+                restrictions={profile.restrictions}
                 onFollowersClick={() => setConnectionsModalType("followers")}
                 onFollowingClick={() => setConnectionsModalType("following")}
                 rightAction={

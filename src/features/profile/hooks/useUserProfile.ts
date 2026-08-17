@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
 import { MyProfileData } from "../services/profile.service"
-import { ProfileRecipeGridItem } from "../components/ProfileRecipeGrid"
 import { subscribeToUserProfile, fetchUserPublicRecipes } from "../services/userProfile.service"
 
 function formatJoinedLabel(
@@ -17,14 +16,11 @@ function formatJoinedLabel(
 export function useUserProfile(
   userId?: string | null
 ) {
-  const [profile, setProfile] =
-    useState<MyProfileData | null>(null)
+  const [profile, setProfile] = useState<MyProfileData | null>(null)
 
-  const [isLoading, setIsLoading] =
-    useState(true)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const [error, setError] =
-    useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!userId) {

@@ -18,6 +18,7 @@ export type NotificationType =
     | "comment_dislike"
     | "reply_like"
     | "reply_dislike"
+    | "account_restriction"
 
 export interface FlavorFolioNotification {
     id: string
@@ -33,16 +34,9 @@ export interface FlavorFolioNotification {
         seconds: number
         nanoseconds: number
     }
+    restriction?: "canPostRecipes" | "canPostReels" | "canComment"
+    restrictionAllowed?: boolean
 }
-
-// interface CreateRecipePendingNotificationParams {
-//     recipientUserId: string
-//     actorUserId: string
-//     actorUsername: string
-//     actorProfileImage: string
-//     recipeId: string
-//     recipeTitle: string
-// }
 
 export interface CreateRecipeModerationNotificationParams {
   recipientUserId: string

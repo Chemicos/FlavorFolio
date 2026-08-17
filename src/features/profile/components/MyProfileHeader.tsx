@@ -3,6 +3,13 @@ import EditRoundedIcon from "@mui/icons-material/EditRounded"
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined"
 import LinkRoundedIcon from "@mui/icons-material/LinkRounded"
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined"
+import ProfileRestrictionBadge from "./ProfileRestrictionBadge"
+
+interface UserRestrictions {
+  canPostRecipes: boolean
+  canPostReels: boolean
+  canComment: boolean
+}
 
 interface MyProfileHeaderProps {
   username?: string
@@ -16,6 +23,9 @@ interface MyProfileHeaderProps {
   recipesCount?: number
   followersCount?: number
   followingCount?: number
+
+  restrictions?: UserRestrictions
+
   onEditProfile?: () => void
   onChangeAvatar?: (file: File) => void
   isAvatarUploading?: boolean
@@ -45,6 +55,13 @@ export default function MyProfileHeader({
   recipesCount = 0,
   followersCount = 0,
   followingCount = 0,
+
+  restrictions = {
+    canPostRecipes: true,
+    canPostReels: true,
+    canComment: true,
+  },
+
   onEditProfile,
   onChangeAvatar,
   isAvatarUploading = false,
@@ -56,9 +73,25 @@ export default function MyProfileHeader({
 }: MyProfileHeaderProps) {
   const displayName = fullName || username
 
+  const activeRestrictions = [
+    !restrictions.canPostRecipes
+      ? {key: "recipes", label: "Recipe posting restricted",} : null,
+    !restrictions.canPostReels
+      ? {key: "reels", label: "Reel posting restricted",} : null,
+    !restrictions.canComment
+      ? {key: "comments", label: "Commenting restricted"} : null,
+  ].filter(Boolean) as {
+    key: string
+    label: string
+  }[]
+
+  const hasRestrictions = activeRestrictions.length > 0
+
+  const restrictionBadgeLabel = activeRestrictions.length > 1 ? "Account limitations" : activeRestrictions[0]?.label
+
   return (
-    <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--profile-header-bg)] shadow-[var(--shadow-card)] transition-colors">
-      <div className="relative h-[300px] overflow-hidden">
+    <section className="relative z-50 rounded-xl border border-[var(--border)] bg-[var(--profile-header-bg)] shadow-[var(--shadow-card)] transition-colors">
+      <div className="relative h-[300px]">
         {bannerImage ? (
           <img
             src={bannerImage}
@@ -149,6 +182,10 @@ export default function MyProfileHeader({
                   <EditRoundedIcon sx={{ fontSize: 17 }} />
                   Edit profile
                 </button>
+              )}
+
+              {hasRestrictions && (
+                <ProfileRestrictionBadge label={restrictionBadgeLabel} restrictions={activeRestrictions} />
               )}
 
               {rightAction}

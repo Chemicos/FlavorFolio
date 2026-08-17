@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
 import FilterDrawer, { defaultRecipeFilters, RecipeFilters } from "../components/FilterDrawer"
-// import Navigation from "../../../components/layout/Navigation"
 import Content from "../components/Content.js"
 
 import ScrollToTopButton from "../components/ScrollToTopButton"
@@ -19,6 +18,7 @@ import { CircularProgress, useMediaQuery } from "@mui/material"
 import { fetchRecipeById } from "../services/recipes.service"
 import DeleteWarningDialog from "../components/recipe-view-drawer/DeleteWarningDialog"
 import { useAppLayout } from "../../../components/layout/AppLayoutContext"
+import { useUserCapabilities } from "../../../components/permissions/UserCapabilitiesContext"
 
 export type CreatePostType = "recipe" | "reel"
 
@@ -51,6 +51,8 @@ export default function Home() {
     profileImage?: string
   } | null>(null)
   const [isBlockingUser, setIsBlockingUser] = useState(false)
+
+  const {restrictions} = useUserCapabilities()
 
   const isAnyOverlayOpen = isFilterDrawerOpen
 
@@ -265,6 +267,15 @@ export default function Home() {
   }
   
   const handlePostClick = (postType: CreatePostType) => {
+    if (postType === "recipe" && !restrictions.canPostRecipes) {
+      showSnackbar("Your account is currently restricted from publishing recipes.", "error")
+      return
+    }
+    if (postType === "reel" && !restrictions.canPostReels) {
+      showSnackbar("Your account is currently restricted from publishing reels.", "error")
+      return
+    }
+
     setSelectedRecipe(null)
     setEditingRecipe(null)
     setIsRecipeDrawerLoading(false)

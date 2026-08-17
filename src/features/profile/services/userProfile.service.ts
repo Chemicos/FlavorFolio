@@ -1,6 +1,6 @@
 import { collection, doc, getCountFromServer, getDoc, getDocs, limit, onSnapshot, orderBy, query, where } from "@firebase/firestore"
 import { ProfileRecipeGridItem } from "../components/ProfileRecipeGrid"
-import { MyProfileData } from "./profile.service"
+import { MyProfileData, normalizeUserRestrictions } from "./profile.service"
 import { ProfileRecipeDocument } from "./profileRecipes.service"
 import { db } from "../../../firebase-config"
 import { ProfileVisibility } from "../../account-settings/services/privacy.service"
@@ -66,6 +66,10 @@ function mapUserProfileData(
         data.stats?.savedRecipesCount || 0
       ),
     },
+
+    restrictions: normalizeUserRestrictions(
+      data.restrictions
+    )
   }
 }
 

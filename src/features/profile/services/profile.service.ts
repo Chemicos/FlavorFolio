@@ -4,6 +4,12 @@ import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage
 import { buildRecipeKeywords, buildUserKeywords } from "../../../utils/searchKeywords"
 import { ProfileVisibility } from "../../account-settings/services/privacy.service"
 
+export interface UserRestrictions {
+  canPostRecipes: boolean
+  canPostReels: boolean
+  canComment: boolean
+}
+
 export interface MyProfileData {
   uid: string
   username: string
@@ -30,6 +36,8 @@ export interface MyProfileData {
     followingCount: number
     savedRecipesCount: number
   }
+
+  restrictions: UserRestrictions
 }
 
 export interface UpdateMyProfilePayload {
@@ -39,6 +47,21 @@ export interface UpdateMyProfilePayload {
   bio: string
   location: string
   website: string
+}
+
+export function normalizeUserRestrictions(
+  value: any
+): UserRestrictions {
+  return {
+    canPostRecipes:
+      value?.canPostRecipes !== false,
+
+    canPostReels:
+      value?.canPostReels !== false,
+
+    canComment:
+      value?.canComment !== false,
+  }
 }
 
 export async function updateMyProfile({
@@ -109,17 +132,6 @@ async function propagateUserProfileIdentity({
     const batch = writeBatch(db)
     const recipeData = recipeDoc.data()
 
-    // batch.update(recipeDoc.ref, {
-    //   user: username,
-    //   "author.username": username,
-    //   ...(profileImage ? { "author.profileImage": profileImage } : {}),
-    //   searchKeywords: buildRecipeKeywords({
-    //     ...recipeData,
-    //     authorUsername: username,
-    //   }),
-    //   updatedAt: serverTimestamp(),
-    // })
-
     batch.update(recipeDoc.ref, {
       user: username,
       "author.username": username,
@@ -143,11 +155,6 @@ async function propagateUserProfileIdentity({
     const commentsSnapshot = await getDocs(commentsQuery)
 
     commentsSnapshot.docs.forEach((commentDoc) => {
-      // batch.update(commentDoc.ref, {
-      //   username,
-      //   ...(profileImage ? { profileImage } : {}),
-      //   updatedAt: serverTimestamp(),
-      // })
 
       batch.update(commentDoc.ref, {
         username,
@@ -250,6 +257,8 @@ export function subscribeToMyProfile(
           followingCount: Number(data.stats?.followingCount || 0),
           savedRecipesCount: Number(data.stats?.savedRecipesCount || 0),
         },
+
+        restrictions: normalizeUserRestrictions(data.restrictions),
       })
     },
     onError
@@ -345,5 +354,7 @@ export async function fetchMyProfile(userId: string): Promise<MyProfileData> {
       followingCount: Number(data.stats?.followingCount || 0),
       savedRecipesCount: Number(data.stats?.savedRecipesCount || 0),
     },
+
+    restrictions: normalizeUserRestrictions(data.restrictions)
   }
 }

@@ -9,7 +9,6 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
 
 import { useMemo, useState } from "react"
 import { useAdminUsers } from "../hooks/useAdminUsers"
-import { AdminUserRow } from "../types/adminUsers.types"
 import { AnimatePresence } from "motion/react"
 
 import AdminLayout from "../components/AdminLayout"
@@ -19,6 +18,7 @@ import AdminUsersPageSkeleton from "../components/skeletons/AdminUsersPageSkelet
 import DeleteWarningDialog from "../../home/components/recipe-view-drawer/DeleteWarningDialog"
 import { useAdminLiveRefresh } from "../hooks/useAdminLiveRefresh"
 import AdminLiveDataStatus from "../components/AdminLiveDataStatus"
+import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 
 function isUserCreatedThisMonth(createdAtMs: number) {
   if (!createdAtMs) return false
@@ -33,12 +33,22 @@ function isUserCreatedThisMonth(createdAtMs: number) {
 }
 
 export default function AdminUsersPage() {
-    const { users, isLoading, isDeleting, error, refetch, deleteUsers } = useAdminUsers()
+    const { users, isLoading, isDeleting, error, refetch, deleteUsers, updatingRestriction, updateUserRestriction,} = useAdminUsers()
 
     const [search, setSearch] = useState("")
-    const [selectedUser, setSelectedUser] = useState<AdminUserRow | null>(null)
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+    const selectedUser = useMemo(() => {
+      if (!selectedUserId) return null
+
+      return (
+        users.find(
+          (user) => user.uid === selectedUserId
+        ) || null
+      )
+    }, [users, selectedUserId])
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+    const {showSnackbar} = useSnackbar()
 
     const { isRefreshing, lastUpdatedAt, handleRefresh } = useAdminLiveRefresh({
       isLoading,
@@ -107,7 +117,7 @@ export default function AdminUsersPage() {
         await deleteUsers(selectedIds)
 
         if (selectedUser && selectedIds.includes(selectedUser.uid)) {
-            setSelectedUser(null)
+            setSelectedUserId(null)
         }
 
         setSelectedIds([])
@@ -267,11 +277,13 @@ export default function AdminUsersPage() {
 
                 <div className="min-h-0 flex-1 overflow-hidden rounded-2xl">
                     <AdminUsersTable
-                    users={filteredUsers}
-                    selectedIds={selectedIds}
-                    activeUserId={selectedUser?.uid || null}
-                    onToggleUser={handleToggleUser}
-                    onViewUser={setSelectedUser}
+                      users={filteredUsers}
+                      selectedIds={selectedIds}
+                      activeUserId={selectedUser?.uid || null}
+                      onToggleUser={handleToggleUser}
+                      onViewUser={(user) =>
+                        setSelectedUserId(user.uid)
+                      }
                     />
                 </div>
             </section>
@@ -284,8 +296,47 @@ export default function AdminUsersPage() {
             key={selectedUser.uid}
             user={selectedUser}
             width={detailsDrawerWidth}
-            onClose={() => setSelectedUser(null)}
+            onClose={() => setSelectedUserId(null)}
             onResizeStart={handleDetailsResizeStart}
+            updatingRestriction={updatingRestriction}
+            onRestrictionChange={async (
+              restriction,
+              allowed
+            ) => {
+              try {
+                await updateUserRestriction({
+                  userId: selectedUser.uid,
+                  restriction,
+                  allowed,
+                })
+
+                const restrictionMessages = {
+                  canPostRecipes: {
+                    restricted: `${selectedUser.username} can no longer post recipes.`,
+                    allowed: `${selectedUser.username} can now post recipes.`,
+                  },
+                  canPostReels: {
+                    restricted: `${selectedUser.username} can no longer post reels.`,
+                    allowed: `${selectedUser.username} can now post reels.`,
+                  },
+                  canComment: {
+                    restricted: `${selectedUser.username} can no longer send comments.`,
+                    allowed: `${selectedUser.username} can now send comments.`,
+                  },
+                }
+
+                const message = restrictionMessages[restriction]
+
+                showSnackbar(
+                  allowed ? message.allowed : message.restricted,
+                  allowed ? "success" : "info"
+                )
+              } catch (error) {
+                console.error("Failed to update user restriction:", error)
+
+                showSnackbar(`Failed to update restriction for ${selectedUser.username}.`, "error")
+              }
+            }}
           />
         )}
       </AnimatePresence>

@@ -27,6 +27,7 @@ import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds } fro
 import { SharedRecipeMessage } from "../../messages/types/messages.types";
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal";
 import StickyProfileDrawer from "../components/StickyProfileDrawer";
+import { useUserCapabilities } from "../../../components/permissions/UserCapabilitiesContext";
 
 function ViewRecipeDrawerLoading() {
   return (
@@ -69,12 +70,8 @@ export default function MyProfilePage() {
     setRecipes,
     setSavedRecipes,
   } = useMyProfileRecipes(userId)
-  
-  const isLargeDesktop = useMediaQuery("(min-width:1930px)")
 
   const RECIPE_DRAWER_WIDTH = 540
-  const LAYOUT_GAP = 24
-  const FLOATING_EDGE_GAP = 24
 
   const recipeDrawerWidth = RECIPE_DRAWER_WIDTH
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
@@ -86,12 +83,9 @@ export default function MyProfilePage() {
   const isDrawerOpen = Boolean(
     selectedRecipe || editingRecipe || isRecipeDrawerLoading || isRecipeEditLoading
   )
-
-  const floatingActionsRightOffset = isDrawerOpen && !isLargeDesktop
-    ? RECIPE_DRAWER_WIDTH + LAYOUT_GAP + FLOATING_EDGE_GAP
-    : FLOATING_EDGE_GAP
   
   const { showSnackbar } = useSnackbar()
+  const {restrictions} = useUserCapabilities()
   
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearchQuery = useDebounce(searchQuery, 1000)
@@ -605,6 +599,7 @@ export default function MyProfilePage() {
                 recipesCount={recipes.length}
                 followersCount={profile?.stats.followersCount || 0}
                 followingCount={profile?.stats.followingCount || 0}
+                restrictions={restrictions}
                 onEditProfile={handleOpenProfileEditor}
                 onChangeAvatar={uploadAvatarImage}
                 isAvatarUploading={isAvatarUploading}

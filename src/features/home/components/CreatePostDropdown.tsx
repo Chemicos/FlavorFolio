@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react"
 import { CreatePostType } from "../pages/Home"
 import { AnimatePresence, motion } from "motion/react"
 import { useDismissibleLayer } from "../../../hooks/useDismissibleLayer"
+import { useUserCapabilities } from "../../../components/permissions/UserCapabilitiesContext"
 
 interface CreatePostDropdownProps {
   onSelect: (postType: CreatePostType) => void
@@ -16,44 +17,15 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
     const dropdownRef = useRef<HTMLDivElement | null>(null)
     const [isOpen, setIsOpen] = useState(false)
 
+    const {restrictions} = useUserCapabilities()
+    const canPostRecipes = restrictions.canPostRecipes
+    const canPostReels = restrictions.canPostReels
+
     useDismissibleLayer({
       isOpen,
       refs: [dropdownRef],
       onDismiss: () => setIsOpen(false),
     })
-
-    // useEffect(() => {
-    //     function handleClickOutside(event: MouseEvent) {
-    //         if (
-    //             dropdownRef.current &&
-    //             !dropdownRef.current.contains(event.target as Node)
-    //         ) {
-    //             setIsOpen(false)
-    //         }
-    //     }
-
-    //     function handleEscape(event: KeyboardEvent) {
-    //         if (event.key === "Escape") {
-    //             setIsOpen(false)
-    //         }
-    //     }
-
-    //     function handleViewportChange() {
-    //         setIsOpen(false)
-    //     }
-
-    //     document.addEventListener("mousedown", handleClickOutside)
-    //     document.addEventListener("keydown", handleEscape)
-    //     window.addEventListener("scroll", handleViewportChange, { passive: true })
-    //     window.addEventListener("resize", handleViewportChange)
-
-    //     return () => {
-    //         document.removeEventListener("mousedown", handleClickOutside)
-    //         document.removeEventListener("keydown", handleEscape)
-    //         window.removeEventListener("scroll", handleViewportChange)
-    //         window.removeEventListener("resize", handleViewportChange)
-    //     }
-    // }, [])
 
     function handleSelect(postType: CreatePostType) {
         onSelect(postType)
@@ -103,8 +75,15 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
             <button
               type="button"
               role="menuitem"
-              onClick={() => handleSelect("recipe")}
-              className="flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition hover:bg-[var(--dropdown-hover)]"
+              disabled={!canPostRecipes}
+              onClick={() => {
+                if (!canPostRecipes) return 
+                handleSelect("recipe")
+              }}
+              className={[
+                "flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition",
+                canPostRecipes ? "hover:bg-[var(--dropdown-hover)]" : "cursor-not-allowed opacity-55"
+              ].join(" ")}
             >
               <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]">
                 <ArticleRoundedIcon sx={{ fontSize: 19 }} />
@@ -116,7 +95,7 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
                 </span>
 
                 <span className="mt-0.5 block text-xs leading-5 text-[var(--text-muted)]">
-                  Publish a complete recipe with ingredients and cooking steps.
+                  {canPostRecipes ? "Publish a complete recipe with ingredients and cooking steps." : "Your account is currently restricted from publishing recipes."}
                 </span>
               </span>
             </button>
@@ -124,8 +103,15 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
             <button
               type="button"
               role="menuitem"
-              onClick={() => handleSelect("reel")}
-              className="flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition hover:bg-[var(--dropdown-hover)]"
+              disabled={!canPostReels}
+              onClick={() => {
+                if (!canPostReels) return
+                handleSelect("reel")
+              }}
+              className={[
+                "flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition",
+                canPostReels ? "hover:bg-[var(--dropdown-hover)]" : "cursor-not-allowed opacity-55"
+              ].join(" ")}
             >
               <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]">
                 <VideoLibraryRoundedIcon sx={{ fontSize: 19 }} />
@@ -133,11 +119,11 @@ export default function CreatePostDropdown({onSelect}: CreatePostDropdownProps) 
 
               <span>
                 <span className="block text-sm font-semibold text-[var(--text-primary)]">
-                  Reel (WIP)
+                  Reel
                 </span>
 
                 <span className="mt-0.5 block text-xs leading-5 text-[var(--text-muted)]">
-                  Share a short vertical cooking video with the community.
+                  {canPostReels ? "Share a short vertical cooking video with the community." : "Your account is currently restricted from publishing reels."}
                 </span>
               </span>
             </button>

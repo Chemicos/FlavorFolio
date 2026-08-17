@@ -1,5 +1,5 @@
-import { collection, collectionGroup, doc, getCountFromServer, getDocs, limit, orderBy, query, where, writeBatch } from "@firebase/firestore"
-import { AdminUserRole, AdminUserRow } from "../types/adminUsers.types"
+import { collection, collectionGroup, doc, getCountFromServer, getDocs, limit, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from "@firebase/firestore"
+import { AdminUserRestrictionKey, AdminUserRestrictions, AdminUserRole, AdminUserRow } from "../types/adminUsers.types"
 import { db, storage } from "../../../firebase-config"
 import { deleteObject, ref } from "firebase/storage"
 
@@ -8,6 +8,34 @@ function getDateMs(value: any) {
   if (typeof value?.toDate === "function") return value.toDate().getTime()
   if (typeof value?.seconds === "number") return value.seconds * 1000
   return 0
+}
+
+const DEFAULT_USER_RESTRICTIONS: AdminUserRestrictions = {
+  canPostRecipes: true,
+  canPostReels: true,
+  canComment: true,
+}
+
+function normalizeRestrictions(
+  value: unknown
+): AdminUserRestrictions {
+  const restrictions =
+    value && typeof value === "object"
+      ? value as Record<string, unknown> : {}
+
+  return {
+    canPostRecipes:
+      typeof restrictions.canPostRecipes === "boolean"
+        ? restrictions.canPostRecipes : DEFAULT_USER_RESTRICTIONS.canPostRecipes,
+
+    canPostReels:
+      typeof restrictions.canPostReels === "boolean"
+        ? restrictions.canPostReels : DEFAULT_USER_RESTRICTIONS.canPostReels,
+
+    canComment:
+      typeof restrictions.canComment === "boolean"
+        ? restrictions.canComment : DEFAULT_USER_RESTRICTIONS.canComment,
+  }
 }
 
 function normalizeRole(value: unknown): AdminUserRole {
@@ -67,6 +95,7 @@ export async function fetchAdminUsers(): Promise<AdminUserRow[]> {
         followingCount: Math.max(0, Number(stats.followingCount || 0)),
         savedRecipesCount,
         createdAtMs: getDateMs(data.createdAt),
+        restrictions: normalizeRestrictions(data.restrictions)
       }
     })
   )
@@ -152,4 +181,59 @@ export async function deleteAdminUsers(userIds: string[]) {
 
   await Promise.all(storageDeleteTasks)
   await deleteDocsInChunks(allRefs)
+}
+
+export async function updateAdminUserRestriction({
+  userId, 
+  restriction, 
+  allowed
+}: {
+  userId: string
+  restriction: AdminUserRestrictionKey
+  allowed: boolean
+}) {
+  const batch = writeBatch(db)
+
+  const userRef = doc(db, "users", userId)
+  batch.update(userRef, {
+    [`restrictions.${restriction}`]: allowed,
+    updatedAt: serverTimestamp()
+  })
+  // await updateDoc(userRef, {
+  //   [`restrictions.${restriction}`]: allowed,
+  // })
+
+  const notificationRef = doc(collection(db, "users", userId, "notifications"))
+
+  const messages = {
+    canPostRecipes: {
+      restricted: "Your ability to publish recipes has been restricted.",
+      restored: "Your ability to publish recipes has been restored."
+    },
+
+    canPostReels: {
+      restricted: "Your ability to publish reels has been restricted.",
+      restored: "Your ability to publish reels has been restored."
+    },
+
+    canComment: {
+      restricted: "Your ability to send comments has been restricted.",
+      restored: "Your ability to send comments has been restored."
+    }
+  }
+
+  batch.set(notificationRef, {
+    type: "account_restriction",
+    recipientUserId: userId,
+    restriction,
+    restrictionAllowed: allowed,
+
+    title: allowed ? "Account restriction removed" : "Account restriction applied",
+    message: allowed ? messages[restriction].restored : messages[restriction].restricted,
+
+    read: false,
+    createdAt: serverTimestamp()
+  })
+
+  await batch.commit()
 }
