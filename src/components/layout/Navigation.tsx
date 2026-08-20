@@ -50,14 +50,27 @@ export default function Navigation() {
     
     useEffect(() => {
       const fetchPendingCount = async () => {
-        const pendingCollection = collection(db, 'pendingRecipes')
-        const pendingSnapshot = await getDocs(pendingCollection)
-        setPendingCount(pendingSnapshot.size)
+        if (!isAdmin) {
+          setPendingCount(0)
+          return
+        }
+
+        try {
+          const pendingQuery = query(
+            collection(db, "recipes"),
+            where("status", "==", "pending")
+          )
+
+          const snapshot = await getCountFromServer(pendingQuery)
+
+          setPendingCount(snapshot.data().count)
+        } catch (error) {
+          console.error("Failed to fetch pending recipes count:", error)
+          setPendingCount(0)
+        }
       }
 
-      if (isAdmin) {
-        fetchPendingCount()
-      }
+      fetchPendingCount()
     }, [isAdmin])
 
     useEffect(() => {

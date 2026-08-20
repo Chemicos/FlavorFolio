@@ -10,6 +10,7 @@ interface ViewRecipeCommentsSectionProps {
   commentsCount: number
   comments: ViewRecipeComment[]
   currentUser: CurrentUserCardData | null
+  canComment: boolean
   isLoadingComments: boolean
   isSubmittingComment: boolean
   editingCommentId: string | null
@@ -39,6 +40,7 @@ export default function ViewRecipeCommentsSection({
   commentsCount,
   comments,
   currentUser,
+  canComment,
   onAuthorClick,
   isLoadingComments,
   isSubmittingComment,
@@ -103,6 +105,7 @@ export default function ViewRecipeCommentsSection({
               currentUser={currentUser} 
               isSubmiting={isSubmittingComment}
               onSubmit={onSubmitComment}
+              canComment={canComment}
           />
 
           {isLoadingComments ? (
@@ -111,6 +114,7 @@ export default function ViewRecipeCommentsSection({
               <ViewRecipeCommentList 
                   comments={visibleComments} 
                   currentUserId={currentUser?.uid}
+                  canComment={canComment}
                   onAuthorClick={onAuthorClick}
                   editingCommentId={editingCommentId}
                   isUpdatingComment={isUpdatingComment}

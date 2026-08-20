@@ -1,27 +1,32 @@
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import CircularProgress from "@mui/material/CircularProgress"
 import { AnimatePresence, motion } from "motion/react";
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
 
 interface ViewRecipeCommentComposerProps {
   currentUser: CurrentUserCardData | null
   onSubmit?: (commentText: string) => void
   isSubmiting?: boolean
+  canComment?: boolean
 }
 
 export default function ViewRecipeCommentComposer({
     currentUser,
     onSubmit,
-    isSubmiting = false
+    isSubmiting = false,
+    canComment = true,
 }: ViewRecipeCommentComposerProps) {
     const [commentText, setCommentText] = useState("")
     const [isExpanded, setIsExpanded] = useState(false)
     const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 
     const handleExpand = () => {
+        if (!canComment) return
+
         setIsExpanded(true)
 
         window.setTimeout(() => {
@@ -29,12 +34,21 @@ export default function ViewRecipeCommentComposer({
         }, 160)
     }
 
+    useEffect(() => {
+        if (canComment) return
+
+        setCommentText("")
+        setIsExpanded(false)
+    }, [canComment])
+
     const handleCancel = () => {
         setCommentText("")
         setIsExpanded(false)
     }
 
     const handleSubmit = async () => {
+        if (!canComment) return 
+
         const trimmedValue = commentText.trim()
         if (!trimmedValue || isSubmiting) return
 
@@ -42,6 +56,28 @@ export default function ViewRecipeCommentComposer({
 
         setCommentText("")
         setIsExpanded(false)
+    }
+
+    if (!canComment) {
+        return (
+            <div className="rounded-lg border p-4 border-[var(--warning-border)] bg-[var(--warning-soft)]">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-subtle)] text-[var(--warning-text)]">
+                        <LockOutlinedIcon sx={{ fontSize: 19 }} />
+                    </div>
+
+                    <div>
+                        <p className="text-sm font-semibold text-[var(--text-primary)]">
+                            Commenting restricted
+                        </p>
+
+                        <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
+                            Your account is currently restricted from posting comments or replies.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     return (

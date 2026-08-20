@@ -39,6 +39,7 @@ import { deleteRecipe } from "../../services/recipes.service"
 import { doc, onSnapshot } from "@firebase/firestore"
 import { db } from "../../../../firebase-config"
 import { useDismissibleLayer } from "../../../../hooks/useDismissibleLayer"
+import { useUserCapabilities } from "../../../../components/permissions/UserCapabilitiesContext"
 
 interface ViewRecipeDrawerProps {
     recipe: Recipe,
@@ -195,6 +196,9 @@ export default function ViewRecipeDrawer({
     } = useImageLoaded(recipe.image)
 
     const {comments, isLoadingComments} = useRecipeComments(recipe.recipeId)
+    const {restrictions} = useUserCapabilities()
+    const canComment = restrictions.canComment
+
     const totalLiveCommentsCount = useMemo(() => {
         return comments.reduce((total, comment) => {
             return total + 1 + (comment.replies?.length || 0)
@@ -376,6 +380,12 @@ export default function ViewRecipeDrawer({
         setIsRecipeMenuOpen(false)
     }, [recipe.recipeId])
 
+    useEffect(() => {
+        if (canComment) return
+
+        setReplyingCommentId(null)
+    }, [canComment])
+
     const handleRatingChange = async (_event: React.SyntheticEvent, value: number | null) => {
         if (!value || !currentUser?.uid || !recipe.recipeId || ratingLoading) return
 
@@ -410,7 +420,7 @@ export default function ViewRecipeDrawer({
     }
 
     const handleSubmitComment = async (value: string) => {
-        if (!currentUser?.uid || !recipe.recipeId || isSubmittingComment) return
+        if (!currentUser?.uid || !recipe.recipeId || isSubmittingComment || !canComment) return
 
         try {
             setIsSubmittingComment(true)
@@ -430,7 +440,7 @@ export default function ViewRecipeDrawer({
     }
 
     const handleSubmitReply = async (comment: ViewRecipeComment, value: string) => {
-        if (!currentUser?.uid || !recipe.recipeId || isSubmittingReply) return
+        if (!currentUser?.uid || !recipe.recipeId || isSubmittingReply || !canComment) return
 
         try {
             setIsSubmittingReply(true)
@@ -971,6 +981,7 @@ export default function ViewRecipeDrawer({
                                         commentsCount={visibleCommentsCount}
                                         comments={visibleCommentsWithReactions}
                                         currentUser={currentUser}
+                                        canComment={canComment}
                                         onAuthorClick={onAuthorClick}
                                         isLoadingComments={isLoadingComments}
                                         isSubmittingComment={isSubmittingComment}

@@ -84,12 +84,12 @@ export function getDirectConversationId(currentUserId: string, targetUserId: str
 }
 
 async function isBlockedBetweenUsers(currentUserId: string, targetUserId: string) {
-    const [currentBlockedTarget, targetBlockedCurrent] = await Promise.all([
+    const [currentBlockedTarget, currentBlockedByTarget] = await Promise.all([
         getDoc(doc(db, "users", currentUserId, "blockedUsers", targetUserId)),
-        getDoc(doc(db, "users", targetUserId, "blockedUsers", currentUserId)),
+        getDoc(doc(db, "users", currentUserId, "blockedBy", targetUserId)),
     ])
 
-    return currentBlockedTarget.exists() || targetBlockedCurrent.exists()
+    return currentBlockedTarget.exists() || currentBlockedByTarget.exists()
 }
 
 export async function areUsersMutualFollowers(currentUserId: string, targetUserId: string) {
@@ -185,48 +185,6 @@ export async function sendMessage({
     receiverId: string
     text: string
 }) {
-    // const cleanText = text.trim()
-
-    // if (!cleanText) return
-
-    // const conversationRef = doc(db, "conversations", conversationId)
-    // const conversationSnap = await getDoc(conversationRef)
-
-    // if (!conversationSnap.exists()) {
-    //     throw new Error("Conversation not found.")
-    // }
-
-    // const allowed = await canMessageUser(senderId, receiverId)
-
-    // if (!allowed) {
-    //     throw new Error("You can’t send messages unless you follow each other.")
-    // }
-
-    // const messageRef = await addDoc(
-    //     collection(db, "conversations", conversationId, "messages"),
-    //     {
-    //         conversationId,
-    //         senderId,
-    //         receiverId,
-    //         text: cleanText,
-    //         type: "text",
-    //         isDeleted: false,
-    //         createdAt: serverTimestamp(),
-    //     }
-    // )
-
-    // await updateDoc(conversationRef, {
-    //     lastMessage: {
-    //         text: cleanText,
-    //         senderId,
-    //         createdAt: serverTimestamp(),
-    //     },
-    //     [`unreadCount.${receiverId}`]: increment(1),
-    //     updatedAt: serverTimestamp(),
-    // })
-
-    // return messageRef.id
-
     const cleanText = text.trim()
 
     if (!cleanText) return
@@ -479,65 +437,6 @@ export async function sendImageMessage({
     file: File
     text?: string
 }) {
-    // validateImageFile(file)
-
-    // const conversationRef = doc(db, "conversations", conversationId)
-    // const conversationSnap = await getDoc(conversationRef)
-
-    // if (!conversationSnap.exists()) {
-    //     throw new Error("Conversation not found.")
-    // }
-
-    // const allowed = await canMessageUser(senderId, receiverId)
-
-    // if (!allowed) {
-    //     throw new Error("You can’t send messages unless you follow each other.")
-    // }
-
-    // const { fileName, path } = buildMessageImagePath({
-    //     conversationId,
-    //     senderId,
-    //     file,
-    // })
-
-    // const storageRef = ref(storage, path)
-
-    // await uploadBytes(storageRef, file, {
-    //     contentType: file.type,
-    // })
-
-    // const imageUrl = await getDownloadURL(storageRef)
-    // const cleanText = text.trim()
-
-    // const messageRef = await addDoc(
-    //     collection(db, "conversations", conversationId, "messages"),
-    //     {
-    //         conversationId,
-    //         senderId,
-    //         receiverId,
-    //         text: cleanText,
-    //         type: "image",
-    //         imageUrl,
-    //         imagePath: path,
-    //         imageFileName: fileName,
-    //         isDeleted: false,
-    //         createdAt: serverTimestamp(),
-    //     }
-    // )
-
-    // await updateDoc(conversationRef, {
-    //     lastMessage: {
-    //         text: cleanText || "Sent an image",
-    //         senderId,
-    //         type: "image",
-    //         createdAt: serverTimestamp(),
-    //     },
-    //     [`unreadCount.${receiverId}`]: increment(1),
-    //     updatedAt: serverTimestamp(),
-    // })
-
-    // return messageRef.id
-
     validateImageFile(file)
 
     const conversationRef = doc(
@@ -643,48 +542,6 @@ export async function shareRecipeMessage({
     receiverId: string
     recipe: SharedRecipeMessage
 }) {
-    // const allowed = await canMessageUser(senderId, receiverId)
-
-    // if (!allowed) {
-    //     throw new Error("You can’t share recipes unless you follow each other.")
-    // }
-
-    // const conversationId = await createOrOpenDirectConversation({
-    //     currentUserId: senderId,
-    //     targetUserId: receiverId,
-    // })
-
-    // const conversationRef = doc(db, "conversations", conversationId)
-
-    // const messageRef = await addDoc(
-    //     collection(db, "conversations", conversationId, "messages"),
-    //     {
-    //         conversationId,
-    //         senderId,
-    //         receiverId,
-    //         text: "",
-    //         type: "recipe",
-    //         recipe,
-    //         isDeleted: false,
-    //         createdAt: serverTimestamp(),
-    //     }
-    // )
-
-    // await updateDoc(conversationRef, {
-    //     lastMessage: {
-    //     text: `Shared a recipe: ${recipe.title}`,
-    //     senderId,
-    //     createdAt: serverTimestamp(),
-    //     },
-    //     [`unreadCount.${receiverId}`]: increment(1),
-    //     updatedAt: serverTimestamp(),
-    // })
-
-    // return {
-    //     conversationId,
-    //     messageId: messageRef.id,
-    // }
-
     const allowed = await canMessageUser(
         senderId,
         receiverId

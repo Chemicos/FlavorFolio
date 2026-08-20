@@ -1,4 +1,4 @@
-import { collection, doc, increment, onSnapshot, orderBy, query, runTransaction, serverTimestamp, Timestamp, updateDoc, where } from "@firebase/firestore"
+import { collection, doc, getDoc, increment, onSnapshot, orderBy, query, runTransaction, serverTimestamp, Timestamp, updateDoc, where } from "@firebase/firestore"
 import { ViewRecipeComment } from "../components/recipe-view-drawer/ViewRecipeCommentList"
 import { db } from "../../../firebase-config"
 import { formatRelativeDate } from "../utils/dateFormatters"
@@ -35,79 +35,101 @@ interface CreateRecipeReplyInput {
   replyToUsername?: string
 }
 
+async function assertUserCanComment(userId: string) {
+  if (!userId) {
+    throw new Error("User id is required.")
+  }
+
+  const userSnap = await getDoc(doc(db, "users", userId))
+  if (!userSnap.exists()) {
+    throw new Error("User document missing.")
+  }
+
+  const restrictions = userSnap.data()?.restrictions
+  const canComment = restrictions?.canComment !== false
+
+  if (!canComment) {
+    throw new Error("COMMENT_RESTRICTED")
+  }
+}
+
 export async function createRecipeComment(input: CreateRecipeCommentInput) {
-    const recipeRef = doc(db, "recipes", input.recipeId)
-    const commentRef = doc(collection(db, "recipes", input.recipeId, "comments"))
+  await assertUserCanComment(input.userId)
 
-    await runTransaction(db, async (transaction) => {
-        const recipeSnap = await transaction.get(recipeRef)
+  const recipeRef = doc(db, "recipes", input.recipeId)
+  const commentRef = doc(collection(db, "recipes", input.recipeId, "comments"))
 
-        if (!recipeSnap.exists()) {
-           throw new Error("Recipe document missing.")
-        }
+  await runTransaction(db, async (transaction) => {
+      const recipeSnap = await transaction.get(recipeRef)
 
-        const recipeData = recipeSnap.data()
-        const recipeOwnerId = recipeData?.userId || ""
-        const recipeTitle = recipeData?.title || "your recipe"
+      if (!recipeSnap.exists()) {
+          throw new Error("Recipe document missing.")
+      }
 
-        const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
+      const recipeData = recipeSnap.data()
+      const recipeOwnerId = recipeData?.userId || ""
+      const recipeTitle = recipeData?.title || "your recipe"
 
-        transaction.set(commentRef, {
-            comment: input.comment,
-            userId: input.userId,
-            username: input.username,
-            profileImage: input.profileImage || "",
-            parentCommentId: null,
-            repliesCount: 0,
-            likesCount: 0,
-            dislikesCount: 0,
-            edited: false,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        })
+      const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
 
-        if (recipeOwnerId && recipeOwnerId !== input.userId) {
-            const notificationRef = doc(
-                db,
-                "users",
-                recipeOwnerId,
-                "notifications",
-                getCommentNotificationId(input.recipeId, commentRef.id)
-            )
+      transaction.set(commentRef, {
+          comment: input.comment,
+          userId: input.userId,
+          username: input.username,
+          profileImage: input.profileImage || "",
+          parentCommentId: null,
+          repliesCount: 0,
+          likesCount: 0,
+          dislikesCount: 0,
+          edited: false,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+      })
 
-            transaction.set(notificationRef, {
-                type: "comment",
-                recipientUserId: recipeOwnerId,
-                actorUserId: input.userId,
-                actorUsername: input.username || "Someone",
-                actorProfileImage: input.profileImage || "",
-                recipeId: input.recipeId,
-                recipeTitle,
-                commentId: commentRef.id,
-                commentPreview:
-                input.comment.length > 120
-                    ? `${input.comment.slice(0, 120)}...`
-                    : input.comment,
-                message: `${input.username || "Someone"} commented on ${recipeTitle}.`,
-                read: false,
-                createdAt: serverTimestamp(),
-            })
-        }
+      if (recipeOwnerId && recipeOwnerId !== input.userId) {
+          const notificationRef = doc(
+              db,
+              "users",
+              recipeOwnerId,
+              "notifications",
+              getCommentNotificationId(input.recipeId, commentRef.id)
+          )
 
-        transaction.set(
-            recipeRef,
-            {
-                stats: {
-                    ...recipeData?.stats,
-                    commentsCount: currentCommentsCount + 1,
-                }
-            },
-            {merge: true}
-        )
-    })
+          transaction.set(notificationRef, {
+              type: "comment",
+              recipientUserId: recipeOwnerId,
+              actorUserId: input.userId,
+              actorUsername: input.username || "Someone",
+              actorProfileImage: input.profileImage || "",
+              recipeId: input.recipeId,
+              recipeTitle,
+              commentId: commentRef.id,
+              commentPreview:
+              input.comment.length > 120
+                  ? `${input.comment.slice(0, 120)}...`
+                  : input.comment,
+              message: `${input.username || "Someone"} commented on ${recipeTitle}.`,
+              read: false,
+              createdAt: serverTimestamp(),
+          })
+      }
+
+      transaction.set(
+          recipeRef,
+          {
+              stats: {
+                  ...recipeData?.stats,
+                  commentsCount: currentCommentsCount + 1,
+              }
+          },
+          {merge: true}
+      )
+  })
 }
 
 export async function createRecipeReply(input: CreateRecipeReplyInput) {
+  await assertUserCanComment(input.userId)
+  
   const recipeRef = doc(db, "recipes", input.recipeId)
   const parentCommentRef = doc(
     db,

@@ -168,31 +168,6 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     fetchInitialRecipes()
   }, [fetchInitialRecipes])
 
-  // useEffect(() => {
-  //   const fetchFollowing = async () => {
-  //     if (!currentUserId) {
-  //         setFollowingUserIds([])
-  //         return
-  //     }
-
-  //     try {
-  //         const followingCollection = collection(db, "users", currentUserId, "following")
-  //         const followingSnapshot = await getDocs(followingCollection)
-
-  //         const ids = followingSnapshot.docs.map((docSnap) => {
-  //             const data = docSnap.data()
-  //             return String(data.userId || docSnap.id)
-  //         })
-
-  //         setFollowingUserIds(ids)
-  //     } catch (error) {
-  //         console.error("Error fetching following users:", error)
-  //     }
-  //   }
-
-  //   fetchFollowing()
-  // }, [currentUserId])
-
   useEffect(() => {
     if (!currentUserId) {
       setFollowingUserIds([])
@@ -568,20 +543,6 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     }))
   }
 
-  // const activeRecipes = useMemo(() => {
-  //   switch (activeTab) {
-  //     case "Trending":
-  //       return trendingRecipes
-  //     case "Following":
-  //       return followingFeedRecipes
-  //     case "New":
-  //       return newRecipes
-  //     case "For You":
-  //     default:
-  //       return forYouRecipes
-  //   }
-  // }, [activeTab, forYouRecipes, trendingRecipes, followingFeedRecipes, newRecipes])
-
   const activeRecipes = useMemo(() => {
     if (filters.saved.mostSaved) {
       return [...filteredActiveRecipes].sort((a, b) => {
@@ -629,24 +590,6 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     },
     []
   )
-  
-  // const handleFavoriteStateChange = (recipeId: string, isNowSaved: boolean) => {
-  //   setRecipes((prev) =>
-  //     prev.map((recipe) => {
-  //       if (recipe.recipeId !== recipeId) return recipe
-
-  //       const currentSavesCount = Number(recipe?.stats?.savesCount || 0)
-
-  //       return {
-  //         ...recipe,
-  //         stats: {
-  //           ...recipe.stats,
-  //           savesCount: Math.max(0, currentSavesCount + (isNowSaved ? 1 : -1)),
-  //         },
-  //       }
-  //     })
-  //   )
-  // }
 
   const handleFavoriteStateChange = useCallback(
     (
@@ -683,31 +626,6 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     },
     [updateRecipeAcrossFeeds]
   )
-
-  // const handleRatingStateChange = (
-  //   recipeId: string,
-  //   stats: {
-  //     averageRating: number,
-  //     ratingsCount: number,
-  //     ratingsSum?: number
-  //   }
-  // ) => {
-  //   setRecipes((prev) =>
-  //     prev.map((recipe) => {
-  //       if (recipe.recipeId !== recipeId) return recipe
-
-  //       return {
-  //         ...recipe,
-  //         stats: {
-  //           ...recipe.stats,
-  //           averageRating: stats.averageRating,
-  //           ratingsCount: stats.ratingsCount,
-  //           ratingsSum: stats.ratingsSum ?? recipe.stats?.ratingsSum,
-  //         },
-  //       }
-  //     })
-  //   )
-  // }
 
   const handleRatingStateChange = useCallback(
     (
@@ -747,32 +665,7 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     },
     [updateRecipeAcrossFeeds]
   )
-  
-  // const handleRecipeDeleteStateChange = (recipeId: string) => {
-  //   setRecipes((prev) =>
-  //     prev.filter((recipe) => {
-  //       const id = recipe.recipeId || recipe.id
-  //       return id !== recipeId
-  //     })
-  //   )
-  // }
-
-  // const handleCommentStateChange = useCallback((recipeId: string, commentsCount: number) => {
-  //   setRecipes((prev) =>
-  //     prev.map((recipe) => {
-  //       if (recipe.recipeId !== recipeId) return recipe
-
-  //       return {
-  //         ...recipe,
-  //         stats: {
-  //           ...recipe.stats,
-  //           commentsCount,
-  //         },
-  //       }
-  //     })
-  //   )
-  // }, [])
-
+ 
   const handleRecipeDeleteStateChange =
     useCallback(
       (recipeId: string) => {
@@ -829,23 +722,6 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
       isForYouFeedLoading)
 
   return {
-    // activeRecipes,
-    // availableCuisines,
-    // currentUser,
-    // currentUserId,
-    // savedRecipes,
-    // followingUserIds,
-    // authorFollowersCountMap,
-    // isLoading,
-    // isFiltering,
-    // handleFavoriteStateChange,
-    // handleFollowStateChange,
-    // handleRatingStateChange,
-    // handleCommentStateChange,
-    // hasMoreRecipes,
-    // isFetchingMoreRecipes,
-    // fetchMoreRecipes,
-    // handleRecipeDeleteStateChange
     activeRecipes,
     availableCuisines,
     currentUser,

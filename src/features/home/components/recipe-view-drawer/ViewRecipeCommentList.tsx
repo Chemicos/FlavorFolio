@@ -36,6 +36,7 @@ export interface ViewRecipeComment {
 interface ViewRecipeCommentListProps {
     comments?: ViewRecipeComment[]
     currentUserId?: string
+    canComment?: boolean
     editingCommentId?: string | null
     isUpdatingComment?: boolean
     isSubmittingReply?: boolean
@@ -61,6 +62,7 @@ interface ViewRecipeCommentListProps {
 export default function ViewRecipeCommentList({ 
     comments = [], 
     currentUserId, 
+    canComment = true,
     editingCommentId,
     isUpdatingComment,
     isSubmittingReply,
@@ -103,6 +105,7 @@ export default function ViewRecipeCommentList({
                     key={comment.id} 
                     comment={comment} 
                     currentUserId={currentUserId}
+                    canComment={canComment}
                     replyingCommentId={replyingCommentId}
                     editingCommentId={editingCommentId}
                     isReplying={replyingCommentId === comment.id}
@@ -147,6 +150,7 @@ function renderCommentText(comment: ViewRecipeComment) {
 function CommentItem({
     comment, 
     currentUserId,
+    canComment = true,
     replyingCommentId,
     editingCommentId,
     isReply = false,
@@ -169,6 +173,7 @@ function CommentItem({
 }: {
     comment: ViewRecipeComment 
     currentUserId?: string
+    canComment?: boolean
     replyingCommentId?: string | null
     editingCommentId?: string | null
     isReply?: boolean
@@ -454,14 +459,27 @@ function CommentItem({
                             </button>
 
 
-                            {canReply && (
-                                <button 
-                                    type="button" 
-                                    onClick={() => onStartReplyComment?.(comment)}
-                                    className="transition hover:text-[var(--text-primary)] active:scale-95"
-                                >
-                                    <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 18 }} />
-                                </button>
+                            {currentUserId &&
+                                comment.userId !== currentUserId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (!canComment) return
+                                            onStartReplyComment?.(comment)
+                                        }}
+                                        disabled={!canComment}
+                                        title={
+                                            canComment ? "Reply" : "Your account is restricted from posting replies."
+                                        }
+                                        className={[
+                                            "transition active:scale-95",
+                                            canComment
+                                                ? "hover:text-[var(--text-primary)]"
+                                                : "cursor-not-allowed opacity-40",
+                                        ].join(" ")}
+                                    >
+                                        <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 18 }}/>
+                                    </button>
                             )}
                         </div>
                     )}
@@ -544,6 +562,7 @@ function CommentItem({
                                     key={reply.id}
                                     comment={reply}
                                     currentUserId={currentUserId}
+                                    canComment={canComment}
                                     replyingCommentId={replyingCommentId}
                                     editingCommentId={editingCommentId}
                                     isReply
