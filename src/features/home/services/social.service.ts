@@ -93,9 +93,10 @@ export async function toggleFollowUser(input: ToggleFollowInput) {
       actorProfileImage: input.currentProfileImage || "",
       title: "New follower",
       message: `${input.currentUsername || "Someone"} started following you.`,
-      isRead: false,
+      read: false,
+      readAt: null,
       createdAt: serverTimestamp(),
-    })
+    }, {merge: true})
 
     transaction.set(authorUserRef, {
       stats: {

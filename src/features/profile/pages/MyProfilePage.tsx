@@ -610,7 +610,7 @@ export default function MyProfilePage() {
               />
             )}
 
-            <div className="sticky top-16 z-40 bg-[var(--sticky-profile-bg)] pb-5 transition-colors">
+            <div className="sticky top-16 z-40 bg-[var(--bg-primary)] pb-5 transition-colors">
               <ProfileRecipeTabs
                 activeTab={activeRecipeTab}
                 onTabChange={setActiveRecipeTab}

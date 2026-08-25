@@ -83,24 +83,43 @@ export async function blockUser({
   const canonicalUsername = targetUserData?.username || targetUsername || "User"
   const canonicalProfileImage = targetUserData?.profileImage || targetUserData?.profileImageUrl || targetProfileImage || ""
 
-  const targetRecipesSnapshot = await getDocs(
+  // const targetRecipesSnapshot = await getDocs(
+  //   query(
+  //     collection(db, "recipes"),
+  //     where("userId", "==", targetUserId),
+  //     where("status", "==", "published"),
+  //     where("visibility", "==", "public")
+  //   )
+  // )
+
+  const savedRecipesSnapshot = await getDocs(
     query(
-      collection(db, "recipes"),
-      where("userId", "==", targetUserId)
+      collection(db, "users", currentUserId, "savedRecipes"),
+      where("recipeOwnerId", "==", targetUserId)
     )
   )
 
-  targetRecipesSnapshot.docs.forEach((recipeDoc) => {
-    batch.delete(
-      doc(db, "users", currentUserId, "savedRecipes", recipeDoc.id)
-    )
+  savedRecipesSnapshot.docs.forEach((savedDoc) => {
+    batch.delete(savedDoc.ref)
   })
 
-  if (targetRecipesSnapshot.size > 0) {
+  if (savedRecipesSnapshot.size > 0) {
     batch.update(doc(db, "users", currentUserId), {
-      "stats.savedRecipesCount": increment(-targetRecipesSnapshot.size),
+      "stats.savedRecipesCount": increment(-savedRecipesSnapshot.size),
     })
   }
+
+  // targetRecipesSnapshot.docs.forEach((recipeDoc) => {
+  //   batch.delete(
+  //     doc(db, "users", currentUserId, "savedRecipes", recipeDoc.id)
+  //   )
+  // })
+
+  // if (targetRecipesSnapshot.size > 0) {
+  //   batch.update(doc(db, "users", currentUserId), {
+  //     "stats.savedRecipesCount": increment(-targetRecipesSnapshot.size),
+  //   })
+  // }
 
   batch.set(currentBlockedRef, {
     userId: targetUserId,

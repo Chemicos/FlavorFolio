@@ -105,11 +105,15 @@ export async function updateMyProfile({
     updatedAt: serverTimestamp(),
   })
 
-  await propagateUserProfileIdentity({
-    userId,
-    username: nextUsername,
-    profileImage: userData.profileImage || "",
-  })
+  try {
+    await propagateUserProfileIdentity({
+      userId,
+      username: nextUsername,
+      profileImage: userData.profileImage || "",
+    })  
+  } catch (error) {
+    console.error("Failed to propagate profile identity:", error)
+  }
 }
 
 async function propagateUserProfileIdentity({

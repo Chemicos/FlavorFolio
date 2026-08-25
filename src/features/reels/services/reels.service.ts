@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, where } from "@firebase/firestore"
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, where } from "@firebase/firestore"
 import { CreateReelInput, CreateReelResult, Reel, ReelMealType } from "../types/reel.types"
 import { db, storage } from "../../../firebase-config"
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
@@ -166,9 +166,78 @@ export async function fetchPublicReels(limitCount = 20): Promise<Reel[]> {
 
     const snapshot = await getDocs(reelsQuery)
 
-    return snapshot.docs
-        .map(mapReelDoc)
-        .filter((reel) => Boolean(reel.videoUrl))
+    const reels = snapshot.docs.map(mapReelDoc).filter((reel) => Boolean(reel.videoUrl))
+
+    const authorIds = [
+      ...new Set(
+        reels
+          .map((reel) => reel.userId || reel.author?.userId)
+          .filter((userId): userId is string => Boolean(userId))
+      ),
+    ]
+
+    const authorEntries = await Promise.all(
+      authorIds.map(async (userId) => {
+        try {
+          const userSnapshot = await getDoc(doc(db, "users", userId))
+
+          if (!userSnapshot.exists()) {
+            return [userId, null] as const
+          }
+
+          const userData = userSnapshot.data()
+
+          return [
+            userId,
+            {
+              username:
+                userData.username ||
+                userData.displayName ||
+                userData.firstName ||
+                "User",
+
+              profileImage:
+                userData.profileImage ||
+                userData.profileImageUrl ||
+                "",
+            },
+          ] as const
+        } catch (error) {
+          console.error(
+            `Failed to fetch reel author ${userId}:`,
+            error
+          )
+
+          return [userId, null] as const
+        }
+      })
+    )
+
+  const authorsById = new Map(authorEntries)
+
+  return reels.map((reel) => {
+    const authorId =
+      reel.userId ||
+      reel.author?.userId ||
+      ""
+
+    const liveAuthor = authorsById.get(authorId)
+
+    if (!liveAuthor) {
+      return reel
+    }
+
+    return {
+      ...reel,
+
+      author: {
+        ...reel.author,
+        userId: authorId,
+        username: liveAuthor.username,
+        profileImage: liveAuthor.profileImage,
+      },
+    }
+  })
 }
 
 export async function createReel(

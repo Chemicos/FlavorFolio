@@ -36,10 +36,16 @@ export function sortTrending(recipes: Recipe[]) {
   })
 }
 
+function getRecipePublishedTime(recipe: Recipe) {
+  return (
+    recipe.publishedAt?.seconds ??
+    recipe.createdAt?.seconds ??
+    0
+  )
+}
+
 export function sortByNewest(recipes: Recipe[]) {
   return [...recipes].sort((a, b) => {
-    const aDate = a?.publishedAt?.seconds || 0
-    const bDate = b?.publishedAt?.seconds || 0
-    return bDate - aDate
+    return getRecipePublishedTime(b) - getRecipePublishedTime(a)
   })
 }

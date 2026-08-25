@@ -299,12 +299,15 @@ export default function Home() {
 
     setIsPostFormVisible(false)
     setEditingRecipe(null)
+    setIsRecipeDrawerLoading(false)
     setSelectedRecipe(recipe)
 
     setSearchParams((currentParams) => {
       const nextParams = new URLSearchParams(currentParams)
       nextParams.set("recipeId", recipeId)
       return nextParams
+    }, {
+      replace: true,
     })
   }
 

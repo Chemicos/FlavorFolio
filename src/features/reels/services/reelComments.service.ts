@@ -77,24 +77,144 @@ export function listenToReelComments({
     orderBy("createdAt", "desc")
   )
 
-  return onSnapshot(
+  let currentComments: ReelComment[] = []
+  const authorMap = new Map<string, ReelCommentAuthor>()
+  const authorUnsubscribers = new Map<string, () => void>()
+
+  const emitComments = () => {
+    const enrichedComments = currentComments.map((comment) => {
+      const liveAuthor = authorMap.get(comment.userId)
+
+      if (!liveAuthor) {
+        return comment
+      }
+
+      return {
+        ...comment,
+        username: liveAuthor.username,
+        profileImage: liveAuthor.profileImage,
+      }
+    })
+
+    onChange(enrichedComments)
+  }
+
+  const subscribeToAuthor = (userId: string) => {
+    if (!userId) return
+
+    if (authorUnsubscribers.has(userId)) {
+      return
+    }
+
+    const userRef = doc(db, "users", userId)
+
+    const unsubscribe = onSnapshot(
+      userRef,
+      (userSnapshot) => {
+        if (!userSnapshot.exists()) {
+          authorMap.delete(userId)
+          emitComments()
+          return
+        }
+
+        const data = userSnapshot.data()
+
+        authorMap.set(userId, {
+          userId,
+          username:
+            data.username ||
+            data.displayName ||
+            data.firstName ||
+            "User",
+          profileImage:
+            data.profileImage ||
+            data.profileImageUrl ||
+            "",
+        })
+
+        emitComments()
+      },
+      (error) => {
+        console.error(`Failed to listen to reel comment author ${userId}:`, error)
+      }
+    )
+
+    authorUnsubscribers.set(userId, unsubscribe)
+  }
+
+  const unsubscribeComments = onSnapshot(
     commentsQuery,
+
     (snapshot) => {
-      const comments = snapshot.docs.map((commentSnapshot) =>
-        mapReelCommentDoc(
-          reelId,
-          commentSnapshot.id,
-          commentSnapshot.data()
-        )
+      currentComments = snapshot.docs.map(
+        (commentSnapshot) =>
+          mapReelCommentDoc(
+            reelId,
+            commentSnapshot.id,
+            commentSnapshot.data()
+          )
       )
 
-      onChange(comments)
+      const activeAuthorIds = new Set(
+        currentComments
+          .map((comment) => comment.userId)
+          .filter(Boolean)
+      )
+
+      activeAuthorIds.forEach((userId) => {
+        subscribeToAuthor(userId)
+      })
+
+      authorUnsubscribers.forEach(
+        (unsubscribe, userId) => {
+          if (activeAuthorIds.has(userId)) {
+            return
+          }
+
+          unsubscribe()
+          authorUnsubscribers.delete(userId)
+          authorMap.delete(userId)
+        }
+      )
+
+      emitComments()
     },
+
     (error) => {
       console.error("Failed to listen to reel comments:", error)
+
       onError?.(error)
     }
   )
+
+  return () => {
+    unsubscribeComments()
+
+    authorUnsubscribers.forEach(
+      (unsubscribe) => unsubscribe()
+    )
+
+    authorUnsubscribers.clear()
+    authorMap.clear()
+  }
+  // return onSnapshot(
+  //   commentsQuery,
+  //   (snapshot) => {
+  //     const comments = snapshot.docs.map((commentSnapshot) =>
+  //       mapReelCommentDoc(
+  //         reelId,
+  //         commentSnapshot.id,
+  //         commentSnapshot.data()
+  //       )
+  //     )
+
+  //     onChange(comments)
+  //   },
+  //   (error) => {
+  //     console.error("Failed to listen to reel comments:", error)
+  //     onError?.(error)
+  //   }
+  // )
 }
 
 export async function createReelComment(

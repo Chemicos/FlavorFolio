@@ -22,9 +22,9 @@ export interface UpdateNeedsRevisionRecipePayload {
   steps: PostRecipeStep[]
 }
 
-function getRecipeResubmittedNotificationId(recipeId: string) {
-  return `recipe_resubmitted_${recipeId}`
-}
+// function getRecipeResubmittedNotificationId(recipeId: string) {
+//   return `recipe_resubmitted_${recipeId}`
+// }
 
 async function deleteStorageFile(path: string) {
   try {
@@ -214,69 +214,6 @@ export async function updateNeedsRevisionRecipe({
 }
 
 export async function submitNeedsRevisionRecipe(recipeId: string) {
-  // const recipeRef = doc(db, "recipes", recipeId)
-  // const recipeSnap = await getDoc(recipeRef)
-
-  // if (!recipeSnap.exists()) {
-  //   throw new Error("Recipe not found.")
-  // }
-
-  // const recipeData = recipeSnap.data()
-
-  // const recipeTitle = recipeData.title || "Untitled recipe"
-  // const recipeOwnerId = recipeData.userId || ""
-  // const recipeOwnerUsername =
-  //   recipeData.author?.username || recipeData.user || "Creator"
-  // const recipeOwnerProfileImage =
-  //   recipeData.author?.profileImage || ""
-
-  // const batch = writeBatch(db)
-
-  // batch.update(recipeRef, {
-  //   status: "pending",
-  //   updatedAt: serverTimestamp(),
-  //   "moderation.submittedAt": serverTimestamp(),
-  //   "moderation.reviewedAt": null,
-  //   "moderation.reviewedBy": null,
-  // })
-
-  // const adminNotificationRef = doc(
-  //   db,
-  //   "adminNotifications",
-  //   getRecipeResubmittedNotificationId(recipeId)
-  // )
-
-  // batch.set(
-  //   adminNotificationRef,
-  //   {
-  //     type: "recipe_resubmitted",
-  //     recipeId,
-  //     recipeTitle,
-  //     actorUserId: recipeOwnerId,
-  //     actorUsername: recipeOwnerUsername,
-  //     actorProfileImage: recipeOwnerProfileImage,
-  //     message: `${recipeOwnerUsername} resubmitted "${recipeTitle}" for review.`,
-  //     read: false,
-  //     createdAt: serverTimestamp(),
-  //   },
-  //   { merge: true }
-  // )
-
-  // const activityRef = doc(collection(db, "adminModerationActivity"))
-
-  // batch.set(activityRef, {
-  //   type: "resubmitted",
-  //   recipeId,
-  //   recipeTitle,
-  //   recipeOwnerId,
-  //   recipeOwnerUsername,
-  //   adminUserId: "",
-  //   adminUsername: recipeOwnerUsername,
-  //   createdAt: serverTimestamp(),
-  // })
-
-  // await batch.commit()
-
   const recipeRef = doc(db, "recipes", recipeId)
   const recipeSnap = await getDoc(recipeRef)
 
@@ -329,31 +266,31 @@ export async function submitNeedsRevisionRecipe(recipeId: string) {
     "moderation.reviewedBy": null,
   })
 
-  const adminNotificationRef = doc(
-    db,
-    "adminNotifications",
-    getRecipeResubmittedNotificationId(recipeId)
-  )
+  // const adminNotificationRef = doc(
+  //   db,
+  //   "adminNotifications",
+  //   getRecipeResubmittedNotificationId(recipeId)
+  // )
 
-  batch.set(
-    adminNotificationRef,
-    {
-      type: "recipe_resubmitted",
+  // batch.set(
+  //   adminNotificationRef,
+  //   {
+  //     type: "recipe_resubmitted",
 
-      recipeId,
-      recipeTitle,
+  //     recipeId,
+  //     recipeTitle,
 
-      actorUserId: recipeOwnerId,
-      actorUsername: recipeOwnerUsername,
-      actorProfileImage: recipeOwnerProfileImage,
+  //     actorUserId: recipeOwnerId,
+  //     actorUsername: recipeOwnerUsername,
+  //     actorProfileImage: recipeOwnerProfileImage,
 
-      message: `${recipeOwnerUsername} resubmitted "${recipeTitle}" for review.`,
+  //     message: `${recipeOwnerUsername} resubmitted "${recipeTitle}" for review.`,
 
-      read: false,
-      createdAt: serverTimestamp(),
-    },
-    { merge: true }
-  )
+  //     read: false,
+  //     createdAt: serverTimestamp(),
+  //   },
+  //   { merge: true }
+  // )
 
   adminUserIds.forEach((adminUserId) => {
     addRecipeResubmittedNotificationToBatch(batch, {
@@ -369,27 +306,27 @@ export async function submitNeedsRevisionRecipe(recipeId: string) {
   })
 
 
-  const activityRef = doc(
-    collection(db, "adminModerationActivity")
-  )
+  // const activityRef = doc(
+  //   collection(db, "adminModerationActivity")
+  // )
 
-  batch.set(activityRef, {
-    type: "resubmitted",
+  // batch.set(activityRef, {
+  //   type: "resubmitted",
 
-    recipeId,
-    recipeTitle,
+  //   recipeId,
+  //   recipeTitle,
 
-    recipeOwnerId,
-    recipeOwnerUsername,
+  //   recipeOwnerId,
+  //   recipeOwnerUsername,
 
-    actorUserId: recipeOwnerId,
-    actorUsername: recipeOwnerUsername,
+  //   actorUserId: recipeOwnerId,
+  //   actorUsername: recipeOwnerUsername,
 
-    adminUserId: "",
-    adminUsername: "",
+  //   adminUserId: "",
+  //   adminUsername: "",
 
-    createdAt: serverTimestamp(),
-  })
+  //   createdAt: serverTimestamp(),
+  // })
 
   await batch.commit()
 }

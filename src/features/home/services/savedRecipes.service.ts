@@ -98,6 +98,7 @@ export async function toggleSavedRecipe(input: ToggleSavedRecipeInput) {
     transaction.set(savedRecipeRef, {
       recipeId: input.recipeId,
       userId: input.currentUserId,
+      recipeOwnerId,
       savedAt: serverTimestamp(),
     })
 

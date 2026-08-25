@@ -48,13 +48,7 @@ export async function approveRecipes(recipeIds: string[]) {
     })
 
     if (recipeOwnerId) {
-      const notificationRef = doc(
-        db,
-        "users",
-        recipeOwnerId,
-        "notifications",
-        getModerationNotificationId(recipeId, "approved")
-      )
+      const notificationRef = doc(db, "users", recipeOwnerId, "notifications", getModerationNotificationId(recipeId, "approved"))
 
       batch.set(notificationRef, {
         type: "recipe_approved",
@@ -66,8 +60,9 @@ export async function approveRecipes(recipeIds: string[]) {
         recipeTitle,
         message: `Your recipe "${recipeTitle}" was approved and is now published.`,
         read: false,
+        readAt: null,
         createdAt: serverTimestamp(),
-      })
+      }, {merge: true})
     }
   })
 
@@ -126,13 +121,7 @@ export async function denyRecipes({
     })
 
     if (recipeOwnerId) {
-      const notificationRef = doc(
-        db,
-        "users",
-        recipeOwnerId,
-        "notifications",
-        getModerationNotificationId(recipeId, "needs_revision")
-      )
+      const notificationRef = doc(db, "users", recipeOwnerId, "notifications", getModerationNotificationId(recipeId, "needs_revision"))
 
       batch.set(notificationRef, {
         type: "needs_revision",
@@ -144,8 +133,9 @@ export async function denyRecipes({
         recipeTitle,
         message: `Your recipe "${recipeTitle}" needs revision.`,
         read: false,
+        readAt: null,
         createdAt: serverTimestamp(),
-      })
+      }, {merge: true})
     }
   })
 
