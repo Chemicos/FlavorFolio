@@ -197,24 +197,6 @@ export function listenToReelComments({
     authorUnsubscribers.clear()
     authorMap.clear()
   }
-  // return onSnapshot(
-  //   commentsQuery,
-  //   (snapshot) => {
-  //     const comments = snapshot.docs.map((commentSnapshot) =>
-  //       mapReelCommentDoc(
-  //         reelId,
-  //         commentSnapshot.id,
-  //         commentSnapshot.data()
-  //       )
-  //     )
-
-  //     onChange(comments)
-  //   },
-  //   (error) => {
-  //     console.error("Failed to listen to reel comments:", error)
-  //     onError?.(error)
-  //   }
-  // )
 }
 
 export async function createReelComment(

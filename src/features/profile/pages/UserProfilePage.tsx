@@ -632,238 +632,240 @@ export default function UserProfilePage() {
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
-      <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
-        <main 
-          className={[
-            "min-w-0 flex-1 transition-all duration-300",
-            isDrawerOpen ? "max-w-none" : "mx-auto max-w-[1400px]",
-          ].join(" ")}
-        >
-          {error && (
-            <div className="rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-6 text-sm text-[var(--danger-text)]">
-              {error}
-            </div>
-          )}
+      <div className="relative z-10">
+        <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
+          <main 
+            className={[
+              "min-w-0 flex-1 transition-all duration-300",
+              isDrawerOpen ? "max-w-none" : "mx-auto max-w-[1400px]",
+            ].join(" ")}
+          >
+            {error && (
+              <div className="rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-6 text-sm text-[var(--danger-text)]">
+                {error}
+              </div>
+            )}
 
-          {!error && profile && (
-            <>
-              <MyProfileHeader
-                username={profile.username || "User"}
-                fullName={profile.fullName || profile.username || "User"}
-                bio={profile.bio || "Food lover & recipe creator."}
-                profileImage={profile.profileImage || ""}
-                bannerImage={profile.bannerImage || ""}
-                location={profile.location || "Location not set"}
-                website={profile.website || "Website not set"}
-                joinedLabel={profile.joinedLabel || "Joined recently"}
-                recipesCount={publishedRecipesCount}
-                followersCount={profile.stats.followersCount || 0}
-                followingCount={profile.stats.followingCount || 0}
-                restrictions={profile.restrictions}
-                onFollowersClick={() => setConnectionsModalType("followers")}
-                onFollowingClick={() => setConnectionsModalType("following")}
-                rightAction={
-                  !isOwnProfile ? (
-                    <div ref={profileActionsMenuRef} className="relative flex items-center gap-2">
-                      {!hasBlockedRelationship && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={handleToggleFollow}
-                            disabled={isFollowLoading}
-                            className={[
-                              "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold shadow-[var(--shadow-card)] transition disabled:cursor-not-allowed disabled:opacity-60",
-                              isFollowingProfile
-                                ? "border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] text-[var(--profile-floating-control-text)] hover:bg-[var(--profile-floating-control-hover)]"
-                                : "border-[var(--accent-border)] bg-[var(--accent)] text-[var(--text-on-accent)] hover:bg-[var(--accent-hover)]",
-                            ].join(" ")}
-                          >
-                            {isFollowLoading ? (
-                              <CircularProgress 
-                                size={15} 
-                                thickness={5} 
-                                 sx={{
-                                  color: isFollowingProfile
-                                    ? "var(--profile-floating-control-text)"
-                                    : "var(--text-on-accent)",
-                                }}
-                              />
-                            ) : isFollowingProfile ? (
-                              "Following"
-                            ) : (
-                              "Follow"
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={handleSendMessage}
-                            disabled={isMessageLoading}
-                            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] px-4 text-sm font-semibold text-[var(--profile-floating-control-text)] shadow-[var(--shadow-card)] transition hover:bg-[var(--profile-floating-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {isMessageLoading ? (
-                              <CircularProgress 
-                                size={15} 
-                                thickness={5} 
-                                sx={{ color: "var(--profile-floating-control-text)" }} 
-                              />
-                            ) : (
-                              <SendRoundedIcon sx={{ fontSize: 17 }} />
-                            )}
-                            Message
-                          </button>
-                        </>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => setIsProfileActionsMenuOpen((prev) => !prev)}
-                        className={[
-                          "inline-flex h-9 w-9 items-center justify-center rounded-lg border",
-                          "border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)]",
-                          "text-[var(--profile-floating-control-text)] shadow-[var(--shadow-card)] transition",
-                          "hover:bg-[var(--profile-floating-control-hover)] active:scale-95",
-                        ].join(" ")}
-                        aria-label="Profile options"
-                        aria-expanded={isProfileActionsMenuOpen}
-                      >
-                        <MoreVertRoundedIcon sx={{ fontSize: 20 }} />
-                      </button>
-
-                      <AnimatePresence>
-                        {isProfileActionsMenuOpen && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -6, scale: 0.96 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                            transition={{ duration: 0.16 }}
-                            className="absolute right-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--account-dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
-                          >
+            {!error && profile && (
+              <>
+                <MyProfileHeader
+                  username={profile.username || "User"}
+                  fullName={profile.fullName || profile.username || "User"}
+                  bio={profile.bio || "Food lover & recipe creator."}
+                  profileImage={profile.profileImage || ""}
+                  bannerImage={profile.bannerImage || ""}
+                  location={profile.location || "Location not set"}
+                  website={profile.website || "Website not set"}
+                  joinedLabel={profile.joinedLabel || "Joined recently"}
+                  recipesCount={publishedRecipesCount}
+                  followersCount={profile.stats.followersCount || 0}
+                  followingCount={profile.stats.followingCount || 0}
+                  restrictions={profile.restrictions}
+                  onFollowersClick={() => setConnectionsModalType("followers")}
+                  onFollowingClick={() => setConnectionsModalType("following")}
+                  rightAction={
+                    !isOwnProfile ? (
+                      <div ref={profileActionsMenuRef} className="relative flex items-center gap-2">
+                        {!hasBlockedRelationship && (
+                          <>
                             <button
                               type="button"
-                              onClick={handleToggleBlockUser}
-                              disabled={isBlockLoading}
-                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                              onClick={handleToggleFollow}
+                              disabled={isFollowLoading}
+                              className={[
+                                "inline-flex h-9 min-w-[96px] items-center justify-center rounded-lg border px-5 text-sm font-semibold shadow-[var(--shadow-card)] transition disabled:cursor-not-allowed disabled:opacity-60",
+                                isFollowingProfile
+                                  ? "border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] text-[var(--profile-floating-control-text)] hover:bg-[var(--profile-floating-control-hover)]"
+                                  : "border-[var(--accent-border)] bg-[var(--accent)] text-[var(--text-on-accent)] hover:bg-[var(--accent-hover)]",
+                              ].join(" ")}
                             >
-                              {isBlockLoading ? (
-                                <CircularProgress size={15} thickness={5} sx={{ color: "var(--danger)" }} />
+                              {isFollowLoading ? (
+                                <CircularProgress 
+                                  size={15} 
+                                  thickness={5} 
+                                  sx={{
+                                    color: isFollowingProfile
+                                      ? "var(--profile-floating-control-text)"
+                                      : "var(--text-on-accent)",
+                                  }}
+                                />
+                              ) : isFollowingProfile ? (
+                                "Following"
                               ) : (
-                                <BlockRoundedIcon sx={{ fontSize: 18 }} />
+                                "Follow"
                               )}
-                              {isBlockedProfile ? "Unblock user" : "Block user"}
                             </button>
-                          </motion.div>
+
+                            <button
+                              type="button"
+                              onClick={handleSendMessage}
+                              disabled={isMessageLoading}
+                              className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)] px-4 text-sm font-semibold text-[var(--profile-floating-control-text)] shadow-[var(--shadow-card)] transition hover:bg-[var(--profile-floating-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {isMessageLoading ? (
+                                <CircularProgress 
+                                  size={15} 
+                                  thickness={5} 
+                                  sx={{ color: "var(--profile-floating-control-text)" }} 
+                                />
+                              ) : (
+                                <SendRoundedIcon sx={{ fontSize: 17 }} />
+                              )}
+                              Message
+                            </button>
+                          </>
                         )}
-                      </AnimatePresence>
-                    </div>
-                  ) : null
-                }
-              />
-              { canViewRecipes && !hasBlockedRelationship &&
-                <div className="sticky top-16 z-40 bg-[var(--sticky-profile-bg)] pb-5 backdrop-blur-xl transition-colors">
-                  <div className="border-b border-[var(--border)] pt-6" />
 
-                  <ProfileRecipeToolbar
-                    searchQuery={searchQuery}
-                    onSearchQueryChange={setSearchQuery}
-                    resultCount={visibleRecipes.length}
-                    sortBy={sortBy}
-                    onSortByChange={setSortBy}
-                    category={category}
-                    onCategoryChange={setCategory}
-                    viewMode={viewMode}
-                    onViewModeChange={setViewMode}
-                    categories={categories}
-                  />
-                </div>
-              }
+                        <button
+                          type="button"
+                          onClick={() => setIsProfileActionsMenuOpen((prev) => !prev)}
+                          className={[
+                            "inline-flex h-9 w-9 items-center justify-center rounded-lg border",
+                            "border-[var(--profile-floating-control-border)] bg-[var(--profile-floating-control-bg)]",
+                            "text-[var(--profile-floating-control-text)] shadow-[var(--shadow-card)] transition",
+                            "hover:bg-[var(--profile-floating-control-hover)] active:scale-95",
+                          ].join(" ")}
+                          aria-label="Profile options"
+                          aria-expanded={isProfileActionsMenuOpen}
+                        >
+                          <MoreVertRoundedIcon sx={{ fontSize: 20 }} />
+                        </button>
 
-              {hasBlockedRelationship ? (
-                <div className="mt-8 rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-soft)] p-8 text-center shadow-[var(--shadow-card)]">
-                  <h3 className="text-lg font-bold text-[var(--text-primary)]">
-                    {isBlockedProfile
-                      ? "You blocked this user"
-                      : "This profile is unavailable"}
-                  </h3>
-
-                  <p className="mx-auto mt-2 max-w-[520px] text-sm leading-6 text-[var(--text-secondary)]">
-                    {isBlockedProfile
-                      ? "Recipes and interactions from this profile are hidden. You can manage blocked accounts from Account Settings."
-                      : "You cannot view this profile or interact with this user."}
-                  </p>
-                </div>
-              ) : isProfileContentLocked ? (
-                <ProfileContentLockedState
-                  username={profile.username || profile.fullName || "This user"}
-                  isFollowLoading={isFollowLoading}
-                  isPrivate={isPrivateProfile}
-                  onFollow={handleToggleFollow}
+                        <AnimatePresence>
+                          {isProfileActionsMenuOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                              transition={{ duration: 0.16 }}
+                              className="absolute right-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--account-dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
+                            >
+                              <button
+                                type="button"
+                                onClick={handleToggleBlockUser}
+                                disabled={isBlockLoading}
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {isBlockLoading ? (
+                                  <CircularProgress size={15} thickness={5} sx={{ color: "var(--danger)" }} />
+                                ) : (
+                                  <BlockRoundedIcon sx={{ fontSize: 18 }} />
+                                )}
+                                {isBlockedProfile ? "Unblock user" : "Block user"}
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : null
+                  }
                 />
-              ) : (
-                <>
-                  {(isLoading || isSearching) && (
-                    <ProfileRecipeGridSkeleton
+                { canViewRecipes && !hasBlockedRelationship &&
+                  <div className="sticky top-16 z-40 bg-[var(--sticky-profile-bg)] pb-5 backdrop-blur-xl transition-colors">
+                    <div className="border-b border-[var(--border)] pt-6" />
+
+                    <ProfileRecipeToolbar
+                      searchQuery={searchQuery}
+                      onSearchQueryChange={setSearchQuery}
+                      resultCount={visibleRecipes.length}
+                      sortBy={sortBy}
+                      onSortByChange={setSortBy}
+                      category={category}
+                      onCategoryChange={setCategory}
                       viewMode={viewMode}
-                      count={8}
+                      onViewModeChange={setViewMode}
+                      categories={categories}
                     />
-                  )}
+                  </div>
+                }
 
-                  {!isLoading && !isSearching && (
-                    <ProfileRecipeGrid
-                      recipes={visibleRecipes}
-                      viewMode={viewMode}
-                      currentUserId={null}
-                      onRecipeClick={(recipe) => {
-                        setSelectedRecipeId(recipe.id)
-                      }}
-                      onRecipeShare={(recipe) => {
-                        handleShareRecipeFromGrid(recipe)
-                      }}
-                    />
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </main>
+                {hasBlockedRelationship ? (
+                  <div className="mt-8 rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-soft)] p-8 text-center shadow-[var(--shadow-card)]">
+                    <h3 className="text-lg font-bold text-[var(--text-primary)]">
+                      {isBlockedProfile
+                        ? "You blocked this user"
+                        : "This profile is unavailable"}
+                    </h3>
 
-        <AnimatePresence mode="wait">
-          {isRecipeDrawerLoading && (
-            <StickyProfileDrawer
-              key="user-recipe-drawer-loading"
-              width={recipeDrawerWidth}
-            >
-              <ViewRecipeDrawerLoading />
-            </StickyProfileDrawer>
-          )}
+                    <p className="mx-auto mt-2 max-w-[520px] text-sm leading-6 text-[var(--text-secondary)]">
+                      {isBlockedProfile
+                        ? "Recipes and interactions from this profile are hidden. You can manage blocked accounts from Account Settings."
+                        : "You cannot view this profile or interact with this user."}
+                    </p>
+                  </div>
+                ) : isProfileContentLocked ? (
+                  <ProfileContentLockedState
+                    username={profile.username || profile.fullName || "This user"}
+                    isFollowLoading={isFollowLoading}
+                    isPrivate={isPrivateProfile}
+                    onFollow={handleToggleFollow}
+                  />
+                ) : (
+                  <>
+                    {(isLoading || isSearching) && (
+                      <ProfileRecipeGridSkeleton
+                        viewMode={viewMode}
+                        count={8}
+                      />
+                    )}
 
-          {!isRecipeDrawerLoading && selectedRecipe && currentUser && (
-            <StickyProfileDrawer
-              key={`user-recipe-${selectedRecipe.recipeId || selectedRecipe.id}`}
-              width={recipeDrawerWidth}
-            >
-              <ViewRecipeDrawer
-                presentation="inline"
+                    {!isLoading && !isSearching && (
+                      <ProfileRecipeGrid
+                        recipes={visibleRecipes}
+                        viewMode={viewMode}
+                        currentUserId={null}
+                        onRecipeClick={(recipe) => {
+                          setSelectedRecipeId(recipe.id)
+                        }}
+                        onRecipeShare={(recipe) => {
+                          handleShareRecipeFromGrid(recipe)
+                        }}
+                      />
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </main>
+
+          <AnimatePresence mode="wait">
+            {isRecipeDrawerLoading && (
+              <StickyProfileDrawer
+                key="user-recipe-drawer-loading"
                 width={recipeDrawerWidth}
-                recipe={selectedRecipe}
-                currentUser={currentUser}
-                savedRecipes={savedRecipeIds.map((recipeId) => ({ recipeId }))}
-                followingUserIds={followingUserIds}
-                authorFollowersCount={Number(selectedRecipe.author?.followersCount || 0)}
-                onAuthorClick={handleAuthorProfileClick}
-                onShareRecipe={handleShareRecipeFromDrawer}
-                onClose={() => {
-                  setSelectedRecipeId(null)
-                  setSelectedRecipe(null)
-                }}
-                onFollowStateChange={handleFollowStateChange}
-                onFavoriteStateChange={handleFavoriteStateChange}
-                onRatingStateChange={handleRatingStateChange}
-                onCommentStateChange={handleCommentStateChange}
-              />
-            </StickyProfileDrawer>
-          )}
-        </AnimatePresence>
+              >
+                <ViewRecipeDrawerLoading />
+              </StickyProfileDrawer>
+            )}
+
+            {!isRecipeDrawerLoading && selectedRecipe && currentUser && (
+              <StickyProfileDrawer
+                key={`user-recipe-${selectedRecipe.recipeId || selectedRecipe.id}`}
+                width={recipeDrawerWidth}
+              >
+                <ViewRecipeDrawer
+                  presentation="inline"
+                  width={recipeDrawerWidth}
+                  recipe={selectedRecipe}
+                  currentUser={currentUser}
+                  savedRecipes={savedRecipeIds.map((recipeId) => ({ recipeId }))}
+                  followingUserIds={followingUserIds}
+                  authorFollowersCount={Number(selectedRecipe.author?.followersCount || 0)}
+                  onAuthorClick={handleAuthorProfileClick}
+                  onShareRecipe={handleShareRecipeFromDrawer}
+                  onClose={() => {
+                    setSelectedRecipeId(null)
+                    setSelectedRecipe(null)
+                  }}
+                  onFollowStateChange={handleFollowStateChange}
+                  onFavoriteStateChange={handleFavoriteStateChange}
+                  onRatingStateChange={handleRatingStateChange}
+                  onCommentStateChange={handleCommentStateChange}
+                />
+              </StickyProfileDrawer>
+            )}
+          </AnimatePresence>
+        </div>    
       </div>
 
       {connectionsModalType && (

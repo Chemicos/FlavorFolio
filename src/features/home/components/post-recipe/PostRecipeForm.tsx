@@ -22,12 +22,12 @@ interface PostRecipeFormProps {
   onSubmitSuccess: () => void
   mode?: "create" | "edit"
   recipeToEdit?: Recipe | null
-  onUpdateSuccess?: () => void
+  onUpdateSuccess?: (recipe?: Recipe) => void
   updateMode?: "default" | "revision_draft"
   onRevisionDraftUpdate?: (data: {
     recipeId: string
     payload: Record<string, any>
-  }) => Promise<void>
+  }) => Promise<Recipe>
 }
 
 export default function PostRecipeForm({
@@ -53,6 +53,8 @@ export default function PostRecipeForm({
   const [difficulty, setDifficulty] = useState(recipeToEdit?.difficulty || "easy")
   const [meal, setMeal] = useState(recipeToEdit?.meal || "lunch")
   const [visibility, setVisibility] = useState<"public" | "private">(recipeToEdit?.visibility === "private" ? "private" : "public")
+
+  const editSubmitLabel = updateMode === "revision_draft" ? "Save changes" : "Save draft"
 
   const difficultyOptions = [
     {label: "Easy", value: "easy"},
@@ -164,9 +166,8 @@ export default function PostRecipeForm({
 
     try {
       if (isEditMode && recipeToEdit?.recipeId) {
-        if(mode === "edit") {
-          if (mode === "edit" && updateMode === "revision_draft" && recipeToEdit?.recipeId) {
-            await onRevisionDraftUpdate?.({
+        if(updateMode === "revision_draft") {
+            const updatedRecipe = await onRevisionDraftUpdate?.({
               recipeId: recipeToEdit.recipeId,
               payload: {
                 title,
@@ -183,32 +184,32 @@ export default function PostRecipeForm({
                 ingredients,
                 steps,
               },
-            })
-
-            onUpdateSuccess?.()
-            return
-          }
-          
-          await updateRecipe({
-            recipeId: recipeToEdit.recipeId,
-            title,
-            description,
-            cuisine,
-            duration,
-            servings,
-            difficulty,
-            meal,
-            visibility,
-            imageFile,
-            existingImageUrl: recipeToEdit.image || "",
-            ingredients,
-            steps,
-            currentUser,
           })
-  
-          onUpdateSuccess?.()
+
+          onUpdateSuccess?.(updatedRecipe)
           return
         }
+
+        const updatedRecipe = await updateRecipe({
+          recipeId: recipeToEdit.recipeId,
+          title,
+          description,
+          cuisine,
+          duration,
+          servings,
+          difficulty,
+          meal,
+          visibility,
+          imageFile,
+          existingImageUrl: recipeToEdit.image || "",
+          existingImageFileName: recipeToEdit.imageFileName || "",
+          ingredients,
+          steps,
+          currentUser,
+        })
+
+        onUpdateSuccess?.(updatedRecipe)
+        return
       }
 
       await createPendingRecipe({
@@ -229,7 +230,9 @@ export default function PostRecipeForm({
       onSubmitSuccess()
       // onClose()
     } catch (error) {
-      console.error("Failed to create recipe:", error)
+      console.error(
+        isEditMode ? "Failed to update recipe:" : "Failed to create recipe:", error
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -254,7 +257,7 @@ export default function PostRecipeForm({
         onPost={handlePostRecipe}
         onBack={() => setIsPreviewOpen(false)}
         mode={mode}
-        submitLabel={isEditMode ? "Update" : "Post"}
+        submitLabel={isEditMode ? editSubmitLabel : "Post"}
       />
     )
   }
@@ -450,7 +453,7 @@ export default function PostRecipeForm({
           isSubmitting={isSubmitting}
           onPreview={() => setIsPreviewOpen(true)}
           onPost={handlePostRecipe}
-          submitLabel={isEditMode ? "Update" : "Post"}
+          submitLabel={isEditMode ? editSubmitLabel : "Post"}
         />
       </div>
     </form>

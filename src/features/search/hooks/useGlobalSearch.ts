@@ -238,19 +238,10 @@ export function useGlobalSearch(
             getDocs(
               query(
                 collection(db, "recipes"),
-                where(
-                  "status",
-                  "==",
-                  "published"
-                ),
-                where(
-                  "searchKeywords",
-                  "array-contains",
-                  cleanSearch
-                ),
-                limit(
-                  RECIPE_SEARCH_CANDIDATES_LIMIT
-                )
+                where("status", "==", "published"),
+                where("visibility", "==", "public"),
+                where("searchKeywords", "array-contains", cleanSearch),
+                limit(RECIPE_SEARCH_CANDIDATES_LIMIT)
               )
             ),
 

@@ -361,8 +361,6 @@ export default function PendingRecipesPage() {
                 paddingRight: selectedRecipe ? detailsDrawerWidth : 0
             }}
         >
-            {/* <Navigation /> */}
-
             <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-20">
                 <RecipeReviewPageHeader 
                     search={search}

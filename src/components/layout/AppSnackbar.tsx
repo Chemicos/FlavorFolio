@@ -12,6 +12,7 @@ interface AppSnackbarProps {
   open: boolean
   type: SnackbarType
   message: string
+  action?: {label: string, onClick: () => void}
   onClose: () => void
 }
 
@@ -42,6 +43,7 @@ export default function AppSnackbar({
     open,
     type,
     message,
+    action,
     onClose,
 }:AppSnackbarProps) {
     const config = snackbarConfig[type]
@@ -49,7 +51,7 @@ export default function AppSnackbar({
     return (
         <Snackbar
             open={open}
-            autoHideDuration={4000}
+            autoHideDuration={action ? 7000 : 4000}
             onClose={onClose}
             anchorOrigin={{
                 vertical: "bottom",
@@ -76,19 +78,32 @@ export default function AppSnackbar({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">
-                    {type === "success"
-                    ? "Success"
-                    : type === "error"
-                        ? "Something went wrong"
-                        : type === "warning"
-                        ? "Warning"
-                        : "Info"}
-                </p>
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">
+                        {type === "success"
+                        ? "Success"
+                        : type === "error"
+                            ? "Something went wrong"
+                            : type === "warning"
+                            ? "Warning"
+                            : "Info"}
+                    </p>
 
-                <p className="mt-0.5 text-sm leading-5 text-[var(--text-secondary)]">
-                    {message}
-                </p>
+                    <p className="mt-0.5 text-sm leading-5 text-[var(--text-secondary)]">
+                        {message}
+                    </p>
+
+                    {action && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                action.onClick()
+                                onClose()
+                            }}
+                            className="mt-2 text-sm font-semibold text-[var(--accent-text)] transition hover:text-[var(--accent-hover)]"
+                        >
+                            {action.label}
+                        </button>
+                    )}
                 </div>
 
                 <button

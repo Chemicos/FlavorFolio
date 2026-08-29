@@ -361,7 +361,11 @@ export default function Home() {
   }
 
   const handleRecipeUpdateSuccess = () => {
-    showSnackbar("Recipe updated successfully. You'll be notified once it has been reviewed by an administrator.", "success")
+    showSnackbar(
+      "Recipe changes saved as draft.", 
+      "success",
+      {label: "View Revision & Drafts", onClick: () => navigate("/needs-revision")}
+    )
     setEditingRecipe(null)
     setIsPostFormVisible(false)
   }

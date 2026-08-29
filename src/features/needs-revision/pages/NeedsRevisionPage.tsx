@@ -13,6 +13,8 @@ import { Recipe } from "../../home/types";
 import { useSnackbar } from "../../../components/layout/SnackbarProvider";
 import { useSearchParams } from "react-router-dom";
 
+type RevisionPageTab = "needs_revision" | "draft"
+
 export default function NeedsRevisionPage() {
   const { showSnackbar } = useSnackbar()
 
@@ -21,6 +23,8 @@ export default function NeedsRevisionPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [recipesToDelete, setRecipesToDelete] = useState<NeedsRevisionRecipe[]>([])
   const [isRevisionActionLoading, setIsRevisionActionLoading] = useState(false)
+
+  const [activeTab, setActiveTab] = useState<RevisionPageTab>("needs_revision")
 
   const { 
     recipes, 
@@ -45,11 +49,24 @@ export default function NeedsRevisionPage() {
   const [detailsDrawerWidth, setDetailsDrawerWidth] = useState(540)
   const handledUnavailableRecipeIdRef = useRef<string | null>(null)
 
+  const needsRevisionCount = useMemo(() => recipes.filter(
+    (recipe) => recipe.status === "needs_revision"
+  ).length, [recipes])
+
+  const draftsCount = useMemo(() => recipes.filter(
+    (recipe) => recipe.status === "draft"
+  ).length, [recipes])
+
   const filteredRecipes = useMemo(() => {
     const query = debouncedSearch.trim().toLowerCase()
-    if (!query) return recipes
 
-    return recipes.filter((recipe) => {
+    const recipesForActiveTab = recipes.filter(
+      (recipe) => recipe.status === activeTab
+    )
+
+    if (!query) return recipesForActiveTab
+
+    return recipesForActiveTab.filter((recipe) => {
       const searchableText = [
         recipe.title,
         recipe.denialFeedback?.reason,
@@ -66,13 +83,17 @@ export default function NeedsRevisionPage() {
 
       return searchableText.includes(query)
     })
-  }, [recipes, debouncedSearch])
-
+  }, [recipes, activeTab, debouncedSearch])
   
   const [rowsPerPage, setRowsPerPage] = useState(12)
   const [currentPage, setCurrentPage] = useState(1)
   const totalPages = Math.ceil(filteredRecipes.length / rowsPerPage)
   
+  useEffect(() => {
+    setCurrentPage(1)
+    setSelectedIds([])
+  }, [activeTab])
+
   useEffect(() => {
     setCurrentPage(1)
     setSelectedIds([])
@@ -121,6 +142,12 @@ export default function NeedsRevisionPage() {
 
     handledUnavailableRecipeIdRef.current = null
 
+    const targetTab: RevisionPageTab = targetRecipe.status === "draft" ? "draft" : "needs_revision"
+
+    if (activeTab !== targetTab) {
+      setActiveTab(targetTab)
+    }
+
     const targetIndex = filteredRecipes.findIndex(
       (recipe) => recipe.recipeId === recipeIdFromUrl
     )
@@ -131,8 +158,10 @@ export default function NeedsRevisionPage() {
       )
     }
 
-    setEditingRecipe(null)
+    // setEditingRecipe(null)
     setPreviewRecipe(null)
+
+    setEditingRecipe(null)
 
     setSelectedRecipe((currentRecipe) => {
       if (currentRecipe?.recipeId === targetRecipe.recipeId) {
@@ -151,6 +180,18 @@ export default function NeedsRevisionPage() {
     setSearchParams,
     showSnackbar,
   ])
+
+  const handleTabChange = (tab: RevisionPageTab) => {
+    setActiveTab(tab)
+    setSelectedIds([])
+    setSelectedRecipe(null)
+    setEditingRecipe(null)
+    setPreviewRecipe(null)
+
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete("recipeId")
+    setSearchParams(nextParams, { replace: true })
+  }
 
   const selectedRecipes = useMemo(() => {
     return recipes.filter((recipe) => selectedIds.includes(recipe.recipeId))
@@ -281,16 +322,17 @@ export default function NeedsRevisionPage() {
         ? { ...prev, ...updatedRecipe }
         : prev
     )
+
+    return updatedRecipe
   }
 
   const handleOpenRecipe = (recipe: NeedsRevisionRecipe) => {
+    setPreviewRecipe(null)
     setSelectedRecipe(recipe)
     setEditingRecipe(null)
-    setPreviewRecipe(null)
 
     const nextParams = new URLSearchParams(searchParams)
     nextParams.set("recipeId", recipe.recipeId)
-
     setSearchParams(nextParams, {replace: true})
   }
 
@@ -328,6 +370,50 @@ export default function NeedsRevisionPage() {
           onClearSelection={() => setSelectedIds([])}
           onDeleteSelected={handleOpenDeleteSelected}
         />
+
+        <div className="mt-2 flex items-center gap-2 border-b border-[var(--border)]">
+          <button 
+            type="button"
+            onClick={() => handleTabChange("needs_revision")}
+            className={[
+              "relative px-4 py-3 text-sm font-semibold transition",
+              activeTab === "needs_revision"
+                ? "text-[var(--accent-text)]"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
+            ].join(" ")}
+          >
+            Needs Revision
+
+            <span className="ml-2 rounded-full bg-[var(--surface-muted)] px-2 py-0.5 text-xs">
+              {needsRevisionCount}
+            </span>
+
+            {activeTab === "needs_revision" && (
+              <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-[var(--accent)]" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange("draft")}
+            className={[
+              "relative px-4 py-3 text-sm font-semibold transition",
+              activeTab === "draft"
+                ? "text-[var(--accent-text)]"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
+            ].join(" ")}
+          >
+            Drafts
+
+            <span className="ml-2 rounded-full bg-[var(--surface-muted)] px-2 py-0.5 text-xs">
+              {draftsCount}
+            </span>
+
+            {activeTab === "draft" && (
+              <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-[var(--accent)]" />
+            )}
+          </button>
+        </div>
 
         {error && (
           <div 
@@ -385,7 +471,7 @@ export default function NeedsRevisionPage() {
           <RecipeReviewDetailsDrawer
             key={selectedRecipe.recipeId}
             recipe={selectedRecipe}
-            mode="revision"
+            mode={selectedRecipe.status === "draft" ? "draft" : "revision"}
             width={detailsDrawerWidth}
             isRevisionActionLoading={isRevisionActionLoading}
             onClose={handleCloseRecipeDrawer}
@@ -404,7 +490,9 @@ export default function NeedsRevisionPage() {
           <PostRecipeDrawer
             currentUser={currentUser}
             mode="edit"
-            updateMode="revision_draft"
+            updateMode={
+              editingRecipe.status === "needs_revision" ? "revision_draft" : "default"
+            }
             variant="side"
             width={detailsDrawerWidth}
             topOffset={64}
@@ -412,8 +500,14 @@ export default function NeedsRevisionPage() {
             recipeToEdit={editingRecipe as unknown as Recipe}
             onClose={() => setEditingRecipe(null)}
             onSubmitSuccess={() => setEditingRecipe(null)}
-            onUpdateSuccess={() => {
-              showSnackbar("Recipe draft updated.", "success")
+            onUpdateSuccess={(updatedRecipe) => {
+              showSnackbar(
+                editingRecipe.status === "draft" ? "Recipe draft updated." : "Recipe changes saved.",
+                "success"
+              )
+              if (updatedRecipe) {
+                setSelectedRecipe(updatedRecipe as NeedsRevisionRecipe)
+              }
               setEditingRecipe(null)
             }}
             onRevisionDraftUpdate={handleRevisionDraftUpdate}

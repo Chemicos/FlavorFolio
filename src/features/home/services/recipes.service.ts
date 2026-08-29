@@ -291,10 +291,10 @@ export async function updateRecipe({
       ingredients,
     }),
 
-    status: "pending",
+    status: "draft",
 
     moderation: {
-      submittedAt: serverTimestamp(),
+      submittedAt: null,
       reviewedAt: null,
       reviewedBy: null,
       revisionFeedback: "",
@@ -306,7 +306,12 @@ export async function updateRecipe({
 
   await updateDoc(recipeRef, nextRecipeData)
 
-  return recipeId
+  return {
+    ...recipeData,
+    ...nextRecipeData,
+    id: recipeId,
+    recipeId
+  }
 }
 
 async function deleteStorageFile(path: string) {

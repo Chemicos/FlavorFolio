@@ -689,7 +689,13 @@ export default function MyProfilePage() {
                   onClose={() => setEditingRecipe(null)}
                   onSubmitSuccess={() => setEditingRecipe(null)}
                   onUpdateSuccess={() => {
-                    showSnackbar("Recipe updated and sent for review.", "success")
+                    showSnackbar(
+                      "Recipe changes saved as draft.", "success",
+                      {
+                        label: "View Revision & Drafts",
+                        onClick: () => navigate("/needs-revision"),
+                      }
+                    )
                     setEditingRecipe(null)
                   }}
                 />

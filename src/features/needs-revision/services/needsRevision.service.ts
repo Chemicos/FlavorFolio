@@ -22,10 +22,6 @@ export interface UpdateNeedsRevisionRecipePayload {
   steps: PostRecipeStep[]
 }
 
-// function getRecipeResubmittedNotificationId(recipeId: string) {
-//   return `recipe_resubmitted_${recipeId}`
-// }
-
 async function deleteStorageFile(path: string) {
   try {
     await deleteObject(ref(storage, path))
@@ -127,6 +123,10 @@ export async function updateNeedsRevisionRecipe({
 
   const recipeData = recipeSnap.data()
 
+  if (recipeData.status !== "needs_revision") {
+    throw new Error("Only recipes awaiting revision can be updated through this flow.")
+  }
+
   let imageUrl = !isBlobUrl(payload.existingImageUrl)
     ? payload.existingImageUrl
     : recipeData.image || ""
@@ -213,7 +213,7 @@ export async function updateNeedsRevisionRecipe({
   return nextRecipeData
 }
 
-export async function submitNeedsRevisionRecipe(recipeId: string) {
+export async function submitRecipeForReview(recipeId: string) {
   const recipeRef = doc(db, "recipes", recipeId)
   const recipeSnap = await getDoc(recipeRef)
 
@@ -223,8 +223,8 @@ export async function submitNeedsRevisionRecipe(recipeId: string) {
 
   const recipeData = recipeSnap.data()
 
-  if (recipeData.status !== "needs_revision") {
-    throw new Error("This recipe is no longer awaiting revision.")
+  if (recipeData.status !== "needs_revision" && recipeData.status !== "draft") {
+    throw new Error("This recipe cannot be submitted for review.")
   }
 
   const recipeTitle =
@@ -266,32 +266,6 @@ export async function submitNeedsRevisionRecipe(recipeId: string) {
     "moderation.reviewedBy": null,
   })
 
-  // const adminNotificationRef = doc(
-  //   db,
-  //   "adminNotifications",
-  //   getRecipeResubmittedNotificationId(recipeId)
-  // )
-
-  // batch.set(
-  //   adminNotificationRef,
-  //   {
-  //     type: "recipe_resubmitted",
-
-  //     recipeId,
-  //     recipeTitle,
-
-  //     actorUserId: recipeOwnerId,
-  //     actorUsername: recipeOwnerUsername,
-  //     actorProfileImage: recipeOwnerProfileImage,
-
-  //     message: `${recipeOwnerUsername} resubmitted "${recipeTitle}" for review.`,
-
-  //     read: false,
-  //     createdAt: serverTimestamp(),
-  //   },
-  //   { merge: true }
-  // )
-
   adminUserIds.forEach((adminUserId) => {
     addRecipeResubmittedNotificationToBatch(batch, {
       recipientUserId: adminUserId,
@@ -304,29 +278,6 @@ export async function submitNeedsRevisionRecipe(recipeId: string) {
       recipeTitle,
     })
   })
-
-
-  // const activityRef = doc(
-  //   collection(db, "adminModerationActivity")
-  // )
-
-  // batch.set(activityRef, {
-  //   type: "resubmitted",
-
-  //   recipeId,
-  //   recipeTitle,
-
-  //   recipeOwnerId,
-  //   recipeOwnerUsername,
-
-  //   actorUserId: recipeOwnerId,
-  //   actorUsername: recipeOwnerUsername,
-
-  //   adminUserId: "",
-  //   adminUsername: "",
-
-  //   createdAt: serverTimestamp(),
-  // })
 
   await batch.commit()
 }
@@ -341,7 +292,7 @@ export async function fetchNeedsRevisionRecipes(
   const recipesQuery = query(
     collection(db, "recipes"),
     where("userId", "==", userId),
-    where("status", "==", "needs_revision"),
+    where("status", "in", ["needs_revision", "draft"]),
     orderBy("updatedAt", "desc"),
     limit(50)
   )
@@ -375,7 +326,7 @@ export function subscribeToNeedsRevisionRecipes({
   const recipesQuery = query(
     collection(db, "recipes"),
     where("userId", "==", userId),
-    where("status", "==", "needs_revision"),
+    where("status", "in", ["needs_revision", "draft"]),
     orderBy("updatedAt", "desc"),
     limit(50)
   )

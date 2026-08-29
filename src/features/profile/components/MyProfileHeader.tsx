@@ -207,7 +207,7 @@ export default function MyProfileHeader({
 
               <span className="inline-flex items-center gap-1.5">
                 <LinkRoundedIcon sx={{ fontSize: 16 }} />
-                {website}
+                <a href={`${website}` } target="_blank">{website}</a>
               </span>
 
               <span className="inline-flex items-center gap-1.5">

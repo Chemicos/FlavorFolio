@@ -20,7 +20,7 @@ interface PostRecipeDrawerProps {
 
     mode?: "create" | "edit"
     recipeToEdit?: Recipe | null
-    onUpdateSuccess?: () => void
+    onUpdateSuccess?: (recipe?: Recipe) => void
     variant?: "modal" | "side" | "inline"
     width?: number
     topOffset?: number
@@ -29,7 +29,7 @@ interface PostRecipeDrawerProps {
     onRevisionDraftUpdate?: (payload: {
         recipeId: string
         payload: Record<string, any>
-    }) => Promise<void>
+    }) => Promise<Recipe>
 }
 
 export default function PostRecipeDrawer({

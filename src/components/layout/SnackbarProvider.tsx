@@ -1,8 +1,17 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 import AppSnackbar, { SnackbarType } from "./AppSnackbar"
 
+interface SnackbarAction {
+  label: string
+  onClick: () => void
+}
+
 interface SnackbarContextValue {
-  showSnackbar: (message: string, type?: SnackbarType) => void
+  showSnackbar: (
+    message: string,
+    type?: SnackbarType,
+    action?: SnackbarAction
+  ) => void
 }
 
 const SnackbarContext = createContext<SnackbarContextValue | null>(null)
@@ -11,21 +20,29 @@ export default function SnackbarProvider({children}: {children: React.ReactNode}
     const [open, setOpen] = useState(false)
     const [message, setMessage] = useState("")
     const [type, setType] = useState<SnackbarType>("success")
+    const [action, setAction] = useState<SnackbarAction | undefined>(undefined) 
     const [snackbarKey, setSnackbarKey] = useState(0)
 
     const showSnackbar = useCallback(
       (
         nextMessage: string,
-        nextType: SnackbarType = "success"
+        nextType: SnackbarType = "success",
+        nextAction?: SnackbarAction
       ) => {
         setSnackbarKey((prev) => prev + 1)
         setMessage(nextMessage)
         setType(nextType)
+        setAction(nextAction)
         setOpen(true)
       },
     [])
 
     const contextValue = useMemo(() => ({ showSnackbar }), [showSnackbar])
+
+    const handleClose = () => {
+      setOpen(false)
+      setAction(undefined)
+    }
 
   return (
     <SnackbarContext.Provider value={contextValue}>
@@ -36,7 +53,8 @@ export default function SnackbarProvider({children}: {children: React.ReactNode}
         open={open}
         type={type}
         message={message}
-        onClose={() => setOpen(false)}
+        action={action}
+        onClose={handleClose}
       />
     </SnackbarContext.Provider>
   )

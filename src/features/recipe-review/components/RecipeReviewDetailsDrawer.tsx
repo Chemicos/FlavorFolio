@@ -20,7 +20,7 @@ import { formatDurationFromMinutes } from "../../home/utils/recipeDuration"
 
 interface RecipeReviewDetailsDrawerProps {
   recipe: ReviewRecipe
-  mode?: "review" | "revision"
+  mode?: "review" | "revision" | "draft"
   width: number
   onClose: () => void
   onResizeStart: (event: React.MouseEvent<HTMLDivElement>) => void
@@ -56,6 +56,8 @@ export default function RecipeReviewDetailsDrawer({
   type ReviewSectionKey = "description" | "ingredients" | "steps"
   const isReviewMode = mode === "review"
   const isRevisionMode = mode === "revision"
+  const isDraftMode = mode === "draft"
+  const isCreatorMode = isRevisionMode || isDraftMode
 
   const defaultSectionFeedback: ReviewSectionFeedback = {
     message: "",
@@ -420,7 +422,7 @@ export default function RecipeReviewDetailsDrawer({
         </div>
       )}
 
-      {isRevisionMode && (
+      {isCreatorMode && (
         <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)] px-6 py-4 shadow-[var(--recipe-form-shadow)]">
           <div className="flex items-center gap-3">
             <button
@@ -479,7 +481,7 @@ export default function RecipeReviewDetailsDrawer({
                 <SendRoundedIcon sx={{ fontSize: 18 }} />
               )}
 
-              Send
+              Send for Review
             </button>
           </div>
         </div>
