@@ -1,4 +1,4 @@
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded"
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined"
 import SignalCellularAltRoundedIcon from "@mui/icons-material/SignalCellularAltRounded"
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded"
@@ -232,7 +232,7 @@ export default function RecipeReviewDetailsDrawer({
               "active:scale-95",
             ].join(" ")}
           >
-            <ChevronRightRoundedIcon sx={{ fontSize: 26 }} />
+            <CloseRoundedIcon sx={{ fontSize: 20 }} />
           </button>
         </div>
 

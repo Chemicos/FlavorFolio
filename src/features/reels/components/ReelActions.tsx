@@ -158,12 +158,6 @@ export default function ReelActions({
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 backdrop-blur-md transition group-hover:bg-[#feaa2b]/20 group-hover:text-[#ffd28a]">
           <SendRoundedIcon sx={{ fontSize: 25 }} />
         </span>
-
-        {reel.stats.sharesCount > 0 && (
-          <span className="text-xs font-semibold">
-            {formatCount(reel.stats.sharesCount)}
-          </span>
-        )}
       </button>
     </div>
   )

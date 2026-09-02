@@ -31,7 +31,7 @@ export default function Content({
     onFollowStateChange, filters, onRecipeClick, onCreatePost, hasMoreRecipes, isFetchingMoreRecipes, onFetchMoreRecipes
 }: ContentProps) {
     const hasActiveFilters = hasActiveRecipeFilters(filters)
-    const showLoading = isLoading || isFiltering
+    const showLoading = isLoading
 
   return (
     <div className="flex w-full sm:mb-6">

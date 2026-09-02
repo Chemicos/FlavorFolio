@@ -50,24 +50,6 @@ function getCalendarDayDifference(
   )
 }
 
-// function formatTime(value: any) {
-//   if (!value) return ""
-
-//   const date =
-//     typeof value?.toDate === "function"
-//       ? value.toDate()
-//       : value instanceof Date
-//         ? value
-//         : null
-
-//   if (!date) return ""
-
-//   return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
-//     Math.ceil((date.getTime() - Date.now()) / 86_400_000),
-//     "day"
-//   )
-// }
-
 function formatTime(value: unknown) {
   const date = getDateFromValue(value)
 
@@ -133,7 +115,7 @@ export default function ConversationListItem({
       type="button"
       onClick={() => {
         if (onClick) onClick()
-        else navigate(`/messages/${conversation.conversationId}`)
+        else navigate(`/messages/${conversation.conversationId}`, {replace: true})
       }}
       className={[
         "flex w-full items-center gap-3 rounded-xl p-3 text-left border transition-colors duration-200 active:scale-[0.99]",

@@ -15,7 +15,7 @@ interface NeedsRevisionPaginationProps {
   onNextPage: () => void
 }
 
-const rowsPerPageOptions = [8, 12, 16, 24]
+const rowsPerPageOptions = [12, 16, 24]
 
 export default function NeedsRevisionPagination({
     rowsPerPage,

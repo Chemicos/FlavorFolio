@@ -5,7 +5,7 @@ import { useNeedsRevisionRecipes } from "../hooks/useNeedsRevisionRecipes";
 import NeedsRevisionTable from "../components/NeedsRevisionTable";
 import NeedsRevisionPagination from "../components/NeedsRevisionPagination";
 import { useDebounce } from "../../recipe-review/hooks/useDebounce";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import DeleteNeedsRevisionWindow from "../components/DeleteNeedsRevisionWindow";
 import RecipeReviewDetailsDrawer from "../../recipe-review/components/RecipeReviewDetailsDrawer";
 import PostRecipeDrawer from "../../home/components/post-recipe/PostRecipeDrawer";
@@ -85,7 +85,7 @@ export default function NeedsRevisionPage() {
     })
   }, [recipes, activeTab, debouncedSearch])
   
-  const [rowsPerPage, setRowsPerPage] = useState(12)
+  const [rowsPerPage, setRowsPerPage] = useState(16)
   const [currentPage, setCurrentPage] = useState(1)
   const totalPages = Math.ceil(filteredRecipes.length / rowsPerPage)
   
@@ -360,7 +360,7 @@ export default function NeedsRevisionPage() {
             : 0,
       }}
     >
-      <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-20">
+      <main className="mx-auto flex h-screen w-full flex-col overflow-hidden px-8 pt-20">
         <NeedsRevisionPageHeader 
           search={search}
           selectedCount={selectedIds.length}
@@ -389,7 +389,11 @@ export default function NeedsRevisionPage() {
             </span>
 
             {activeTab === "needs_revision" && (
-              <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-[var(--accent)]" />
+              <motion.span
+                layoutId="revision-tab-indicator"
+                className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-[var(--accent)]"
+                transition={{type: "spring", stiffness: 420, damping: 34}}
+              />              
             )}
           </button>
 
@@ -410,7 +414,11 @@ export default function NeedsRevisionPage() {
             </span>
 
             {activeTab === "draft" && (
-              <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-[var(--accent)]" />
+              <motion.span 
+                layoutId="revision-tab-indicator"
+                className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-[var(--accent)]"
+                transition={{ type: "spring", stiffness: 420, damping: 34 }}
+              />
             )}
           </button>
         </div>

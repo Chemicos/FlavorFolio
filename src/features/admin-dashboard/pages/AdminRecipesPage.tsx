@@ -45,7 +45,7 @@ export default function AdminRecipesPage() {
     const [visibleSearchQuery, setVisibleSearchQuery] = useState("")
     const [isSearchLoading, setIsSearchLoading] = useState(false)
 
-    const [rowsPerPage, setRowsPerPage] = useState(12)
+    const [rowsPerPage, setRowsPerPage] = useState(16)
     const [currentPage, setCurrentPage] = useState(1)
     const [detailsDrawerWidth, setDetailsDrawerWidth] = useState(540)
 

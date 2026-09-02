@@ -308,7 +308,18 @@ export default function PostRecipeForm({
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--recipe-form-bg)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95"
+          className={[
+            "absolute left-5 top-5 z-20",
+            "flex h-11 w-11 items-center justify-center rounded-lg border",
+            "border-[var(--drawer-control-border)]",
+            "bg-[var(--drawer-control-bg)]",
+            "text-[var(--text-secondary)]",
+            "shadow-[var(--shadow-card)]",
+            "transition",
+            "hover:bg-[var(--drawer-control-hover)]",
+            "hover:text-[var(--text-primary)]",
+            "active:scale-95",
+          ].join(" ")}
         >
           <CloseRoundedIcon sx={{ fontSize: 20 }} />
         </button>

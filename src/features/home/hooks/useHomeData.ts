@@ -501,7 +501,7 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
         return trendingRecipes
 
       case "Following":
-        return followingFeedRecipes
+        return followingRecipes
 
       case "New":
         return newRecipes
@@ -509,7 +509,7 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
       default:
         return forYouRecipes
     }
-  }, [activeTab, forYouRecipes, trendingRecipes, followingFeedRecipes, newRecipes,])
+  }, [activeTab, forYouRecipes, trendingRecipes, followingRecipes, newRecipes,])
 
   
   const filteredActiveRecipes = useMemo(() => {

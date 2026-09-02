@@ -1,14 +1,9 @@
-// import CircularProgress from '@mui/material/CircularProgress'
-// import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import PostAddRoundedIcon from "@mui/icons-material/PostAddRounded"
 import TuneIcon from '@mui/icons-material/Tune'
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { motion } from "motion/react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useWindowVirtualizer } from "@tanstack/react-virtual"
 
 import type { Recipe, SavedRecipe } from "../types"
-// import RecipeCard from "./RecipeCard"
 import { CurrentUserCardData } from "../types/recipeCard.types"
 import RecipeGridCard from './RecipeGridCard'
 import RecipeGridSkeleton from './RecipeGridSkeleton'
@@ -69,9 +64,9 @@ export default function RecipeSection({
     
     const [scrollMargin, setScrollMargin] = useState(0)
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const element = gridRef.current
-        if (!element || isLoading) return
+        if (!element) return
 
         const updateGridSize = () => {
             const width = element.getBoundingClientRect().width
@@ -86,8 +81,16 @@ export default function RecipeSection({
                 Math.floor((width - totalGap) / nextColumns)
             )
 
-            setColumns(nextColumns)
-            setCardWidth(nextCardWidth)
+            setColumns((currentColumns) =>
+                currentColumns === nextColumns
+                    ? currentColumns
+                    : nextColumns
+            )
+            setCardWidth((currentWidth) =>
+                currentWidth === nextCardWidth
+                    ? currentWidth
+                    : nextCardWidth
+            )
         }
 
         updateGridSize()
@@ -96,14 +99,21 @@ export default function RecipeSection({
         observer.observe(element)
 
         return () => observer.disconnect()
-    }, [isLoading, recipes.length, title])
+    }, [isLoading])
 
     
-    useEffect(() => {
-        if (!gridRef.current) return
+    useLayoutEffect(() => {
+        const element = gridRef.current
+        if (!element) return
+
+        const nextScrollMargin = element.getBoundingClientRect().top + window.scrollY
         
-        setScrollMargin(gridRef.current.offsetTop)
-    }, [recipes.length, title])
+        setScrollMargin((currentMargin) =>
+            currentMargin === nextScrollMargin
+            ? currentMargin
+            : nextScrollMargin
+        )
+    }, [title, isLoading])
     
     const rows = useMemo(() => {
         const result: Recipe[][] = []
@@ -122,7 +132,7 @@ export default function RecipeSection({
         scrollMargin,
     })
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         rowVirtualizer.measure()
     }, [columns, cardWidth])
     
@@ -172,7 +182,7 @@ export default function RecipeSection({
         </div>
 
         {isLoading ? (
-            <RecipeGridSkeleton count={8} />
+            <RecipeGridSkeleton count={12} />
         ) : recipes.length === 0 ? (
             <div className="flex min-h-[360px] w-full items-center justify-center">
                 <div className="w-full max-w-[520px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-8 py-12 text-center shadow-[var(--shadow-card)]">
@@ -209,12 +219,9 @@ export default function RecipeSection({
                         const rowRecipes = rows[virtualRow.index] ?? []
 
                         return (
-                            <motion.div
+                            <div
                                 key={virtualRow.key}
                                 ref={rowVirtualizer.measureElement}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.18, ease: "easeOut" }}
                                 data-index={virtualRow.index}
                                 className="absolute left-0 top-0 grid w-full justify-center"
                                 style={{
@@ -227,7 +234,7 @@ export default function RecipeSection({
                                 }}
                             >
                                 {rowRecipes.map((recipe) => (
-                                    <div key={recipe.recipeId}>
+                                    <div key={recipe.recipeId || recipe.id}>
                                         <RecipeGridCard 
                                             recipe={recipe} 
                                             onClick={() => onRecipeClick(recipe)} 
@@ -237,7 +244,7 @@ export default function RecipeSection({
                                         />
                                     </div>
                                 ))}
-                            </motion.div>
+                            </div>
                         )
                         })}
                 </div>

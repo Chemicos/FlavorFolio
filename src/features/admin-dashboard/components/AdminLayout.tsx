@@ -41,7 +41,7 @@ export default function AdminLayout({
       >
         <div
           className={[
-            "mx-auto w-full max-w-[1400px]",
+            "mx-auto w-full",
             fullHeight ? "flex min-h-0 flex-1 flex-col" : "",
           ].join(" ")}
         >

@@ -28,7 +28,7 @@ export default function PendingRecipesPage() {
     const [selectedRecipe, setSelectedRecipe] = useState<ReviewRecipe | null>(null)
     const debouncedSearch = useDebounce(search, 300)
 
-    const [rowsPerPage, setRowsPerPage] = useState(12)
+    const [rowsPerPage, setRowsPerPage] = useState(16)
     const [currentPage, setCurrentPage] = useState(1)
 
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
@@ -361,7 +361,7 @@ export default function PendingRecipesPage() {
                 paddingRight: selectedRecipe ? detailsDrawerWidth : 0
             }}
         >
-            <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-8 pt-20">
+            <main className="mx-auto flex h-screen w-full flex-col overflow-hidden px-8 pt-20">
                 <RecipeReviewPageHeader 
                     search={search}
                     selectedCount={selectedIds.length}

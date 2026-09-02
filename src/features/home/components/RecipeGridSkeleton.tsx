@@ -60,7 +60,7 @@ function RecipeCardSkeleton() {
 }
 
 
-export default function RecipeGridSkeleton({count = 8}: RecipeGridSkeletonProps) {
+export default function RecipeGridSkeleton({count = 12}: RecipeGridSkeletonProps) {
   return (
     <div
       role="status"

@@ -1,5 +1,3 @@
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
-
 import { AnimatePresence, motion } from "motion/react"
 import PostRecipeForm from "./PostRecipeForm"
 import { useState } from "react"
@@ -21,7 +19,7 @@ interface PostRecipeDrawerProps {
     mode?: "create" | "edit"
     recipeToEdit?: Recipe | null
     onUpdateSuccess?: (recipe?: Recipe) => void
-    variant?: "modal" | "side" | "inline"
+    variant?: "modal" | "side"
     width?: number
     topOffset?: number
     onResizeStart?: (event: React.MouseEvent<HTMLDivElement>) => void
@@ -50,59 +48,36 @@ export default function PostRecipeDrawer({
 }: PostRecipeDrawerProps) {
     const [showSubmissionInfo, setShowSubmissionInfo] = useState(mode !== "edit" && postType === "recipe")
     const isSideVariant = variant === "side"
-    const isInlineVariant = variant === "inline"
     
   return (
-    <div
-        style={
-            isInlineVariant
-            ? { width: "100%" }
-            : isSideVariant
-                ? {
-                    top: topOffset,
-                    height: `calc(100vh - ${topOffset}px)`,
-                    width,
-                }
-                : undefined
-        }
-        className={[
-            isInlineVariant
-            ? "h-[calc(100vh-96px)] w-full overflow-hidden"
-            : "fixed right-0 z-[90]",
-            !isSideVariant && !isInlineVariant ? "inset-0" : "",
-        ].join(" ")}
-    >
-        {!isSideVariant && !isInlineVariant && (
-            <motion.div
-            className="absolute inset-0 bg-[var(--overlay)] backdrop-blur-[2px]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            />
-        )}
-        
+    <>
         <motion.aside
-            initial={isInlineVariant ? { opacity: 0 } : { x: "105%" }}
-            animate={isInlineVariant ? { opacity: 1 } : { x: 0 }}
-            exit={isInlineVariant ? { opacity: 0 } : { x: "105%" }}
+            initial={isSideVariant ? { x: "105%" } : { opacity: 0, y: 10, scale: 0.985 }}
+            animate={isSideVariant ? { x: 0 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={isSideVariant ? { x: "105%" } : { opacity: 0, y: 8, scale: 0.985 }}
             transition={
-                isInlineVariant
-                ? { duration: 0.18, ease: "easeOut" }
-                : { type: "spring", stiffness: 240, damping: 30, mass: 1 }
+                isSideVariant
+                ? { type: "spring", stiffness: 240, damping: 30, mass: 1 }
+                : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
             }
-            style={{ width: isInlineVariant ? "100%" : width, }}
+            style={
+                isSideVariant 
+                    ? {
+                        top: topOffset,
+                        height: `calc(100vh - ${topOffset}px)`,
+                        width,
+                    }
+                    : undefined
+            }
             className={[
-                "flex h-full flex-col overflow-hidden bg-[var(--bg-secondary)] shadow-[var(--shadow-panel)]",
-                isInlineVariant
-                    ? "w-full rounded-2xl border border-[var(--border)]"
-                    : isSideVariant
-                    ? "absolute right-0 top-0 border-l border-[var(--border)]"
-                    : "absolute right-0 top-0 w-full max-w-[580px]",
+                "flex flex-col overflow-hidden bg-[var(--bg-secondary)] shadow-[var(--shadow-panel)]",
+                isSideVariant
+                    ? "fixed right-0 z-[90] border-l border-[var(--border)]"
+                    : "relative z-10 h-full max-h-[900px] w-full max-w-[820px] rounded-[2rem] border border-[var(--border)]",
             ].join(" ")}
         >
 
-            {onResizeStart && (isSideVariant || isInlineVariant) && (
+            {onResizeStart && isSideVariant && (
                 <div
                     onMouseDown={onResizeStart}
                     className="absolute left-0 top-0 z-50 h-full w-3 -translate-x-1/2 cursor-col-resize before:absolute before:left-1/2 before:top-0 before:h-full before:w-px before:bg-[var(--border)] hover:before:bg-[var(--focus-border)]"
@@ -139,6 +114,6 @@ export default function PostRecipeDrawer({
                 />
             )}
         </AnimatePresence>
-    </div>
+    </>
   )
 }

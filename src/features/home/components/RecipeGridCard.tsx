@@ -8,6 +8,7 @@ import { CurrentUserCardData } from "../types/recipeCard.types"
 import { useRecipeCardActions } from "../hooks/useRecipeCardActions"
 import { CircularProgress } from "@mui/material"
 import { useSnackbar } from "../../../components/layout/SnackbarProvider"
+import { motion } from "motion/react"
 
 function formatDuration(minutes?: number) {
   if (!minutes) return "0 min"
@@ -26,7 +27,6 @@ function formatCompactNumber(value?: number) {
   }).format(Number(value || 0))
 }
 
-
 export default function RecipeGridCard({
     recipe,
     currentUser,
@@ -42,9 +42,13 @@ export default function RecipeGridCard({
 }) {
     const { showSnackbar } = useSnackbar()
     const recipeId = recipe.recipeId || recipe.id || ""
-    // const isSaved = savedRecipes.some(
-    //     (savedRecipe) => savedRecipe.recipeId === recipeId
-    // )
+
+    const RECIPE_LAYOUT_TRANSITION = {
+      type: "spring" as const,
+      stiffness: 280,
+      damping: 30,
+      mass: 0.8,
+    }
 
     const {
         isFavorite,
@@ -104,17 +108,24 @@ export default function RecipeGridCard({
         onClick()
     }
   return (
-    <article
-      onClick={handleCardClick}
-      className={[
-        "group relative h-[370px] cursor-pointer overflow-hidden rounded-lg",
-        "border border-[var(--border)] bg-[var(--card-bg)]",
-        "shadow-[var(--shadow-card)]",
-        "transition duration-200",
-        "hover:-translate-y-1 hover:border-[var(--border-strong)]",
-      ].join(" ")}
+    <motion.article
+      transition={{layout: RECIPE_LAYOUT_TRANSITION}}
+      className="relative h-[370px]"
     >
-      <img
+      <div
+        onClick={handleCardClick}
+        style={{
+          borderRadius: 8,
+        }}
+        className={[
+          "group relative h-full cursor-pointer overflow-hidden",
+          "border border-[var(--border)] bg-[var(--card-bg)]",
+          "shadow-[var(--shadow-card)]",
+          "transition-[transform,border-color] duration-150 ease-out",
+          "hover:-translate-y-1 hover:border-[var(--border-strong)]",
+        ].join(" ")}
+      >
+        <img
         src={recipe.image}
         alt={recipe.title}
         loading="lazy"
@@ -158,73 +169,74 @@ export default function RecipeGridCard({
         )}
       </button>
 
-      <div 
-        className={[
-          "absolute left-4 top-4 z-10",
-          "flex max-w-[70%] items-center gap-2 rounded-full",
-          "border border-[var(--profile-floating-control-border)]",
-          "bg-[var(--profile-floating-control-bg)]",
-          "px-2.5 py-2",
-          "text-[var(--profile-floating-control-text)]",
-          "shadow-[var(--shadow-card)] backdrop-blur-xl",
-        ].join(" ")}
-      >
-        <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[var(--profile-avatar-bg)]">
-          {authorImage ? (
-            <img
-              src={authorImage}
-              alt={authorUsername}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[0.7rem] font-bold text-[var(--profile-floating-control-text)]">
-              {authorUsername.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
+        <div 
+          className={[
+            "absolute left-4 top-4 z-10",
+            "flex max-w-[70%] items-center gap-2 rounded-full",
+            "border border-[var(--profile-floating-control-border)]",
+            "bg-[var(--profile-floating-control-bg)]",
+            "px-2.5 py-2",
+            "text-[var(--profile-floating-control-text)]",
+            "shadow-[var(--shadow-card)] backdrop-blur-xl",
+          ].join(" ")}
+        >
+          <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[var(--profile-avatar-bg)]">
+            {authorImage ? (
+              <img
+                src={authorImage}
+                alt={authorUsername}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[0.7rem] font-bold text-[var(--profile-floating-control-text)]">
+                {authorUsername.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
 
-        <p className="truncate text-xs font-semibold">
-          {authorUsername}
-        </p>
-      </div>  
-
-      <div className="absolute inset-x-0 bottom-0 z-10">
-        <div className="px-4 pb-4 pt-3">
-          <h3 className="line-clamp-1 text-[1rem] font-semibold text-[var(--profile-overlay-text)]">
-            {recipe.title}
-          </h3>
-
-          <p className="mt-2 line-clamp-1 text-sm text-[var(--profile-overlay-text-secondary)]">
-            {recipe.meal} · {recipe.difficulty} ·{" "}
-            {formatDuration(recipe.durationMinutes)}
+          <p className="truncate text-xs font-semibold">
+            {authorUsername}
           </p>
+        </div>  
 
-          <div className="mt-4 flex items-center pt-3">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 text-[var(--accent)]">
-                <StarRoundedIcon sx={{ fontSize: 18 }} />
-                <span className="text-sm font-semibold text-[var(--profile-overlay-text)]">
-                  {rating.toFixed(1)}
-                </span>
-              </div>
+        <div className="absolute inset-x-0 bottom-0 z-10">
+          <div className="px-4 pb-4 pt-3">
+            <h3 className="line-clamp-1 text-[1rem] font-semibold text-[var(--profile-overlay-text)]">
+              {recipe.title}
+            </h3>
 
-              <div className="flex items-center gap-1.5 text-[var(--profile-overlay-text-secondary)]">
-                <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 17 }} />
-                <span className="text-sm font-semibold">
-                  {formatCompactNumber(commentsCount)}
-                </span>
-              </div>
+            <p className="mt-2 line-clamp-1 text-sm text-[var(--profile-overlay-text-secondary)]">
+              {recipe.meal} · {recipe.difficulty} ·{" "}
+              {formatDuration(recipe.durationMinutes)}
+            </p>
 
-              <div className="flex items-center gap-1.5 text-[var(--profile-overlay-text-secondary)]">
-                <BookmarkRoundedIcon sx={{ fontSize: 17 }} />
-                <span className="text-sm font-semibold">
-                  {formatCompactNumber(savesCount)}
-                </span>
+            <div className="mt-4 flex items-center pt-3">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 text-[var(--accent)]">
+                  <StarRoundedIcon sx={{ fontSize: 18 }} />
+                  <span className="text-sm font-semibold text-[var(--profile-overlay-text)]">
+                    {rating.toFixed(1)}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[var(--profile-overlay-text-secondary)]">
+                  <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 17 }} />
+                  <span className="text-sm font-semibold">
+                    {formatCompactNumber(commentsCount)}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[var(--profile-overlay-text-secondary)]">
+                  <BookmarkRoundedIcon sx={{ fontSize: 17 }} />
+                  <span className="text-sm font-semibold">
+                    {formatCompactNumber(savesCount)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </article>
+      </div>     
+    </motion.article>
   )
 }

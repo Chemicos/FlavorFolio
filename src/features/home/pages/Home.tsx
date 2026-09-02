@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import FilterDrawer, { defaultRecipeFilters, RecipeFilters } from "../components/FilterDrawer"
 import Content from "../components/Content.js"
 
@@ -17,7 +17,6 @@ import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 import { CircularProgress, useMediaQuery } from "@mui/material"
 import { fetchRecipeById } from "../services/recipes.service"
 import DeleteWarningDialog from "../components/recipe-view-drawer/DeleteWarningDialog"
-import { useAppLayout } from "../../../components/layout/AppLayoutContext"
 import { useUserCapabilities } from "../../../components/permissions/UserCapabilitiesContext"
 
 export type CreatePostType = "recipe" | "reel"
@@ -28,6 +27,8 @@ export default function Home() {
   const recipeIdFromUrl = searchParams.get("recipeId")
   
   const [activeTab, setActiveTab] = useState("For You")
+  const [isFeedTabChanging, setIsFeedTabChanging] = useState(false)
+  const feedTabLoadingTimerRef = useRef<number | null>(null)
   //Filtering
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
   const [filters, setFilters] = useState<RecipeFilters>(defaultRecipeFilters)
@@ -54,17 +55,19 @@ export default function Home() {
 
   const {restrictions} = useUserCapabilities()
 
-  const isAnyOverlayOpen = isFilterDrawerOpen
+  const isRecipeViewOpen = Boolean(selectedRecipe) || isRecipeDrawerLoading
+  const isPostViewOpen = isPostFormVisible
+  const isAnyOverlayOpen = isFilterDrawerOpen || isRecipeViewOpen || isPostViewOpen
+  
+  const recipeViewLoadingTimerRef = useRef<number | null>(null)
+  // const isLargeDesktop = useMediaQuery("(min-width:1930px)")
+  // const RECIPE_DRAWER_WIDTH = 540
+  // const LAYOUT_GAP = 24
+  // const isPostDrawerOpen = isPostFormVisible
 
-  const isLargeDesktop = useMediaQuery("(min-width:1930px)")
-  const RECIPE_DRAWER_WIDTH = 540
-  const LAYOUT_GAP = 24
-  const isInlineDrawerOpen = Boolean(selectedRecipe) || isPostFormVisible || Boolean(editingRecipe) || isRecipeDrawerLoading
-
-  const {setFloatingMessagesRightOffset} = useAppLayout()
-  const floatingActionsRightOffset = isInlineDrawerOpen && !isLargeDesktop
-    ? RECIPE_DRAWER_WIDTH + LAYOUT_GAP + 24
-    : 24
+  // const {setFloatingMessagesRightOffset} = useAppLayout()
+  // const floatingActionsRightOffset = isPostDrawerOpen && !isLargeDesktop
+  //   ? RECIPE_DRAWER_WIDTH + LAYOUT_GAP + 24 : 24
 
   const {
     activeRecipes,
@@ -89,18 +92,22 @@ export default function Home() {
     setFilters(defaultRecipeFilters)
   }
 
-  useEffect(() => {
-    setFloatingMessagesRightOffset(floatingActionsRightOffset)
+  // useEffect(() => {
+  //   setFloatingMessagesRightOffset(floatingActionsRightOffset)
 
-    return () => {
-      setFloatingMessagesRightOffset(24)
-    }
-  }, [floatingActionsRightOffset, setFloatingMessagesRightOffset])
+  //   return () => {
+  //     setFloatingMessagesRightOffset(24)
+  //   }
+  // }, [floatingActionsRightOffset, setFloatingMessagesRightOffset])
+
+  const selectedRecipeId = selectedRecipe?.recipeId || selectedRecipe?.id || null
 
   useEffect(() => {
     if (!recipeIdFromUrl) {
       return
     }
+
+    if (selectedRecipeId === recipeIdFromUrl) return
 
     let isCancelled = false
 
@@ -116,7 +123,6 @@ export default function Home() {
 
       if (localRecipe) {
         setSelectedRecipe(localRecipe)
-        setIsRecipeDrawerLoading(false)
         return
       }
 
@@ -165,6 +171,7 @@ export default function Home() {
   }, [
     recipeIdFromUrl,
     activeRecipes,
+    selectedRecipeId,
     setSearchParams,
     showSnackbar,
   ])
@@ -217,6 +224,31 @@ export default function Home() {
       console.error("Failed to parse auth feedback:", error)
     } finally {
       sessionStorage.removeItem("authFeedback")
+    }
+  }, [])
+
+  const startRecipeViewLoading = () => {
+    if (recipeViewLoadingTimerRef.current) {
+      window.clearTimeout(recipeViewLoadingTimerRef.current)
+    }
+
+    setIsRecipeDrawerLoading(true)
+
+    recipeViewLoadingTimerRef.current = window.setTimeout(() => {
+      setIsRecipeDrawerLoading(false)
+      recipeViewLoadingTimerRef.current = null
+    }, 220)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (recipeViewLoadingTimerRef.current) {
+        window.clearTimeout(recipeViewLoadingTimerRef.current)
+      }
+
+      if (feedTabLoadingTimerRef.current) {
+        window.clearTimeout(feedTabLoadingTimerRef.current)
+      }
     }
   }, [])
 
@@ -299,8 +331,9 @@ export default function Home() {
 
     setIsPostFormVisible(false)
     setEditingRecipe(null)
-    setIsRecipeDrawerLoading(false)
     setSelectedRecipe(recipe)
+
+    startRecipeViewLoading()
 
     setSearchParams((currentParams) => {
       const nextParams = new URLSearchParams(currentParams)
@@ -312,6 +345,11 @@ export default function Home() {
   }
 
   const handleCloseRecipeDrawer = () => {
+    if (recipeViewLoadingTimerRef.current) {
+      window.clearTimeout(recipeViewLoadingTimerRef.current)
+      recipeViewLoadingTimerRef.current = null
+    }
+
     setSelectedRecipe(null)
     setIsRecipeDrawerLoading(false)
 
@@ -411,6 +449,14 @@ export default function Home() {
   }
 
   const handleTabChange = (tab: string) => {
+    if (tab === activeTab) return
+
+    if (feedTabLoadingTimerRef.current) {
+      window.clearTimeout(feedTabLoadingTimerRef.current)
+    }
+
+    setIsFeedTabChanging(true)
+
     setActiveTab(tab)
     setSearchQuery("")
     setSelectedRecipe(null)
@@ -425,6 +471,11 @@ export default function Home() {
     }, {
       replace: true,
     })
+
+    feedTabLoadingTimerRef.current = window.setTimeout(() => {
+      setIsFeedTabChanging(false)
+      feedTabLoadingTimerRef.current = null
+    }, 300)
   }
 
   const sharedRecipe = recipeToShare
@@ -493,12 +544,7 @@ export default function Home() {
 
       <div className="relative z-10">
         <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
-          <main
-            className={[
-              "min-w-0 flex-1 transition-[max-width,width] duration-300 ease-out",
-              isInlineDrawerOpen ? "max-w-none" : "mx-auto max-w-[1320px]",
-            ].join(" ")}
-          >
+          <main className="mx-auto min-w-0 w-full max-w-[1320px] flex-1">
             <div>
               <FeedTabs
                 activeTab={activeTab}
@@ -515,9 +561,8 @@ export default function Home() {
 
             <div className="mt-8">        
               <Content
-                // recipes={activeRecipes}
                 recipes={visibleSearchedRecipes}
-                isLoading={isLoading}
+                isLoading={isLoading || isFeedTabChanging}
                 isFiltering={isFiltering}
                 title={activeTab}
                 onOpenFilters={() => setIsFilterDrawerOpen(true)}
@@ -538,60 +583,56 @@ export default function Home() {
             </div>
           </main>
 
-          <AnimatePresence mode="wait">
-            {isInlineDrawerOpen && (
+          <AnimatePresence>
+            {isPostFormVisible && (
               <motion.div
-                key={
-                  isRecipeDrawerLoading
-                    ? `loading-${recipeIdFromUrl}`
-                    : editingRecipe
-                      ? `edit-${editingRecipe.recipeId || editingRecipe.id}`
-                      : isPostFormVisible
-                        ? `create-${selectedPostType}`
-                        : `view-${selectedRecipe?.recipeId || selectedRecipe?.id}`
-                }
-                initial={{ opacity: 0, }}
+                className="fixed inset-x-0 bottom-0 top-16 z-[80] flex items-center justify-center bg-black/40 p-6 backdrop-blur-[2px]"
+                initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0, }}
-                transition={{
-                  duration: 0.22,
-                  ease: [0.22, 1, 0.36, 1],
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                onClick={(event) => {
+                  if (event.target === event.currentTarget) {
+                    handleClosePostRecipeDrawer()
+                  }
                 }}
-                className="sticky top-20 self-start"
-                style={{
-                  width: RECIPE_DRAWER_WIDTH,
-                  flexShrink: 0,
+              >
+                <PostRecipeDrawer
+                  key={editingRecipe ? `edit-${editingRecipe.recipeId || editingRecipe.id}` : `create-${selectedPostType}`}
+                  postType={editingRecipe ? "recipe" : selectedPostType}
+                  onClose={handleClosePostRecipeDrawer}
+                  currentUser={currentUser}
+                  onSubmitSuccess={handleRecipeSubmitSuccess}
+                  onReelSubmitSuccess={handleReelSubmitSuccess}
+                  mode={editingRecipe ? "edit" : "create"}
+                  recipeToEdit={editingRecipe}
+                  onUpdateSuccess={handleRecipeUpdateSuccess}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {(selectedRecipe || isRecipeDrawerLoading) && (
+              <motion.div
+                className="fixed inset-x-0 bottom-0 top-16 z-[80] flex items-center justify-center bg-black/40 p-6 backdrop-blur-[2px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{duration: 0.2, ease: "easeOut"}}
+                onClick={(event) => {
+                  if (event.target === event.currentTarget) {
+                    handleCloseRecipeDrawer()
+                  }
                 }}
               >
                 {isRecipeDrawerLoading ? (
-                  <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-panel)]">
-                    <CircularProgress
-                      size={34}
-                      thickness={4.5}
-                      sx={{ color: "var(--accent)" }}
-                    />
-
-                    <p className="mt-4 text-sm font-medium text-[var(--text-secondary)]">
-                      Loading recipe...
-                    </p>
-                  </aside>
-                ) : isPostFormVisible ? (
-                  <PostRecipeDrawer
-                    variant="inline"
-                    width={RECIPE_DRAWER_WIDTH}
-                    postType={editingRecipe ? "recipe" : selectedPostType}
-                    onClose={handleClosePostRecipeDrawer}
-                    currentUser={currentUser}
-                    onSubmitSuccess={handleRecipeSubmitSuccess}
-                    onReelSubmitSuccess={handleReelSubmitSuccess}
-                    mode={editingRecipe ? "edit" : "create"}
-                    recipeToEdit={editingRecipe}
-                    onUpdateSuccess={handleRecipeUpdateSuccess}
+                  <CircularProgress
+                    size={34}
+                    thickness={4.5}
+                    sx={{ color: "var(--accent)" }}
                   />
                 ) : selectedRecipe ? (
                   <ViewRecipeDrawer
-                    presentation="inline"
-                    width={RECIPE_DRAWER_WIDTH}
                     recipe={selectedRecipe}
                     onShareRecipe={handleShareRecipe}
                     currentUser={currentUser}
@@ -625,11 +666,10 @@ export default function Home() {
                 ) : null}
               </motion.div>
             )}
-            
-          </AnimatePresence>
+          </AnimatePresence>        
         </div>
 
-        <ScrollToTopButton rightOffset={floatingActionsRightOffset} />
+        <ScrollToTopButton rightOffset={24} />
 
         <ShareRecipeModal
             isOpen={isShareModalOpen}

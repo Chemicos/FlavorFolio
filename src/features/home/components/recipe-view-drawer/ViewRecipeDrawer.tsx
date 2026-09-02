@@ -63,8 +63,8 @@ interface ViewRecipeDrawerProps {
     onCommentStateChange: (recipeId: string, commentsCount: number) => void
     onEditRecipe: (recipe: Recipe) => void
     onDeleteRecipe: (recipeId: string) => void
-    presentation?: "overlay" | "inline"
-    width?: number
+    // presentation?: "overlay" | "inline"
+    // width?: number
     onBlockUser?: (user: {
         userId: string
         username: string
@@ -115,28 +115,29 @@ export default function ViewRecipeDrawer({
     onCommentStateChange,
     onEditRecipe,
     onDeleteRecipe,
-    presentation = "overlay",
-    width = 540,
+    // presentation = "overlay",
+    // width = 540,
     onBlockUser,
     blockedUserIds = [],
     blockedByUserIds = [],
 }: ViewRecipeDrawerProps) {
     type ViewRecipeTab = "ingredients" | "steps" | "comments"
+    const recipeId = recipe.recipeId || recipe.id || ""
 
-    const isInline = presentation === "inline"
-    const asideClassName = isInline
-        ? [
-            "flex h-[calc(100vh-96px)] w-full flex-col overflow-hidden",
-            "rounded-2xl border border-[var(--border)]",
-            "bg-[var(--bg-secondary)]",
-            "shadow-[var(--shadow-panel)]",
-        ].join(" ")
-      : [
-            "absolute right-0 top-0",
-            "flex h-full w-full max-w-[540px] flex-col overflow-hidden",
-            "bg-[var(--bg-secondary)]",
-            "shadow-[var(--shadow-panel)]",
-        ].join(" ")
+    // const isInline = presentation === "inline"
+    // const asideClassName = isInline
+    //     ? [
+    //         "flex h-[calc(100vh-96px)] w-full flex-col overflow-hidden",
+    //         "rounded-2xl border border-[var(--border)]",
+    //         "bg-[var(--bg-secondary)]",
+    //         "shadow-[var(--shadow-panel)]",
+    //     ].join(" ")
+    //   : [
+    //         "absolute right-0 top-0",
+    //         "flex h-full w-full max-w-[540px] flex-col overflow-hidden",
+    //         "bg-[var(--bg-secondary)]",
+    //         "shadow-[var(--shadow-panel)]",
+    //     ].join(" ")
 
     const [isDeleteRecipeDialogOpen, setIsDeleteRecipeDialogOpen] = useState(false)
     const [isDeletingRecipe, setIsDeletingRecipe] = useState(false)
@@ -170,6 +171,13 @@ export default function ViewRecipeDrawer({
 
     const recipeDate = formatRecipeDate(recipe.publishedAt || recipe.createdAt)
     const recipeDateLabel = recipe.status === "published" ? "Published" : "Submitted"
+
+    const RECIPE_LAYOUT_TRANSITION = {
+        type: "spring" as const,
+        stiffness: 280,
+        damping: 30,
+        mass: 0.8,
+    }
 
     const {
         isOwner,
@@ -576,13 +584,21 @@ export default function ViewRecipeDrawer({
     }
 
     const drawer = (
-        <aside        
-            style={isInline ? { width, flexShrink: 0 } : undefined}
-            className={asideClassName}
+        <motion.article
+            style={{borderRadius: 20,}}
+            transition={{layout: RECIPE_LAYOUT_TRANSITION,}}
+            className={[
+                "relative z-10",
+                "flex h-[min(900px,calc(100dvh-96px))]",
+                "w-[min(900px,calc(100vw-64px))]",
+                "flex-col overflow-hidden",
+                "border border-[var(--border)]",
+                "bg-[var(--bg-secondary)]",
+            ].join(" ")}
         >
             <div className="flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
                 <div className="relative">
-                    <div className="relative h-[340px] w-full overflow-hidden">
+                    <div className="relative h-[clamp(280px,38dvh,400px)] w-full shrink-0 overflow-hidden">
                         {!imageLoaded && (
                             <div className="absolute inset-0 animate-pulse bg-[var(--surface-muted)]" />
                         )}
@@ -605,7 +621,7 @@ export default function ViewRecipeDrawer({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
+                        className="absolute left-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
                     >
                         <CloseRoundedIcon sx={{ fontSize: 20 }} />
                     </button>
@@ -614,7 +630,7 @@ export default function ViewRecipeDrawer({
                         <button
                             type="button"
                             onClick={() => setIsRecipeMenuOpen((prev) => !prev)}
-                            className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
+                            className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
                             aria-label="Recipe options"
                             aria-haspopup="menu"
                             aria-expanded={isRecipeMenuOpen}
@@ -758,7 +774,7 @@ export default function ViewRecipeDrawer({
                         </div>
                     )}
 
-                    <div className="mt-8">
+                    <div className="mt-6">
                         <p className="text-sm font-medium text-[var(--text-secondary)]">Recipe by</p>
 
                         <div className="mt-3 flex items-center gap-8">
@@ -823,27 +839,27 @@ export default function ViewRecipeDrawer({
                         </div>
                     </div>
 
-                    <div className="mt-10 grid grid-cols-3 gap-3">
-                        <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-5 text-center">
+                    <div className="mt-8 grid grid-cols-3 gap-3">
+                        <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-4 text-center">
                             <div className="flex justify-center text-[var(--text-primary)]">
                                 <AccessTimeOutlinedIcon sx={{ fontSize: 22 }} />
                             </div>
 
-                            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">duration</p>
+                            <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">duration</p>
                         </div>
 
-                        <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-5 text-center">
+                        <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-4 text-center">
                             <div className="flex justify-center text-[var(--text-primary)]">
                                 <SignalCellularAltRoundedIcon sx={{ fontSize: 22 }} />
                             </div>
-                            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">difficulty</p>
+                            <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">difficulty</p>
                         </div>
 
-                        <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-5 text-center">
+                        <div className="rounded-xl bg-[var(--card-bg)] border border-[var(--border)] px-4 py-4 text-center">
                             <div className="flex justify-center text-[var(--text-primary)]">
                                 <RestaurantRoundedIcon sx={{ fontSize: 22 }} />
                             </div>
-                            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">portions</p>
+                            <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">portions</p>
                         </div>
 
                         <div className="flex justify-center">
@@ -865,7 +881,7 @@ export default function ViewRecipeDrawer({
                         </div>
                     </div>
 
-                    <div className="mt-10">
+                    <div className="mt-8">
                         <h2 className="text-[1.2rem] font-bold text-[var(--text-primary)]">Description</h2>
                         <div className="relative mt-3">
                             <motion.div
@@ -900,7 +916,7 @@ export default function ViewRecipeDrawer({
                         </div>
                     </div>
 
-                    <div className="sticky top-0 z-20 mt-10 bg-[var(--bg-secondary)] py-3 backdrop-blur-xl">
+                    <div className="sticky top-0 z-20 mt-8 bg-[var(--bg-secondary)] py-3 backdrop-blur-xl">
                         <div 
                             className="grid grid-cols-3 gap-2 rounded-xl bg-[var(--surface-muted)] p-1"
                             style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
@@ -1008,48 +1024,31 @@ export default function ViewRecipeDrawer({
                     </div>
                 </div>
             </div>
-        </aside>
+        </motion.article>
     )
 
-    if (isInline) {
-        return (
-            <>
-                {drawer}
-
-                <DeleteWarningDialog
-                    isOpen={Boolean(commentToDelete)} 
-                    isDeleting={isDeletingComment}
-                    title="Delete comment?"
-                    description="This action cannot be undone. The comment will be permanently removed."
-                    onCancel={() => setCommentToDelete(null)}
-                    onConfirm={handleConfirmDeleteComment}
-                />
-
-                <DeleteWarningDialog
-                    isOpen={isDeleteRecipeDialogOpen}
-                    isDeleting={isDeletingRecipe}
-                    title="Delete recipe?"
-                    description={`Are you sure you want to delete "${recipe.title}"? This action cannot be undone. The recipe, its ingredients, steps, comments and ratings will no longer be available.`}
-                    confirmLabel="Delete"
-                    onCancel={() => setIsDeleteRecipeDialogOpen(false)}
-                    onConfirm={handleConfirmDeleteRecipe}
-                />
-            </>
-        )
-    }
-
     return (
-        <div className="fixed inset-0 z-[80]">
-            <motion.div
-                className="absolute inset-0 bg-[#050506]/40 backdrop-blur-[2px]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                onClick={onClose}
+        <>
+            {drawer}
+
+            <DeleteWarningDialog
+                isOpen={Boolean(commentToDelete)} 
+                isDeleting={isDeletingComment}
+                title="Delete comment?"
+                description="This action cannot be undone. The comment will be permanently removed."
+                onCancel={() => setCommentToDelete(null)}
+                onConfirm={handleConfirmDeleteComment}
             />
 
-            {drawer}
-        </div>
+            <DeleteWarningDialog
+                isOpen={isDeleteRecipeDialogOpen}
+                isDeleting={isDeletingRecipe}
+                title="Delete recipe?"
+                description={`Are you sure you want to delete "${recipe.title}"? This action cannot be undone. The recipe, its ingredients, steps, comments and ratings will no longer be available.`}
+                confirmLabel="Delete"
+                onCancel={() => setIsDeleteRecipeDialogOpen(false)}
+                onConfirm={handleConfirmDeleteRecipe}
+            />
+        </>
     )
 }
