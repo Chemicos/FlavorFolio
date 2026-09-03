@@ -65,10 +65,9 @@ export async function toggleSavedRecipe(input: ToggleSavedRecipeInput) {
 
     if (savedRecipeSnap.exists()) {
       transaction.delete(savedRecipeRef)
-
-      if (saveNotificationRef) {
-        transaction.delete(saveNotificationRef)
-      }
+      // if (saveNotificationRef) {
+      //   transaction.delete(saveNotificationRef)
+      // }
 
       transaction.set(
         recipeRef,

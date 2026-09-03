@@ -73,7 +73,7 @@ export default function PostRecipeDrawer({
                 "flex flex-col overflow-hidden bg-[var(--bg-secondary)] shadow-[var(--shadow-panel)]",
                 isSideVariant
                     ? "fixed right-0 z-[90] border-l border-[var(--border)]"
-                    : "relative z-10 h-full max-h-[900px] w-full max-w-[820px] rounded-[2rem] border border-[var(--border)]",
+                    : "relative z-10 h-[min(1040px,calc(100dvh-40px))] w-[min(820px,calc(100vw-40px))] rounded-[20px] border border-[var(--border)]",
             ].join(" ")}
         >
 

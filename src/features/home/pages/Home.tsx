@@ -14,7 +14,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service"
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
 import { useSnackbar } from "../../../components/layout/SnackbarProvider"
-import { CircularProgress, useMediaQuery } from "@mui/material"
+import { CircularProgress } from "@mui/material"
 import { fetchRecipeById } from "../services/recipes.service"
 import DeleteWarningDialog from "../components/recipe-view-drawer/DeleteWarningDialog"
 import { useUserCapabilities } from "../../../components/permissions/UserCapabilitiesContext"
@@ -537,12 +537,7 @@ export default function Home() {
   
   return (
     <div  className="relative min-h-screen w-full overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors">
-      <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-[-180px] top-[-220px] h-[560px] w-[560px] rounded-full bg-[var(--accent-soft)] opacity-70 blur-[130px]"
-        />
-
-      <div className="relative z-10">
+      <div className="relative">
         <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
           <main className="mx-auto min-w-0 w-full max-w-[1320px] flex-1">
             <div>
@@ -586,7 +581,7 @@ export default function Home() {
           <AnimatePresence>
             {isPostFormVisible && (
               <motion.div
-                className="fixed inset-x-0 bottom-0 top-16 z-[80] flex items-center justify-center bg-black/40 p-6 backdrop-blur-[2px]"
+                className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -615,7 +610,7 @@ export default function Home() {
           <AnimatePresence>
             {(selectedRecipe || isRecipeDrawerLoading) && (
               <motion.div
-                className="fixed inset-x-0 bottom-0 top-16 z-[80] flex items-center justify-center bg-black/40 p-6 backdrop-blur-[2px]"
+                className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{duration: 0.2, ease: "easeOut"}}

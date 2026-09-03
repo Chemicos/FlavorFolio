@@ -67,7 +67,7 @@ export default function ProfileRecipeToolbar({
     ]
 
   return (
-    <section className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <section className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-start">
         <RecipeReviewSearch 
           value={searchQuery}

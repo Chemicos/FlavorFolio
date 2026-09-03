@@ -90,7 +90,7 @@ export default function MyProfileHeader({
   const restrictionBadgeLabel = activeRestrictions.length > 1 ? "Account limitations" : activeRestrictions[0]?.label
 
   return (
-    <section className="relative z-50 rounded-xl border border-[var(--border)] bg-[var(--profile-header-bg)] shadow-[var(--shadow-card)] transition-colors">
+    <section className="relative rounded-xl border border-[var(--border)] bg-[var(--profile-header-bg)] shadow-[var(--shadow-card)] transition-colors">
       <div className="relative h-[300px]">
         {bannerImage ? (
           <img

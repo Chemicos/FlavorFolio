@@ -1,4 +1,4 @@
-import { CircularProgress, useMediaQuery } from "@mui/material";
+import { CircularProgress } from "@mui/material";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMyProfile } from "../hooks/useMyProfile";
@@ -26,24 +26,10 @@ import ProfileConnectionsModal from "../components/ProfileConnectionsModal";
 import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service";
 import { SharedRecipeMessage } from "../../messages/types/messages.types";
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal";
-import StickyProfileDrawer from "../components/StickyProfileDrawer";
+// import StickyProfileDrawer from "../components/StickyProfileDrawer";
 import { useUserCapabilities } from "../../../components/permissions/UserCapabilitiesContext";
 
-function ViewRecipeDrawerLoading() {
-  return (
-    <aside className="flex h-[calc(100vh-96px)] w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-panel)]">
-      <CircularProgress
-        size={34}
-        thickness={4.5}
-        sx={{ color: "var(--accent)" }}
-      />
-
-      <p className="mt-4 text-sm font-medium text-[var(--text-secondary)]">
-        Loading recipe...
-      </p>
-    </aside>
-  )
-}
+type ProfileContentType = "recipes" | "reels"
 
 export default function MyProfilePage() {
   const navigate = useNavigate()
@@ -71,18 +57,13 @@ export default function MyProfilePage() {
     setSavedRecipes,
   } = useMyProfileRecipes(userId)
 
-  const RECIPE_DRAWER_WIDTH = 540
-
-  const recipeDrawerWidth = RECIPE_DRAWER_WIDTH
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
   
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
   const [isRecipeEditLoading, setIsRecipeEditLoading] = useState(false)
-  const isDrawerOpen = Boolean(
-    selectedRecipe || editingRecipe || isRecipeDrawerLoading || isRecipeEditLoading
-  )
+  const isRecipeOverlayOpen = Boolean(selectedRecipe || editingRecipe || isRecipeDrawerLoading || isRecipeEditLoading)
   
   const { showSnackbar } = useSnackbar()
   const {restrictions} = useUserCapabilities()
@@ -94,6 +75,7 @@ export default function MyProfilePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const recipeIdFromUrl = searchParams.get("recipeId")
   
+  const [contentType, setContentType] = useState<ProfileContentType>("recipes")
   const [sortBy, setSortBy] = useState<ProfileRecipeSortValue>("latest")
   const [category, setCategory] = useState("all")
   const [viewMode, setViewMode] = useState<ProfileRecipeViewMode>("grid")
@@ -151,12 +133,12 @@ export default function MyProfilePage() {
     () => [
       {
         value: "my-recipes",
-        label: "My recipes",
+        label: "Published",
         count: recipes.filter((recipe) => recipe.status === "published").length,
       },
       {
         value: "saved-recipes",
-        label: "Saved recipes",
+        label: "Saved",
         count: savedRecipes.length,
       },
       {
@@ -272,6 +254,12 @@ export default function MyProfilePage() {
   const handleOpenRecipeDrawer = (recipe: ProfileRecipeGridItem) => {
     setEditingRecipe(null)
     setSelectedRecipeId(recipe.id)
+
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams)
+      nextParams.set("recipeId", recipe.id)
+      return nextParams
+    }, {replace: true})
   }
 
   const handleOpenProfileEditor = async () => {
@@ -311,6 +299,14 @@ export default function MyProfilePage() {
   const handleEditRecipe = async (recipe: Recipe) => {
     setIsRecipeEditLoading(true)
     setEditingRecipe(null)
+    setSelectedRecipeId(null)
+    setSelectedRecipe(null)
+
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams)
+      nextParams.delete("recipeId")
+      return nextParams
+    }, {replace: true})
 
     await new Promise((resolve) => setTimeout(resolve, 220))
 
@@ -549,25 +545,35 @@ export default function MyProfilePage() {
     setSelectedRecipeId(recipeIdFromUrl)
   }, [recipeIdFromUrl])
 
+  useEffect(() => {
+    if (!isRecipeOverlayOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isRecipeOverlayOpen])
+
   const handleCloseRecipeDrawer = () => {
     setSelectedRecipeId(null)
     setSelectedRecipe(null)
+    setIsRecipeDrawerLoading(false)
 
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.delete("recipeId")
-    setSearchParams(nextParams, { replace: true })
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams)
+      nextParams.delete("recipeId")
+      return nextParams
+    }, { replace: true })
   }
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
-      <div className="relative z-10">
+      <div className="relative">
         <div className="mx-auto flex w-full max-w-[1900px] items-start gap-6 px-6 pt-20 xl:px-10">
           <main 
-            className={[
-              "min-w-0 flex-1 transition-all duration-300",
-              isDrawerOpen ? "max-w-none" : "mx-auto max-w-[1400px]",
-            ].join(" ")}
-          >
+            className="mx-auto min-w-0 w-full max-w-[1400px] flex-1">
             {isProfileEditLoading ? (
               <MyProfileEditFormLoading />
             ): isEditingProfile ? (
@@ -617,6 +623,36 @@ export default function MyProfilePage() {
                 tabs={recipeTabs}
               />
 
+              <div className="mt-4 flex">
+                <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-1">
+                  <button
+                    type="button"
+                    onClick={() => setContentType("recipes")}
+                    className={[
+                      "min-w-[92px] rounded-lg px-4 py-2 text-sm transition",
+                      contentType === "recipes"
+                        ? "bg-[var(--accent)] text-[var(--text-on-accent)] shadow-[var(--shadow-card)]"
+                        : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
+                    ].join(" ")}
+                  >
+                    Recipes
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setContentType("reels")}
+                    className={[
+                      "min-w-[92px] rounded-lg px-4 py-2 text-sm font-semibold transition",
+                      contentType === "reels"
+                        ? "bg-[var(--accent)] text-[var(--text-on-accent)] shadow-[var(--shadow-card)]"
+                        : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
+                    ].join(" ")}
+                  >
+                    Reels
+                  </button>
+                </div>
+              </div>
+
               <ProfileRecipeToolbar
                 searchQuery={searchQuery}
                 onSearchQueryChange={setSearchQuery}
@@ -665,93 +701,117 @@ export default function MyProfilePage() {
             onClose={() => setConnectionsModalType(null)}
           />
 
-          <AnimatePresence mode="wait">
-            {(isRecipeDrawerLoading || isRecipeEditLoading) && (
-              <StickyProfileDrawer 
-                key="recipe-drawer-loading"
-                width={recipeDrawerWidth}
-              >
-                <ViewRecipeDrawerLoading />
-              </StickyProfileDrawer>
-            )}
-
-            {!isRecipeDrawerLoading && !isRecipeEditLoading && editingRecipe && currentUser &&  (
-              <StickyProfileDrawer 
-                key={`edit-${editingRecipe.recipeId}`}
-                width={recipeDrawerWidth}
-              >
-                <PostRecipeDrawer
-                  currentUser={currentUser}
-                  mode="edit"
-                  variant="inline"
-                  width={recipeDrawerWidth}
-                  recipeToEdit={editingRecipe}
-                  onClose={() => setEditingRecipe(null)}
-                  onSubmitSuccess={() => setEditingRecipe(null)}
-                  onUpdateSuccess={() => {
-                    showSnackbar(
-                      "Recipe changes saved as draft.", "success",
-                      {
-                        label: "View Revision & Drafts",
-                        onClick: () => navigate("/needs-revision"),
-                      }
-                    )
-                    setEditingRecipe(null)
-                  }}
-                />
-              </StickyProfileDrawer>
-            )}   
-
-            {!isRecipeDrawerLoading && !isRecipeEditLoading && !editingRecipe && selectedRecipe && currentUser && (
-              <StickyProfileDrawer
-                key={`view-${selectedRecipe.recipeId || selectedRecipe.id}`}
-                width={recipeDrawerWidth}
-              >
-                <ViewRecipeDrawer
-                  presentation="inline"
-                  width={recipeDrawerWidth}
-                  recipe={selectedRecipe}
-                  currentUser={currentUser}
-                  savedRecipes={savedRecipes.map((recipe) => ({
-                    recipeId: recipe.id,
-                  }))}
-                  followingUserIds={followingUserIds}
-                  authorFollowersCount={
-                    Number(selectedRecipe.author?.followersCount || 0)
+          <AnimatePresence>
+            {(selectedRecipe || isRecipeDrawerLoading) && !editingRecipe && !isRecipeEditLoading && (
+              <motion.div
+                className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
+                initial={{opacity: 0}}
+                animate={{opacity: 1}}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                onClick={(event) => {
+                  if (event.target === event.currentTarget) {
+                    handleCloseRecipeDrawer()
                   }
-                  onShareRecipe={handleShareRecipeFromDrawer}
-                  onAuthorClick={handleAuthorProfileClick}
-                  onClose={handleCloseRecipeDrawer}
-                  onFollowStateChange={handleFollowStateChange}
-                  onFavoriteStateChange={(recipeId, isNowSaved) => {
-                    if (!selectedRecipe) return
-  
-                    if (isNowSaved) {
-                      showSnackbar("Recipe saved.", "success")
-                      return
+                }}
+              >
+                {isRecipeDrawerLoading ? (
+                  <CircularProgress 
+                    size={34}
+                    thickness={4.5}
+                    sx={{color: "var(--accent)"}}
+                  />
+                ): selectedRecipe && currentUser ? (
+                  <ViewRecipeDrawer
+                    recipe={selectedRecipe}
+                    currentUser={currentUser}
+                    savedRecipes={savedRecipes.map((recipe) => ({
+                      recipeId: recipe.id,
+                    }))}
+                    followingUserIds={followingUserIds}
+                    authorFollowersCount={
+                      Number(selectedRecipe.author?.followersCount || 0)
                     }
-  
-                    showSnackbar("Recipe removed from saved recipes.", "info")
-  
-                    if (activeRecipeTab === "saved-recipes") {
+                    onShareRecipe={handleShareRecipeFromDrawer}
+                    onAuthorClick={handleAuthorProfileClick}
+                    onClose={handleCloseRecipeDrawer}
+                    onFollowStateChange={handleFollowStateChange}
+                    onFavoriteStateChange={(recipeId, isNowSaved) => {
+                      if (!selectedRecipe) return
+
+                      if (isNowSaved) {
+                        showSnackbar("Recipe saved.", "success")
+                        return
+                      }
+
+                      showSnackbar("Recipe removed from saved recipes.", "info")
+
+                      if (activeRecipeTab === "saved-recipes") {
+                        setSelectedRecipeId(null)
+                        setSelectedRecipe(null)
+                      }
+                    }}
+                    onRatingStateChange={handleRatingStateChange}
+                    onCommentStateChange={handleCommentStateChange}
+                    onEditRecipe={handleViewDrawerRecipeEdit}
+                    onDeleteRecipe={(recipeId) => {
+                      deleteRecipe(recipeId)
                       setSelectedRecipeId(null)
                       setSelectedRecipe(null)
-                    }
-                  }}
-                  onRatingStateChange={handleRatingStateChange}
-                  onCommentStateChange={handleCommentStateChange}
-                  onEditRecipe={handleViewDrawerRecipeEdit}
-                  onDeleteRecipe={(recipeId) => {
-                    deleteRecipe(recipeId)
-                    setSelectedRecipe(null)
+                      setEditingRecipe(null)
+                    }}
+                    onBlockUser={handleBlockCommentAuthor}
+                    blockedUserIds={blockedUserIds}
+                    blockedByUserIds={blockedByUserIds}
+                  />
+                ): null}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {(editingRecipe || isRecipeEditLoading) && (
+              <motion.div
+                className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                onClick={(event) => {
+                  if (event.target === event.currentTarget && !isRecipeEditLoading) {
                     setEditingRecipe(null)
-                  }}
-                  onBlockUser={handleBlockCommentAuthor}
-                  blockedUserIds={blockedUserIds}
-                  blockedByUserIds={blockedByUserIds}
-                />
-              </StickyProfileDrawer>
-            )} 
+                  }
+                }}
+              >
+                {isRecipeEditLoading ? (
+                  <CircularProgress
+                    size={34}
+                    thickness={4.5}
+                    sx={{ color: "var(--accent)" }}
+                  />
+                ) : editingRecipe && currentUser ? (
+                  <PostRecipeDrawer
+                    currentUser={currentUser}
+                    mode="edit"
+                    recipeToEdit={editingRecipe}
+                    onClose={() => setEditingRecipe(null)}
+                    onSubmitSuccess={() => setEditingRecipe(null)}
+                    onUpdateSuccess={() => {
+                      showSnackbar(
+                        "Recipe changes saved as draft.",
+                        "success",
+                        {
+                          label: "View Revision & Drafts",
+                          onClick: () => navigate("/needs-revision"),
+                        }
+                      )
+
+                      setEditingRecipe(null)
+                    }}
+                  />
+                ) : null}
+              </motion.div>
+            )}
           </AnimatePresence>
 
           <DeleteWarningDialog

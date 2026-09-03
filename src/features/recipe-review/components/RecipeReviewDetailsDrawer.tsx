@@ -221,7 +221,7 @@ export default function RecipeReviewDetailsDrawer({
             onClick={onClose}
             className={[
               "absolute left-5 top-5 z-20",
-              "flex h-11 w-11 items-center justify-center rounded-lg border",
+              "flex h-10 w-10 items-center justify-center rounded-lg border",
               "border-[var(--drawer-control-border)]",
               "bg-[var(--drawer-control-bg)]",
               "text-[var(--text-secondary)]",

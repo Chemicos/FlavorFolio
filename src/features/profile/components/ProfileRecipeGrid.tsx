@@ -39,6 +39,7 @@ interface ProfileRecipeGridProps {
   recipes: ProfileRecipeGridItem[]
   viewMode: ProfileRecipeViewMode
   currentUserId?: string | null
+  showStatus?: boolean
   onRecipeClick?: (recipe: ProfileRecipeGridItem) => void
   onRecipeEdit?: (recipe: ProfileRecipeGridItem) => void
   onRecipeDelete?: (recipe: ProfileRecipeGridItem) => void
@@ -254,6 +255,7 @@ function ProfileRecipeActionsMenu({
 function ProfileRecipeGridCard({
   recipe,
   currentUserId,
+  showStatus,
   onRecipeClick,
   onRecipeEdit,
   onRecipeDelete,
@@ -261,6 +263,7 @@ function ProfileRecipeGridCard({
 }: {
   recipe: ProfileRecipeGridItem
   currentUserId?: string | null
+  showStatus: boolean
   onRecipeClick?: (recipe: ProfileRecipeGridItem) => void
   onRecipeEdit?: (recipe: ProfileRecipeGridItem) => void
   onRecipeDelete?: (recipe: ProfileRecipeGridItem) => void
@@ -284,14 +287,16 @@ function ProfileRecipeGridCard({
         <div className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/80 via-black/55 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
-        <span
-            className={[
-              "absolute left-4 top-4 z-10 rounded-md px-3 py-1 text-xs font-semibold shadow-[var(--shadow-card)]",
-              status.gridClassName,
-            ].join(" ")}
-        >
-            {status.label}
-        </span>
+        {showStatus && (
+          <span
+              className={[
+                "absolute left-4 top-4 z-10 rounded-md px-3 py-1 text-xs font-semibold shadow-[var(--shadow-card)]",
+                status.gridClassName,
+              ].join(" ")}
+          >
+              {status.label}
+          </span>
+        )}
 
         <div className="absolute inset-x-0 bottom-0 z-10">
             <div className="px-4 pb-4 pt-3">
@@ -346,6 +351,7 @@ function ProfileRecipeGridCard({
 function ProfileRecipeListCard({
   recipe,
   currentUserId,
+  showStatus,
   onRecipeClick,
   onRecipeMenuClick,
   onRecipeEdit,
@@ -354,6 +360,7 @@ function ProfileRecipeListCard({
 }: {
   recipe: ProfileRecipeGridItem
   currentUserId?: string | null
+  showStatus: boolean
   onRecipeClick?: (recipe: ProfileRecipeGridItem) => void
   onRecipeMenuClick?: (recipe: ProfileRecipeGridItem) => void
   onRecipeEdit?: (recipe: ProfileRecipeGridItem) => void
@@ -376,35 +383,40 @@ function ProfileRecipeListCard({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
-        <div>
-          <div className="flex items-center justify-between gap-3">
-            <span
-              className={[
-                "rounded-md px-2.5 py-1 text-[0.7rem] font-semibold",
-                status.listClassName,
-              ].join(" ")}
-            >
-              {status.label}
-            </span>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            {showStatus && (
+              <span
+                className={[
+                  "inline-flex rounded-md px-2.5 py-1 text-[0.7rem] font-semibold",
+                  status.listClassName,
+                ].join(" ")}
+              >
+                {status.label}
+              </span>
+            )}
 
-            <ProfileRecipeActionsMenu
-              recipe={recipe}
-              currentUserId={currentUserId}
-              onEdit={onRecipeEdit}
-              onDelete={onRecipeDelete}
-              onShare={onRecipeShare}
-              buttonClassName="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
-            />
+            <h3 className={showStatus
+              ? "mt-3 line-clamp-1 text-base font-semibold text-[var(--text-primary)]"
+              : "line-clamp-1 text-base font-semibold text-[var(--text-primary)]"
+            }>
+              {recipe.title}
+            </h3>
+
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
+              {recipe.meal} · {recipe.difficulty} ·{" "}
+              {formatDuration(recipe.durationMinutes)}
+            </p>
           </div>
 
-          <h3 className="mt-3 line-clamp-1 text-base font-semibold text-[var(--text-primary)]">
-            {recipe.title}
-          </h3>
-
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {recipe.meal} · {recipe.difficulty} ·{" "}
-            {formatDuration(recipe.durationMinutes)}
-          </p>
+          <ProfileRecipeActionsMenu
+            recipe={recipe}
+            currentUserId={currentUserId}
+            onEdit={onRecipeEdit}
+            onDelete={onRecipeDelete}
+            onShare={onRecipeShare}
+            buttonClassName="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+          />
         </div>
 
         <div className="flex items-center gap-5 text-sm">
@@ -432,6 +444,7 @@ export default function ProfileRecipeGrid({
     recipes,
     currentUserId,
     viewMode,
+    showStatus = true,
     onRecipeClick,
     onRecipeEdit,
     onRecipeDelete,
@@ -449,6 +462,7 @@ export default function ProfileRecipeGrid({
                 key={recipe.id}
                 currentUserId={currentUserId}
                 recipe={recipe}
+                showStatus={showStatus}
                 onRecipeClick={onRecipeClick}
                 onRecipeEdit={onRecipeEdit}
                 onRecipeDelete={onRecipeDelete}
@@ -465,6 +479,7 @@ export default function ProfileRecipeGrid({
           key={recipe.id}
           currentUserId={currentUserId}
           recipe={recipe}
+          showStatus={showStatus}
           onRecipeClick={onRecipeClick}
           onRecipeEdit={onRecipeEdit}
           onRecipeDelete={onRecipeDelete}

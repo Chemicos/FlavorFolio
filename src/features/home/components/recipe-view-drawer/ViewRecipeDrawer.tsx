@@ -63,8 +63,6 @@ interface ViewRecipeDrawerProps {
     onCommentStateChange: (recipeId: string, commentsCount: number) => void
     onEditRecipe: (recipe: Recipe) => void
     onDeleteRecipe: (recipeId: string) => void
-    // presentation?: "overlay" | "inline"
-    // width?: number
     onBlockUser?: (user: {
         userId: string
         username: string
@@ -115,29 +113,12 @@ export default function ViewRecipeDrawer({
     onCommentStateChange,
     onEditRecipe,
     onDeleteRecipe,
-    // presentation = "overlay",
-    // width = 540,
     onBlockUser,
     blockedUserIds = [],
     blockedByUserIds = [],
 }: ViewRecipeDrawerProps) {
     type ViewRecipeTab = "ingredients" | "steps" | "comments"
     const recipeId = recipe.recipeId || recipe.id || ""
-
-    // const isInline = presentation === "inline"
-    // const asideClassName = isInline
-    //     ? [
-    //         "flex h-[calc(100vh-96px)] w-full flex-col overflow-hidden",
-    //         "rounded-2xl border border-[var(--border)]",
-    //         "bg-[var(--bg-secondary)]",
-    //         "shadow-[var(--shadow-panel)]",
-    //     ].join(" ")
-    //   : [
-    //         "absolute right-0 top-0",
-    //         "flex h-full w-full max-w-[540px] flex-col overflow-hidden",
-    //         "bg-[var(--bg-secondary)]",
-    //         "shadow-[var(--shadow-panel)]",
-    //     ].join(" ")
 
     const [isDeleteRecipeDialogOpen, setIsDeleteRecipeDialogOpen] = useState(false)
     const [isDeletingRecipe, setIsDeletingRecipe] = useState(false)
@@ -588,9 +569,9 @@ export default function ViewRecipeDrawer({
             style={{borderRadius: 20,}}
             transition={{layout: RECIPE_LAYOUT_TRANSITION,}}
             className={[
-                "relative z-10",
-                "flex h-[min(900px,calc(100dvh-96px))]",
-                "w-[min(900px,calc(100vw-64px))]",
+                "relative z-50",
+                "flex h-[min(1040px,calc(100dvh-40px))]",
+                "w-[min(820px,calc(100vw-40px))]",
                 "flex-col overflow-hidden",
                 "border border-[var(--border)]",
                 "bg-[var(--bg-secondary)]",
@@ -598,7 +579,7 @@ export default function ViewRecipeDrawer({
         >
             <div className="flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
                 <div className="relative">
-                    <div className="relative h-[clamp(280px,38dvh,400px)] w-full shrink-0 overflow-hidden">
+                    <div className="relative h-[clamp(260px,34dvh,360px)] w-full shrink-0 overflow-hidden">
                         {!imageLoaded && (
                             <div className="absolute inset-0 animate-pulse bg-[var(--surface-muted)]" />
                         )}
