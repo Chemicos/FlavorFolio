@@ -19,6 +19,7 @@ export interface ReelTimestamp {
 }
 
 export type ReelVisibility = "public" | "private"
+export type ReelStatus = "published" | "pending" | "needs_revision" | "draft"
 export type ReelMealType = "breakfast" | "lunch" | "dinner" | "dessert" | "snack"
 
 export interface Reel {
@@ -26,6 +27,7 @@ export interface Reel {
     userId: string
     author: ReelAuthor
     title: string
+    status: ReelStatus
     description: string
     meal: ReelMealType
     videoUrl: string
@@ -34,8 +36,20 @@ export interface Reel {
     duration?: number
     visibility: ReelVisibility
     stats: ReelStats
+    submittedAt?: any
+    publishedAt?: any
+    revisionReason?: string
     createdAt?: Timestamp
     updatedAt?: Timestamp
+}
+
+export interface updateReelDraftInput {
+  reelId: string
+  userId: string
+  title: string
+  description: string
+  meal: ReelMealType
+  visibility: Reel["visibility"]
 }
 
 export interface CreateReelInput {

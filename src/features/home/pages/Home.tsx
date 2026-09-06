@@ -293,7 +293,7 @@ export default function Home() {
   }
 
   const handleReelSubmitSuccess = () => {
-    showSnackbar("Reel published successfully. It is now available in the Reels feed.", "success")
+    showSnackbar("Reel submitted successfully. You'll be notified once it has been reviewed by an administrator.", "success")
     setIsPostFormVisible(false)
     setSelectedPostType("recipe")
   }

@@ -589,7 +589,7 @@ export default function PostReelForm({
                     sx={{ color: "var(--accent-text)" }}
                   />
 
-                  Publishing...
+                  Submitting...
                 </>
               ) : completionPercentage < 100 ? (
                 `${completionPercentage}%`
@@ -599,7 +599,7 @@ export default function PostReelForm({
                     sx={{ fontSize: 19 }}
                   />
 
-                  Publish reel
+                  Submit for review
                 </>
               )}
             </span>

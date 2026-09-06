@@ -1,4 +1,6 @@
 import { CircularProgress } from "@mui/material";
+import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded"
+import SmartDisplayRoundedIcon from "@mui/icons-material/SmartDisplayRounded"
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMyProfile } from "../hooks/useMyProfile";
@@ -28,6 +30,9 @@ import { SharedRecipeMessage } from "../../messages/types/messages.types";
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal";
 // import StickyProfileDrawer from "../components/StickyProfileDrawer";
 import { useUserCapabilities } from "../../../components/permissions/UserCapabilitiesContext";
+import { useMyProfileReels } from "../hooks/useMyProfileReels";
+import ProfileReelGridSkeleton from "../components/ProfileReelGridSkeleton";
+import ProfileReelGrid from "../components/ProfileReelGrid";
 
 type ProfileContentType = "recipes" | "reels"
 
@@ -56,6 +61,12 @@ export default function MyProfilePage() {
     setRecipes,
     setSavedRecipes,
   } = useMyProfileRecipes(userId)
+
+  const {
+    reels,
+    isLoading: isReelsLoading,
+    error: reelsError,
+  } = useMyProfileReels(userId)
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
@@ -129,8 +140,38 @@ export default function MyProfilePage() {
   const [blockedByUserIds, setBlockedByUserIds] = useState<string[]>([])
   const [isBlockLoading, setIsBlockLoading] = useState(false)
   
-  const recipeTabs = useMemo<ProfileRecipeTabItem[]>(
-    () => [
+  const profileTabs = useMemo<ProfileRecipeTabItem[]>(() => {
+    if (contentType === "reels") {
+      return [
+        {
+          value: "my-recipes",
+          label: "Published",
+          count: reels.filter((reel) => reel.status === "published").length,
+        },
+        {
+          value: "saved-recipes",
+          label: "Saved",
+          count: 0,
+        },
+        {
+          value: "pending-recipes",
+          label: "Pending",
+          count: reels.filter((reel) => reel.status === "pending").length,
+        },
+        {
+          value: "needs-revision",
+          label: "Needs revision",
+          count: reels.filter((reel) => reel.status === "needs_revision").length,
+        },
+        {
+          value: "drafts",
+          label: "Drafts",
+          count: reels.filter((reel) => reel.status === "draft").length,
+        },
+      ]
+    }
+
+    return [
       {
         value: "my-recipes",
         label: "Published",
@@ -156,8 +197,8 @@ export default function MyProfilePage() {
         label: "Drafts",
         count: recipes.filter((recipe) => recipe.status === "draft").length,
       },
-    ],[recipes, savedRecipes]
-  )
+    ]
+  }, [contentType, recipes, savedRecipes, reels])
 
   const categories = useMemo(
     () => ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],[]
@@ -537,6 +578,82 @@ export default function MyProfilePage() {
     })
   }, [recipes, savedRecipes, activeRecipeTab, debouncedSearchQuery, category, sortBy, blockedUserIds])
 
+  const visibleReels = useMemo(() => {
+    const query = debouncedSearchQuery.trim().toLowerCase()
+
+    const filteredByTab = reels.filter((reel) => {
+      if (activeRecipeTab === "my-recipes") {
+        return reel.status === "published"
+      }
+
+      if (activeRecipeTab === "pending-recipes") {
+        return reel.status === "pending"
+      }
+
+      if (activeRecipeTab === "needs-revision") {
+        return reel.status === "needs_revision"
+      }
+
+      if (activeRecipeTab === "drafts") {
+        return reel.status === "draft"
+      }
+
+      if (activeRecipeTab === "saved-recipes") {
+        return false
+      }
+
+      return true
+    })
+
+    const filteredBySearch = filteredByTab.filter((reel) => {
+      if (!query) return true
+
+      return [
+        reel.title,
+        reel.description,
+        reel.meal,
+        reel.status,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(query)
+    })
+
+    return [...filteredBySearch].sort((a, b) => {
+      const getTime = (value: any) => {
+        if (!value) return 0
+
+        if (typeof value.seconds === "number") {
+          return value.seconds * 1000
+        }
+
+        const parsed = new Date(value).getTime()
+        return Number.isNaN(parsed) ? 0 : parsed
+      }
+
+      if (sortBy === "oldest") {
+        return getTime(a.createdAt) - getTime(b.createdAt)
+      }
+
+      if (sortBy === "popular") {
+        const aScore =
+          Number(a.stats.likesCount || 0) +
+          Number(a.stats.commentsCount || 0) +
+          Number(a.stats.viewsCount || 0)
+
+        const bScore =
+          Number(b.stats.likesCount || 0) +
+          Number(b.stats.commentsCount || 0) +
+          Number(b.stats.viewsCount || 0)
+
+        return bScore - aScore
+      }
+
+      return getTime(b.createdAt) - getTime(a.createdAt)
+    })
+  }, [reels, activeRecipeTab, debouncedSearchQuery, sortBy])
+
   useEffect(() => {
     if (!recipeIdFromUrl) return
 
@@ -620,43 +737,69 @@ export default function MyProfilePage() {
               <ProfileRecipeTabs
                 activeTab={activeRecipeTab}
                 onTabChange={setActiveRecipeTab}
-                tabs={recipeTabs}
+                tabs={profileTabs}
               />
 
               <div className="mt-4 flex">
                 <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-1">
-                  <button
-                    type="button"
-                    onClick={() => setContentType("recipes")}
-                    className={[
-                      "min-w-[92px] rounded-lg px-4 py-2 text-sm transition",
-                      contentType === "recipes"
-                        ? "bg-[var(--accent)] text-[var(--text-on-accent)] shadow-[var(--shadow-card)]"
-                        : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
-                    ].join(" ")}
-                  >
-                    Recipes
-                  </button>
+                  {[
+                    {
+                      value: "recipes" as const,
+                      label: "Recipes",
+                      icon: RestaurantRoundedIcon,
+                    },
+                    {
+                      value: "reels" as const,
+                      label: "Reels",
+                      icon: SmartDisplayRoundedIcon,
+                    },
+                  ].map((item) => {
+                    const isActive = contentType === item.value
+                    const Icon = item.icon
 
-                  <button
-                    type="button"
-                    onClick={() => setContentType("reels")}
-                    className={[
-                      "min-w-[92px] rounded-lg px-4 py-2 text-sm font-semibold transition",
-                      contentType === "reels"
-                        ? "bg-[var(--accent)] text-[var(--text-on-accent)] shadow-[var(--shadow-card)]"
-                        : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
-                    ].join(" ")}
-                  >
-                    Reels
-                  </button>
+                    return (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() => {
+                          setContentType(item.value)
+                          setSearchQuery("")
+                        }}
+                        className={[
+                          "relative min-w-[108px] rounded-lg px-4 py-2 text-sm font-semibold",
+                          "transition-colors duration-200",
+                          isActive
+                            ? "text-[var(--text-on-accent)]"
+                            : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+                        ].join(" ")}
+                      >
+                        {isActive && (
+                          <motion.span
+                            layoutId="profile-content-toggle"
+                            className="absolute inset-0 rounded-lg bg-[var(--accent)] shadow-[var(--shadow-card)]"
+                            transition={{
+                              type: "spring",
+                              stiffness: 420,
+                              damping: 32,
+                              mass: 0.7,
+                            }}
+                          />
+                        )}
+
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                          <Icon sx={{fontSize: 17}} />
+                          {item.label}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
               <ProfileRecipeToolbar
                 searchQuery={searchQuery}
                 onSearchQueryChange={setSearchQuery}
-                resultCount={visibleRecipes.length}
+                resultCount={contentType === "recipes" ? visibleRecipes.length : visibleReels.length}
                 sortBy={sortBy}
                 onSortByChange={setSortBy}
                 category={category}
@@ -668,29 +811,59 @@ export default function MyProfilePage() {
             </div>
 
 
-            {(isRecipesLoading || isSearching) && (
-              <ProfileRecipeGridSkeleton viewMode={viewMode} count={8} />
+            {contentType === "recipes" ? (
+              (isRecipesLoading || isSearching) && (
+                <ProfileRecipeGridSkeleton viewMode={viewMode} count={8} />
+              )
+            ) : (
+              (isReelsLoading || isSearching) && (
+                <ProfileReelGridSkeleton count={10} />
+              )
             )}
 
-            {recipesError && (
+            {contentType === "recipes" && recipesError && (
               <div className="mt-6 rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-6 text-sm text-[var(--danger-text)]">
                 {recipesError}
               </div>
             )}
 
-            {!isRecipesLoading && !isSearching && !recipesError && (
-              <ProfileRecipeGrid
-                recipes={visibleRecipes}
-                viewMode={viewMode}
-                currentUserId={userId}
-                onRecipeClick={handleOpenRecipeDrawer}
-                onRecipeEdit={handleProfileRecipeEdit}
-                onRecipeDelete={(recipe) => {
-                  setRecipeToDelete(recipe)
-                }}
-                onRecipeShare={handleShareRecipeFromGrid}
-              />
+            {contentType === "reels" && reelsError && (
+              <div className="mt-6 rounded-2xl border border-[var(--danger-border)] bg-[var(--danger-soft)] p-6 text-sm text-[var(--danger-text)]">
+                {reelsError}
+              </div>
             )}
+
+            <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={contentType}
+              initial={{opacity: 0, y: 8}}
+              animate={{opacity: 1, y: 0}}
+              exit={{opacity: 0, y: -6}}
+              transition={{
+                duration: 0.18,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              {contentType === "recipes" && !isRecipesLoading && !isSearching && !recipesError && (
+                <ProfileRecipeGrid
+                  recipes={visibleRecipes}
+                  viewMode={viewMode}
+                  currentUserId={userId}
+                  onRecipeClick={handleOpenRecipeDrawer}
+                  onRecipeEdit={handleProfileRecipeEdit}
+                  onRecipeDelete={(recipe) => {
+                    setRecipeToDelete(recipe)
+                  }}
+                  onRecipeShare={handleShareRecipeFromGrid}
+                />
+              )}
+
+              {contentType === "reels" && !isReelsLoading && !isSearching && !reelsError && (
+                <ProfileReelGrid reels={visibleReels} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+
           </main>
 
           <ProfileConnectionsModal

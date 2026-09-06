@@ -1,5 +1,5 @@
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, where } from "@firebase/firestore"
-import { CreateReelInput, CreateReelResult, Reel, ReelMealType } from "../types/reel.types"
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "@firebase/firestore"
+import { CreateReelInput, CreateReelResult, Reel, ReelMealType, ReelStatus, updateReelDraftInput } from "../types/reel.types"
 import { db, storage } from "../../../firebase-config"
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
 
@@ -14,6 +14,8 @@ const ALLOWED_REEL_VIDEO_TYPES = [
   "video/webm",
   "video/quicktime",
 ]
+
+const ALLOWED_REEL_STATUSES: ReelStatus[] = ["published", "pending", "needs_revision", "draft"]
 
 function sanitizeFileName(fileName: string) {
   return fileName
@@ -88,6 +90,10 @@ function validateCreateReelInput(input: CreateReelInput) {
 function mapReelDoc(docSnap: any): Reel {
   const data = docSnap.data()
 
+  const status: ReelStatus = ALLOWED_REEL_STATUSES.includes(data.status)
+    ? data.status : data.isPublished
+      ? "published" : "pending"
+
   return {
     reelId: data.reelId || docSnap.id,
     userId: data.userId || data.author?.userId || "",
@@ -104,10 +110,7 @@ function mapReelDoc(docSnap: any): Reel {
         "",
     },
 
-    title:
-      data.title ||
-      data.description ||
-      "Recipe inspiration",
+    title: data.title || data.description || "Recipe inspiration",
 
     description: data.description || "",
     meal: (data.meal || "dinner") as ReelMealType,
@@ -115,18 +118,12 @@ function mapReelDoc(docSnap: any): Reel {
     videoUrl: data.videoUrl || "",
     videoFileName: data.videoFileName || "",
 
-    thumbnail:
-      data.thumbnail ||
-      data.thumbnailUrl ||
-      "",
+    thumbnail: data.thumbnail || data.thumbnailUrl || "",
 
-    duration: Number(
-      data.duration ||
-      data.durationSeconds ||
-      0
-    ),
+    duration: Number(data.duration || data.durationSeconds || 0),
 
     visibility: data.visibility || "public",
+    status,
 
     stats: {
       likesCount: Number(
@@ -153,12 +150,44 @@ function mapReelDoc(docSnap: any): Reel {
 
     createdAt: data.createdAt || undefined,
     updatedAt: data.updatedAt || undefined,
+    submittedAt: data.submittedAt || undefined,
+    publishedAt: data.publishedAt || undefined,
   }
+}
+
+export async function fetchReelById(reelId: string): Promise<Reel | null> {
+  const reelSnapshot = await getDoc(doc(db, "reels", reelId))
+
+  if (!reelSnapshot.exists()) {
+    return null
+  }
+
+  return mapReelDoc(reelSnapshot)
+}
+
+export async function fetchUserReels(userId: string, status?: ReelStatus): Promise<Reel[]> {
+  if (!userId) return []
+
+  const reelsQuery = status ? query(
+    collection(db, "reels"),
+    where("userId", "==", userId),
+    where("status", "==", status),
+    orderBy("createdAt", "desc")
+  ) : query(
+    collection(db, "reels"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
+  )
+
+  const snapshot = await getDocs(reelsQuery)
+
+  return snapshot.docs.map(mapReelDoc).filter((reel) => Boolean(reel.videoUrl))
 }
 
 export async function fetchPublicReels(limitCount = 20): Promise<Reel[]> {
     const reelsQuery = query(
         collection(db, "reels"),
+        where("status", "==", "published"),
         where("visibility", "==", "public"),
         orderBy("createdAt", "desc"),
         limit(limitCount)
@@ -203,10 +232,7 @@ export async function fetchPublicReels(limitCount = 20): Promise<Reel[]> {
             },
           ] as const
         } catch (error) {
-          console.error(
-            `Failed to fetch reel author ${userId}:`,
-            error
-          )
+          console.error(`Failed to fetch reel author ${userId}:`, error)
 
           return [userId, null] as const
         }
@@ -240,16 +266,13 @@ export async function fetchPublicReels(limitCount = 20): Promise<Reel[]> {
   })
 }
 
-export async function createReel(
-  input: CreateReelInput
-): Promise<CreateReelResult> {
+export async function createReel(input: CreateReelInput): Promise<CreateReelResult> {
   validateCreateReelInput(input)
 
   const reelRef = doc(collection(db, "reels"))
   const reelId = reelRef.id
 
-  const safeFileName =
-    sanitizeFileName(input.videoFile.name) || "reel-video.mp4"
+  const safeFileName = sanitizeFileName(input.videoFile.name) || "reel-video.mp4"
 
   const videoStorageRef = ref(storage, `reels/${input.userId}/${reelId}/${Date.now()}-${safeFileName}`)
 
@@ -288,7 +311,9 @@ export async function createReel(
     durationSeconds: Math.round(input.durationSeconds),
 
     visibility: input.visibility,
-    isPublished: true,
+
+    status: "pending",
+    isPublished: false,
 
     likesCount: 0,
     commentsCount: 0,
@@ -300,10 +325,137 @@ export async function createReel(
 
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    submittedAt: serverTimestamp(),
+    publishedAt: null,
   })
 
   return {
     reelId,
     videoUrl,
   }
+}
+
+export async function saveReelDraft(input: updateReelDraftInput) {
+  const reelRef = doc(db, "reels", input.reelId)
+  const snapshot = await getDoc(reelRef)
+
+  if (!snapshot.exists()) {
+    throw new Error("Reel not found.")
+  }
+
+  const reel = mapReelDoc(snapshot)
+
+  if (reel.userId !== input.userId) {
+    throw new Error("You cannot edit this reel.")
+  }
+
+  const nextStatus: ReelStatus = reel.status === "needs_revision" ? "needs_revision" : "draft"
+
+  await updateDoc(reelRef, {
+    title: input.title.trim(),
+    description: input.description.trim(),
+    meal: input.meal,
+    visibility: input.visibility,
+
+    status: nextStatus,
+    isPublished: false,
+
+    updatedAt: serverTimestamp(),
+  })
+
+  return {
+    ...reel,
+    title: input.title.trim(),
+    description: input.description.trim(),
+    meal: input.meal,
+    visibility: input.visibility,
+    status: nextStatus,
+  }
+}
+
+export async function submitReelForReview(reelId: string, userId: string) {
+  const reelRef = doc(db, "reels", reelId)
+  const snapshot = await getDoc(reelRef)
+
+  if (!snapshot.exists()) {
+    throw new Error("Reel not found.")
+  }
+
+  const reel = mapReelDoc(snapshot)
+
+  if (reel.userId !== userId) {
+    throw new Error("You cannot submit this reel.")
+  }
+
+  if (
+    reel.status !== "draft" &&
+    reel.status !== "needs_revision"
+  ) {
+    throw new Error("This reel cannot be submitted for review.")
+  }
+
+  await updateDoc(reelRef, {
+    status: "pending",
+    isPublished: false,
+
+    //To add: a revision reason for types and service
+
+    submittedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function publishReel(reelId: string) {
+  const reelRef = doc(db, "reels", reelId)
+  const snapshot = await getDoc(reelRef)
+
+  if (!snapshot.exists()) {
+    throw new Error("Reel not found.")
+  }
+
+  const reel = mapReelDoc(snapshot)
+
+  if (reel.status !== "pending") {
+    throw new Error("Only pending reels can be published.")
+  }
+
+  await updateDoc(reelRef, {
+    status: "published",
+    isPublished: true,
+
+    revisionReason: "",
+
+    publishedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function requestReelRevision(reelId: string, reason: string) {
+  const normalizedReason = reason.trim()
+
+  if (!normalizedReason) {
+    throw new Error("A revision reason is required.")
+  }
+
+  const reelRef = doc(db, "reels", reelId)
+  const snapshot = await getDoc(reelRef)
+
+  if (!snapshot.exists()) {
+    throw new Error("Reel not found.")
+  }
+
+  const reel = mapReelDoc(snapshot)
+
+  if (reel.status !== "pending") {
+    throw new Error("Only pending reels can be sent back for revision.")
+  }
+
+  await updateDoc(reelRef, {
+    status: "needs_revision",
+    isPublished: false,
+
+    revisionReason: normalizedReason,
+
+    updatedAt: serverTimestamp(),
+  })
 }
