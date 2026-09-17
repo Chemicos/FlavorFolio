@@ -3,10 +3,11 @@ import { Reel } from "../types/reel.types"
 
 interface ReelVideoProps {
   reel: Reel
+  isMuted: boolean
 }
 
 
-export default function ReelVideo({reel}: ReelVideoProps) {
+export default function ReelVideo({reel, isMuted}: ReelVideoProps) {
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [isActive, setIsActive] = useState(false)
@@ -45,7 +46,7 @@ export default function ReelVideo({reel}: ReelVideoProps) {
       ref={videoRef}
       src={reel.videoUrl}
       poster={reel.thumbnail || undefined}
-      muted
+      muted={isMuted}
       loop
       playsInline
       preload="metadata"

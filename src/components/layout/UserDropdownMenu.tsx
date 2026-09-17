@@ -23,12 +23,10 @@ export interface UserDropdownMenuProps {
     onPending: () => void
     onNeedsRevision: () => void
     onDashboard: () => void
-    // onFeedbacks: () => void
     onSettings: () => void
     onSignOut: () => void
     isAdmin: boolean
     pendingCount?: number
-    // feedbackCount?: number
     needsRevisionCount?: number
 }
 
@@ -192,14 +190,6 @@ export default function UserDropdownMenu({
             label="Dashboard"
             onClick={onDashboard}
           />,
-
-          // <MenuActionItem
-          //   key="feedbacks"
-          //   icon={<MailOutlineIcon fontSize="small" />}
-          //   label="Feedbacks"
-          //   onClick={onFeedbacks}
-          //   badgeCount={feedbackCount}
-          // />
         ]}
 
         <MenuActionItem

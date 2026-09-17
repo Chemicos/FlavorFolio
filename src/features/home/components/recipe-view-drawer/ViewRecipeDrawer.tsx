@@ -566,8 +566,11 @@ export default function ViewRecipeDrawer({
 
     const drawer = (
         <motion.article
+            initial={{opacity: 0, scale: 0.96, y: 14}}
+            animate={{opacity: 1, scale: 1, y: 0}}
+            exit={{opacity: 0, scale: 0.96, y: 14}}
+            transition={{duration: 0.2, ease: [0.22, 1, 0.36, 1], layout: RECIPE_LAYOUT_TRANSITION,}}
             style={{borderRadius: 20,}}
-            transition={{layout: RECIPE_LAYOUT_TRANSITION,}}
             className={[
                 "relative z-50",
                 "flex h-[min(1040px,calc(100dvh-40px))]",

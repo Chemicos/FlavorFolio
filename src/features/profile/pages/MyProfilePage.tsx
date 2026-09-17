@@ -26,7 +26,7 @@ import MyProfileEditFormLoading from "../components/MyProfileEditFormLoading";
 import { ProfileConnectionType, subscribeToMyFollowingUserIds } from "../services/profileConnections.service";
 import ProfileConnectionsModal from "../components/ProfileConnectionsModal";
 import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service";
-import { SharedRecipeMessage } from "../../messages/types/messages.types";
+import { SharedRecipeMessage, SharedReelMessage } from "../../messages/types/messages.types";
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal";
 // import StickyProfileDrawer from "../components/StickyProfileDrawer";
 import { useUserCapabilities } from "../../../components/permissions/UserCapabilitiesContext";
@@ -37,6 +37,7 @@ import { Reel } from "../../reels/types/reel.types";
 import ReelCommentModal from "../../reels/components/ReelCommentModal";
 import ViewReelDrawer from "../../reels/components/ViewReelDrawer";
 import { useLikedReels } from "../../reels/hooks/useLikedReels";
+import { useSavedReels } from "../../reels/hooks/useSavedReels";
 
 type ProfileContentType = "recipes" | "reels"
 
@@ -67,20 +68,16 @@ export default function MyProfilePage() {
     setSavedRecipes,
   } = useMyProfileRecipes(userId)
 
-  const {
-    reels,
-    setReels,
-    isLoading: isReelsLoading,
-    error: reelsError,
-  } = useMyProfileReels(userId)
-
+  
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
   
   const [selectedReel, setSelectedReel] = useState<Reel | null>(null)
   const [commentsReel, setCommentsReel] = useState<Reel | null>(null)
+
   const {likedReelIds} = useLikedReels()
+  const {savedReelIds} = useSavedReels()
   
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
   const [isRecipeEditLoading, setIsRecipeEditLoading] = useState(false)
@@ -113,6 +110,19 @@ export default function MyProfilePage() {
   const [recipeToDelete, setRecipeToDelete] = useState<ProfileRecipeGridItem | null>(null)
   
   const [recipeToShare, setRecipeToShare] = useState<SharedRecipeMessage | null>(null)
+  const [reelToShare, setReelToShare] = useState<SharedReelMessage | null>(null)
+  
+  const {
+    reels,
+    savedReels,
+    setReels,
+    setSavedReels,
+    isLoading: isReelsLoading,
+    isSavedReelsLoading,
+    error: reelsError,
+  } = useMyProfileReels(userId, savedReelIds)
+  const isCurrentReelsLoading = isReelsLoading || (activeRecipeTab === "saved-recipes" && isSavedReelsLoading)
+  
   const buildSharedRecipeFromRecipe = (recipe: Recipe): SharedRecipeMessage => ({
     recipeId: recipe.recipeId || recipe.id || "",
     title: recipe.title || "Untitled recipe",
@@ -168,7 +178,7 @@ export default function MyProfilePage() {
         {
           value: "saved-recipes",
           label: "Saved",
-          count: 0,
+          count: savedReelIds.length,
         },
         {
           value: "pending-recipes",
@@ -215,7 +225,7 @@ export default function MyProfilePage() {
         count: recipes.filter((recipe) => recipe.status === "draft").length,
       },
     ]
-  }, [contentType, recipes, savedRecipes, reels])
+  }, [contentType, recipes, savedRecipes, reels, savedReelIds])
 
   const categories = useMemo(
     () => ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],[]
@@ -313,6 +323,19 @@ export default function MyProfilePage() {
     } finally {
       setIsBlockLoading(false)
     }
+  }
+
+  const handleOpenShareReel = (reel: Reel) => {
+    setReelToShare({
+      reelId: reel.reelId,
+      title: reel.title || "Recipe reel",
+      description: reel.description || "",
+      videoUrl: reel.videoUrl || "",
+      thumbnail: reel.thumbnail || "",
+      authorUsername: reel.author?.username || profile?.username || "Unknown",
+      meal: reel.meal || "",
+      durationSeconds: Number(reel.duration || 0),
+    })
   }
 
   const handleOpenRecipeDrawer = (recipe: ProfileRecipeGridItem) => {
@@ -537,6 +560,36 @@ export default function MyProfilePage() {
     })
   }, [setReels])
 
+  const handleReelSaveStateChange = useCallback((reelId: string, _isSaved: boolean, savesCount: number) => {
+    const normalizedSavesCount = Number(savesCount || 0)
+
+    setReels((prev) =>
+      prev.map((reel) =>
+        reel.reelId === reelId
+          ? {
+              ...reel,
+              stats: {
+                ...reel.stats,
+                savesCount: normalizedSavesCount,
+              },
+            }
+          : reel
+      )
+    )
+
+    setSelectedReel((prev) => {
+      if (!prev || prev.reelId !== reelId) return prev
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          savesCount: normalizedSavesCount,
+        },
+      }
+    })
+  }, [setReels])
+
   const handleViewDrawerRecipeEdit = async (recipe: Recipe) => {
     const recipeId = recipe.recipeId || recipe.id
 
@@ -651,7 +704,9 @@ export default function MyProfilePage() {
   const visibleReels = useMemo(() => {
     const query = debouncedSearchQuery.trim().toLowerCase()
 
-    const filteredByTab = reels.filter((reel) => {
+    const sourceReels = activeRecipeTab === "saved-recipes" ? savedReels : reels
+
+    const filteredByTab = sourceReels.filter((reel) => {
       if (activeRecipeTab === "my-recipes") {
         return reel.status === "published"
       }
@@ -669,7 +724,7 @@ export default function MyProfilePage() {
       }
 
       if (activeRecipeTab === "saved-recipes") {
-        return false
+        return true
       }
 
       return true
@@ -722,7 +777,7 @@ export default function MyProfilePage() {
 
       return getTime(b.createdAt) - getTime(a.createdAt)
     })
-  }, [reels, activeRecipeTab, debouncedSearchQuery, sortBy])
+  }, [reels, savedReels, activeRecipeTab, debouncedSearchQuery, sortBy])
 
   useEffect(() => {
     if (!recipeIdFromUrl) return
@@ -886,7 +941,7 @@ export default function MyProfilePage() {
                 <ProfileRecipeGridSkeleton viewMode={viewMode} count={8} />
               )
             ) : (
-              (isReelsLoading || isSearching) && (
+              (isCurrentReelsLoading || isSearching) && (
                 <ProfileReelGridSkeleton viewMode={viewMode} count={10} />
               )
             )}
@@ -928,7 +983,7 @@ export default function MyProfilePage() {
                 />
               )}
 
-              {contentType === "reels" && !isReelsLoading && !isSearching && !reelsError && (
+              {contentType === "reels" && !isCurrentReelsLoading && !isSearching && !reelsError && (
                 <ProfileReelGrid 
                   reels={visibleReels} 
                   viewMode={viewMode}
@@ -1091,14 +1146,14 @@ export default function MyProfilePage() {
                   reel={selectedReel}
                   currentUserId={userId}
                   isLiked={likedReelIds.includes(selectedReel.reelId)}
+                  isSaved={savedReelIds.includes(selectedReel.reelId)}
                   onClose={() => setSelectedReel(null)}
                   onCommentsClick={(reel) => {
                     setCommentsReel(reel)
                   }}
-                  onShareClick={(reel) => {
-                    console.log("Share reel:", reel)
-                  }}
+                  onShareClick={handleOpenShareReel}
                   onLikeStateChange={handleReelLikeStateChange}
+                  onSaveStateChange={handleReelSaveStateChange}
                 />
               </motion.div>
             )}
@@ -1159,6 +1214,21 @@ export default function MyProfilePage() {
             onShared={(username) => {
               showSnackbar(`Recipe shared with ${username}.`, "success")
               setRecipeToShare(null)
+            }}
+          />
+
+          <ShareRecipeModal
+            isOpen={Boolean(reelToShare)}
+            currentUserId={userId}
+            reel={reelToShare}
+            onClose={() => setReelToShare(null)}
+            onShared={(username) => {
+              showSnackbar(
+                `Reel shared with ${username}.`,
+                "success"
+              )
+
+              setReelToShare(null)
             }}
           />
         </div>

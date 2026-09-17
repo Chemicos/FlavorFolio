@@ -121,6 +121,7 @@ export default function ReelCommentModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{duration: 0.18, ease: "easeOut"}}
         onClick={onClose}
         aria-label="Close comments"
         className="fixed inset-0 z-[90] cursor-default bg-[var(--overlay)] backdrop-blur-[1px]"

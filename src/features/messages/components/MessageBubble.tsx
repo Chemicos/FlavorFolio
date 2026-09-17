@@ -15,6 +15,7 @@ interface MessageBubbleProps {
   seenAt?: Timestamp | null
   onDelete?: () => void
   onOpenImage?: (imageUrl: string) => void
+  onOpenReel?: (reelId: string) => void
 }
 
 function formatTime(value: unknown) {
@@ -91,6 +92,7 @@ export default function MessageBubble({
   seenAt,
   onDelete,
   onOpenImage,
+  onOpenReel,
 }: MessageBubbleProps) {
   const navigate = useNavigate()
   const isRecipeMessage = message.type === "recipe"
@@ -217,7 +219,10 @@ export default function MessageBubble({
 
               {isReelMessage &&
                 message.reel && (
-                  <SharedReelMessageCard reel={message.reel} />
+                  <SharedReelMessageCard 
+                    reel={message.reel} 
+                    onOpen={(reelId) => onOpenReel?.(reelId)}
+                  />
                 )}
             </>
           )}

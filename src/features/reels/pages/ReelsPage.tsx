@@ -9,6 +9,7 @@ import { useLikedReels } from "../hooks/useLikedReels";
 import { SharedReelMessage } from "../../messages/types/messages.types";
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal";
 import { useSnackbar } from "../../../components/layout/SnackbarProvider";
+import { useSavedReels } from "../hooks/useSavedReels";
 
 
 export default function ReelsPage() {
@@ -22,9 +23,11 @@ export default function ReelsPage() {
     error,
     updateReelCommentsCount,
     updateReelLikesCount,
+    updateReelSavesCount,
   } = useReels()
 
   const {currentUserId, likedReelIds,} = useLikedReels()
+  const {savedReelIds} = useSavedReels()
 
   const activeSelectedReel = selectedReel
     ? reels.find(
@@ -66,6 +69,7 @@ export default function ReelsPage() {
             error={error}
             currentUserId={currentUserId}
             likedReelIds={likedReelIds}
+            savedReelIds={savedReelIds}
             onCommentsClick={setSelectedReel}
             onShareClick={handleOpenShareReel}
             onLikeStateChange={(
@@ -76,6 +80,16 @@ export default function ReelsPage() {
               updateReelLikesCount(
                 reelId,
                 likesCount
+              )
+            }}
+            onSaveStateChange={(
+              reelId,
+              _isSaved,
+              savesCount
+            ) => {
+              updateReelSavesCount(
+                reelId,
+                savesCount
               )
             }}
           />

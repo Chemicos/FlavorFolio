@@ -10,12 +10,18 @@ interface ReelsFeedProps {
   error: string | null
   currentUserId: string | null
   likedReelIds: string[]
+  savedReelIds: string[]
   onCommentsClick: (reel: Reel) => void
   onShareClick: (reel: Reel) => void
   onLikeStateChange: (
     reelId: string,
     isLiked: boolean,
     likesCount: number
+  ) => void
+  onSaveStateChange: (
+    reelId: string,
+    isSaved: boolean,
+    savesCount: number
   ) => void
 }
 
@@ -25,9 +31,11 @@ export default function ReelsFeed({
     error,
     currentUserId,
     likedReelIds,
+    savedReelIds,
     onCommentsClick,
     onShareClick,
     onLikeStateChange,
+    onSaveStateChange,
 }: ReelsFeedProps) {
     // const { reels, isLoading, error } = useReels()
 
@@ -62,9 +70,11 @@ export default function ReelsFeed({
                     reel={reel}
                     currentUserId={currentUserId}
                     isLiked={likedReelIds.includes(reel.reelId)}
+                    isSaved={savedReelIds.includes(reel.reelId)}
                     onCommentsClick={onCommentsClick}
                     onShareClick={onShareClick}
                     onLikeStateChange={onLikeStateChange}
+                    onSaveStateChange={onSaveStateChange}
                 />
                 </div>
             ))}

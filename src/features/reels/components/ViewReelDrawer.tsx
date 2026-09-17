@@ -13,6 +13,7 @@ interface ViewReelDrawerProps {
   reel: Reel
   currentUserId: string | null
   isLiked: boolean
+  isSaved: boolean
   onClose: () => void
   onCommentsClick: (reel: Reel) => void
   onShareClick: (reel: Reel) => void
@@ -20,6 +21,11 @@ interface ViewReelDrawerProps {
     reelId: string,
     isLiked: boolean,
     likesCount: number
+  ) => void
+  onSaveStateChange: (
+    reelId: string,
+    isSaved: boolean,
+    savesCount: number,
   ) => void
 }
 
@@ -35,10 +41,12 @@ export default function ViewReelDrawer({
     reel,
     currentUserId,
     isLiked,
+    isSaved,
     onClose,
     onCommentsClick,
     onShareClick,
     onLikeStateChange,
+    onSaveStateChange,
 }: ViewReelDrawerProps) {
     const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -158,9 +166,11 @@ export default function ViewReelDrawer({
         reel={reel}
         currentUserId={currentUserId}
         isLiked={isLiked}
+        isSaved={isSaved}
         onCommentsClick={onCommentsClick}
         onShareClick={onShareClick}
         onLikeStateChange={onLikeStateChange}
+        onSaveStateChange={onSaveStateChange}
       />
 
       <footer className="absolute bottom-6 left-5 right-20 z-20">

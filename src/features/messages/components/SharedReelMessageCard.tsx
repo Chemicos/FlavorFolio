@@ -2,20 +2,19 @@ import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded"
 import MovieRoundedIcon from "@mui/icons-material/MovieRounded"
 
-import { useNavigate } from "react-router-dom"
 import { SharedReelMessage } from "../types/messages.types"
 import { useState } from "react"
 
 interface SharedReelMessageCardProps {
   reel: SharedReelMessage
+  onOpen: (reelId: string) => void
 }
 
-export default function SharedReelMessageCard({reel}: SharedReelMessageCardProps) {
-    const navigate = useNavigate()
+export default function SharedReelMessageCard({reel, onOpen}: SharedReelMessageCardProps) {
     const [hasThumbnailError, setHasThumbnailError] = useState(false)
 
     const handleOpenReel = () => {
-        navigate(`/reels?reelId=${reel.reelId}`)
+      onOpen(reel.reelId)
     }
 
   return (

@@ -13,6 +13,17 @@ import MessageImagePreviewModal from "./MessageImagePreviewModal"
 import { useUserPresence } from "../hooks/useUserPresence"
 import ScrollToBottomButton from "./ScrollToBottomButton"
 import MessageDateDivider from "./MessageDateDivider"
+import { fetchReelById } from "../../reels/services/reels.service"
+import { Reel } from "../../reels/types/reel.types"
+import ViewReelDrawer from "../../reels/components/ViewReelDrawer"
+import { useLikedReels } from "../../reels/hooks/useLikedReels"
+import { useSavedReels } from "../../reels/hooks/useSavedReels"
+import { AnimatePresence, motion } from "motion/react"
+import ReelCommentModal from "../../reels/components/ReelCommentModal"
+import { CircularProgress } from "@mui/material"
+import { createPortal } from "react-dom"
+import { useSnackbar } from "../../../components/layout/SnackbarProvider"
+import ShareRecipeModal from "./ShareRecipeModal"
 
 interface ChatLayoutProps {
   currentUserId: string
@@ -67,6 +78,15 @@ export default function ChatLayout({
   const shouldForceBottomRef = useRef(false)
 
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
+  const [selectedReel, setSelectedReel] = useState<Reel | null>(null)
+  const [commentsReel, setCommentsReel] = useState<Reel | null>(null)
+  const [reelToShare, setReelToShare] = useState<Reel | null>(null)
+  const [isReelDrawerLoading, setIsReelDrawerLoading] = useState(false)
+
+  const {likedReelIds} = useLikedReels()
+  const {savedReelIds} = useSavedReels()
+  const {showSnackbar} = useSnackbar()
+
   const SCROLL_BOTTOM_THRESHOLD = 150
 
   const activeConversation = conversations.find((item) => item.conversationId === activeConversationId) || null
@@ -202,6 +222,96 @@ export default function ChatLayout({
       console.error("Failed to delete message:", error)
     }
   }
+
+  const handleOpenSharedReel = async (reelId: string) => {
+    if (!reelId || isReelDrawerLoading) return
+
+    try {
+      setIsReelDrawerLoading(true)
+
+      const reel = await fetchReelById(reelId)
+
+      if (!reel) {
+        console.error("Shared reel no longer exists.")
+        return
+      }
+
+      if (
+        reel.status !== "published" ||
+        reel.visibility !== "public"
+      ) {
+        console.error("Shared reel is no longer available.")
+        return
+      }
+
+      setSelectedReel(reel)
+    } catch (error) {
+      console.error("Failed to open shared reel:", error)
+    } finally {
+      setIsReelDrawerLoading(false)
+    }
+  }
+
+  const handleOpenShareReel = (reel: Reel) => {
+    setReelToShare({
+      reelId: reel.reelId,
+      title: reel.title || "Recipe reel",
+      description: reel.description || "",
+      videoUrl: reel.videoUrl || "",
+      thumbnail: reel.thumbnail || "",
+      authorUsername: reel.author?.username || "Unknown",
+      meal: reel.meal || "",
+      durationSeconds: Number(reel.duration || 0),
+    })
+  }
+
+  const handleReelLikeStateChange = (
+    reelId: string,
+    _isLiked: boolean,
+    likesCount: number
+  ) => {
+    setSelectedReel((prev) => {
+      if (!prev || prev.reelId !== reelId) return prev
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          likesCount: Number(likesCount || 0),
+        },
+      }
+    })
+
+    setCommentsReel((prev) => {
+      if (!prev || prev.reelId !== reelId) return prev
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          likesCount: Number(likesCount || 0),
+        },
+      }
+    })
+  }
+
+  const handleReelSaveStateChange = (
+    reelId: string,
+    _isSaved: boolean,
+    savesCount: number
+  ) => {
+    setSelectedReel((prev) => {
+      if (!prev || prev.reelId !== reelId) return prev
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          savesCount: Number(savesCount || 0),
+        },
+      }
+    })
+  }
   return (
     <main className="fixed inset-x-0 bottom-0 top-16 overflow-hidden bg-[var(--bg-primary)]">
       <div className="grid h-full w-full grid-cols-[360px_minmax(0,1fr)] overflow-hidden">
@@ -224,23 +334,6 @@ export default function ChatLayout({
                     : otherUserStatusLabel
                 }
               />
-
-              {/* <div ref={messagesContainerRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-6 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
-                <div className="flex flex-col gap-3">
-                  {messages.map((message) => (
-                    <MessageBubble
-                      key={message.messageId}
-                      message={message}
-                      isOwn={message.senderId === currentUserId}
-                      isSeen={message.messageId === lastOwnMessageIdSeenByOtherUser}
-                      onDelete={message.senderId === currentUserId ? () => handleDeleteMessage(message.messageId) : undefined}
-                      onOpenImage={setPreviewImageUrl}
-                    />
-                  ))}
-
-                  <div ref={bottomRef} />
-                </div>
-              </div> */}
 
               <div className="relative min-h-0 flex-1">
                 <div ref={messagesContainerRef} className="h-full overflow-y-auto px-6 py-6 [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
@@ -280,6 +373,7 @@ export default function ChatLayout({
                                 : undefined
                             }
                             onOpenImage={setPreviewImageUrl}
+                            onOpenReel={handleOpenSharedReel}
                           />
                         </div>
                       )
@@ -325,6 +419,75 @@ export default function ChatLayout({
         imageUrl={previewImageUrl}
         onClose={() => setPreviewImageUrl(null)}
       />
+
+      {createPortal(
+         <AnimatePresence>
+          {(selectedReel || isReelDrawerLoading) && (
+            <motion.div
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-5 backdrop-blur-[2px]"
+              initial={{opacity: 0}}
+              animate={{opacity: 1}}
+              exit={{opacity: 0}}
+              transition={{duration: 0.2, ease: "easeOut"}}
+              onClick={(event) => {
+                if (
+                  event.target === event.currentTarget &&
+                  !isReelDrawerLoading
+                ) {
+                  setSelectedReel(null)
+                }
+              }}
+            >
+              {isReelDrawerLoading ? (
+                <CircularProgress
+                  size={34}
+                  thickness={4.5}
+                  sx={{color: "var(--accent)"}}
+                />
+              ) : selectedReel ? (
+                <ViewReelDrawer
+                  reel={selectedReel}
+                  currentUserId={currentUserId}
+                  isLiked={likedReelIds.includes(selectedReel.reelId)}
+                  isSaved={savedReelIds.includes(selectedReel.reelId)}
+                  onClose={() => setSelectedReel(null)}
+                  onCommentsClick={setCommentsReel}
+                  onShareClick={handleOpenShareReel}
+                  onLikeStateChange={handleReelLikeStateChange}
+                  onSaveStateChange={handleReelSaveStateChange}
+                />
+              ) : null}
+            </motion.div>
+          )}
+        </AnimatePresence>, document.body
+      )}
+      
+
+      {createPortal(
+        <AnimatePresence>
+          {commentsReel && (
+            <ReelCommentModal
+              reel={commentsReel}
+              onClose={() => setCommentsReel(null)}
+            />
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {createPortal(
+        <ShareRecipeModal
+          isOpen={Boolean(reelToShare)}
+          currentUserId={currentUserId}
+          reel={reelToShare}
+          onClose={() => setReelToShare(null)}
+          onShared={(username) => {
+            showSnackbar(`Reel shared with ${username}.`, "success")
+            setReelToShare(null)
+          }}
+        />,
+        document.body
+      )}
     </main>
   )
 }

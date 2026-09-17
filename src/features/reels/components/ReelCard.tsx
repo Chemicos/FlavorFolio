@@ -1,4 +1,5 @@
-import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded"
+// import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded"
+import VolumeOffRoundedIcon from "@mui/icons-material/VolumeOffRounded"
 import VolumeUpRoundedIcon from "@mui/icons-material/VolumeUpRounded"
 
 import { Reel } from "../types/reel.types"
@@ -6,11 +7,13 @@ import ReelVideo from "./ReelVideo"
 import ReelActions from "./ReelActions"
 import { useNavigate } from "react-router-dom"
 import { auth } from "../../../firebase-config"
+import { useState } from "react"
 
 interface ReelCardProps {
   reel: Reel
   currentUserId: string | null
   isLiked: boolean
+  isSaved: boolean
   onCommentsClick: (reel: Reel) => void
   onShareClick: (reel: Reel) => void
   onLikeStateChange: (
@@ -18,21 +21,32 @@ interface ReelCardProps {
     isLiked: boolean,
     likesCount: number
   ) => void
+  onSaveStateChange: (
+    reelId: string,
+    isSaved: boolean,
+    savesCount: number
+  ) => void
 }
 
 export default function ReelCard({
   reel, 
   currentUserId,
   isLiked,
+  isSaved,
   onCommentsClick,
   onShareClick,
   onLikeStateChange,
+  onSaveStateChange,
 }: ReelCardProps) {
   const navigate = useNavigate()
 
   const authorId = reel.author?.userId || reel.userId || ""
   const authorUsername = reel.author?.username || "Unknown"
   const authorProfileImage = reel.author?.profileImage || ""
+
+  const [isMuted, setIsMuted] = useState(true)
+
+  const handleToggleMute = () => {setIsMuted((prev) => !prev)}
 
   const handleAuthorProfileClick = () => {
     if (!authorId) return
@@ -49,7 +63,7 @@ export default function ReelCard({
 
   return (
     <article className="relative h-full max-h-[820px] w-full max-w-[430px] overflow-hidden rounded-3xl border border-white/10 bg-[#16181d] shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-      <ReelVideo reel={reel} />
+      <ReelVideo reel={reel} isMuted={isMuted} />
 
       <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/5 to-black/75" />
 
@@ -86,8 +100,16 @@ export default function ReelCard({
           </div>
         </button>
 
-        <button className="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-md transition hover:bg-white/10">
-          <VolumeUpRoundedIcon sx={{ fontSize: 20 }} />
+        <button 
+          type="button"
+          onClick={handleToggleMute}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-md transition hover:bg-white/10"
+        >
+          {isMuted ? (
+            <VolumeOffRoundedIcon sx={{fontSize: 20}} />
+          ) : (
+            <VolumeUpRoundedIcon sx={{fontSize: 20}} />
+          )}
         </button>
       </header>
 
@@ -95,9 +117,11 @@ export default function ReelCard({
         reel={reel}
         currentUserId={currentUserId}
         isLiked={isLiked}
+        isSaved={isSaved}
         onCommentsClick={onCommentsClick} 
         onShareClick={onShareClick}
         onLikeStateChange={onLikeStateChange}
+        onSaveStateChange={onSaveStateChange}
       />
 
       <footer className="absolute bottom-6 left-5 right-20 z-10">

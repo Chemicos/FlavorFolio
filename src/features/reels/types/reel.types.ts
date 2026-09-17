@@ -9,6 +9,7 @@ export interface ReelAuthor {
 export interface ReelStats {
     likesCount: number
     commentsCount: number
+    savesCount: number
     sharesCount: number
     viewsCount: number
 }

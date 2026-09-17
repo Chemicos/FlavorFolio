@@ -56,6 +56,22 @@ export function useReels(limitCount = 20) {
         )
     }
 
+    const updateReelSavesCount = (reelId: string, savesCount: number) => {
+        setReels((previous) =>
+            previous.map((reel) =>
+            reel.reelId === reelId
+                ? {
+                    ...reel,
+                    stats: {
+                    ...reel.stats,
+                    savesCount,
+                    },
+                }
+                : reel
+            )
+        )
+    }
+
     const updateReelCommentsCount = useCallback(
         (reelId: string,commentsCount: number) => {
             setReels((currentReels) =>
@@ -83,5 +99,6 @@ export function useReels(limitCount = 20) {
         error,
         updateReelCommentsCount,
         updateReelLikesCount,
+        updateReelSavesCount,
     }
 }

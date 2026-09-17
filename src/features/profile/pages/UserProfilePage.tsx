@@ -746,9 +746,7 @@ export default function UserProfilePage() {
                   }
                 />
                 { canViewRecipes && !hasBlockedRelationship &&
-                  <div className="sticky top-16 z-40 bg-[var(--bg-primary)] pb-5 transition-colors">
-                    <div className="border-b border-[var(--border)] pt-6" />
-
+                  <div className="sticky top-16 z-40 bg-[var(--bg-primary)] pb-5 pt-2 transition-colors">
                     <ProfileRecipeToolbar
                       searchQuery={searchQuery}
                       onSearchQueryChange={setSearchQuery}

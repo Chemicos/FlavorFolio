@@ -136,6 +136,11 @@ function mapReelDoc(docSnap: any): Reel {
         data.commentsCount ??
         0
       ),
+      savesCount: Number(
+        data.stats?.savesCount ??
+        data.savesCount ??
+        0
+      ),
       sharesCount: Number(
         data.stats?.sharesCount ??
         data.sharesCount ??
@@ -164,6 +169,20 @@ export async function fetchReelById(reelId: string): Promise<Reel | null> {
 
   return mapReelDoc(reelSnapshot)
 }
+
+export async function fetchReelsByIds(reelIds: string[]): Promise<Reel[]> {
+  if (!reelIds.length) return []
+
+  const snapshots = await Promise.all(
+    reelIds.map((reelId) => getDoc(doc(db, "reels", reelId)))
+  )
+
+  return snapshots
+    .filter((snapshot) => snapshot.exists())
+    .map(mapReelDoc)
+    .filter((reel) => Boolean(reel.videoUrl))
+}
+
 
 export async function fetchUserReels(userId: string, status?: ReelStatus): Promise<Reel[]> {
   if (!userId) return []
