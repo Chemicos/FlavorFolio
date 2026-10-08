@@ -19,6 +19,7 @@ export interface ReelTimestamp {
   nanoseconds?: number
 }
 
+export type ReelCommentModalVariant = "feed" | "drawer"
 export type ReelVisibility = "public" | "private"
 export type ReelStatus = "published" | "pending" | "needs_revision" | "draft"
 export type ReelMealType = "breakfast" | "lunch" | "dinner" | "dessert" | "snack"

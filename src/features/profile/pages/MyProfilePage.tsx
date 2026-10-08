@@ -28,7 +28,6 @@ import ProfileConnectionsModal from "../components/ProfileConnectionsModal";
 import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds } from "../../account-settings/services/blockedUsers.service";
 import { SharedRecipeMessage, SharedReelMessage } from "../../messages/types/messages.types";
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal";
-// import StickyProfileDrawer from "../components/StickyProfileDrawer";
 import { useUserCapabilities } from "../../../components/permissions/UserCapabilitiesContext";
 import { useMyProfileReels } from "../hooks/useMyProfileReels";
 import ProfileReelGridSkeleton from "../components/ProfileReelGridSkeleton";
@@ -38,6 +37,7 @@ import ReelCommentModal from "../../reels/components/ReelCommentModal";
 import ViewReelDrawer from "../../reels/components/ViewReelDrawer";
 import { useLikedReels } from "../../reels/hooks/useLikedReels";
 import { useSavedReels } from "../../reels/hooks/useSavedReels";
+import ProfileContentSwitcher from "../components/ProfileContentSwitcher";
 
 type ProfileContentType = "recipes" | "reels"
 
@@ -810,6 +810,11 @@ export default function MyProfilePage() {
     }, { replace: true })
   }
 
+  const handleCloseReelDrawer = () => {
+    setSelectedReel(null)
+    setCommentsReel(null)
+  }
+
   return (
     <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
       <div className="relative">
@@ -866,7 +871,7 @@ export default function MyProfilePage() {
               />
 
               <div className="mt-4 flex">
-                <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-1">
+                {/* <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-1">
                   {[
                     {
                       value: "recipes" as const,
@@ -918,7 +923,12 @@ export default function MyProfilePage() {
                       </button>
                     )
                   })}
-                </div>
+                </div> */}
+
+                <ProfileContentSwitcher 
+                  value={contentType}
+                  onChange={setContentType}
+                />
               </div>
 
               <ProfileRecipeToolbar
@@ -1131,6 +1141,7 @@ export default function MyProfilePage() {
           <AnimatePresence>
             {selectedReel && (
               <motion.div
+                key="reel-drawer"
                 className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-5 backdrop-blur-[2px]"
                 initial={{opacity: 0}}
                 animate={{opacity: 1}}
@@ -1138,7 +1149,7 @@ export default function MyProfilePage() {
                 transition={{duration: 0.2, ease: "easeOut"}}
                 onClick={(event) => {
                   if (event.target === event.currentTarget) {
-                    setSelectedReel(null)
+                    handleCloseReelDrawer()
                   }
                 }}
               >
@@ -1147,7 +1158,7 @@ export default function MyProfilePage() {
                   currentUserId={userId}
                   isLiked={likedReelIds.includes(selectedReel.reelId)}
                   isSaved={savedReelIds.includes(selectedReel.reelId)}
-                  onClose={() => setSelectedReel(null)}
+                  onClose={handleCloseReelDrawer}
                   onCommentsClick={(reel) => {
                     setCommentsReel(reel)
                   }}
@@ -1157,12 +1168,12 @@ export default function MyProfilePage() {
                 />
               </motion.div>
             )}
-          </AnimatePresence>
 
-          <AnimatePresence>
-            {commentsReel && (
+            {selectedReel && commentsReel && (
               <ReelCommentModal
+                key={`reel-comments-${commentsReel.reelId}`}
                 reel={commentsReel}
+                variant="drawer"
                 onClose={() => setCommentsReel(null)}
               />
             )}

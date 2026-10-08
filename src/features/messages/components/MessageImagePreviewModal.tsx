@@ -1,6 +1,7 @@
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded"
 import { AnimatePresence, motion } from "motion/react"
+import { useEffect, useState } from "react"
 
 interface MessageImagePreviewModalProps {
     imageUrl: string | null
@@ -11,15 +12,35 @@ export default function MessageImagePreviewModal({
     imageUrl,
     onClose,
 }: MessageImagePreviewModalProps) {
+  const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(imageUrl)
+
+  useEffect(() => {
+    if (imageUrl) {
+      setDisplayImageUrl(imageUrl)
+    }
+  }, [imageUrl])
   return (
-    <AnimatePresence>
-      {imageUrl && (
+    <AnimatePresence
+      initial={false}
+      onExitComplete={() => {
+        if (!imageUrl) {
+          setDisplayImageUrl(null)
+        }
+      }}
+    >
+      {imageUrl && displayImageUrl && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 top-16 z-[80] flex items-center justify-center bg-[var(--overlay)] px-6 py-10 backdrop-blur-xl"
-          onClick={onClose}
+            key="message-image-preview"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed inset-0 top-16 z-[80] flex items-center justify-center bg-[var(--overlay)] px-6 py-10 backdrop-blur-xl"
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose()
+                }
+            }}
         >
           <button
             type="button"
@@ -40,14 +61,14 @@ export default function MessageImagePreviewModal({
           </a>
 
           <motion.img
-            src={imageUrl}
-            alt="Message attachment preview"
-            initial={{ scale: 0.96, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.96, opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            onClick={(event) => event.stopPropagation()}
-            className="max-h-[86vh] max-w-[92vw] rounded-2xl border border-[var(--border)] object-contain shadow-[var(--shadow-panel)]"
+              src={displayImageUrl}
+              alt="Message attachment preview"
+              initial={{ opacity: 0, scale: 0.96, y: 14, }}
+              animate={{ opacity: 1, scale: 1, y: 0, }}
+              exit={{ opacity: 0, scale: 0.96, y: 14, }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1], }}
+              onClick={(event) => event.stopPropagation()}
+              className="max-h-[86vh] max-w-[92vw] rounded-2xl border border-[var(--border)] object-contain shadow-[var(--shadow-panel)]"
           />
         </motion.div>
       )}

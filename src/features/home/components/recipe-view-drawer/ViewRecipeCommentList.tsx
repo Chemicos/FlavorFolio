@@ -328,11 +328,11 @@ function CommentItem({
                             <AnimatePresence>
                                 {isMenuOpen && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                                    initial={{ opacity: 0, y: 6, scale: 0.96 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                                    exit={{ opacity: 0, y: 6, scale: 0.96 }}
                                     transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                                    className="absolute right-0 top-8 z-20 w-44 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
+                                    className="absolute bottom-full right-0 z-20 mb-2 w-44 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
                                 >
                                     {isOwnComment && (
                                         <>

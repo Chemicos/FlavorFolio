@@ -40,11 +40,11 @@ export default function ProfileConnectionsModal({
     const [searchQuery, setSearchQuery] = useState("")
     const [isLoading, setIsLoading] = useState(true)
 
-    useEffect(() => {
-        if (!isOpen) {
-            setSearchQuery("")
-        }
-    }, [isOpen])
+    // useEffect(() => {
+    //     if (!isOpen) {
+    //         setSearchQuery("")
+    //     }
+    // }, [isOpen])
 
     useEffect(() => {
         if (!isOpen || !userId) return
@@ -90,22 +90,37 @@ export default function ProfileConnectionsModal({
     const title = type === "followers" ? "Followers" : "Following"
 
   return (
-    <AnimatePresence>
+    <AnimatePresence
+      initial={false}
+      onExitComplete={() => {
+        setSearchQuery("")
+      }}
+    >
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--overlay)] px-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
+            key="profile-connections-modal"
+            className="fixed inset-0 z-[100] flex items-center justify-center px-4"
+            
         >
+            
+          <motion.div
+              className="absolute inset-0 bg-[var(--overlay)]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              onClick={onClose}
+          />
+
           <motion.section
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.96 }}
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[560px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-dropdown)] transition-colors"
+              initial={{ opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={{
+                  duration: 0.2,
+                  ease: [0.22, 1, 0.36, 1],
+              }}
+              className="relative z-10 w-full max-w-[560px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow-dropdown)] transition-colors"
           >
             <header className="flex items-center justify-between border-b border-[var(--border)] px-6 py-5">
                 <h2 className="text-xl font-bold text-[var(--text-primary)]">{title}</h2>

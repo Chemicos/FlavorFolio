@@ -30,6 +30,7 @@ import { canViewProfileContent } from "../utils/profilePrivacy"
 import { useUserProfileRecipes } from "../hooks/useUserProfileRecipes"
 import ProfileContentLockedState from "../components/ProfileContentLockedState"
 import { useDismissibleLayer } from "../../../hooks/useDismissibleLayer"
+import ProfileContentSwitcher, { ProfileContentType } from "../components/ProfileContentSwitcher"
 
 export default function UserProfilePage() {
   const navigate = useNavigate()
@@ -77,6 +78,8 @@ export default function UserProfilePage() {
   
   const [recipeToShare, setRecipeToShare] = useState<SharedRecipeMessage | null>(null)
   const isRecipeOverlayOpen = Boolean(selectedRecipe || isRecipeDrawerLoading)
+
+  const [contentType, setContentType] = useState<ProfileContentType>("recipes")
   
   const buildSharedRecipeFromRecipe = (recipe: Recipe): SharedRecipeMessage => ({
     recipeId: recipe.recipeId || recipe.id || "",
@@ -747,18 +750,25 @@ export default function UserProfilePage() {
                 />
                 { canViewRecipes && !hasBlockedRelationship &&
                   <div className="sticky top-16 z-40 bg-[var(--bg-primary)] pb-5 pt-2 transition-colors">
-                    <ProfileRecipeToolbar
-                      searchQuery={searchQuery}
-                      onSearchQueryChange={setSearchQuery}
-                      resultCount={visibleRecipes.length}
-                      sortBy={sortBy}
-                      onSortByChange={setSortBy}
-                      category={category}
-                      onCategoryChange={setCategory}
-                      viewMode={viewMode}
-                      onViewModeChange={setViewMode}
-                      categories={categories}
+                    <ProfileContentSwitcher 
+                      value={contentType}
+                      onChange={setContentType}
                     />
+
+                    {contentType === "recipes" && (
+                      <ProfileRecipeToolbar
+                        searchQuery={searchQuery}
+                        onSearchQueryChange={setSearchQuery}
+                        resultCount={visibleRecipes.length}
+                        sortBy={sortBy}
+                        onSortByChange={setSortBy}
+                        category={category}
+                        onCategoryChange={setCategory}
+                        viewMode={viewMode}
+                        onViewModeChange={setViewMode}
+                        categories={categories}
+                      />
+                    )}
                   </div>
                 }
 
@@ -853,17 +863,15 @@ export default function UserProfilePage() {
           </AnimatePresence>
         </div>    
       </div>
-
-      {connectionsModalType && (
-        <ProfileConnectionsModal
-          isOpen={true}
-          userId={userId || null}
-          currentUserId={currentUserId}
-          type={connectionsModalType}
-          onClose={() => setConnectionsModalType(null)}
-        />
-      )}
-
+      
+      <ProfileConnectionsModal
+        isOpen={connectionsModalType !== null}
+        userId={userId || null}
+        currentUserId={currentUserId}
+        type={connectionsModalType ?? "followers"}
+        onClose={() => setConnectionsModalType(null)}
+      />
+      
       <ShareRecipeModal
         isOpen={Boolean(recipeToShare)}
         currentUserId={currentUserId}

@@ -3,6 +3,7 @@ import { useReels } from "../hooks/useReels"
 import ReelsEmptyState from "./ReelsEmptyState"
 import ReelCard from "./ReelCard"
 import { Reel } from "../types/reel.types"
+import { useEffect, useRef } from "react"
 
 interface ReelsFeedProps {
   reels: Reel[]
@@ -13,6 +14,7 @@ interface ReelsFeedProps {
   savedReelIds: string[]
   onCommentsClick: (reel: Reel) => void
   onShareClick: (reel: Reel) => void
+  onActiveReelChange?: (reelId: string) => void
   onLikeStateChange: (
     reelId: string,
     isLiked: boolean,
@@ -34,10 +36,61 @@ export default function ReelsFeed({
     savedReelIds,
     onCommentsClick,
     onShareClick,
+    onActiveReelChange,
     onLikeStateChange,
     onSaveStateChange,
 }: ReelsFeedProps) {
-    // const { reels, isLoading, error } = useReels()
+    const feedRef = useRef<HTMLElement | null>(null)
+
+    const onActiveReelChangeRef = useRef(onActiveReelChange)
+
+    useEffect(() => {
+        onActiveReelChangeRef.current = onActiveReelChange
+    }, [onActiveReelChange])
+
+    useEffect(() => {
+        const feed = feedRef.current
+
+        if (!feed || isLoading || error || reels.length === 0) {
+            return
+        }
+
+        const reelElements = feed.querySelectorAll<HTMLElement>("[data-reel-id]")
+
+        let activeReelId: string | null = null
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+
+          const reelId = (
+            entry.target as HTMLElement
+          ).dataset.reelId
+
+          if (!reelId || reelId === activeReelId) {
+            continue
+          }
+
+          activeReelId = reelId
+
+          onActiveReelChangeRef.current?.(reelId)
+        }
+      },
+      {
+        root: feed,
+        threshold: 0.6,
+      }
+    )
+
+    reelElements.forEach((element) => {
+      observer.observe(element)
+    })
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [reels, isLoading, error])
 
     if (isLoading) {
         return (
@@ -60,10 +113,11 @@ export default function ReelsFeed({
     if (!reels.length) return <ReelsEmptyState />
 
     return (
-        <section className="h-full snap-y snap-mandatory overflow-y-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <section ref={feedRef} className="h-full snap-y snap-mandatory overflow-y-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {reels.map((reel) => (
                 <div
                     key={reel.reelId}
+                    data-reel-id={reel.reelId}
                     className="flex h-full snap-start items-center justify-center px-4 py-6"
                 >
                 <ReelCard

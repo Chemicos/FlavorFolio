@@ -3,6 +3,7 @@ import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownR
 
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
+import { useDismissibleLayer } from "../../../../hooks/useDismissibleLayer"
 
 type DropdownPlacement = "top" | "bottom"
 
@@ -46,21 +47,21 @@ export default function PostRecipeSelectDropdown({
 
     const selectedOption = options.find((option) => option.value === value)
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false)
-            }
-        }
+    useDismissibleLayer({
+        isOpen,
+        refs: [dropdownRef],
+        onDismiss: () => setIsOpen(false),
 
-        document.addEventListener("mousedown", handleClickOutside)
-        return () => document.removeEventListener("mousedown", handleClickOutside)
-    }, [])
+        closeOnEscape: true,
+        closeOnOutsidePointer: true,
+        closeOnScroll: true
+    })
 
   return (
     <div className="relative z-50" ref={dropdownRef}>
         <button
             type="button"
+            disabled={disabled}
             onClick={() => setIsOpen((prev) => !prev)}
             className={`${fieldClass} flex h-[46px] items-center justify-between`}
         >
@@ -84,7 +85,15 @@ export default function PostRecipeSelectDropdown({
                     animate={{ opacity: 1, y: 0, scale: 1, }}
                     exit={{ opacity: 0, y: placement === "top" ? 6 : -6, scale: 0.96, }}
                     transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1], }}
-                    className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
+                    className={[
+                        "absolute left-0 right-0 z-50",
+                        "max-h-[240px] overflow-y-auto",
+                        "rounded-lg border border-[var(--border)]",
+                        "bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]",
+                        placement === "top"
+                            ? "bottom-[calc(100%+8px)]"
+                            : "top-[calc(100%+8px)]",
+                    ].join(" ")}
                 >
                     {options.map((option) => {
                         const isSelected = value === option.value

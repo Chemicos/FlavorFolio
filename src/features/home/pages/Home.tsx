@@ -59,15 +59,7 @@ export default function Home() {
   const isPostViewOpen = isPostFormVisible
   const isAnyOverlayOpen = isFilterDrawerOpen || isRecipeViewOpen || isPostViewOpen
   
-  const recipeViewLoadingTimerRef = useRef<number | null>(null)
-  // const isLargeDesktop = useMediaQuery("(min-width:1930px)")
-  // const RECIPE_DRAWER_WIDTH = 540
-  // const LAYOUT_GAP = 24
-  // const isPostDrawerOpen = isPostFormVisible
-
-  // const {setFloatingMessagesRightOffset} = useAppLayout()
-  // const floatingActionsRightOffset = isPostDrawerOpen && !isLargeDesktop
-  //   ? RECIPE_DRAWER_WIDTH + LAYOUT_GAP + 24 : 24
+  // const recipeViewLoadingTimerRef = useRef<number | null>(null)
 
   const {
     activeRecipes,
@@ -227,25 +219,8 @@ export default function Home() {
     }
   }, [])
 
-  const startRecipeViewLoading = () => {
-    if (recipeViewLoadingTimerRef.current) {
-      window.clearTimeout(recipeViewLoadingTimerRef.current)
-    }
-
-    setIsRecipeDrawerLoading(true)
-
-    recipeViewLoadingTimerRef.current = window.setTimeout(() => {
-      setIsRecipeDrawerLoading(false)
-      recipeViewLoadingTimerRef.current = null
-    }, 220)
-  }
-
   useEffect(() => {
     return () => {
-      if (recipeViewLoadingTimerRef.current) {
-        window.clearTimeout(recipeViewLoadingTimerRef.current)
-      }
-
       if (feedTabLoadingTimerRef.current) {
         window.clearTimeout(feedTabLoadingTimerRef.current)
       }
@@ -295,7 +270,7 @@ export default function Home() {
   const handleReelSubmitSuccess = () => {
     showSnackbar("Reel submitted successfully. You'll be notified once it has been reviewed by an administrator.", "success")
     setIsPostFormVisible(false)
-    setSelectedPostType("recipe")
+    // setSelectedPostType("recipe")
   }
   
   const handlePostClick = (postType: CreatePostType) => {
@@ -331,9 +306,10 @@ export default function Home() {
 
     setIsPostFormVisible(false)
     setEditingRecipe(null)
+    setIsRecipeDrawerLoading(false)
     setSelectedRecipe(recipe)
 
-    startRecipeViewLoading()
+    // startRecipeViewLoading()
 
     setSearchParams((currentParams) => {
       const nextParams = new URLSearchParams(currentParams)
@@ -345,11 +321,10 @@ export default function Home() {
   }
 
   const handleCloseRecipeDrawer = () => {
-    if (recipeViewLoadingTimerRef.current) {
-      window.clearTimeout(recipeViewLoadingTimerRef.current)
-      recipeViewLoadingTimerRef.current = null
-    }
-
+    // if (recipeViewLoadingTimerRef.current) {
+    //   window.clearTimeout(recipeViewLoadingTimerRef.current)
+    //   recipeViewLoadingTimerRef.current = null
+    // }
     setSelectedRecipe(null)
     setIsRecipeDrawerLoading(false)
 
@@ -394,8 +369,8 @@ export default function Home() {
 
   const handleClosePostRecipeDrawer = () => {
     setIsPostFormVisible(false)
-    setEditingRecipe(null)
-    setSelectedPostType("recipe")
+    // setEditingRecipe(null)
+    // setSelectedPostType("recipe")
   }
 
   const handleRecipeUpdateSuccess = () => {
@@ -578,33 +553,44 @@ export default function Home() {
             </div>
           </main>
 
-          <AnimatePresence>
-            {isPostFormVisible && (
-              <motion.div
-                className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                onClick={(event) => {
-                  if (event.target === event.currentTarget) {
-                    handleClosePostRecipeDrawer()
-                  }
-                }}
-              >
-                <PostRecipeDrawer
-                  key={editingRecipe ? `edit-${editingRecipe.recipeId || editingRecipe.id}` : `create-${selectedPostType}`}
-                  postType={editingRecipe ? "recipe" : selectedPostType}
-                  onClose={handleClosePostRecipeDrawer}
-                  currentUser={currentUser}
-                  onSubmitSuccess={handleRecipeSubmitSuccess}
-                  onReelSubmitSuccess={handleReelSubmitSuccess}
-                  mode={editingRecipe ? "edit" : "create"}
-                  recipeToEdit={editingRecipe}
-                  onUpdateSuccess={handleRecipeUpdateSuccess}
-                />
-              </motion.div>
-            )}
+          <AnimatePresence
+              initial={false}
+              onExitComplete={() => {
+                  setEditingRecipe(null)
+                  setSelectedPostType("recipe")
+              }}
+          >
+              {isPostFormVisible && (
+                <motion.div
+                  key="post-recipe-overlay"
+                  className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  onClick={(event) => {
+                      if (event.target === event.currentTarget) {
+                          handleClosePostRecipeDrawer()
+                      }
+                  }}
+                >
+                  <PostRecipeDrawer
+                      key={
+                          editingRecipe
+                              ? `edit-${editingRecipe.recipeId || editingRecipe.id}`
+                              : `create-${selectedPostType}`
+                      }
+                      postType={editingRecipe ? "recipe" : selectedPostType}
+                      onClose={handleClosePostRecipeDrawer}
+                      currentUser={currentUser}
+                      onSubmitSuccess={handleRecipeSubmitSuccess}
+                      onReelSubmitSuccess={handleReelSubmitSuccess}
+                      mode={editingRecipe ? "edit" : "create"}
+                      recipeToEdit={editingRecipe}
+                      onUpdateSuccess={handleRecipeUpdateSuccess}
+                  />
+                </motion.div>
+              )}
           </AnimatePresence>
 
           <AnimatePresence>
@@ -613,6 +599,7 @@ export default function Home() {
                 className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
+                exit={{opacity: 0}}
                 transition={{duration: 0.2, ease: "easeOut"}}
                 onClick={(event) => {
                   if (event.target === event.currentTarget) {

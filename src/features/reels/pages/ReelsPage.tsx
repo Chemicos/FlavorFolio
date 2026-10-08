@@ -59,6 +59,16 @@ export default function ReelsPage() {
     })
   }
 
+  const handleActiveReelChange = (reelId: string) => {
+    setSelectedReel((current) => {
+      if (!current || current.reelId === reelId) {
+        return current
+      }
+
+      return null
+    })
+  }
+
   return (
      <>
         {/* <Navigation /> */}
@@ -71,6 +81,7 @@ export default function ReelsPage() {
             likedReelIds={likedReelIds}
             savedReelIds={savedReelIds}
             onCommentsClick={setSelectedReel}
+            onActiveReelChange={handleActiveReelChange}
             onShareClick={handleOpenShareReel}
             onLikeStateChange={(
               reelId,
@@ -99,6 +110,7 @@ export default function ReelsPage() {
               <ReelCommentModal
                 key={activeSelectedReel.reelId}
                 reel={activeSelectedReel}
+                variant="feed"
                 onClose={() =>
                   setSelectedReel(null)
                 }

@@ -146,7 +146,10 @@ export default function ViewRecipeDrawer({
     })
 
     const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({})
+
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
+    const [canCollapseDescription, setCanCollapseDescription] = useState(false)
+    const descriptionRef = useRef<HTMLParagraphElement | null>(null)
 
     const [liveAuthorFollowersCount, setLiveAuthorFollowersCount] = useState(Number(authorFollowersCount || 0))
 
@@ -284,9 +287,27 @@ export default function ViewRecipeDrawer({
     const ratingsCount = ratingStats.ratingsCount
     const commentsCount = totalLiveCommentsCount
     const description = recipe?.description || ""
+
+    useEffect(() => {
+        const element = descriptionRef.current
+        if (!element) return
+
+        const updateDescriptionHeight = () => {
+            const lineHeight = parseFloat(window.getComputedStyle(element).lineHeight)
+            const descriptionHeight = element.getBoundingClientRect().height
+
+            setCanCollapseDescription(description > lineHeight * 6 + 1)
+        }
+
+        updateDescriptionHeight()
+
+        const observer = new ResizeObserver(updateDescriptionHeight)
+        observer.observe(element)
+        return () => observer.disconnect()
+    }, [description])
     
     const followButtonDisabled = isFollowLoading || !currentUser?.uid || isOwner
-    const shouldCollapseDescription = description.trim().length > 100
+    // const shouldCollapseDescription = description.trim().length > 100
 
     const [isSubmittingComment, setIsSubmittingComment] = useState(false)
     const [commentReactions, setCommentReactions] = useState<Record<string, "like" | "dislike">>({})
@@ -365,7 +386,7 @@ export default function ViewRecipeDrawer({
 
         setUserRating(null)
         setActiveTab("ingredients")
-        setIsDescriptionExpanded(false)
+        setIsDescriptionExpanded(true)
         setIsRecipeMenuOpen(false)
     }, [recipe.recipeId])
 
@@ -871,24 +892,21 @@ export default function ViewRecipeDrawer({
                             <motion.div
                             initial={false}
                             animate={{
-                                maxHeight: shouldCollapseDescription &&  !isDescriptionExpanded ? 200 : 1000,
+                                maxHeight: canCollapseDescription &&  !isDescriptionExpanded ? 192 : 10000,
                             }}
-                            transition={{
-                                duration: 0.5,
-                                ease: [0.22, 1, 0.36, 1],
-                            }}
+                            transition={{duration: 0.5, ease: [0.22, 1, 0.36, 1],}}
                             className="relative overflow-hidden"
                             >
-                            <p className="text-[1rem] leading-8 text-[var(--text-secondary)]">
+                            <p ref={descriptionRef} className="text-[1rem] leading-8 whitespace-pre-line text-[var(--text-secondary)]">
                                 {description}
                             </p>
 
-                            {shouldCollapseDescription && !isDescriptionExpanded && (
+                            {canCollapseDescription && !isDescriptionExpanded && (
                                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--bg-secondary)] via-[var(--bg-secondary)] to-transparent backdrop-blur-[1px]" />
                             )}
                             </motion.div>
 
-                            {shouldCollapseDescription && (
+                            {canCollapseDescription && (
                             <button
                                 type="button"
                                 onClick={() => setIsDescriptionExpanded((prev) => !prev)}

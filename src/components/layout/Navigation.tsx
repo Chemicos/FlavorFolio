@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import FlavorFolioLogo from '../../assets/FF_logo.png'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
-import { collection, doc, getCountFromServer, getDoc, getDocs, onSnapshot, query, where } from '@firebase/firestore'
+import { collection, doc, getCountFromServer, onSnapshot, query, where } from '@firebase/firestore'
 import { db } from "../../firebase-config"
 
 import {motion} from "motion/react"
@@ -13,7 +13,6 @@ import NotificationsIcon from '@mui/icons-material/Notifications'
 import UserDropdownMenu from './UserDropdownMenu'
 import { useNotifications } from '../../features/notifications/hooks/useNotifications'
 import NotificationsPopover from '../../features/notifications/components/NotificationsPopover'
-// import FloatingMessagesButton from '../../features/messages/components/FloatingMessagesButton'
 import GlobalSearchBar from '../../features/search/components/GlobalSearchBar'
 
 export default function Navigation() {
@@ -29,7 +28,6 @@ export default function Navigation() {
     const [isAdmin, setIsAdmin] = useState(false)
     const [needsRevisionCount, setNeedsRevisionCount] = useState(0)
     const [pendingCount, setPendingCount] = useState(0)
-    // const [isDarkMode, setIsDarkMode] = useState(false)
     
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const menuOpen = Boolean(anchorEl)
