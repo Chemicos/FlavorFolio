@@ -1,5 +1,5 @@
 import { Skeleton } from "@mui/material"
-import { ProfileRecipeViewMode } from "./ProfileRecipeToolbar"
+import { ProfileRecipeViewMode } from "./ProfileContentToolbar"
 
 interface ProfileRecipeGridSkeletonProps {
   viewMode: ProfileRecipeViewMode

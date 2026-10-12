@@ -1,14 +1,14 @@
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded"
 import SendRoundedIcon from "@mui/icons-material/SendRounded"
 import BlockRoundedIcon from "@mui/icons-material/BlockRounded"
-import { CircularProgress } from "@mui/material"
+import { CircularProgress, debounce } from "@mui/material"
 
 import { useNavigate, useParams } from "react-router-dom"
 import { useUserProfile } from "../hooks/useUserProfile"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useDebounce } from "../../recipe-review/hooks/useDebounce"
 
-import ProfileRecipeToolbar, { ProfileRecipeSortValue, ProfileRecipeViewMode } from "../components/ProfileRecipeToolbar"
+import ProfileContentToolbar, { type ProfileContentSortValue, type ProfileContentViewMode, } from "../components/ProfileContentToolbar"
 import MyProfileHeader from "../components/MyProfileHeader"
 import ProfileRecipeGridSkeleton from "../components/ProfileRecipeGridSkeleton"
 import ProfileRecipeGrid from "../components/ProfileRecipeGrid"
@@ -24,13 +24,20 @@ import ViewRecipeDrawer from "../../home/components/recipe-view-drawer/ViewRecip
 import { MyProfileData, subscribeToMyProfile } from "../services/profile.service"
 import { blockUser, subscribeToBlockedByUserIds, subscribeToBlockedUserIds, unblockUser } from "../../account-settings/services/blockedUsers.service"
 import { createOrOpenDirectConversation } from "../../messages/services/messages.service"
-import { SharedRecipeMessage } from "../../messages/types/messages.types"
+import { SharedRecipeMessage, SharedReelMessage } from "../../messages/types/messages.types"
 import ShareRecipeModal from "../../messages/components/ShareRecipeModal"
 import { canViewProfileContent } from "../utils/profilePrivacy"
 import { useUserProfileRecipes } from "../hooks/useUserProfileRecipes"
 import ProfileContentLockedState from "../components/ProfileContentLockedState"
 import { useDismissibleLayer } from "../../../hooks/useDismissibleLayer"
 import ProfileContentSwitcher, { ProfileContentType } from "../components/ProfileContentSwitcher"
+import { useUserProfileReels } from "../hooks/useUserProfileReels"
+import ProfileReelGrid from "../components/ProfileReelGrid"
+import { Reel } from "../../reels/types/reel.types"
+import ViewReelDrawer from "../../reels/components/ViewReelDrawer"
+import ReelCommentModal from "../../reels/components/ReelCommentModal"
+import { useLikedReels } from "../../reels/hooks/useLikedReels"
+import { useSavedReels } from "../../reels/hooks/useSavedReels"
 
 export default function UserProfilePage() {
   const navigate = useNavigate()
@@ -66,9 +73,9 @@ export default function UserProfilePage() {
   const debouncedSearchQuery = useDebounce(searchQuery, 1000)
   const isSearching = searchQuery.trim() !== debouncedSearchQuery.trim()
 
-  const [sortBy, setSortBy] = useState<ProfileRecipeSortValue>("latest")
+  const [sortBy, setSortBy] = useState<ProfileContentSortValue>("latest")
   const [category, setCategory] = useState("all")
-  const [viewMode, setViewMode] = useState<ProfileRecipeViewMode>("grid")
+  const [viewMode, setViewMode] = useState<ProfileContentViewMode>("grid")
 
   const [savedRecipeIds, setSavedRecipeIds] = useState<string[]>([])
   
@@ -77,9 +84,22 @@ export default function UserProfilePage() {
   const [isRecipeDrawerLoading, setIsRecipeDrawerLoading] = useState(false)
   
   const [recipeToShare, setRecipeToShare] = useState<SharedRecipeMessage | null>(null)
-  const isRecipeOverlayOpen = Boolean(selectedRecipe || isRecipeDrawerLoading)
 
   const [contentType, setContentType] = useState<ProfileContentType>("recipes")
+
+  const [selectedReel, setSelectedReel] = useState<Reel | null>(null)
+  const [commentsReel, setCommentsReel] = useState<Reel | null>(null)
+  const {likedReelIds} = useLikedReels()
+  const {savedReelIds} = useSavedReels()
+  const [reelToShare, setReelToShare] = useState<SharedReelMessage | null>(null)
+
+  const isProfileOverlayOpen = Boolean(
+    selectedRecipe ||
+    isRecipeDrawerLoading ||
+    selectedReel ||
+    commentsReel ||
+    reelToShare
+  )
   
   const buildSharedRecipeFromRecipe = (recipe: Recipe): SharedRecipeMessage => ({
     recipeId: recipe.recipeId || recipe.id || "",
@@ -119,7 +139,7 @@ export default function UserProfilePage() {
   const categories = useMemo(() => ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],[])
 
   useEffect(() => {
-    if (!isRecipeOverlayOpen) return
+    if (!isProfileOverlayOpen) return
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = "hidden"
@@ -127,7 +147,7 @@ export default function UserProfilePage() {
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [isRecipeOverlayOpen])
+  }, [isProfileOverlayOpen])
 
   useEffect(() => {
     if (!currentUserId) {
@@ -258,9 +278,15 @@ export default function UserProfilePage() {
     userId,
     enabled: canViewRecipes && !hasBlockedRelationship,
   })
+
+  const {
+    reels,
+    error: reelsError,
+  } = useUserProfileReels(userId, canViewRecipes && !hasBlockedRelationship && contentType === "reels")
   
-  const isLoading = isProfileLoading || ( canViewRecipes && !hasBlockedRelationship && areRecipesLoading )
-  const error = profileError || recipesError
+  const isLoading = isProfileLoading || (canViewRecipes && !hasBlockedRelationship && contentType === "recipes" && areRecipesLoading)
+
+  const error = profileError || (contentType === "recipes" ? recipesError : reelsError)
   
   useEffect(() => {
     if ( !selectedRecipeId || !canViewRecipes || hasBlockedRelationship ) {
@@ -317,6 +343,15 @@ export default function UserProfilePage() {
     setIsRecipeDrawerLoading(false)
   }, [canViewRecipes, hasBlockedRelationship,])
 
+  const handleContentTypeChange = (nextType: ProfileContentType) => {
+    if (nextType === contentType) return
+
+    setContentType(nextType)
+    setSearchQuery("")
+    setSortBy("latest")
+    setCategory("all")
+  }
+
   const handleToggleFollow = async () => {
     if (!currentUserId || !userId || !profile || isOwnProfile || isFollowLoading) return
 
@@ -351,6 +386,102 @@ export default function UserProfilePage() {
     setSelectedRecipeId(null)
     setSelectedRecipe(null)
     setIsRecipeDrawerLoading(false)
+  }
+  
+  const handleCloseReelDrawer = () => {
+    setSelectedReel(null)
+    setCommentsReel(null)
+  }
+
+  const handleReelCommentsClick = (reel: Reel) => {
+    setCommentsReel(reel)
+  }
+
+  const handleReelLikeStateChange = (
+    reelId: string,
+    isLiked: boolean,
+    likesCount: number
+  ) => {
+    // setLikedReelIds((prev) => 
+    //   isLiked 
+    //   ? Array.from(new Set([...prev, reelId])) 
+    //   : prev.filter((id) => id !== reelId))
+
+    setSelectedReel((prev) => 
+      prev?.reelId === reelId
+      ? {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          likesCount,
+        },
+      }
+      : prev
+    )
+  }
+
+  const handleReelSaveStateChange = (
+    reelId: string,
+    isSaved: boolean,
+    savesCount: number,
+  ) => {
+    // setSavedReelIds((prev) =>
+    //   isSaved ? Array.from(new Set([...prev, reelId]))
+    //   : prev.filter((id) => id !== reelId)
+    // )
+
+    setSelectedReel((prev) => 
+      prev?.reelId === reelId
+      ? {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          savesCount
+        }
+      } : prev
+    )
+  }
+
+  const handleReelCommentsCountChange = useCallback((
+    reelId: string,
+    commentsCount: number
+  ) => {
+    const normalizedCount = Number(commentsCount || 0)
+
+    const updateReel = (prev: Reel | null): Reel | null => {
+      if (!prev || prev.reelId !== reelId) return prev
+
+      if (prev.stats.commentsCount === normalizedCount) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          commentsCount: normalizedCount,
+        },
+      }
+    }
+
+    setSelectedReel(updateReel)
+    setCommentsReel(updateReel)
+  }, [])
+
+  const handleOpenShareReel = (reel: Reel) => {
+    setReelToShare({
+      reelId: reel.reelId,
+      title: reel.title || "Recipe reel",
+      description: reel.description || "",
+      videoUrl: reel.videoUrl || "",
+      thumbnail: reel.thumbnail || "",
+      authorUsername:
+        reel.author?.username ||
+        profile?.username ||
+        "Unknown",
+      meal: reel.meal || "",
+      durationSeconds: Number(reel.duration || 0),
+    })
   }
 
   const handleRatingStateChange = useCallback((
@@ -547,6 +678,56 @@ export default function UserProfilePage() {
       )
     })
   }, [recipes, debouncedSearchQuery, category, sortBy])
+
+  const visibleReels = useMemo(() => {
+    const search = debouncedSearchQuery.trim().toLowerCase()
+
+    const filteredBySearch = reels.filter((reel) => {
+      if (!search) return true
+
+      return [
+        reel.title,
+        reel.description,
+        reel.meal
+      ].filter(Boolean).join(" ").toLowerCase().includes(search)
+    })
+
+    const filteredByCategory = filteredBySearch.filter((reel) => {
+      if (category === "all") return true
+
+      return (
+        reel.meal?.toLowerCase() === category.toLowerCase()
+      )
+    })
+
+    const getTime = (value: Reel["createdAt"]) => {
+      if (!value) return 0
+
+      return value.toMillis()
+    }
+
+    return [...filteredByCategory].sort((a,b) => {
+      if (sortBy === "oldest") {
+        return getTime(a.createdAt) - getTime(b.createdAt)
+      }
+
+      if (sortBy === "popular") {
+        const aPopularity =
+          Number(a.stats?.likesCount ?? 0) +
+          Number(a.stats?.commentsCount ?? 0) +
+          Number(a.stats?.viewsCount ?? 0)
+
+        const bPopularity =
+          Number(b.stats?.likesCount ?? 0) +
+          Number(b.stats?.commentsCount ?? 0) +
+          Number(b.stats?.viewsCount ?? 0)
+
+        return bPopularity - aPopularity
+      }
+
+      return getTime(b.createdAt) - getTime(a.createdAt)
+    })    
+  }, [reels, debouncedSearchQuery, category, sortBy])
 
   const handleAuthorProfileClick = useCallback((authorId: string) => {
     setSelectedRecipeId(null)
@@ -748,29 +929,28 @@ export default function UserProfilePage() {
                     ) : null
                   }
                 />
-                { canViewRecipes && !hasBlockedRelationship &&
+                { canViewRecipes && !hasBlockedRelationship && (
                   <div className="sticky top-16 z-40 bg-[var(--bg-primary)] pb-5 pt-2 transition-colors">
                     <ProfileContentSwitcher 
                       value={contentType}
-                      onChange={setContentType}
+                      onChange={handleContentTypeChange}
                     />
 
-                    {contentType === "recipes" && (
-                      <ProfileRecipeToolbar
-                        searchQuery={searchQuery}
-                        onSearchQueryChange={setSearchQuery}
-                        resultCount={visibleRecipes.length}
-                        sortBy={sortBy}
-                        onSortByChange={setSortBy}
-                        category={category}
-                        onCategoryChange={setCategory}
-                        viewMode={viewMode}
-                        onViewModeChange={setViewMode}
-                        categories={categories}
-                      />
-                    )}
+                    <ProfileContentToolbar
+                      contentType={contentType}
+                      searchQuery={searchQuery}
+                      onSearchQueryChange={setSearchQuery}
+                      resultCount={contentType === "recipes" ? visibleRecipes.length : reels.length}
+                      sortBy={sortBy}
+                      onSortByChange={setSortBy}
+                      category={category}
+                      onCategoryChange={setCategory}
+                      viewMode={viewMode}
+                      onViewModeChange={setViewMode}
+                      categories={categories}
+                    />
                   </div>
-                }
+                )}
 
                 {hasBlockedRelationship ? (
                   <div className="mt-8 rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-soft)] p-8 text-center shadow-[var(--shadow-card)]">
@@ -794,29 +974,57 @@ export default function UserProfilePage() {
                     onFollow={handleToggleFollow}
                   />
                 ) : (
-                  <>
-                    {(isLoading || isSearching) && (
-                      <ProfileRecipeGridSkeleton
-                        viewMode={viewMode}
-                        count={8}
-                      />
-                    )}
-
-                    {!isLoading && !isSearching && (
-                      <ProfileRecipeGrid
-                        recipes={visibleRecipes}
-                        viewMode={viewMode}
-                        currentUserId={null}
-                        showStatus={false}
-                        onRecipeClick={(recipe) => {
-                          setSelectedRecipeId(recipe.id)
-                        }}
-                        onRecipeShare={(recipe) => {
-                          handleShareRecipeFromGrid(recipe)
-                        }}
-                      />
-                    )}
-                  </>
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={contentType}
+                      initial={{opacity: 0, y: 12}}
+                      animate={{opacity: 1, y: 0}}
+                      exit={{opacity: 0, y: -12}}
+                      transition={{duration: 0.22, ease: "easeInOut"}}
+                      className="w-full"
+                    >
+                      {contentType === "recipes" ? (
+                        <>
+                          {(isLoading || isSearching) && (
+                            <ProfileRecipeGridSkeleton
+                              viewMode={viewMode}
+                              count={8}
+                            />
+                          )}
+                            
+                          {!isLoading && !isSearching && (
+                            <ProfileRecipeGrid
+                              recipes={visibleRecipes}
+                              viewMode={viewMode}
+                              currentUserId={null}
+                              showStatus={false}
+                              onRecipeClick={(recipe) => {
+                                setSelectedRecipeId(recipe.id)
+                              }}
+                              onRecipeShare={(recipe) => {
+                                handleShareRecipeFromGrid(recipe)
+                              }}
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {!reelsError && (
+                            <ProfileReelGrid
+                              reels={visibleReels}
+                              viewMode={viewMode}
+                              currentUserId={currentUserId}
+                              showStatus={false}
+                              onReelClick={(reel) => {
+                                setSelectedReel(reel)
+                              }}
+                              onReelShare={handleOpenShareReel}
+                            />
+                          )}
+                        </>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>   
                 )}
               </>
             )}
@@ -864,6 +1072,45 @@ export default function UserProfilePage() {
         </div>    
       </div>
       
+      <AnimatePresence>
+        {selectedReel && canViewRecipes && !hasBlockedRelationship && (
+          <motion.div
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
+            exit={{opacity: 0}}
+            transition={{duration: 0.2}}
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                handleCloseReelDrawer()
+              }
+            }}
+          >
+            <ViewReelDrawer
+              reel={selectedReel}
+              currentUserId={currentUserId}
+              isLiked={likedReelIds.includes(selectedReel.reelId)}
+              isSaved={savedReelIds.includes(selectedReel.reelId)}
+              onClose={handleCloseReelDrawer}
+              onCommentsClick={handleReelCommentsClick}
+              onShareClick={handleOpenShareReel}
+              onLikeStateChange={handleReelLikeStateChange}
+              onSaveStateChange={handleReelSaveStateChange}
+            />
+          </motion.div>
+        )}
+
+        {selectedReel && commentsReel && canViewRecipes && !hasBlockedRelationship && (
+          <ReelCommentModal 
+            key={`reel-comments-${commentsReel.reelId}`}
+            reel={commentsReel}
+            variant="drawer"
+            onClose={() => setCommentsReel(null)}
+            onCommentsCountChange={handleReelCommentsCountChange}
+          />
+        )}
+      </AnimatePresence>
+      
       <ProfileConnectionsModal
         isOpen={connectionsModalType !== null}
         userId={userId || null}
@@ -880,6 +1127,17 @@ export default function UserProfilePage() {
         onShared={(username) => {
           showSnackbar(`Recipe shared with ${username}.`, "success")
           setRecipeToShare(null)
+        }}
+      />
+
+      <ShareRecipeModal 
+        isOpen={Boolean(reelToShare)}
+        currentUserId={currentUserId}
+        reel={reelToShare}
+        onClose={() => setReelToShare(null)}
+        onShared={(username) => {
+          showSnackbar(`Reel shared with ${username}.`, "success")
+          setReelToShare(null)
         }}
       />
     </div>

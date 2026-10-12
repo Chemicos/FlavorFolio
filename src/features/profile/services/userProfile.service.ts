@@ -4,6 +4,7 @@ import { MyProfileData, normalizeUserRestrictions } from "./profile.service"
 import { ProfileRecipeDocument } from "./profileRecipes.service"
 import { db } from "../../../firebase-config"
 import { ProfileVisibility } from "../../account-settings/services/privacy.service"
+import { Reel } from "../../reels/types/reel.types"
 
 function getDateMs(value: any) {
   if (!value) return 0
@@ -113,35 +114,6 @@ export async function fetchUserPublishedRecipesCount(
   return snapshot.data().count
 }
 
-// export async function fetchUserProfile(userId: string): Promise<MyProfileData> {
-//   const userSnap = await getDoc(doc(db, "users", userId))
-
-//   if (!userSnap.exists()) {
-//     throw new Error("User profile not found.")
-//   }
-
-//   const data = userSnap.data()
-
-//   return {
-//     uid: userSnap.id,
-//     username: data.username || "",
-//     firstName: data.firstName || "",
-//     lastName: data.lastName || "",
-//     bio: data.bio || data.userDescription || "",
-//     profileImage: data.profileImage || "",
-//     bannerImage: data.bannerImage || "",
-//     location: data.location || "",
-//     website: data.website || "",
-//     createdAt: data.createdAt || undefined,
-//     stats: {
-//       recipesCount: Number(data.stats?.recipesCount || 0),
-//       followersCount: Number(data.stats?.followersCount || 0),
-//       followingCount: Number(data.stats?.followingCount || 0),
-//       savedRecipesCount: Number(data.stats?.savedRecipesCount || 0),
-//     },
-//   }
-// }
-
 export async function fetchUserProfile(
   userId: string
 ): Promise<MyProfileData> {
@@ -183,47 +155,6 @@ export async function fetchUserPublicRecipes(
   )
 }
 
-// export function subscribeToUserProfile(
-//   userId: string,
-//   onChange: (profile: MyProfileData) => void,
-//   onError: (error: Error) => void
-// ) {
-//   const userRef = doc(db, "users", userId)
-
-//   return onSnapshot(
-//     userRef,
-//     (snapshot) => {
-//       if (!snapshot.exists()) {
-//         onError(new Error("User profile not found."))
-//         return
-//       }
-
-//       const data = snapshot.data()
-
-//       onChange({
-//         uid: snapshot.id,
-//         username: data.username || "",
-//         firstName: data.firstName || "",
-//         lastName: data.lastName || "",
-//         bio: data.bio || data.userDescription || "",
-//         profileImage: data.profileImage || "",
-//         bannerImage: data.bannerImage || "",
-//         location: data.location || "",
-//         website: data.website || "",
-//         createdAt: data.createdAt || undefined,
-//         stats: {
-//           recipesCount: Number(data.stats?.recipesCount || 0),
-//           followersCount: Number(data.stats?.followersCount || 0),
-//           followingCount: Number(data.stats?.followingCount || 0),
-//           savedRecipesCount: Number(data.stats?.savedRecipesCount || 0),
-//         },
-//       })
-//     },
-//     onError
-//   )
-// }
-
-
 export function subscribeToUserProfile(
   userId: string,
   onChange: (profile: MyProfileData) => void,
@@ -253,4 +184,63 @@ export function subscribeToUserProfile(
     },
     onError
   )
+}
+
+export async function fetchUserPublicReels(userId: string): Promise<Reel[]> {
+  if (!userId) {
+    throw new Error("User id is required.")
+  }
+
+  const reelsQuery = query(
+    collection(db, "reels"),
+    where("userId", "==", userId),
+    where("status", "==", "published"),
+    where("visibility", "==", "public"),
+    orderBy("createdAt", "desc"),
+    limit(80)
+  )
+
+  const snapshot = await getDocs(reelsQuery)
+
+  return snapshot.docs.map((docSnap): Reel => {
+    const data = docSnap.data()
+
+    return {
+      reelId: data.reelId || docSnap.id,
+      userId: data.userId || userId,
+
+      author: {
+        userId: data.author?.userId || userId,
+        username: data.author?.username || "",
+        profileImage: data.author?.profileImage || "",
+      },
+
+      title: data.title || "",
+      description: data.description || "",
+      meal: data.meal || "breakfast",
+      status: "published",
+
+      videoUrl: data.videoUrl || "",
+      videoFileName: data.videoFileName || "",
+
+      thumbnail: data.thumbnailUrl || data.thumbnail || "",
+      duration: Number(data.durationSeconds ?? data.duration ?? 0),
+
+      visibility: "public",
+
+      stats: {
+        likesCount: Number(data.likesCount ?? data.stats?.likesCount ?? 0),
+        commentsCount: Number(data.commentsCount ?? data.stats?.commentsCount ?? 0),
+        savesCount: Number(data.savesCount ?? data.stats?.savesCount ?? 0),
+        sharesCount: Number(data.sharesCount ?? data.stats?.sharesCount ?? 0),
+        viewsCount: Number(data.viewsCount ?? data.stats?.viewsCount ?? 0),
+      },
+
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      submittedAt: data.submittedAt,
+      publishedAt: data.publishedAt,
+      revisionReason: data.revisionReason,
+    }
+  })
 }

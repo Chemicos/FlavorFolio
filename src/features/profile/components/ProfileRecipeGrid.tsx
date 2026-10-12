@@ -7,7 +7,7 @@ import EditRoundedIcon from "@mui/icons-material/EditRounded"
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded"
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded"
 
-import { ProfileRecipeViewMode } from "./ProfileRecipeToolbar"
+import { ProfileRecipeViewMode } from "./ProfileContentToolbar"
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { AnimatePresence, motion } from "motion/react"
@@ -456,7 +456,7 @@ export default function ProfileRecipeGrid({
 
     if (viewMode === "list") {
         return (
-        <section className="mb-6 grid gap-2">
+        <section className="my-2 grid gap-2">
             {recipes.map((recipe) => (
             <ProfileRecipeListCard
                 key={recipe.id}
@@ -473,7 +473,7 @@ export default function ProfileRecipeGrid({
         )
     }
   return (
-    <section className="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="my-2 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
       {recipes.map((recipe) => (
         <ProfileRecipeGridCard
           key={recipe.id}

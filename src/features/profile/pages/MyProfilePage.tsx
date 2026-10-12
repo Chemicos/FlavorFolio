@@ -10,7 +10,7 @@ import { useMyProfileRecipes } from "../hooks/useMyProfileRecipes";
 
 import MyProfileHeader from "../components/MyProfileHeader";
 import ProfileRecipeTabs, { ProfileRecipeTabItem, ProfileRecipeTabValue } from "../components/ProfileRecipeTabs";
-import ProfileRecipeToolbar, { ProfileRecipeSortValue, ProfileRecipeViewMode } from "../components/ProfileRecipeToolbar";
+import ProfileContentToolbar, { ProfileContentSortValue, ProfileContentViewMode } from "../components/ProfileContentToolbar";
 import ProfileRecipeGrid, { ProfileRecipeGridItem } from "../components/ProfileRecipeGrid";
 import ProfileRecipeGridSkeleton from "../components/ProfileRecipeGridSkeleton";
 import MyProfileEditForm from "../components/MyProfileEditForm";
@@ -101,9 +101,9 @@ export default function MyProfilePage() {
   const recipeIdFromUrl = searchParams.get("recipeId")
   
   const [contentType, setContentType] = useState<ProfileContentType>("recipes")
-  const [sortBy, setSortBy] = useState<ProfileRecipeSortValue>("latest")
+  const [sortBy, setSortBy] = useState<ProfileContentSortValue>("latest")
   const [category, setCategory] = useState("all")
-  const [viewMode, setViewMode] = useState<ProfileRecipeViewMode>("grid")
+  const [viewMode, setViewMode] = useState<ProfileContentViewMode>("grid")
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [isProfileEditLoading, setIsProfileEditLoading] = useState(false)
   
@@ -401,7 +401,7 @@ export default function MyProfilePage() {
     setIsRecipeEditLoading(false)
   }
 
-  const handleViewModeChange = async (nextViewMode: ProfileRecipeViewMode) => {
+  const handleViewModeChange = async (nextViewMode: ProfileContentViewMode) => {
     if (nextViewMode === viewMode) return
     const previousViewMode = viewMode
 
@@ -931,7 +931,8 @@ export default function MyProfilePage() {
                 />
               </div>
 
-              <ProfileRecipeToolbar
+              <ProfileContentToolbar
+                contentType={contentType}
                 searchQuery={searchQuery}
                 onSearchQueryChange={setSearchQuery}
                 resultCount={contentType === "recipes" ? visibleRecipes.length : visibleReels.length}

@@ -2,58 +2,49 @@ import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded"
 import ViewListRoundedIcon from "@mui/icons-material/ViewListRounded"
 import PostRecipeSelectDropdown from "../../home/components/post-recipe/PostRecipeSelectDropdown"
 import RecipeReviewSearch from "../../recipe-review/components/RecipeReviewSearch"
+import { ProfileContentType } from "./ProfileContentSwitcher"
 
-export type ProfileRecipeSortValue =
+export type ProfileContentSortValue =
   | "latest"
   | "oldest"
   | "popular"
   | "highest-rated"
 
-export type ProfileRecipeViewMode = "grid" | "list"
+export type ProfileContentViewMode = "grid" | "list"
 
 interface ProfileRecipeToolbarProps {
+  contentType: ProfileContentType
   searchQuery: string
   onSearchQueryChange: (value: string) => void
   resultCount?: number
-  sortBy: ProfileRecipeSortValue
-  onSortByChange: (value: ProfileRecipeSortValue) => void
+  sortBy: ProfileContentSortValue
+  onSortByChange: (value: ProfileContentSortValue) => void
   category: string
   onCategoryChange: (value: string) => void
-  viewMode: ProfileRecipeViewMode
-  onViewModeChange: (value: ProfileRecipeViewMode) => void
+  viewMode: ProfileContentViewMode
+  onViewModeChange: (value: ProfileContentViewMode) => void
   categories?: string[]
 }
 
-const sortOptions: Array<{label: string, value: ProfileRecipeSortValue}> = [
-  {
-    label: "Latest",
-    value: "latest",
-  },
-  {
-    label: "Oldest",
-    value: "oldest",
-  },
-  {
-    label: "Popular",
-    value: "popular",
-  },
-  {
-    label: "Highest rated",
-    value: "highest-rated",
-  },
+const sortOptions: Array<{label: string, value: ProfileContentSortValue}> = [
+  {label: "Latest", value: "latest"},
+  {label: "Oldest",value: "oldest"},
+  {label: "Popular",value: "popular"},
+  {label: "Highest rated",value: "highest-rated"},
 ]
 
-export default function ProfileRecipeToolbar({
-    searchQuery,
-    onSearchQueryChange,
-    resultCount,
-    sortBy,
-    onSortByChange,
-    category,
-    onCategoryChange,
-    viewMode,
-    onViewModeChange,
-    categories = [],
+export default function ProfileContentToolbar({
+  contentType,
+  searchQuery,
+  onSearchQueryChange,
+  resultCount,
+  sortBy,
+  onSortByChange,
+  category,
+  onCategoryChange,
+  viewMode,
+  onViewModeChange,
+  categories = [],
 }:ProfileRecipeToolbarProps) {
     const categoryOptions = [
         {
@@ -66,6 +57,8 @@ export default function ProfileRecipeToolbar({
         })),
     ]
 
+    const availableSortOptions = contentType === "reels" ? sortOptions.filter((option) => option.value !== "highest-rated") : sortOptions
+
   return (
     <section className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-start">
@@ -73,15 +66,19 @@ export default function ProfileRecipeToolbar({
           value={searchQuery}
           onChange={onSearchQueryChange}
           resultCount={resultCount}
-          placeholder="Search my recipes..."
+          placeholder={
+            contentType === "recipes"
+              ? "Search recipes..."
+              : "Search reels..."
+          }
         />
 
         <div className="relative w-full sm:w-[135px]">
           <PostRecipeSelectDropdown
             value={sortBy}
-            options={sortOptions}
+            options={availableSortOptions}
             onChange={(value) =>
-              onSortByChange(value as ProfileRecipeSortValue)
+              onSortByChange(value as ProfileContentSortValue)
             }
           />
         </div>

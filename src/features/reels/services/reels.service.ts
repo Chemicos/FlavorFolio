@@ -160,27 +160,107 @@ function mapReelDoc(docSnap: any): Reel {
   }
 }
 
+async function enrichReelsWithAuthors(reels: Reel[]): Promise<Reel[]> {
+  if (!reels.length) return reels
+
+  const authorIds = [
+    ...new Set(
+      reels.map((reel) => reel.userId || reel.author?.userId).filter((id): id is string => Boolean(id))
+    )
+  ]
+
+  const authorEntries = await Promise.all(
+    authorIds.map(async (userId) => {
+      try {
+        const userSnapshot = await getDoc(
+          doc(db, "users", userId)
+        )
+
+        if (!userSnapshot.exists()) {
+          return [userId, null] as const
+        }
+
+        const data = userSnapshot.data()
+
+        return [
+          userId,
+          {
+            username:
+              data.username ||
+              data.displayName ||
+              data.firstName ||
+              "User",
+
+            profileImage:
+              data.profileImage ||
+              data.profileImageUrl ||
+              "",
+          },
+        ] as const
+      } catch (error) {
+        console.error(
+          `Failed to load reel author ${userId}:`,
+          error
+        )
+
+        return [userId, null] as const
+      }
+    })
+  )
+
+  const authorsById = new Map(authorEntries)
+
+  return reels.map((reel) => {
+    const authorId = reel.userId || reel.author?.userId
+    const author = authorsById.get(authorId)
+
+    if (!author) return reel
+
+    return {
+      ...reel,
+      author: {
+        ...reel.author,
+        userId: authorId,
+        username: author.username,
+        profileImage: author.profileImage,
+      },
+    }
+  })
+}
+
 export async function fetchReelById(reelId: string): Promise<Reel | null> {
-  const reelSnapshot = await getDoc(doc(db, "reels", reelId))
+  if (!reelId) return null
+
+  const reelSnapshot = await getDoc(
+    doc(db, "reels", reelId)
+  )
 
   if (!reelSnapshot.exists()) {
     return null
   }
 
-  return mapReelDoc(reelSnapshot)
+  const reel = mapReelDoc(reelSnapshot)
+
+  const [enrichedReel] = await enrichReelsWithAuthors([reel])
+
+  return enrichedReel
 }
 
 export async function fetchReelsByIds(reelIds: string[]): Promise<Reel[]> {
   if (!reelIds.length) return []
 
   const snapshots = await Promise.all(
-    reelIds.map((reelId) => getDoc(doc(db, "reels", reelId)))
+    reelIds.map((reelId) =>
+      getDoc(doc(db, "reels", reelId))
+    )
   )
 
-  return snapshots
+  const reels = snapshots
     .filter((snapshot) => snapshot.exists())
     .map(mapReelDoc)
     .filter((reel) => Boolean(reel.videoUrl))
+
+  return enrichReelsWithAuthors(reels)
 }
 
 
@@ -200,89 +280,94 @@ export async function fetchUserReels(userId: string, status?: ReelStatus): Promi
 
   const snapshot = await getDocs(reelsQuery)
 
-  return snapshot.docs.map(mapReelDoc).filter((reel) => Boolean(reel.videoUrl))
+  const reels = snapshot.docs.map(mapReelDoc).filter((reel) => Boolean(reel.videoUrl))
+
+  return enrichReelsWithAuthors(reels)
 }
 
 export async function fetchPublicReels(limitCount = 20): Promise<Reel[]> {
-    const reelsQuery = query(
-        collection(db, "reels"),
-        where("status", "==", "published"),
-        where("visibility", "==", "public"),
-        orderBy("createdAt", "desc"),
-        limit(limitCount)
-    )
+  const reelsQuery = query(
+      collection(db, "reels"),
+      where("status", "==", "published"),
+      where("visibility", "==", "public"),
+      orderBy("createdAt", "desc"),
+      limit(limitCount)
+  )
 
-    const snapshot = await getDocs(reelsQuery)
+  const snapshot = await getDocs(reelsQuery)
+  const reels = snapshot.docs.map(mapReelDoc).filter((reel) => Boolean(reel.videoUrl))
 
-    const reels = snapshot.docs.map(mapReelDoc).filter((reel) => Boolean(reel.videoUrl))
+  return enrichReelsWithAuthors(reels)
 
-    const authorIds = [
-      ...new Set(
-        reels
-          .map((reel) => reel.userId || reel.author?.userId)
-          .filter((userId): userId is string => Boolean(userId))
-      ),
-    ]
+  //   const reels = snapshot.docs.map(mapReelDoc).filter((reel) => Boolean(reel.videoUrl))
 
-    const authorEntries = await Promise.all(
-      authorIds.map(async (userId) => {
-        try {
-          const userSnapshot = await getDoc(doc(db, "users", userId))
+  //   const authorIds = [
+  //     ...new Set(
+  //       reels
+  //         .map((reel) => reel.userId || reel.author?.userId)
+  //         .filter((userId): userId is string => Boolean(userId))
+  //     ),
+  //   ]
 
-          if (!userSnapshot.exists()) {
-            return [userId, null] as const
-          }
+  //   const authorEntries = await Promise.all(
+  //     authorIds.map(async (userId) => {
+  //       try {
+  //         const userSnapshot = await getDoc(doc(db, "users", userId))
 
-          const userData = userSnapshot.data()
+  //         if (!userSnapshot.exists()) {
+  //           return [userId, null] as const
+  //         }
 
-          return [
-            userId,
-            {
-              username:
-                userData.username ||
-                userData.displayName ||
-                userData.firstName ||
-                "User",
+  //         const userData = userSnapshot.data()
 
-              profileImage:
-                userData.profileImage ||
-                userData.profileImageUrl ||
-                "",
-            },
-          ] as const
-        } catch (error) {
-          console.error(`Failed to fetch reel author ${userId}:`, error)
+  //         return [
+  //           userId,
+  //           {
+  //             username:
+  //               userData.username ||
+  //               userData.displayName ||
+  //               userData.firstName ||
+  //               "User",
 
-          return [userId, null] as const
-        }
-      })
-    )
+  //             profileImage:
+  //               userData.profileImage ||
+  //               userData.profileImageUrl ||
+  //               "",
+  //           },
+  //         ] as const
+  //       } catch (error) {
+  //         console.error(`Failed to fetch reel author ${userId}:`, error)
 
-  const authorsById = new Map(authorEntries)
+  //         return [userId, null] as const
+  //       }
+  //     })
+  //   )
 
-  return reels.map((reel) => {
-    const authorId =
-      reel.userId ||
-      reel.author?.userId ||
-      ""
+  // const authorsById = new Map(authorEntries)
 
-    const liveAuthor = authorsById.get(authorId)
+  // return reels.map((reel) => {
+  //   const authorId =
+  //     reel.userId ||
+  //     reel.author?.userId ||
+  //     ""
 
-    if (!liveAuthor) {
-      return reel
-    }
+  //   const liveAuthor = authorsById.get(authorId)
 
-    return {
-      ...reel,
+  //   if (!liveAuthor) {
+  //     return reel
+  //   }
 
-      author: {
-        ...reel.author,
-        userId: authorId,
-        username: liveAuthor.username,
-        profileImage: liveAuthor.profileImage,
-      },
-    }
-  })
+  //   return {
+  //     ...reel,
+
+  //     author: {
+  //       ...reel.author,
+  //       userId: authorId,
+  //       username: liveAuthor.username,
+  //       profileImage: liveAuthor.profileImage,
+  //     },
+  //   }
+  // })
 }
 
 export async function createReel(input: CreateReelInput): Promise<CreateReelResult> {

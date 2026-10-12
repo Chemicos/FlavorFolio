@@ -252,6 +252,11 @@ export default function ChatLayout({
     }
   }
 
+  const handleCloseReelDrawer = () => {
+    setSelectedReel(null)
+    setCommentsReel(null)
+  }
+
   const handleOpenShareReel = (reel: Reel) => {
     setReelToShare({
       reelId: reel.reelId,
@@ -429,14 +434,7 @@ export default function ChatLayout({
               animate={{opacity: 1}}
               exit={{opacity: 0}}
               transition={{duration: 0.2, ease: "easeOut"}}
-              onClick={(event) => {
-                if (
-                  event.target === event.currentTarget &&
-                  !isReelDrawerLoading
-                ) {
-                  setSelectedReel(null)
-                }
-              }}
+              onClick={handleCloseReelDrawer}
             >
               {isReelDrawerLoading ? (
                 <CircularProgress
@@ -450,7 +448,7 @@ export default function ChatLayout({
                   currentUserId={currentUserId}
                   isLiked={likedReelIds.includes(selectedReel.reelId)}
                   isSaved={savedReelIds.includes(selectedReel.reelId)}
-                  onClose={() => setSelectedReel(null)}
+                  onClose={handleCloseReelDrawer}
                   onCommentsClick={setCommentsReel}
                   onShareClick={handleOpenShareReel}
                   onLikeStateChange={handleReelLikeStateChange}

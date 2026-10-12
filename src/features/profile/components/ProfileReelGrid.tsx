@@ -12,12 +12,13 @@ import { useEffect, useRef, useState } from "react"
 import { useDismissibleLayer } from "../../../hooks/useDismissibleLayer"
 import { AnimatePresence, motion } from "motion/react"
 import { createPortal } from "react-dom"
-import { ProfileRecipeViewMode } from "./ProfileRecipeToolbar"
+import { ProfileContentViewMode } from "./ProfileContentToolbar"
 
 interface ProfileReelGridProps {
   reels: Reel[]
-  viewMode: ProfileRecipeViewMode
+  viewMode: ProfileContentViewMode
   currentUserId?: string | null
+  showStatus?: boolean
   onReelClick?: (reel: Reel) => void
   onReelEdit?: (reel: Reel) => void
   onReelDelete?: (reel: Reel) => void
@@ -221,6 +222,7 @@ function ProfileReelActionsMenu({
 function ProfileReelCard({
   reel,
   currentUserId,
+  showStatus = true,
   onReelClick,
   onReelEdit,
   onReelDelete,
@@ -228,6 +230,7 @@ function ProfileReelCard({
 } : {
   reel: Reel
   currentUserId?: string | null
+  showStatus?: boolean
   onReelClick?: (reel: Reel) => void
   onReelEdit?: (reel: Reel) => void
   onReelDelete?: (reel: Reel) => void
@@ -251,14 +254,16 @@ function ProfileReelCard({
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-black/10" />
 
-        <span 
-          className={[
-            "absolute left-3 top-3 z-10 rounded-md border px-2.5 py-1 text-[0.68rem] font-semibold backdrop-blur-md",
-            status.className
-          ].join(" ")}
-        >
-          {status.label}
-        </span>
+        {showStatus && (
+          <span 
+            className={[
+              "absolute left-3 top-3 z-10 rounded-md border px-2.5 py-1 text-[0.68rem] font-semibold backdrop-blur-md",
+              status.className
+            ].join(" ")}
+          >
+            {status.label}
+          </span>
+        )}
 
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition duration-200 group-hover:opacity-100">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/55 text-white shadow-lg backdrop-blur-md">
@@ -314,6 +319,7 @@ export default function ProfileReelGrid({
   reels,
   viewMode,
   currentUserId,
+  showStatus = true,
   onReelClick,
   onReelEdit,
   onReelDelete,
@@ -339,11 +345,12 @@ export default function ProfileReelGrid({
 
   if (viewMode === "list") {
     return (
-      <section className="mb-6 grid gap-2">
+      <section className="my-2 grid gap-2">
         {reels.map((reel) => (
           <ProfileReelListCard 
             key={reel.reelId}
             reel={reel}
+            showStatus={showStatus}
             currentUserId={currentUserId}
             onReelClick={onReelClick}
             onReelEdit={onReelEdit}
@@ -355,11 +362,12 @@ export default function ProfileReelGrid({
     )
   }
   return (
-    <section className="mb-6 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+    <section className="my-2 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
       {reels.map((reel) => (
         <ProfileReelCard 
           key={reel.reelId}
           reel={reel}
+          showStatus={showStatus}
           currentUserId={currentUserId}
           onReelClick={onReelClick}
           onReelEdit={onReelEdit}
@@ -374,6 +382,7 @@ export default function ProfileReelGrid({
 function ProfileReelListCard ({
   reel,
   currentUserId,
+  showStatus = true,
   onReelClick,
   onReelEdit,
   onReelDelete,
@@ -381,6 +390,7 @@ function ProfileReelListCard ({
 } : {
   reel: Reel
   currentUserId?: string | null
+  showStatus?: boolean
   onReelClick?: (reel: Reel) => void
   onReelEdit?: (reel: Reel) => void
   onReelDelete?: (reel: Reel) => void
@@ -413,16 +423,22 @@ function ProfileReelListCard ({
       <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <span
-              className={[
-                "inline-flex rounded-md border px-2.5 py-1 text-[0.7rem] font-semibold",
-                status.listClassName,
+            {showStatus && (
+              <span
+                className={[
+                  "inline-flex rounded-md border px-2.5 py-1 text-[0.7rem] font-semibold",
+                  status.listClassName,
+                ].join(" ")}
+              >
+                {status.label}
+              </span>
+            )}
+
+            <h3 className={[
+                "line-clamp-1 text-base font-semibold text-[var(--text-primary)]",
+                showStatus ? "mt-3" : "mt-0",
               ].join(" ")}
             >
-              {status.label}
-            </span>
-
-            <h3 className="mt-3 line-clamp-1 text-base font-semibold text-[var(--text-primary)]">
               {reel.title}
             </h3>
 

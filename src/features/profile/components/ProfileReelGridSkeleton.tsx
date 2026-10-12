@@ -1,4 +1,4 @@
-import { ProfileRecipeViewMode } from "./ProfileRecipeToolbar"
+import { ProfileRecipeViewMode } from "./ProfileContentToolbar"
 
 interface ProfileReelGridSkeletonProps {
   viewMode: ProfileRecipeViewMode
