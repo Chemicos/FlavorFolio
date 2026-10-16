@@ -8,8 +8,9 @@ import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded"
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz"
 import EditRoundedIcon from "@mui/icons-material/EditRounded"
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded"
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import SendRoundedIcon from "@mui/icons-material/SendRounded"
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded"
 
 import { AnimatePresence, motion } from "motion/react"
 import { CircularProgress } from "@mui/material"
@@ -219,13 +220,19 @@ function CommentItem({
     const hasReplies = replies.length > 0
     const replyMention = `@${comment.username} `
     const hasReplyText = replyValue.trim() !== replyMention.trim()
-    const canReply = Boolean(currentUserId && comment.userId !== currentUserId)
+    const canSubmitReply = Boolean(replyValue.trim()) && hasReplyText && !isSubmittingReply
     const isLiked = comment.currentUserReaction === "like"
     const isDisliked = comment.currentUserReaction === "dislike"
 
     const isBlocked = !!comment.userId && (blockedUserIds.includes(comment.userId) || blockedByUserIds.includes(comment.userId))
 
     const [editValue, setEditValue] = useState(comment.text)
+    const normalizedEditValue = editValue.trim()
+
+    const canSubmitEdit =
+        normalizedEditValue.length > 0 &&
+        normalizedEditValue !== comment.text.trim() &&
+        !isUpdatingComment
 
     useEffect(() => {
         if (!isReplying) {
@@ -392,30 +399,34 @@ function CommentItem({
                                 value={editValue}
                                 onChange={(event) => setEditValue(event.target.value)}
                                 rows={3}
-                                className="w-full resize-none rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm leading-6 text-[var(--text-primary)] outline-none placeholder:text-[var(--input-placeholder)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
+                                className="w-full resize-none rounded-xl border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2.5 text-sm leading-5 text-[var(--text-primary)] outline-none transition placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)] disabled:cursor-not-allowed disabled:opacity-60"
                             />
 
-                            <div className="mt-2 flex justify-end gap-2">
+                            <div className="mt-2 flex items-center justify-end gap-2">
                                 <button
                                     type="button"
                                     disabled={isUpdatingComment}
                                     onClick={onCancelEditComment}
-                                    className="rounded-md px-3 py-1.5 text-sm text-[var(--text-secondary)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:opacity-50"
+                                    className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-50"
                                 >
+                                    <CloseRoundedIcon sx={{fontSize: 15}} />
                                     Cancel
                                 </button>
 
                                 <button
                                     type="button"
-                                    disabled={!editValue.trim() || editValue.trim() === comment.text.trim() || isUpdatingComment}
-                                    onClick={() => onUpdateComment?.(comment, editValue.trim())}
-                                    className="rounded-md bg-[var(--button-secondary-bg)] px-3 py-1.5 text-sm text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+                                    disabled={!canSubmitEdit}
+                                    onClick={() => onUpdateComment?.(comment, normalizedEditValue)}
+                                    className="flex h-8 min-w-[70px] items-center justify-center gap-1.5 rounded-lg bg-[var(--accent-soft)] px-3 text-xs font-semibold text-[var(--accent-text)] transition hover:bg-[var(--accent-soft-hover)] disabled:cursor-not-allowed disabled:opacity-40"
                                 >
                                     {isUpdatingComment ? (
-                                        <CircularProgress size={18} thickness={5} sx={{color: "var(--text-secondary)"}}/>
-                                    ) : 
-                                    "Save"
-                                    }
+                                        <CircularProgress size={14} sx={{color: "var(--accent-text)"}}/>
+                                    ) : (
+                                        <>
+                                            <CheckRoundedIcon sx={{ fontSize: 15 }} />
+                                            Save
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -507,21 +518,44 @@ function CommentItem({
                                             type="button"
                                             disabled={isSubmittingReply}
                                             onClick={onCancelReplyComment}
-                                            className="flex h-8 w-8 items-center justify-center rounded-md text-sm text-[var(--text-secondary)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] disabled:opacity-50"
+                                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             <CloseRoundedIcon sx={{ fontSize: 18 }} />
                                         </button>
 
                                         <button
                                             type="button"
-                                            disabled={!replyValue.trim() || !hasReplyText || isSubmittingReply}
                                             onClick={() => onReplyComment?.(comment, replyValue.trim())}
-                                            className="flex items-center justify-center rounded-md bg-[var(--button-secondary-bg)] h-8 w-8 text-sm text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-                                        >
+                                            disabled={!canSubmitReply}
+                                            className={[
+                                                "flex h-8 w-8 items-center justify-center rounded-lg",
+                                                "border transition-all duration-200",
+                                                "active:scale-95 disabled:cursor-not-allowed",
+                                                canSubmitReply
+                                                ? [
+                                                    "border-[var(--accent-border)]",
+                                                    "bg-[var(--accent)]",
+                                                    "text-[var(--text-on-accent)]",
+                                                    "shadow-[var(--shadow-card)]",
+                                                    "hover:bg-[var(--accent-hover)]",
+                                                    "hover:scale-105",
+                                                    ].join(" ")
+                                                : [
+                                                    "border-transparent",
+                                                    "bg-[var(--button-secondary-bg)]",
+                                                    "text-[var(--text-muted)]",
+                                                    "opacity-50",
+                                                    ].join(" "),
+                                            ].join(" ")}
+                                            >
                                             {isSubmittingReply ? (
-                                                <CircularProgress size={18} thickness={5} sx={{color: "var(--text-secondary)"}}/>
+                                                <CircularProgress
+                                                    size={18}
+                                                    thickness={5}
+                                                    sx={{ color: "var(--text-muted)" }}
+                                                />
                                             ) : (
-                                                <SendRoundedIcon sx={{fontSize: 18}} />
+                                                <SendRoundedIcon sx={{ fontSize: 18 }} />
                                             )}
                                         </button>
                                     </div>

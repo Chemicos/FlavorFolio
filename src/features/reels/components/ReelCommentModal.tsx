@@ -49,12 +49,14 @@ export default function ReelCommentModal({
     editComment,
     removeComment,
   } = useReelComments({ reelId: reel.reelId, onCommentsCountChange, })
+  
+  const isAttached = variant === "attached"
 
-  useDismissibleLayer({
-    refs: modalRef,
-    enabled: true,
-    onDismiss: onClose
-  })
+  // useDismissibleLayer({
+  //   refs: modalRef,
+  //   enabled: true,
+  //   onDismiss: onClose
+  // })
 
   const handleAuthorProfileClick = (authorId: string) => {
     onClose()
@@ -66,20 +68,6 @@ export default function ReelCommentModal({
 
     navigate(`/users/${authorId}`)
   }
-
-  // useEffect(() => {
-  //   function handleKeyDown(event: KeyboardEvent) {
-  //     if (event.key === "Escape") {
-  //       onClose()
-  //     }
-  //   }
-
-  //   document.addEventListener("keydown", handleKeyDown)
-
-  //   return () => {
-  //     document.removeEventListener("keydown", handleKeyDown)
-  //   }
-  // }, [onClose])
 
   async function handleAddComment(text: string) {
     try {
@@ -137,17 +125,33 @@ export default function ReelCommentModal({
       ].join(" ")
 
   return (
-    <div ref={modalRef} className={[
-      "fixed z-[100] w-[min(420px, calc(100vw-32px))]",
-      "xl:w-[420px]",
-      positionClass
-    ].join(" ")}
+    <div ref={modalRef} 
+      className={
+        isAttached
+          ? "relative h-full w-full"
+          : [
+              "fixed z-[100] w-[min(420px,calc(100vw-32px))]",
+              "xl:w-[420px]",
+              positionClass,
+            ].join(" ")
+      }
     >
       <motion.aside
-        initial={{opacity: 0,x: 28,scale: 0.98,}}
-        animate={{opacity: 1, x: 0, scale: 1,}}
-        exit={{ opacity: 0, x: 28, scale: 0.98,}}
-        transition={{duration: 0.2, ease: [0.22, 1, 0.36, 1],}}
+        initial={
+          isAttached
+            ? false
+            : { opacity: 0, x: 28, scale: 0.98 }
+        }
+        animate={{ opacity: 1, x: 0, scale: 1 }}
+        exit={
+          isAttached
+            ? undefined
+            : { opacity: 0, x: 28, scale: 0.98 }
+        }
+        transition={{
+          duration: 0.2,
+          ease: [0.22, 1, 0.36, 1],
+        }}
         className="flex h-full w-full flex-col overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-[var(--shadow-panel)]"
       >
         <header className="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-4 py-4">

@@ -116,7 +116,7 @@ export default function PostRecipePreview({
                 type="button"
                 onClick={onBack}
                 className={[
-                    "absolute left-5 top-5 z-20",
+                    "absolute right-5 top-5 z-20",
                     "flex h-11 w-11 items-center justify-center rounded-lg border",
                     "border-[var(--drawer-control-border)]",
                     "bg-[var(--drawer-control-bg)]",

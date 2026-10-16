@@ -151,6 +151,8 @@ export default function ViewRecipeDrawer({
     const [canCollapseDescription, setCanCollapseDescription] = useState(false)
     const descriptionRef = useRef<HTMLParagraphElement | null>(null)
 
+    const drawerScrollRef = useRef<HTMLDivElement | null>(null)
+
     const [liveAuthorFollowersCount, setLiveAuthorFollowersCount] = useState(Number(authorFollowersCount || 0))
 
     const recipeDate = formatRecipeDate(recipe.publishedAt || recipe.createdAt)
@@ -601,7 +603,10 @@ export default function ViewRecipeDrawer({
                 "bg-[var(--bg-secondary)]",
             ].join(" ")}
         >
-            <div className="flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]">
+            <div 
+                ref={drawerScrollRef} 
+                className="flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:var(--border-strong)_transparent]"
+            >
                 <div className="relative">
                     <div className="relative h-[clamp(260px,34dvh,360px)] w-full shrink-0 overflow-hidden">
                         {!imageLoaded && (
@@ -626,7 +631,7 @@ export default function ViewRecipeDrawer({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="absolute left-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
+                        className="absolute right-16 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)] backdrop-blur-xl transition hover:bg-[var(--dropdown-bg)] hover:text-[var(--text-primary)] active:scale-95"
                     >
                         <CloseRoundedIcon sx={{ fontSize: 20 }} />
                     </button>
@@ -996,6 +1001,7 @@ export default function ViewRecipeDrawer({
                                     transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                                 >
                                     <ViewRecipeCommentsSection
+                                        scrollContainerRef={drawerScrollRef}
                                         commentsCount={visibleCommentsCount}
                                         comments={visibleCommentsWithReactions}
                                         currentUser={currentUser}

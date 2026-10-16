@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { RefObject, useMemo } from "react"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
 import { formatCompactCount } from "../../utils/recipeCardFormatters"
 import ViewRecipeCommentComposer from "./ViewRecipeCommentComposer"
@@ -7,6 +7,7 @@ import ViewRecipeCommentList, { ViewRecipeComment } from "./ViewRecipeCommentLis
 import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded'
 
 interface ViewRecipeCommentsSectionProps {
+  scrollContainerRef?: RefObject<HTMLDivElement | null>
   commentsCount: number
   comments: ViewRecipeComment[]
   currentUser: CurrentUserCardData | null
@@ -37,7 +38,7 @@ interface ViewRecipeCommentsSectionProps {
 }
 
 export default function ViewRecipeCommentsSection({
-  commentsCount,
+  scrollContainerRef,
   comments,
   currentUser,
   canComment,
@@ -102,35 +103,36 @@ export default function ViewRecipeCommentsSection({
 
       <div className="mt-5 flex flex-col gap-10">
           <ViewRecipeCommentComposer 
-              currentUser={currentUser} 
-              isSubmiting={isSubmittingComment}
-              onSubmit={onSubmitComment}
-              canComment={canComment}
+            scrollContainerRef={scrollContainerRef}
+            currentUser={currentUser} 
+            isSubmiting={isSubmittingComment}
+            onSubmit={onSubmitComment}
+            canComment={canComment}
           />
 
           {isLoadingComments ? (
               <p className="text-sm text-[var(--text-muted)]">Loading comments...</p>
           ): (
               <ViewRecipeCommentList 
-                  comments={visibleComments} 
-                  currentUserId={currentUser?.uid}
-                  canComment={canComment}
-                  onAuthorClick={onAuthorClick}
-                  editingCommentId={editingCommentId}
-                  isUpdatingComment={isUpdatingComment}
-                  replyingCommentId={replyingCommentId}
-                  isSubmittingReply={isSubmittingReply}
-                  onStartReplyComment={onStartReplyComment}
-                  onCancelReplyComment={onCancelReplyComment}
-                  onReplyComment={onReplyComment}
-                  onToggleCommentReaction={onToggleCommentReaction}
-                  onStartEditComment={onStartEditComment}
-                  onCancelEditComment={onCancelEditComment}
-                  onUpdateComment={onUpdateComment}
-                  onDeleteComment={onDeleteComment}
-                  onBlockUser={onBlockUser} 
-                  blockedUserIds={blockedUserIds}
-                  blockedByUserIds={blockedByUserIds}
+                comments={visibleComments} 
+                currentUserId={currentUser?.uid}
+                canComment={canComment}
+                onAuthorClick={onAuthorClick}
+                editingCommentId={editingCommentId}
+                isUpdatingComment={isUpdatingComment}
+                replyingCommentId={replyingCommentId}
+                isSubmittingReply={isSubmittingReply}
+                onStartReplyComment={onStartReplyComment}
+                onCancelReplyComment={onCancelReplyComment}
+                onReplyComment={onReplyComment}
+                onToggleCommentReaction={onToggleCommentReaction}
+                onStartEditComment={onStartEditComment}
+                onCancelEditComment={onCancelEditComment}
+                onUpdateComment={onUpdateComment}
+                onDeleteComment={onDeleteComment}
+                onBlockUser={onBlockUser} 
+                blockedUserIds={blockedUserIds}
+                blockedByUserIds={blockedByUserIds}
               />
           )}
       </div>

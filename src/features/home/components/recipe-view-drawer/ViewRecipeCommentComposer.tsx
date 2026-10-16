@@ -4,17 +4,19 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import CircularProgress from "@mui/material/CircularProgress"
 import { AnimatePresence, motion } from "motion/react";
 
-import { useEffect, useRef, useState } from "react"
+import { RefObject, useEffect, useRef, useState } from "react"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
 
 interface ViewRecipeCommentComposerProps {
-  currentUser: CurrentUserCardData | null
-  onSubmit?: (commentText: string) => void
-  isSubmiting?: boolean
-  canComment?: boolean
+    scrollContainerRef?: RefObject<HTMLDivElement | null>
+    currentUser: CurrentUserCardData | null
+    onSubmit?: (commentText: string) => void
+    isSubmiting?: boolean
+    canComment?: boolean
 }
 
 export default function ViewRecipeCommentComposer({
+    scrollContainerRef,
     currentUser,
     onSubmit,
     isSubmiting = false,
@@ -23,6 +25,9 @@ export default function ViewRecipeCommentComposer({
     const [commentText, setCommentText] = useState("")
     const [isExpanded, setIsExpanded] = useState(false)
     const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+    const composerRef = useRef<HTMLDivElement | null>(null)
+
+    const canSubmit = Boolean(commentText.trim()) && !isSubmiting
 
     const handleExpand = () => {
         if (!canComment) return
@@ -58,6 +63,26 @@ export default function ViewRecipeCommentComposer({
         setIsExpanded(false)
     }
 
+    const keepComposerVisible = () => {
+        if (!isExpanded) return 
+
+        const scrollContainer = scrollContainerRef?.current
+        const composer = composerRef.current
+
+        if (!scrollContainer || !composer) return
+
+        const containerRect = scrollContainer.getBoundingClientRect()
+        const composerRect = composer.getBoundingClientRect()
+
+        const bottomPadding = 16
+
+        const overflow = composerRect.bottom - (containerRect.bottom - bottomPadding)
+
+        if (overflow > 0) {
+            scrollContainer.scrollTop += overflow
+        }
+    }
+
     if (!canComment) {
         return (
             <div className="rounded-lg border p-4 border-[var(--warning-border)] bg-[var(--warning-soft)]">
@@ -82,9 +107,11 @@ export default function ViewRecipeCommentComposer({
 
     return (
         <motion.div 
+            ref={composerRef}
             initial={false}
             animate={{height: isExpanded ? 320 : 84}}
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1]}}
+            onUpdate={keepComposerVisible}
             className="rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] p-4"
         >
             <div className="flex items-start gap-3">
@@ -152,14 +179,36 @@ export default function ViewRecipeCommentComposer({
                                     <button
                                         type="button"
                                         onClick={handleSubmit}
-                                        disabled={!commentText.trim() || isSubmiting}
-                                        className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-                                        aria-label="Submit comment"
-                                    >
+                                        disabled={!canSubmit}
+                                        className={[
+                                            "flex h-10 w-10 items-center justify-center rounded-lg",
+                                            "border transition-all duration-200",
+                                            "active:scale-95 disabled:cursor-not-allowed",
+                                            canSubmit
+                                            ? [
+                                                "border-[var(--accent-border)]",
+                                                "bg-[var(--accent)]",
+                                                "text-[var(--text-on-accent)]",
+                                                "shadow-[var(--shadow-card)]",
+                                                "hover:bg-[var(--accent-hover)]",
+                                                "hover:scale-105",
+                                                ].join(" ")
+                                            : [
+                                                "border-transparent",
+                                                "bg-[var(--button-secondary-bg)]",
+                                                "text-[var(--text-muted)]",
+                                                "opacity-50",
+                                                ].join(" "),
+                                        ].join(" ")}
+                                        >
                                         {isSubmiting ? (
-                                            <CircularProgress size={18} thickness={5} sx={{color: "var(--text-secondary)"}}/>
+                                            <CircularProgress
+                                                size={18}
+                                                thickness={5}
+                                                sx={{ color: "var(--text-muted)" }}
+                                            />
                                         ) : (
-                                            <SendRoundedIcon />
+                                            <SendRoundedIcon sx={{ fontSize: 21 }} />
                                         )}
                                     </button>
                                 </div>

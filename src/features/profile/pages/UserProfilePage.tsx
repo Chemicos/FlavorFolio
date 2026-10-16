@@ -38,6 +38,7 @@ import ViewReelDrawer from "../../reels/components/ViewReelDrawer"
 import ReelCommentModal from "../../reels/components/ReelCommentModal"
 import { useLikedReels } from "../../reels/hooks/useLikedReels"
 import { useSavedReels } from "../../reels/hooks/useSavedReels"
+import ReelCommentsSlider from "../../reels/components/ReelCommentsSlider"
 
 export default function UserProfilePage() {
   const navigate = useNavigate()
@@ -1075,39 +1076,50 @@ export default function UserProfilePage() {
       <AnimatePresence>
         {selectedReel && canViewRecipes && !hasBlockedRelationship && (
           <motion.div
+            key="reel-drawer"
             className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-5 backdrop-blur-[2px]"
-            initial={{opacity: 0}}
-            animate={{opacity: 1}}
-            exit={{opacity: 0}}
-            transition={{duration: 0.2}}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
             onClick={(event) => {
               if (event.target === event.currentTarget) {
                 handleCloseReelDrawer()
               }
             }}
           >
-            <ViewReelDrawer
-              reel={selectedReel}
-              currentUserId={currentUserId}
-              isLiked={likedReelIds.includes(selectedReel.reelId)}
-              isSaved={savedReelIds.includes(selectedReel.reelId)}
-              onClose={handleCloseReelDrawer}
-              onCommentsClick={handleReelCommentsClick}
-              onShareClick={handleOpenShareReel}
-              onLikeStateChange={handleReelLikeStateChange}
-              onSaveStateChange={handleReelSaveStateChange}
+            <ReelCommentsSlider
+              isCommentsOpen={Boolean(commentsReel)}
+              onCloseComments={() => setCommentsReel(null)}
+              reel={
+                <ViewReelDrawer
+                  reel={selectedReel}
+                  currentUserId={currentUserId}
+                  isLiked={likedReelIds.includes(selectedReel.reelId)}
+                  isSaved={savedReelIds.includes(selectedReel.reelId)}
+                  onClose={handleCloseReelDrawer}
+                  onCommentsClick={handleReelCommentsClick}
+                  onShareClick={handleOpenShareReel}
+                  onLikeStateChange={handleReelLikeStateChange}
+                  onSaveStateChange={handleReelSaveStateChange}
+                />
+              }
+              comments={
+                commentsReel ? (
+                  <ReelCommentModal
+                    key={`reel-comments-${commentsReel.reelId}`}
+                    reel={commentsReel}
+                    variant="attached"
+                    onClose={() => setCommentsReel(null)}
+                    onCommentsCountChange={handleReelCommentsCountChange}
+                  />
+                ) : null
+              }
             />
           </motion.div>
-        )}
-
-        {selectedReel && commentsReel && canViewRecipes && !hasBlockedRelationship && (
-          <ReelCommentModal 
-            key={`reel-comments-${commentsReel.reelId}`}
-            reel={commentsReel}
-            variant="drawer"
-            onClose={() => setCommentsReel(null)}
-            onCommentsCountChange={handleReelCommentsCountChange}
-          />
         )}
       </AnimatePresence>
       

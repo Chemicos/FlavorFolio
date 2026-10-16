@@ -1,6 +1,6 @@
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded"
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useConversationMessages } from "../hooks/useConversationMessages"
 import { useConversations } from "../hooks/useConversations"
 import ChatHeader from "./ChatHeader"
@@ -24,6 +24,7 @@ import { CircularProgress } from "@mui/material"
 import { createPortal } from "react-dom"
 import { useSnackbar } from "../../../components/layout/SnackbarProvider"
 import ShareRecipeModal from "./ShareRecipeModal"
+import ReelCommentsSlider from "../../reels/components/ReelCommentsSlider"
 
 interface ChatLayoutProps {
   currentUserId: string
@@ -317,6 +318,31 @@ export default function ChatLayout({
       }
     })
   }
+
+  const handleReelCommentsCountChange = useCallback(
+    (reelId: string, commentsCount: number) => {
+      const normalizedCount = Number(commentsCount || 0)
+
+      const updateReel = (prev: Reel | null): Reel | null => {
+        if (!prev || prev.reelId !== reelId) return prev
+
+        if (prev.stats.commentsCount === normalizedCount) {
+          return prev
+        }
+
+        return {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            commentsCount: normalizedCount,
+          },
+        }
+      }
+
+      setSelectedReel(updateReel)
+      setCommentsReel(updateReel)
+    },[]
+  )
   return (
     <main className="fixed inset-x-0 bottom-0 top-16 overflow-hidden bg-[var(--bg-primary)]">
       <div className="grid h-full w-full grid-cols-[360px_minmax(0,1fr)] overflow-hidden">
@@ -426,48 +452,61 @@ export default function ChatLayout({
       />
 
       {createPortal(
-         <AnimatePresence>
+        <AnimatePresence>
           {(selectedReel || isReelDrawerLoading) && (
             <motion.div
+              key="chat-reel-drawer"
               className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-5 backdrop-blur-[2px]"
-              initial={{opacity: 0}}
-              animate={{opacity: 1}}
-              exit={{opacity: 0}}
-              transition={{duration: 0.2, ease: "easeOut"}}
-              onClick={handleCloseReelDrawer}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 0.2,
+                ease: "easeOut",
+              }}
+              onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                  handleCloseReelDrawer()
+                }
+              }}
             >
               {isReelDrawerLoading ? (
                 <CircularProgress
                   size={34}
                   thickness={4.5}
-                  sx={{color: "var(--accent)"}}
+                  sx={{ color: "var(--accent)" }}
                 />
               ) : selectedReel ? (
-                <ViewReelDrawer
-                  reel={selectedReel}
-                  currentUserId={currentUserId}
-                  isLiked={likedReelIds.includes(selectedReel.reelId)}
-                  isSaved={savedReelIds.includes(selectedReel.reelId)}
-                  onClose={handleCloseReelDrawer}
-                  onCommentsClick={setCommentsReel}
-                  onShareClick={handleOpenShareReel}
-                  onLikeStateChange={handleReelLikeStateChange}
-                  onSaveStateChange={handleReelSaveStateChange}
+                <ReelCommentsSlider
+                  isCommentsOpen={Boolean(commentsReel)}
+                  onCloseComments={() => setCommentsReel(null)}
+                  reel={
+                    <ViewReelDrawer
+                      reel={selectedReel}
+                      currentUserId={currentUserId}
+                      isLiked={likedReelIds.includes(selectedReel.reelId)}
+                      isSaved={savedReelIds.includes(selectedReel.reelId)}
+                      onClose={handleCloseReelDrawer}
+                      onCommentsClick={setCommentsReel}
+                      onShareClick={handleOpenShareReel}
+                      onLikeStateChange={handleReelLikeStateChange}
+                      onSaveStateChange={handleReelSaveStateChange}
+                    />
+                  }
+                  comments={
+                    commentsReel ? (
+                      <ReelCommentModal
+                        key={`reel-comments-${commentsReel.reelId}`}
+                        reel={commentsReel}
+                        variant="attached"
+                        onClose={() => setCommentsReel(null)}
+                        onCommentsCountChange={handleReelCommentsCountChange}
+                      />
+                    ) : null
+                  }
                 />
               ) : null}
             </motion.div>
-          )}
-        </AnimatePresence>, document.body
-      )}
-      
-
-      {createPortal(
-        <AnimatePresence>
-          {commentsReel && (
-            <ReelCommentModal
-              reel={commentsReel}
-              onClose={() => setCommentsReel(null)}
-            />
           )}
         </AnimatePresence>,
         document.body
