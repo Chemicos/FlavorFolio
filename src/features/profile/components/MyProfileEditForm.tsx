@@ -95,11 +95,10 @@ export default function MyProfileEditForm({
             onClick={onCancel}
             disabled={isSaving}
             className={[
-              "flex h-10 w-10 items-center justify-center rounded-lg border transition",
-              "border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)]",
-              "text-[var(--button-secondary-text)]",
-              "hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)]",
-              "disabled:cursor-not-allowed disabled:opacity-60",
+              "flex h-9 w-9 items-center justify-center rounded-lg border transition",
+              "border-transparent text-[var(--text-muted)]",
+              "hover:border-[var(--border)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
+              "disabled:cursor-not-allowed disabled:opacity-50",
             ].join(" ")}
           >
             <CloseRoundedIcon sx={{ fontSize: 20 }} />

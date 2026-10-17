@@ -113,12 +113,10 @@ export default function DenyRecipeWindow({
             type="button"
             onClick={onClose}
             className={[
-              "flex h-9 w-9 items-center justify-center rounded-lg",
-              "text-[var(--text-secondary)] transition",
-              "hover:bg-[var(--surface-hover)]",
-              "hover:text-[var(--text-primary)]",
-              "active:scale-95",
-              "disabled:cursor-not-allowed disabled:opacity-45",
+              "flex h-9 w-9 items-center justify-center rounded-lg border transition",
+              "border-transparent text-[var(--text-muted)]",
+              "hover:border-[var(--border)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]",
+              "disabled:cursor-not-allowed disabled:opacity-50",
             ].join(" ")}
           >
             <CloseRoundedIcon sx={{ fontSize: 20 }} />

@@ -79,6 +79,12 @@ function MenuActionItem({
           backgroundColor: "var(--accent-soft)",
           color: "var(--accent-text)",
         },
+        "&.Mui-selected .MuiListItemIcon-root": {
+          color: "var(--accent)",
+        },
+        "&.Mui-selected:hover .MuiListItemIcon-root": {
+          color: "var(--accent)",
+        },
         "&.Mui-selected:hover": {
           backgroundColor: "var(--accent-soft-hover)",
         },
@@ -134,6 +140,15 @@ export default function UserDropdownMenu({
     needsRevisionCount = 0,
 }: UserDropdownMenuProps) {
   const location = useLocation()
+  const pathname =location.pathname
+
+  const activeMenu = {
+    profile: pathname === "/profile",
+    revisions: pathname === "/needs-revision" || pathname.startsWith("/needs-revision/"),
+    pending: pathname === "/pending" || pathname.startsWith("/pending/"),
+    dashboard: pathname === "/admin/dashboard" || pathname.startsWith("/admin/dashboard/"),
+    settings: pathname === "/settings" || pathname.startsWith("/settings/"),
+  }
   return (
     <Menu 
         anchorEl={anchorEl} 
@@ -166,6 +181,7 @@ export default function UserDropdownMenu({
           icon={<PersonIcon fontSize="small" />} 
           label="My profile"
           onClick={onProfile}
+          selected={activeMenu.profile}
         />
 
         <MenuActionItem
@@ -173,6 +189,7 @@ export default function UserDropdownMenu({
           label="Revisions/Drafts"
           onClick={onNeedsRevision}
           badgeCount={needsRevisionCount}
+          selected={activeMenu.revisions}
         />
 
         {isAdmin && [
@@ -182,6 +199,7 @@ export default function UserDropdownMenu({
             label="Pending recipes"
             onClick={onPending}
             badgeCount={pendingCount}
+            selected={activeMenu.pending}
           />,
 
           <MenuActionItem
@@ -189,13 +207,14 @@ export default function UserDropdownMenu({
             icon={<BarChartIcon fontSize="small" />}
             label="Dashboard"
             onClick={onDashboard}
+            selected={activeMenu.dashboard}
           />,
         ]}
 
         <MenuActionItem
           icon={<SettingsIcon fontSize="small" />}
           label="Settings"
-          selected={location.pathname === "/settings"}
+          selected={activeMenu.settings}
           onClick={onSettings}
         />
 
