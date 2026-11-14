@@ -12,6 +12,9 @@ import PostRecipeDrawer from "../../home/components/post-recipe/PostRecipeDrawer
 import { Recipe } from "../../home/types";
 import { useSnackbar } from "../../../components/layout/SnackbarProvider";
 import { useSearchParams } from "react-router-dom";
+import { UpdateNeedsRevisionRecipePayload } from "../services/needsRevision.service";
+import { SaveRecipeEditOptions } from "../../home/services/recipeEditCallable.service";
+import { isDefinitiveOperationError } from "../../home/utils/callableRetry";
 
 type RevisionPageTab = "needs_revision" | "draft"
 
@@ -33,7 +36,10 @@ export default function NeedsRevisionPage() {
     deleteRecipes: deleteNeedsRevisionRecipes,
     submitRecipeForReview,
     updateRecipeDraft,
+    uncertainSendRecipeIds,
   } = useNeedsRevisionRecipes()
+
+  const [isRetryingSend, setIsRetryingSend] = useState(false)
 
   const [editingRecipe, setEditingRecipe] = useState<NeedsRevisionRecipe | null>(null)
   const [previewRecipe, setPreviewRecipe] = useState<NeedsRevisionRecipe | null>(null)
@@ -103,6 +109,30 @@ export default function NeedsRevisionPage() {
       const startIndex = (currentPage - 1) * rowsPerPage
       return filteredRecipes.slice(startIndex, startIndex + rowsPerPage)
   }, [filteredRecipes, currentPage, rowsPerPage])
+
+  const handleRetrySend = async (recipeId: string) => {
+    if (isRetryingSend) return
+
+    setIsRetryingSend(true)
+
+    try {
+      await submitRecipeForReview(recipeId)
+
+      showSnackbar(
+        "Recipe submission confirmed successfully.",
+        "success"
+      )
+    } catch (error) {
+      console.error("Failed to confirm recipe submission:", error)
+
+      showSnackbar(
+        "Could not confirm the submission. Please try again.",
+        "error"
+      )
+    } finally {
+      setIsRetryingSend(false)
+    }
+  }
 
   const handleToggleRecipe = (recipeId: string) => {
     setSelectedIds((prev) =>
@@ -299,26 +329,56 @@ export default function NeedsRevisionPage() {
     } catch (error) {
       console.error("Failed to send recipe for review:", error)
       showSnackbar("Failed to send recipe for review.", "error")
+      showSnackbar(
+        isDefinitiveOperationError(error)
+          ? "Unable to submit this recipe. Please check its status and your daily limit."
+          : "The submission result is uncertain. Use Confirm submission to check it safely.",
+        "error"
+      )
     }
     finally {
       setIsRevisionActionLoading(false)
     }
   }
 
-  const handleRevisionDraftUpdate = async (payload: {
+  // const handleRevisionDraftUpdate = async (payload: {
+  //   recipeId: string
+  //   payload: any
+  // }) => {
+  //   const updatedRecipe = await updateRecipeDraft(payload)
+
+  //   setSelectedRecipe((prev) =>
+  //     prev?.recipeId === payload.recipeId
+  //       ? { ...prev, ...updatedRecipe }
+  //       : prev
+  //   )
+
+  //   setEditingRecipe((prev) =>
+  //     prev?.recipeId === payload.recipeId
+  //       ? { ...prev, ...updatedRecipe }
+  //       : prev
+  //   )
+
+  //   return updatedRecipe
+  // }
+
+  const handleRevisionDraftUpdate = async (data: {
     recipeId: string
-    payload: any
+    payload: UpdateNeedsRevisionRecipePayload
+    options?: SaveRecipeEditOptions & {
+      requestId?: string
+    }
   }) => {
-    const updatedRecipe = await updateRecipeDraft(payload)
+    const updatedRecipe = await updateRecipeDraft(data)
 
     setSelectedRecipe((prev) =>
-      prev?.recipeId === payload.recipeId
+      prev?.recipeId === data.recipeId
         ? { ...prev, ...updatedRecipe }
         : prev
     )
 
     setEditingRecipe((prev) =>
-      prev?.recipeId === payload.recipeId
+      prev?.recipeId === data.recipeId
         ? { ...prev, ...updatedRecipe }
         : prev
     )
@@ -433,6 +493,42 @@ export default function NeedsRevisionPage() {
             ].join(" ")}
           >
             {error}
+          </div>
+        )}
+
+        {uncertainSendRecipeIds.length > 0 && (
+          <div
+            role="status"
+            className="mb-4 rounded-xl border border-amber-300
+                      bg-amber-50 p-4 text-sm text-amber-950"
+          >
+            <p className="font-semibold">
+              Recipe submission needs confirmation
+            </p>
+
+            <p className="mt-1">
+              Your recipe may already be pending review.
+              You can safely retry the confirmation without
+              using another edit action.
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {uncertainSendRecipeIds.map((recipeId) => (
+                <button
+                  key={recipeId}
+                  type="button"
+                  disabled={isRetryingSend}
+                  onClick={() => handleRetrySend(recipeId)}
+                  className="rounded-lg border border-amber-400
+                            px-3 py-2 font-medium
+                            disabled:opacity-50"
+                >
+                  {isRetryingSend
+                    ? "Checking..."
+                    : "Confirm submission"}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

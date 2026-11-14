@@ -1,10 +1,13 @@
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from "@firebase/firestore"
 import { NeedsRevisionRecipe } from "../types/needsRevision.types"
-import { db, storage } from "../../../firebase-config"
+import { db, functions, storage } from "../../../firebase-config"
 import { PostRecipeIngredient, PostRecipeStep } from "../../home/types/postRecipe.types"
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { buildRecipeKeywords } from "../../../utils/searchKeywords"
 import { addRecipeResubmittedNotificationToBatch } from "../../notifications/services/notifications.service"
+import { resolveStorageImage } from "../../../utils/resolveStorageItems"
+import { saveRecipeEdit, type SaveRecipeEditOptions } from "../../home/services/recipeEditCallable.service"
+import { httpsCallable } from "firebase/functions"
 
 export interface UpdateNeedsRevisionRecipePayload {
   title: string
@@ -21,6 +24,21 @@ export interface UpdateNeedsRevisionRecipePayload {
   ingredients: PostRecipeIngredient[]
   steps: PostRecipeStep[]
 }
+
+const submitRecipeRevisionCallable = httpsCallable<
+  {
+    recipeId: string
+    requestId: string
+  },
+  {
+    recipeId: string
+    status: "pending"
+    alreadyCompleted: boolean
+  }
+>(
+  functions,
+  "submitRecipeRevision"
+)
 
 async function deleteStorageFile(path: string) {
   try {
@@ -107,179 +125,271 @@ function isBlobUrl(value?: string | null) {
   return typeof value === "string" && value.startsWith("blob:")
 }
 
-export async function updateNeedsRevisionRecipe({
-  recipeId,
-  payload,
-}: {
-  recipeId: string
-  payload: UpdateNeedsRevisionRecipePayload
-}) {
-  const recipeRef = doc(db, "recipes", recipeId)
-  const recipeSnap = await getDoc(recipeRef)
+// export async function updateNeedsRevisionRecipe({
+//   recipeId,
+//   payload,
+// }: {
+//   recipeId: string
+//   payload: UpdateNeedsRevisionRecipePayload
+// }) {
+//   const recipeRef = doc(db, "recipes", recipeId)
+//   const recipeSnap = await getDoc(recipeRef)
 
-  if (!recipeSnap.exists()) {
-    throw new Error("Recipe not found.")
-  }
+//   if (!recipeSnap.exists()) {
+//     throw new Error("Recipe not found.")
+//   }
 
-  const recipeData = recipeSnap.data()
+//   const recipeData = recipeSnap.data()
 
-  if (recipeData.status !== "needs_revision") {
-    throw new Error("Only recipes awaiting revision can be updated through this flow.")
-  }
+//   if (recipeData.status !== "needs_revision") {
+//     throw new Error("Only recipes awaiting revision can be updated through this flow.")
+//   }
 
-  let imageUrl = !isBlobUrl(payload.existingImageUrl)
-    ? payload.existingImageUrl
-    : recipeData.image || ""
+//   let imageUrl = !isBlobUrl(payload.existingImageUrl)
+//     ? payload.existingImageUrl
+//     : recipeData.image || ""
 
-  let imageFileName = payload.existingImageFileName || recipeData.imageFileName || ""
+//   let imageFileName = payload.existingImageFileName || recipeData.imageFileName || ""
 
-  if (payload.imageFile) {
-    if (recipeData.imageFileName) {
-      await deleteStorageFile(`recipe_images/${recipeData.imageFileName}`)
-    }
+//   if (payload.imageFile) {
+//     if (recipeData.imageFileName) {
+//       await deleteStorageFile(`recipe_images/${recipeData.imageFileName}`)
+//     }
 
-    const uploadedImage = await uploadRecipeImage(payload.imageFile)
-    imageUrl = uploadedImage.imageUrl
-    imageFileName = uploadedImage.imageFileName
-  }
+//     const uploadedImage = await uploadRecipeImage(payload.imageFile)
+//     imageUrl = uploadedImage.imageUrl
+//     imageFileName = uploadedImage.imageFileName
+//   }
 
-  const cookingSteps = await Promise.all(
-    payload.steps.map(async (step, index) => {
-      let stepImageUrl =
-        !isBlobUrl(step.existingImageUrl)
-          ? step.existingImageUrl || null
-          : null
+//   const cookingSteps = await Promise.all(
+//     payload.steps.map(async (step, index) => {
+//       let stepImageUrl =
+//         !isBlobUrl(step.existingImageUrl)
+//           ? step.existingImageUrl || null
+//           : null
 
-      let stepImageFileName = step.existingImageFileName || null
+//       let stepImageFileName = step.existingImageFileName || null
 
-      if (step.image) {
-        if (step.existingImageFileName) {
-          await deleteStorageFile(`cooking_steps_images/${step.existingImageFileName}`)
-        }
+//       if (step.image) {
+//         if (step.existingImageFileName) {
+//           await deleteStorageFile(`cooking_steps_images/${step.existingImageFileName}`)
+//         }
 
-        const uploadedStepImage = await uploadStepImage(step.image, index)
-        stepImageUrl = uploadedStepImage.imageUrl
-        stepImageFileName = uploadedStepImage.imageFileName
-      }
+//         const uploadedStepImage = await uploadStepImage(step.image, index)
+//         stepImageUrl = uploadedStepImage.imageUrl
+//         stepImageFileName = uploadedStepImage.imageFileName
+//       }
 
-      return {
-        title: step.title?.trim() || "",
-        description: step.description.trim(),
-        image: stepImageUrl,
-        imageFileName: stepImageFileName,
-        error: false,
-      }
-    })
-  )
+//       return {
+//         title: step.title?.trim() || "",
+//         description: step.description.trim(),
+//         image: stepImageUrl,
+//         imageFileName: stepImageFileName,
+//         error: false,
+//       }
+//     })
+//   )
 
-  const nextIngredients = payload.ingredients.map((ingredient) => ({
-    ingredient: ingredient.ingredient.trim(),
-    quantity: ingredient.quantity.trim(),
-    unit: ingredient.unit,
-  }))
+//   const nextIngredients = payload.ingredients.map((ingredient) => ({
+//     ingredient: ingredient.ingredient.trim(),
+//     quantity: ingredient.quantity.trim(),
+//     unit: ingredient.unit,
+//   }))
 
 
-  const nextRecipeData = {
-    title: payload.title.trim(),
-    description: payload.description.trim(),
-    cuisine: payload.cuisine.trim().toLowerCase(),
-    durationMinutes: Number(payload.duration),
-    servings: Number(payload.servings),
-    difficulty: payload.difficulty,
-    meal: payload.meal,
-    visibility: payload.visibility,
-    image: imageUrl,
-    imageFileName,
-    ingredients: nextIngredients,
-    cookingSteps,
-    status: "needs_revision",
+//   const nextRecipeData = {
+//     title: payload.title.trim(),
+//     description: payload.description.trim(),
+//     cuisine: payload.cuisine.trim().toLowerCase(),
+//     durationMinutes: Number(payload.duration),
+//     servings: Number(payload.servings),
+//     difficulty: payload.difficulty,
+//     meal: payload.meal,
+//     visibility: payload.visibility,
+//     image: imageUrl,
+//     imageFileName,
+//     ingredients: nextIngredients,
+//     cookingSteps,
+//     status: "needs_revision",
 
-    searchKeywords: buildRecipeKeywords({
+//     searchKeywords: buildRecipeKeywords({
+//       title: payload.title,
+//       description: payload.description,
+//       cuisine: payload.cuisine,
+//       meal: payload.meal,
+//       difficulty: payload.difficulty,
+//       authorUsername: recipeData.author?.username || recipeData.user || "",
+//       ingredients: nextIngredients,
+//     }),
+//   }
+
+//   await updateDoc(recipeRef, {
+//     ...nextRecipeData,
+//     updatedAt: serverTimestamp(),
+//   })
+
+//   return nextRecipeData
+// }
+
+export async function updateNeedsRevisionRecipe(
+  {
+    recipeId,
+    payload,
+  }: {
+    recipeId: string
+    payload: UpdateNeedsRevisionRecipePayload
+  },
+  options: SaveRecipeEditOptions & {
+    requestId?: string
+  } = {}
+): Promise<NeedsRevisionRecipe> {
+  const requestId = options.requestId ?? crypto.randomUUID()
+
+  // All editing, image uploads and quota consumption are now handled by Cloud Functions.
+  await saveRecipeEdit(
+    {
+      recipeId,
+      requestId,
+
       title: payload.title,
       description: payload.description,
       cuisine: payload.cuisine,
-      meal: payload.meal,
+      duration: payload.duration,
+      servings: payload.servings,
       difficulty: payload.difficulty,
-      authorUsername: recipeData.author?.username || recipeData.user || "",
-      ingredients: nextIngredients,
-    }),
+      meal: payload.meal,
+      visibility: payload.visibility,
+
+      imageFile: payload.imageFile,
+      existingImageFileName: payload.existingImageFileName ?? null,
+
+      ingredients: payload.ingredients,
+
+      steps: payload.steps.map((step) => ({
+        title: step.title,
+        description: step.description,
+        image: step.image ?? null,
+        existingImageFileName: step.existingImageFileName ?? null,
+      })),
+    },
+    options
+  )
+
+  // Read the actual server result rather than rebuilding
+  // the recipe locally.
+  const recipeSnapshot = await getDoc(
+    doc(db, "recipes", recipeId)
+  )
+
+  if (!recipeSnapshot.exists()) {
+    throw new Error("Updated recipe was not found.")
   }
 
-  await updateDoc(recipeRef, {
-    ...nextRecipeData,
-    updatedAt: serverTimestamp(),
-  })
+  const data = recipeSnapshot.data() as NeedsRevisionRecipe
 
-  return nextRecipeData
+  return resolveNeedsRevisionRecipeImages({
+    ...data,
+    id: recipeSnapshot.id,
+    recipeId: data.recipeId || recipeSnapshot.id,
+  })
 }
 
-export async function submitRecipeForReview(recipeId: string) {
-  const recipeRef = doc(db, "recipes", recipeId)
-  const recipeSnap = await getDoc(recipeRef)
+// export async function submitRecipeForReview(recipeId: string) {
+//   const recipeRef = doc(db, "recipes", recipeId)
+//   const recipeSnap = await getDoc(recipeRef)
 
-  if (!recipeSnap.exists()) {
-    throw new Error("Recipe not found.")
-  }
+//   if (!recipeSnap.exists()) {
+//     throw new Error("Recipe not found.")
+//   }
 
-  const recipeData = recipeSnap.data()
+//   const recipeData = recipeSnap.data()
 
-  if (recipeData.status !== "needs_revision" && recipeData.status !== "draft") {
-    throw new Error("This recipe cannot be submitted for review.")
-  }
+//   if (recipeData.status !== "needs_revision" && recipeData.status !== "draft") {
+//     throw new Error("This recipe cannot be submitted for review.")
+//   }
 
-  const recipeTitle =
-    typeof recipeData.title === "string" && recipeData.title.trim()
-      ? recipeData.title.trim()
-      : "Untitled recipe"
+//   const recipeTitle =
+//     typeof recipeData.title === "string" && recipeData.title.trim()
+//       ? recipeData.title.trim()
+//       : "Untitled recipe"
 
-  const recipeOwnerId =
-    typeof recipeData.userId === "string"
-      ? recipeData.userId
-      : ""
+//   const recipeOwnerId =
+//     typeof recipeData.userId === "string"
+//       ? recipeData.userId
+//       : ""
 
-  if (!recipeOwnerId) {
-    throw new Error("Recipe owner could not be determined.")
-  }
+//   if (!recipeOwnerId) {
+//     throw new Error("Recipe owner could not be determined.")
+//   }
 
-  const recipeOwnerUsername =
-    recipeData.author?.username ||
-    recipeData.user ||
-    "Creator"
+//   const recipeOwnerUsername =
+//     recipeData.author?.username ||
+//     recipeData.user ||
+//     "Creator"
 
-  const recipeOwnerProfileImage =
-    recipeData.author?.profileImage || ""
+//   const recipeOwnerProfileImage =
+//     recipeData.author?.profileImage || ""
 
-  const adminUserIds = await getAdminUserIds()
+//   const adminUserIds = await getAdminUserIds()
 
-  if (adminUserIds.length === 0) {
-    throw new Error("No administrator account is available.")
-  }
+//   if (adminUserIds.length === 0) {
+//     throw new Error("No administrator account is available.")
+//   }
 
-  const batch = writeBatch(db)
+//   const batch = writeBatch(db)
 
-  batch.update(recipeRef, {
-    status: "pending",
-    updatedAt: serverTimestamp(),
+//   batch.update(recipeRef, {
+//     status: "pending",
+//     updatedAt: serverTimestamp(),
 
-    "moderation.submittedAt": serverTimestamp(),
-    "moderation.reviewedAt": null,
-    "moderation.reviewedBy": null,
+//     "moderation.submittedAt": serverTimestamp(),
+//     "moderation.reviewedAt": null,
+//     "moderation.reviewedBy": null,
+//   })
+
+//   adminUserIds.forEach((adminUserId) => {
+//     addRecipeResubmittedNotificationToBatch(batch, {
+//       recipientUserId: adminUserId,
+
+//       actorUserId: recipeOwnerId,
+//       actorUsername: recipeOwnerUsername,
+//       actorProfileImage: recipeOwnerProfileImage,
+
+//       recipeId,
+//       recipeTitle,
+//     })
+//   })
+
+//   await batch.commit()
+// }
+
+export async function submitRecipeForReview(
+  recipeId: string,
+  requestId: string = crypto.randomUUID()
+): Promise<void> {
+  await submitRecipeRevisionCallable({
+    recipeId,
+    requestId,
   })
+}
 
-  adminUserIds.forEach((adminUserId) => {
-    addRecipeResubmittedNotificationToBatch(batch, {
-      recipientUserId: adminUserId,
+async function resolveNeedsRevisionRecipeImages(recipe: NeedsRevisionRecipe): Promise<NeedsRevisionRecipe> {
+  const [image, cookingSteps] = await Promise.all([
+    resolveStorageImage(recipe.image),
 
-      actorUserId: recipeOwnerId,
-      actorUsername: recipeOwnerUsername,
-      actorProfileImage: recipeOwnerProfileImage,
+    Promise.all(
+      (recipe.cookingSteps || []).map(async (step) => ({
+        ...step,
+        image: await resolveStorageImage(step.image),
+      }))
+    ),
+  ])
 
-      recipeId,
-      recipeTitle,
-    })
-  })
-
-  await batch.commit()
+  return {
+    ...recipe,
+    image,
+    cookingSteps,
+  }
 }
 
 export async function fetchNeedsRevisionRecipes(
@@ -299,15 +409,17 @@ export async function fetchNeedsRevisionRecipes(
 
   const snapshot = await getDocs(recipesQuery)
 
-  return snapshot.docs.map((docSnap) => {
-    const data = docSnap.data() as NeedsRevisionRecipe
+  return Promise.all(
+    snapshot.docs.map((docSnap) => {
+      const data = docSnap.data() as NeedsRevisionRecipe
 
-    return {
-      ...data,
-      id: docSnap.id,
-      recipeId: data.recipeId || docSnap.id,
-    }
-  })
+      return resolveNeedsRevisionRecipeImages({
+        ...data,
+        id: docSnap.id,
+        recipeId: data.recipeId || docSnap.id,
+      })
+    })
+  )
 }
 
 export function subscribeToNeedsRevisionRecipes({
@@ -331,9 +443,14 @@ export function subscribeToNeedsRevisionRecipes({
     limit(50)
   )
 
-  return onSnapshot(
+  let isActive = true
+  let snapshotVersion = 0
+
+  const unsubscribe = onSnapshot(
     recipesQuery,
     (snapshot) => {
+      const currentVersion = ++snapshotVersion
+
       const recipes = snapshot.docs.map((docSnap) => {
         const data = docSnap.data() as NeedsRevisionRecipe
 
@@ -344,8 +461,45 @@ export function subscribeToNeedsRevisionRecipes({
         }
       })
 
-      onChange(recipes)
+      Promise.all(
+        recipes.map(resolveNeedsRevisionRecipeImages)
+      )
+        .then((resolvedRecipes) => {
+          if (
+            !isActive ||
+            currentVersion !== snapshotVersion
+          ) {
+            return
+          }
+
+          onChange(resolvedRecipes)
+        })
+        .catch((error) => {
+          if (
+            !isActive ||
+            currentVersion !== snapshotVersion
+          ) {
+            return
+          }
+
+          onError(
+            error instanceof Error
+              ? error
+              : new Error("Failed to resolve recipe images.")
+          )
+        })
     },
-    onError
+    (error) => {
+      if (!isActive) return
+
+      onError(error)
+    }
   )
+
+  return () => {
+    isActive = false
+    snapshotVersion++
+
+    unsubscribe()
+  }
 }

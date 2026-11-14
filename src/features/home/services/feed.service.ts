@@ -1,6 +1,7 @@
 import { collection, documentId, getDocs, limit, onSnapshot, orderBy, query, QueryDocumentSnapshot, where } from "@firebase/firestore"
 import { Recipe } from "../types"
 import { db } from "../../../firebase-config"
+import { resolveRecipeImages } from "../utils/resolveRecipeImages"
 
 const FIRESTORE_IN_LIMIT = 30
 const FOLLOWING_RECIPES_LIMIT_PER_GROUP = 40
@@ -26,6 +27,12 @@ function mapRecipeDoc(
     id: docSnap.id,
     recipeId: data.recipeId || docSnap.id,
   }
+}
+
+async function mapResolvedRecipeDoc(
+  docSnap: QueryDocumentSnapshot
+): Promise<Recipe> {
+  return resolveRecipeImages(mapRecipeDoc(docSnap))
 }
 
 function sortRecipesByCreatedAt(
@@ -70,6 +77,80 @@ export function subscribeToFollowingUserIds({
   )
 }
 
+// export function subscribeToFollowingRecipes({
+//   followingUserIds,
+//   onChange,
+//   onError,
+// }: {
+//   followingUserIds: string[]
+//   onChange: (recipes: Recipe[]) => void
+//   onError: (error: Error) => void
+// }) {
+//   if (!followingUserIds.length) {
+//     onChange([])
+//     return () => undefined
+//   }
+
+//   const userIdGroups = chunkArray(
+//     followingUserIds,
+//     FIRESTORE_IN_LIMIT
+//   )
+
+//   const recipesByGroup = new Map<number, Recipe[]>()
+
+//   const emitMergedRecipes = () => {
+//     const recipesById = new Map<string, Recipe>()
+
+//     recipesByGroup.forEach((groupRecipes) => {
+//       groupRecipes.forEach((recipe) => {
+//         const recipeId = recipe.recipeId || recipe.id
+
+//         if (recipeId) {
+//           recipesById.set(recipeId, recipe)
+//         }
+//       })
+//     })
+
+//     onChange(
+//       sortRecipesByCreatedAt(
+//         Array.from(recipesById.values())
+//       )
+//     )
+//   }
+
+//   const unsubscribers = userIdGroups.map(
+//     (userIdGroup, groupIndex) => {
+//       const followingRecipesQuery = query(
+//         collection(db, "recipes"),
+//         where("userId", "in", userIdGroup),
+//         where("status", "==", "published"),
+//         where("visibility", "==", "public"),
+//         orderBy("createdAt", "desc"),
+//         limit(FOLLOWING_RECIPES_LIMIT_PER_GROUP)
+//       )
+
+//       return onSnapshot(
+//         followingRecipesQuery,
+//         (snapshot) => {
+//           recipesByGroup.set(
+//             groupIndex,
+//             snapshot.docs.map(mapRecipeDoc)
+//           )
+
+//           emitMergedRecipes()
+//         },
+//         onError
+//       )
+//     }
+//   )
+
+//   return () => {
+//     unsubscribers.forEach((unsubscribe) =>
+//       unsubscribe()
+//     )
+//   }
+// }
+
 export function subscribeToFollowingRecipes({
   followingUserIds,
   onChange,
@@ -91,7 +172,14 @@ export function subscribeToFollowingRecipes({
 
   const recipesByGroup = new Map<number, Recipe[]>()
 
+  // Each group can receive snapshots independently.
+  const groupVersions = new Map<number, number>()
+
+  let isActive = true
+
   const emitMergedRecipes = () => {
+    if (!isActive) return
+
     const recipesById = new Map<string, Recipe>()
 
     recipesByGroup.forEach((groupRecipes) => {
@@ -125,12 +213,45 @@ export function subscribeToFollowingRecipes({
       return onSnapshot(
         followingRecipesQuery,
         (snapshot) => {
-          recipesByGroup.set(
-            groupIndex,
-            snapshot.docs.map(mapRecipeDoc)
-          )
+          const currentVersion =
+            (groupVersions.get(groupIndex) ?? 0) + 1
 
-          emitMergedRecipes()
+          groupVersions.set(groupIndex, currentVersion)
+
+          Promise.all(
+            snapshot.docs.map(mapResolvedRecipeDoc)
+          )
+            .then((resolvedRecipes) => {
+              if (
+                !isActive ||
+                groupVersions.get(groupIndex) !== currentVersion
+              ) {
+                return
+              }
+
+              recipesByGroup.set(
+                groupIndex,
+                resolvedRecipes
+              )
+
+              emitMergedRecipes()
+            })
+            .catch((error: unknown) => {
+              if (
+                !isActive ||
+                groupVersions.get(groupIndex) !== currentVersion
+              ) {
+                return
+              }
+
+              onError(
+                error instanceof Error
+                  ? error
+                  : new Error(
+                      "Failed to resolve following recipe images."
+                    )
+              )
+            })
         },
         onError
       )
@@ -138,6 +259,9 @@ export function subscribeToFollowingRecipes({
   )
 
   return () => {
+    isActive = false
+    groupVersions.clear()
+
     unsubscribers.forEach((unsubscribe) =>
       unsubscribe()
     )
@@ -157,7 +281,9 @@ export async function fetchRecommendationCandidates(): Promise<
 
   const snapshot = await getDocs(candidatesQuery)
 
-  return snapshot.docs.map(mapRecipeDoc)
+  return Promise.all(
+    snapshot.docs.map(mapResolvedRecipeDoc)
+  )
 }
 
 export async function fetchRecipesByIds(
@@ -183,7 +309,11 @@ export async function fetchRecipesByIds(
     )
   )
 
-  return snapshots.flatMap((snapshot) =>
-    snapshot.docs.map(mapRecipeDoc)
+  const recipeDocs = snapshots.flatMap(
+    (snapshot) => snapshot.docs
+  )
+
+  return Promise.all(
+    recipeDocs.map(mapResolvedRecipeDoc)
   )
 }

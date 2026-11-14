@@ -23,6 +23,7 @@ export interface RecipeCookingSteps {
     description?: string
     imageUrl?: string
     image?: string | null
+    imageFileName?: string | null
     error?: boolean
 }
 

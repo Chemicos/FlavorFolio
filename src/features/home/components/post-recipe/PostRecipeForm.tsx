@@ -1,7 +1,7 @@
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded"
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import PostRecipeSteps from "./PostRecipeSteps"
 import { PostRecipeStep, PostRecipeIngredient } from "../../types/postRecipe.types"
 import PostRecipeIngredients from "./PostRecipeIngredients"
@@ -14,7 +14,11 @@ import PostRecipeCuisineSelect from "./PostRecipeCuisineSelect"
 import { CurrentUserCardData } from "../../types/recipeCard.types"
 import { createPendingRecipe, updateRecipe } from "../../services/recipes.service"
 import { Recipe } from "../../types"
-
+import { useSnackbar } from "../../../../components/layout/SnackbarProvider"
+import { FunctionsError } from "firebase/functions"
+import type { PreparedRecipeEdit, RecipeEditReservation, SaveRecipeEditOptions } from "../../services/recipeEditCallable.service"
+import { getFirebaseErrorCode, isDefinitiveOperationError } from "../../utils/callableRetry"
+import { UpdateNeedsRevisionRecipePayload } from "../../../needs-revision/services/needsRevision.service"
 
 interface PostRecipeFormProps {
   onClose: () => void
@@ -26,25 +30,38 @@ interface PostRecipeFormProps {
   updateMode?: "default" | "revision_draft"
   onRevisionDraftUpdate?: (data: {
     recipeId: string
-    payload: Record<string, any>
-  }) => Promise<Recipe>
+    payload: UpdateNeedsRevisionRecipePayload
+    options?: SaveRecipeEditOptions & {
+      requestId?: string
+    }
+  }) => Promise<unknown>
+}
+
+interface PendingSaveAttempt {
+  requestId: string
+  reservation?: RecipeEditReservation
+  signature: string
+  files: Array<File | null>
+  prepared?: PreparedRecipeEdit
 }
 
 export default function PostRecipeForm({
-  onClose, 
-  currentUser, 
-  onSubmitSuccess, 
-  mode = "create", 
-  recipeToEdit = null, 
+  onClose,
+  currentUser,
+  onSubmitSuccess,
+  mode = "create",
+  recipeToEdit = null,
   onUpdateSuccess,
   updateMode = "default",
   onRevisionDraftUpdate,
 }: PostRecipeFormProps) {
   const MIN_TITLE_LENGTH = 5
-  const MIN_DESCRIPTION_LENGTH = 30  
+  const MIN_DESCRIPTION_LENGTH = 30
 
   const isEditMode = mode === "edit" && Boolean(recipeToEdit)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const saveAttemptRef = useRef<PendingSaveAttempt | null>(null)
+  const submittingRef = useRef(false)
   const [title, setTitle] = useState(recipeToEdit?.title || "")
   const [description, setDescription] = useState(recipeToEdit?.description || "")
   const [cuisine, setCuisine] = useState(recipeToEdit?.cuisine || "")
@@ -54,6 +71,7 @@ export default function PostRecipeForm({
   const [meal, setMeal] = useState(recipeToEdit?.meal || "lunch")
   const [visibility, setVisibility] = useState<"public" | "private">(recipeToEdit?.visibility === "private" ? "private" : "public")
 
+  const { showSnackbar } = useSnackbar()
   const editSubmitLabel = updateMode === "revision_draft" ? "Save changes" : "Save draft"
 
   const difficultyOptions = [
@@ -76,7 +94,7 @@ export default function PostRecipeForm({
   ]
 
   const cuisineOptions =["American", "Chinese", "French", "Greek", "Indian", "Italian", "Japanese", "Korean", "Lebanese", "Mexican", "Moroccan", "Romanian", "Spanish", "Thai", "Turkish", "Vietnamese"]
-  
+
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
   const fieldClass = "w-full rounded-md border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--input-placeholder)] hover:border-[var(--border-strong)] hover:bg-[var(--input-bg-hover)] focus:border-[var(--focus-border)] focus:ring-2 focus:ring-[var(--focus-ring)]"
@@ -106,6 +124,7 @@ export default function PostRecipeForm({
       image: null,
       imagePreview: step.image || step.imageUrl || "",
       existingImageUrl: step.image || step.imageUrl || "",
+      existingImageFileName: step.imageFileName || "",
     })) || []
   )
 
@@ -159,56 +178,248 @@ export default function PostRecipeForm({
       setImagePreview(URL.createObjectURL(file))
   }
 
-  const handlePostRecipe = async () => {
-    if (completionPercentage !== 100 || isSubmitting || !currentUser) return
+  const getEditSignature = () => {
+    const signature = JSON.stringify({
+      recipeId: recipeToEdit?.recipeId,
+      title,
+      description,
+      cuisine,
+      duration,
+      servings,
+      difficulty,
+      meal,
+      visibility,
+      existingImageFileName: recipeToEdit?.imageFileName ?? null,
 
+      ingredients: ingredients.map((item) => ({
+        ingredient: item.ingredient,
+        quantity: item.quantity,
+        unit: item.unit,
+      })),
+
+      steps: steps.map((step) => ({
+        title: step.title ?? "",
+        description: step.description,
+        existingImageFileName: step.existingImageFileName ?? null,
+      })),
+    })
+
+    const files = [imageFile, ...steps.map((step) => step.image ?? null)]
+
+    return {signature, files}
+  }
+
+  const matchesPendingAttempt = (attempt: PendingSaveAttempt, current: ReturnType<typeof getEditSignature>) => {
+    return (
+      attempt.signature === current.signature &&
+      attempt.files.length === current.files.length &&
+      attempt.files.every(
+        (file, index) => file === current.files[index]
+      )
+    )
+  }
+
+  // const handlePostRecipe = async () => {
+  //   if (completionPercentage !== 100 || isSubmitting || !currentUser) return
+
+  //   setIsSubmitting(true)
+
+  //   try {
+  //     if (isEditMode && recipeToEdit?.recipeId) {
+  //       if(updateMode === "revision_draft") {
+  //         await onRevisionDraftUpdate?.({
+  //           recipeId: recipeToEdit.recipeId,
+  //           payload: {
+  //             title,
+  //             description,
+  //             cuisine,
+  //             duration,
+  //             servings,
+  //             difficulty,
+  //             meal,
+  //             visibility,
+  //             imageFile,
+  //             existingImageUrl: recipeToEdit.image || "",
+  //             existingImageFileName: recipeToEdit.imageFileName || "",
+  //             ingredients,
+  //             steps,
+  //           },
+  //         })
+
+  //         onUpdateSuccess?.()
+  //         return
+  //       }
+
+  //       await updateRecipe({
+  //         recipeId: recipeToEdit.recipeId,
+  //         title,
+  //         description,
+  //         cuisine,
+  //         duration,
+  //         servings,
+  //         difficulty,
+  //         meal,
+  //         visibility,
+  //         imageFile,
+  //         existingImageUrl: recipeToEdit.image || "",
+  //         existingImageFileName: recipeToEdit.imageFileName || "",
+  //         ingredients,
+  //         steps,
+  //         currentUser,
+  //       })
+
+  //       onUpdateSuccess?.()
+  //       return
+  //     }
+
+  //     await createPendingRecipe({
+  //       title,
+  //       description,
+  //       cuisine,
+  //       duration,
+  //       servings,
+  //       difficulty,
+  //       meal,
+  //       visibility,
+  //       imageFile: imageFile!,
+  //       ingredients,
+  //       steps,
+  //       currentUser,
+  //     })
+
+  //     onSubmitSuccess()
+  //     // onClose()
+  //   } catch (error) {
+  //     console.error(
+  //       isEditMode ? "Failed to update recipe:" : "Failed to create recipe:", error
+  //     )
+
+  //     if (!isEditMode && (error as FunctionsError)?.code === "functions/resource-exhausted") {
+  //       showSnackbar("You've reached the daily limits of 3 recipes. Try again tomorrow.", "error")
+  //     } else {
+  //       showSnackbar(
+  //         isEditMode ? "Failed to update recipe." : "Failed to create recipe. Please try again.", "error"
+  //       )
+  //     }
+  //   } finally {
+  //     setIsSubmitting(false)
+  //   }
+  // }
+
+  const handlePostRecipe = async () => {
+    if (
+      completionPercentage !== 100 ||
+      submittingRef.current ||
+      !currentUser
+    ) {
+      return
+    }
+
+    submittingRef.current = true
     setIsSubmitting(true)
 
     try {
       if (isEditMode && recipeToEdit?.recipeId) {
-        if(updateMode === "revision_draft") {
-            const updatedRecipe = await onRevisionDraftUpdate?.({
-              recipeId: recipeToEdit.recipeId,
-              payload: {
-                title,
-                description,
-                cuisine,
-                duration,
-                servings,
-                difficulty,
-                meal,
-                visibility,
-                imageFile,
-                existingImageUrl: recipeToEdit.image || "",
-                existingImageFileName: recipeToEdit.imageFileName || "",
-                ingredients,
-                steps,
-              },
-          })
+        const currentSignature = getEditSignature()
 
-          onUpdateSuccess?.(updatedRecipe)
-          return
+        let attempt = saveAttemptRef.current
+
+        if (attempt) {
+          if (!matchesPendingAttempt(attempt, currentSignature)) {
+            showSnackbar(
+              "This recipe has changed since the last save attempt. " +
+              "Check whether the previous save succeeded before starting " +
+              "a new edit.",
+              "error"
+            )
+            return
+          }
+        } else {
+          attempt = {
+            requestId: crypto.randomUUID(),
+            signature: currentSignature.signature,
+            files: currentSignature.files,
+          }
+
+          saveAttemptRef.current = attempt
         }
 
-        const updatedRecipe = await updateRecipe({
-          recipeId: recipeToEdit.recipeId,
-          title,
-          description,
-          cuisine,
-          duration,
-          servings,
-          difficulty,
-          meal,
-          visibility,
-          imageFile,
-          existingImageUrl: recipeToEdit.image || "",
-          existingImageFileName: recipeToEdit.imageFileName || "",
-          ingredients,
-          steps,
-          currentUser,
-        })
+        const editOptions: SaveRecipeEditOptions & {
+          requestId: string
+        } = {
+          requestId: attempt.requestId,
 
-        onUpdateSuccess?.(updatedRecipe)
+          reservation: attempt.reservation,
+
+          prepared: attempt.prepared,
+
+          onReservation: (reservation) => {
+            if (saveAttemptRef.current === attempt) {
+              attempt.reservation = reservation
+            }
+          },
+
+          onPrepared: (prepared) => {
+            if (saveAttemptRef.current === attempt) {
+              attempt.prepared = prepared
+            }
+          },
+        }
+
+        if (updateMode === "revision_draft") {
+          if (!onRevisionDraftUpdate) {
+            throw new Error(
+              "Revision draft update handler is missing."
+            )
+          }
+
+          await onRevisionDraftUpdate({
+            recipeId: recipeToEdit.recipeId,
+            payload: {
+              title,
+              description,
+              cuisine,
+              duration,
+              servings,
+              difficulty,
+              meal,
+              visibility,
+              imageFile,
+              existingImageUrl: recipeToEdit.image || "",
+              existingImageFileName:
+                recipeToEdit.imageFileName || "",
+              ingredients,
+              steps,
+            },
+            options: editOptions,
+          })
+        } else {
+          await updateRecipe(
+            {
+              recipeId: recipeToEdit.recipeId,
+              title,
+              description,
+              cuisine,
+              duration,
+              servings,
+              difficulty,
+              meal,
+              visibility,
+              imageFile,
+              existingImageUrl: recipeToEdit.image || "",
+              existingImageFileName:
+                recipeToEdit.imageFileName || "",
+              ingredients,
+              steps,
+              currentUser,
+            },
+            editOptions
+          )
+        }
+
+        saveAttemptRef.current = null
+
+        onUpdateSuccess?.()
         return
       }
 
@@ -228,12 +439,58 @@ export default function PostRecipeForm({
       })
 
       onSubmitSuccess()
-      // onClose()
     } catch (error) {
       console.error(
-        isEditMode ? "Failed to update recipe:" : "Failed to create recipe:", error
+        isEditMode
+          ? "Failed to update recipe:"
+          : "Failed to create recipe:",
+        error
       )
+
+      const errorCode = getFirebaseErrorCode(error)
+
+      if (
+        isEditMode &&
+        isDefinitiveOperationError(error)
+      ) {
+        saveAttemptRef.current = null
+      }
+
+      if (errorCode === "functions/resource-exhausted") {
+        showSnackbar(
+          isEditMode
+            ? "You've reached the daily limit of 4 edit actions. Try again tomorrow."
+            : "You've reached the daily limit of 3 recipes. Try again tomorrow.",
+          "error"
+        )
+      } else if (
+        isEditMode &&
+        errorCode === "functions/failed-precondition"
+      ) {
+        showSnackbar(
+          "This edit can no longer be completed. " +
+          "Refresh the recipe before editing again.",
+          "error"
+        )
+      } else if (
+        isEditMode &&
+        !isDefinitiveOperationError(error)
+      ) {
+        showSnackbar(
+          "We couldn't confirm whether your changes were saved. " +
+          "Use Save again without changing the recipe to retry safely.",
+          "error"
+        )
+      } else {
+        showSnackbar(
+          isEditMode
+            ? "Failed to update recipe."
+            : "Failed to create recipe. Please try again.",
+          "error"
+        )
+      }
     } finally {
+      submittingRef.current = false
       setIsSubmitting(false)
     }
   }
@@ -289,7 +546,7 @@ export default function PostRecipeForm({
           <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[var(--recipe-form-bg)] to-transparent" />
 
           {imagePreview && (
-            <div 
+            <div
               className="absolute bottom-16 right-6 z-20 flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] px-4 py-2 text-sm text-[var(--text-primary)] backdrop-blur-xl transition group-hover:border-[var(--accent-border)] group-hover:bg-[var(--accent-soft-hover)] group-hover:text-[var(--accent-text)]"
             >
               <CameraAltRoundedIcon sx={{ fontSize: 16 }} />
@@ -336,8 +593,8 @@ export default function PostRecipeForm({
         <div className="mt-8 flex flex-col gap-5">
           <div className="relative">
             <label className={labelClass}>Title *</label>
-            <input 
-              value={title} 
+            <input
+              value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Recipe title"
               className={fieldClass}
@@ -345,7 +602,7 @@ export default function PostRecipeForm({
 
           <AnimatePresence>
             {titleTooShort && (
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0, y: 6, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 6, scale: 0.98 }}
@@ -370,7 +627,7 @@ export default function PostRecipeForm({
 
             <AnimatePresence>
               {descriptionTooShort && (
-                <motion.p 
+                <motion.p
                   initial={{ opacity: 0, y: 6, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 6, scale: 0.98 }}
@@ -386,7 +643,7 @@ export default function PostRecipeForm({
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={labelClass}>Cuisine</label>
-              <PostRecipeCuisineSelect 
+              <PostRecipeCuisineSelect
                 value={cuisine}
                 options={cuisineOptions}
                 onChange={setCuisine}
@@ -428,7 +685,7 @@ export default function PostRecipeForm({
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={labelClass}>Difficulty</label>
-              <PostRecipeSelectDropdown 
+              <PostRecipeSelectDropdown
                 value={difficulty}
                 options={difficultyOptions}
                 onChange={setDifficulty}
@@ -437,7 +694,7 @@ export default function PostRecipeForm({
 
             <div>
               <label className={labelClass}>Meal type</label>
-              <PostRecipeSelectDropdown 
+              <PostRecipeSelectDropdown
                 value={meal}
                 options={mealOptions}
                 onChange={setMeal}
@@ -446,7 +703,7 @@ export default function PostRecipeForm({
 
             <div>
               <label className={labelClass}>Visibility</label>
-              <PostRecipeSelectDropdown 
+              <PostRecipeSelectDropdown
                 value={visibility}
                 options={visibilityOptions}
                 onChange={(value) => setVisibility(value as "public" | "private")}

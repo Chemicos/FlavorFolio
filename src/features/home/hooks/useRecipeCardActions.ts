@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import type { Recipe, SavedRecipe } from "../types"
 import type { CurrentUserCardData } from "../types/recipeCard.types"
 import { toggleFollowUser } from "../services/social.service"
-import { toggleSavedRecipe } from "../services/savedRecipes.service"
+import { setRecipeSaved } from "../services/savedRecipes.service"
 import { createRecipeSaveNotification } from "../services/notifications.service"
 
 
@@ -25,6 +25,12 @@ export function useRecipeCardActions({
 }: UseRecipeCardActionsParams) {
   const [isFollowLoading, setIsFollowLoading] = useState(false)
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
+
+  const pendingSaveAttemptRef = useRef<{
+    recipeId: string
+    saved: boolean
+    requestId: string
+  } | null>(null)
 
   const isOwner = currentUser?.uid === recipe.userId
 
@@ -64,24 +70,83 @@ export function useRecipeCardActions({
     }
   }
 
+  // const handleToggleFavorite = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  //   e.stopPropagation()
+
+  //   if (!currentUser?.uid || !recipe.recipeId || isFavoriteLoading) return
+
+  //   try {
+  //     setIsFavoriteLoading(true)
+
+  //     const didSave = await toggleSavedRecipe({
+  //       currentUserId: currentUser.uid,
+  //       recipeId: recipe.recipeId,
+  //       currentUsername: currentUser.username || "User",
+  //       currentProfileImage: currentUser.profileImage || "",
+  //     })
+
+  //     onFavoriteStateChange(recipe.recipeId, didSave)
+  //   } catch (error) {
+  //     console.error("Error toggling favorite:", error)
+  //   } finally {
+  //     setIsFavoriteLoading(false)
+  //   }
+  // }
+
   const handleToggleFavorite = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
 
-    if (!currentUser?.uid || !recipe.recipeId || isFavoriteLoading) return
+    const recipeId = recipe.recipeId || recipe.id
+
+    if (
+      !currentUser?.uid ||
+      !recipeId ||
+      isFavoriteLoading
+    ) {
+      return
+    }
+
+    const attempt =
+      pendingSaveAttemptRef.current?.recipeId === recipeId
+        ? pendingSaveAttemptRef.current
+        : {
+            recipeId,
+            saved: !isFavorite,
+            requestId: crypto.randomUUID(),
+          }
+
+    pendingSaveAttemptRef.current = attempt
 
     try {
       setIsFavoriteLoading(true)
 
-      const didSave = await toggleSavedRecipe({
-        currentUserId: currentUser.uid,
-        recipeId: recipe.recipeId,
-        currentUsername: currentUser.username || "User",
-        currentProfileImage: currentUser.profileImage || "",
-      })
+      const result = await setRecipeSaved(attempt)
 
-      onFavoriteStateChange(recipe.recipeId, didSave)
+      pendingSaveAttemptRef.current = null
+
+      if (result.changed && isFavorite !== result.saved) {
+        onFavoriteStateChange(recipeId, result.saved)
+      }
+
+      return result.saved
     } catch (error) {
-      console.error("Error toggling favorite:", error)
+      console.error("Error updating saved recipe:", error)
+
+      // Keep the same requestId only for potentially ambiguous backend/network failures.
+      const code = (error as { code?: string })?.code ?? ""
+
+      const isAmbiguous =
+        code === "functions/unavailable" ||
+        code === "functions/deadline-exceeded" ||
+        code === "functions/internal" ||
+        code === "functions/unknown" ||
+        error instanceof TypeError
+
+      if (!isAmbiguous) {
+        pendingSaveAttemptRef.current = null
+      }
+
+      throw error
     } finally {
       setIsFavoriteLoading(false)
     }

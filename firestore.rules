@@ -1,0 +1,1188 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function userExists(userId) {
+      return exists(
+        /databases/$(database)/documents/users/$(userId)
+      );
+    }
+
+    function currentUserExists() {
+      return isAuthenticated()
+        && userExists(request.auth.uid);
+    }
+
+    function currentUserDoc() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      );
+    }
+
+    function userDoc(userId) {
+      return get(
+        /databases/$(database)/documents/users/$(userId)
+      );
+    }
+
+    function isAdmin() {
+      return currentUserExists()
+        && (
+          currentUserDoc().data.get("role", "") == "admin"
+          || currentUserDoc().data.get("admin", false) == true
+        );
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated()
+        && request.auth.uid == userId;
+    }
+
+
+    // =========================================================
+    // USER RESTRICTIONS
+    // =========================================================
+
+    function canPostRecipes() {
+      return currentUserExists()
+        && (
+          !("restrictions" in currentUserDoc().data)
+          || !("canPostRecipes" in currentUserDoc().data.restrictions)
+          || currentUserDoc().data.restrictions.canPostRecipes != false
+        );
+    }
+
+    function canPostReels() {
+      return currentUserExists()
+        && (
+          !("restrictions" in currentUserDoc().data)
+          || !("canPostReels" in currentUserDoc().data.restrictions)
+          || currentUserDoc().data.restrictions.canPostReels != false
+        );
+    }
+
+    function canComment() {
+      return currentUserExists()
+        && (
+          !("restrictions" in currentUserDoc().data)
+          || !("canComment" in currentUserDoc().data.restrictions)
+          || currentUserDoc().data.restrictions.canComment != false
+        );
+    }
+
+
+    // =========================================================
+    // SOCIAL HELPERS
+    // =========================================================
+
+    function follows(firstUserId, secondUserId) {
+      return exists(
+        /databases/$(database)/documents/users/$(firstUserId)/following/$(secondUserId)
+      );
+    }
+
+    function blocks(firstUserId, secondUserId) {
+      return exists(
+        /databases/$(database)/documents/users/$(firstUserId)/blockedUsers/$(secondUserId)
+      );
+    }
+
+    function canUsersMessage(firstUserId, secondUserId) {
+      return isAuthenticated()
+        && firstUserId != secondUserId
+        && follows(firstUserId, secondUserId)
+        && follows(secondUserId, firstUserId)
+        && !blocks(firstUserId, secondUserId)
+        && !blocks(secondUserId, firstUserId);
+    }
+
+    function isConversationParticipant(conversationId) {
+      return isAuthenticated()
+        && request.auth.uid in get(
+          /databases/$(database)/documents/conversations/$(conversationId)
+        ).data.participantIds;
+    }
+
+
+    // =========================================================
+    // USERS
+    // =========================================================
+
+    match /users/{userId} {
+
+      allow read: if isAuthenticated();
+
+      allow create: if
+        isOwner(userId)
+
+        && (
+          !("userId" in request.resource.data)
+          || request.resource.data.userId == request.auth.uid
+        )
+
+        && (
+          !("role" in request.resource.data)
+          || request.resource.data.role == "member"
+        )
+
+        && (
+          !("admin" in request.resource.data)
+          || request.resource.data.admin == false
+        )
+
+        && (
+          !("restrictions" in request.resource.data)
+          || (
+            request.resource.data.restrictions.canPostRecipes != false
+            && request.resource.data.restrictions.canPostReels != false
+            && request.resource.data.restrictions.canComment != false
+          )
+        );
+
+
+      allow update: if
+        isOwner(userId)
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "firstName",
+            "lastName",
+            "username",
+            "bio",
+            "userDescription",
+            "location",
+            "website",
+            "profileImage",
+            "profileImageFileName",
+            "bannerImage",
+            "bannerImageFileName",
+            "searchKeywords",
+            "privacy",
+            "preferences",
+            "updatedAt",
+            "lastSeenAt"
+          ]);
+
+
+      allow update: if
+        isAdmin()
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "restrictions",
+            "updatedAt"
+          ]);
+
+      allow update: if
+        isAuthenticated()
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "stats",
+            "updatedAt"
+          ]);
+
+
+      /*
+       * Account deletion:
+       * - admin can delete users
+       * - owner can delete themselves
+       *
+       * Your deleteCurrentUserAccount() requires the second case.
+       */
+      allow delete: if
+        isAdmin()
+        || isOwner(userId);
+
+
+      // =======================================================
+      // SAVED RECIPES
+      // /users/{uid}/savedRecipes/{recipeId}
+      // =======================================================
+
+      match /savedRecipes/{recipeId} {
+
+        allow read: if
+          isOwner(userId)
+          || isAdmin();
+
+        // Only Cloud Functions can modify saved recipes.
+        allow create, update, delete: if false;
+      }
+
+
+      // =======================================================
+      // LIKED REELS
+      // /users/{uid}/likedReels/{reelId}
+      // =======================================================
+
+      match /likedReels/{reelId} {
+
+        allow read: if
+          isOwner(userId)
+          || isAdmin();
+
+        allow create: if
+          isOwner(userId)
+
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.reelId == reelId;
+
+        allow delete: if
+          isOwner(userId)
+          || isAdmin();
+
+        allow update: if false;
+      }
+
+    // =======================================================
+    // SAVED REELS
+    // /users/{uid}/savedReels/{reelId}
+    // =======================================================
+
+    match /savedReels/{reelId} {
+
+      allow read: if
+        isOwner(userId)
+        || isAdmin();
+
+      allow create: if
+        isOwner(userId)
+
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.reelId == reelId;
+
+      allow delete: if
+        isOwner(userId)
+        || isAdmin();
+
+      allow update: if false;
+   }
+
+
+      // =======================================================
+      // FOLLOWING
+      // /users/{uid}/following/{targetUid}
+      // =======================================================
+
+      match /following/{targetUserId} {
+
+        allow read: if isAuthenticated();
+
+        allow create: if
+          isOwner(userId)
+          && targetUserId != request.auth.uid
+          && request.resource.data.userId == targetUserId;
+
+        allow delete: if
+          isAuthenticated()
+          && (
+            request.auth.uid == userId
+            || request.auth.uid == targetUserId
+            || isAdmin()
+          );
+
+        allow update: if false;
+      }
+
+
+      // =======================================================
+      // FOLLOWERS
+      // /users/{uid}/followers/{followerUid}
+      // =======================================================
+
+      match /followers/{followerUserId} {
+
+        allow read: if isAuthenticated();
+
+        /*
+         * A user creates their own follower record inside
+         * somebody else's account.
+         */
+        allow create: if
+          isAuthenticated()
+          && request.auth.uid == followerUserId
+          && userId != request.auth.uid
+          && request.resource.data.userId == request.auth.uid;
+
+        allow delete: if
+          isAuthenticated()
+          && (
+            request.auth.uid == followerUserId
+            || request.auth.uid == userId
+            || isAdmin()
+          );
+
+        allow update: if false;
+      }
+
+
+      // =======================================================
+      // BLOCKED USERS
+      // /users/{uid}/blockedUsers/{targetUid}
+      // =======================================================
+
+      match /blockedUsers/{targetUserId} {
+
+        allow read: if
+          isOwner(userId)
+          || isAdmin();
+
+        allow create: if
+          isOwner(userId)
+          && targetUserId != request.auth.uid
+          && request.resource.data.userId == targetUserId;
+
+        allow delete: if
+          isOwner(userId)
+          || isAdmin();
+
+        allow update: if false;
+      }
+
+
+      // =======================================================
+      // BLOCKED BY
+      // /users/{targetUid}/blockedBy/{blockerUid}
+      // =======================================================
+
+      match /blockedBy/{blockerUserId} {
+
+        allow read: if
+          isOwner(userId)
+          || isAdmin();
+
+        /*
+         * A blocks B:
+         *
+         * /users/B/blockedBy/A
+         *
+         * therefore A is the actor.
+         */
+        allow create: if
+          isAuthenticated()
+          && request.auth.uid == blockerUserId
+          && blockerUserId != userId
+          && request.resource.data.userId == blockerUserId;
+
+        allow delete: if
+          isAuthenticated()
+          && (
+            request.auth.uid == blockerUserId
+            || isAdmin()
+          );
+
+        allow update: if false;
+      }
+
+
+      // =======================================================
+      // NOTIFICATIONS
+      // /users/{uid}/notifications/{notificationId}
+      // =======================================================
+
+      match /notifications/{notificationId} {
+
+        allow read: if
+          isOwner(userId)
+          || isAdmin();
+
+        // CREATE notification
+        allow create: if
+        isAuthenticated()
+
+        && request.resource.data.recipientUserId == userId
+
+        && request.resource.data.type is string
+
+        && (
+          isAdmin()
+
+          || (
+            request.resource.data.get("actorUserId", "")
+              == request.auth.uid
+
+            && !(
+              request.resource.data.type in [
+                "recipe_pending",
+                "recipe_resubmitted",
+                "needs_revision",
+                "recipe_approved",
+                "account_restriction"
+              ]
+            )
+          )
+        );
+
+
+        // Recipient can mark their notification as read
+        allow update: if
+          isOwner(userId)
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "read",
+              "readAt"
+            ]);
+
+
+        // Follow actor can refresh/recreate their existing
+        // deterministic follow notification.
+        allow update: if
+          isAuthenticated()
+
+          && resource.data.type == "user_followed"
+
+          && resource.data.actorUserId == request.auth.uid
+
+          && request.resource.data.type == "user_followed"
+
+          && request.resource.data.actorUserId == request.auth.uid
+
+          && request.resource.data.recipientUserId == userId
+
+          && request.resource.data.recipientUserId
+            == resource.data.recipientUserId
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "actorUsername",
+              "actorProfileImage",
+              "title",
+              "message",
+              "read",
+              "createdAt"
+            ]);
+
+        // Rating notification refresh.
+        allow update: if
+          isAuthenticated()
+
+          && resource.data.type == "rating"
+          && request.resource.data.type == "rating"
+
+          && resource.data.actorUserId == request.auth.uid
+          && request.resource.data.actorUserId == request.auth.uid
+
+          && resource.data.recipientUserId == userId
+          && request.resource.data.recipientUserId == userId
+
+          && request.resource.data.recipeId
+            == resource.data.recipeId
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "actorUsername",
+              "actorProfileImage",
+              "recipeTitle",
+              "ratingValue",
+              "message",
+              "read",
+              "createdAt"
+            ]);
+
+        // Recipe resubmission notification refresh.
+        // The recipe owner may refresh the deterministic notification sent to an administrator. This line was deleted.
+
+        // Recipe save notification refresh.
+        allow update: if
+          isAuthenticated()
+
+          && resource.data.type == "recipe_saved"
+          && request.resource.data.type == "recipe_saved"
+
+          && resource.data.actorUserId == request.auth.uid
+          && request.resource.data.actorUserId == request.auth.uid
+
+          && resource.data.recipientUserId == userId
+          && request.resource.data.recipientUserId == userId
+
+          && request.resource.data.recipeId
+            == resource.data.recipeId
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "actorUsername",
+              "actorProfileImage",
+              "recipeTitle",
+              "message",
+              "read",
+              "createdAt"
+            ]);
+
+        // Admin may refresh deterministic moderation notifications when a recipe goes through moderation again.
+        allow update: if
+          isAdmin()
+
+          && resource.data.type in [
+            "needs_revision",
+            "recipe_approved"
+          ]
+
+          && request.resource.data.type
+            == resource.data.type
+
+          && request.resource.data.actorUserId
+            == request.auth.uid
+
+          && request.resource.data.recipientUserId
+            == userId
+
+          && resource.data.recipientUserId
+            == userId
+
+          && request.resource.data.recipeId
+            == resource.data.recipeId
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "actorUsername",
+              "actorProfileImage",
+              "recipeTitle",
+              "message",
+              "read",
+              "readAt",
+              "createdAt"
+            ]);
+
+
+        // Recipient/admin may delete.
+        // Actor may delete only their own follow notification when unfollowing.
+        allow delete: if
+          isOwner(userId)
+          || isAdmin()
+
+          // User may remove their deterministic follow notification
+          // when unfollowing.
+          || (
+            isAuthenticated()
+            && userId != request.auth.uid
+            && notificationId == "follow_" + request.auth.uid
+          )
+
+          // User may remove their own recipe-save notification
+          // when removing a recipe from saved recipes.
+          || (
+            isAuthenticated()
+
+            && userId != request.auth.uid
+
+            && resource.data.type == "recipe_saved"
+
+            && resource.data.actorUserId == request.auth.uid
+
+            && resource.data.recipientUserId == userId
+
+            && notificationId
+              == "save_"
+                + resource.data.recipeId
+                + "_"
+                + request.auth.uid
+          );
+      }
+    }
+
+    // =========================================================
+    // RECIPES
+    // =========================================================
+
+    match /recipes/{recipeId} {
+
+      /*
+       * Users can read:
+       * - public published recipes
+       * - their own recipes regardless of moderation state
+       * - admin can read everything
+       */
+      allow read: if
+        isAuthenticated()
+        && (
+          isAdmin()
+
+          || resource.data.userId == request.auth.uid
+
+          || (
+            resource.data.status == "published"
+            && resource.data.visibility == "public"
+          )
+        );
+
+
+      allow create: if false;
+
+
+      // =======================================================
+      // OWNER: VISIBILITY ONLY
+      // =======================================================
+      // Content edits and review submissions are handled
+      // exclusively by Cloud Functions.
+      //
+      // Changing public/private visibility is not rate-limited.
+
+      allow update: if
+        isAuthenticated()
+
+        // Only the recipe owner can use this rule.
+        && resource.data.userId == request.auth.uid
+
+        // Ownership cannot change.
+        && request.resource.data.userId == resource.data.userId
+
+        // The operation must actually change visibility.
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasAny(["visibility"])
+
+        // No content, moderation, status, stats or identity
+        // fields may change in the same request.
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "visibility",
+            "updatedAt"
+          ])
+
+        && request.resource.data.visibility in [
+          "public",
+          "private"
+        ]
+
+        // setProfileRecipeVisibility() uses serverTimestamp().
+        && request.resource.data.updatedAt == request.time;
+
+      /*
+       * ADMIN MODERATION
+       */
+      allow update: if
+        isAdmin();
+
+
+      allow delete: if
+        isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+
+
+      // =======================================================
+      // RECIPE COMMENTS
+      // =======================================================
+
+      match /comments/{commentId} {
+
+        allow read: if isAuthenticated();
+
+        allow create: if
+          canComment()
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.comment is string
+          && request.resource.data.comment.size() > 0
+          && request.resource.data.comment.size() <= 5000;
+
+
+        /*
+         * Comment owner may edit comment text.
+         *
+         * Reaction counters must also be updateable by other users,
+         * therefore there is another rule immediately below.
+         */
+        allow update: if
+          isAuthenticated()
+          && resource.data.userId == request.auth.uid
+
+          && request.resource.data.userId == resource.data.userId
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "comment",
+              "edited",
+              "updatedAt"
+            ]);
+
+        allow update: if
+          isAuthenticated()
+
+          && resource.data.userId == request.auth.uid
+          && request.resource.data.userId == resource.data.userId
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "username",
+              "profileImage",
+              "authorIdentityUpdatedAt"
+            ]);
+
+
+        allow update: if
+          isAuthenticated()
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "likesCount",
+              "dislikesCount",
+              "repliesCount",
+              "updatedAt"
+            ]);
+
+
+        allow delete: if
+          isAuthenticated()
+          && (
+            resource.data.userId == request.auth.uid
+            || isAdmin()
+          );
+      }
+
+
+      // =======================================================
+      // RATINGS
+      // /recipes/{recipeId}/ratings/{userId}
+      // =======================================================
+
+      match /ratings/{ratingUserId} {
+        allow read: if isAuthenticated();
+
+        // Rating writes are handled by Cloud Functions.
+        allow create, update, delete: if false;
+      }
+    }
+
+    // =========================================================
+    // RATE LIMITING - SERVER ONLY
+    // =========================================================
+
+    match /rateLimits/{userId}/days/{day} {
+      allow read, write: if false;
+    }
+
+    // =========================================================
+    // RECIPE UPLOAD SESSIONS - SERVER ONLY
+    // =========================================================
+
+    match /recipeUploadSessions/{requestId} {
+      allow read, write: if false;
+    }
+
+    // =========================================================
+    // RECIPE IMAGE CLEANUP JOBS - SERVER ONLY
+    // =========================================================
+
+    match /recipeImageCleanupJobs/{jobId} {
+      allow read, write: if false;
+    }
+
+    // =========================================================
+    // RECIPE SAVE - SERVER ONLY
+    // =========================================================
+
+    match /recipeSaveOperations/{requestId} {
+      allow read, write: if false;
+    }
+
+    // =========================================================
+    // RECIPE EDIT SESSIONS - CLOUD FUNCTIONS ONLY
+    // =========================================================
+    match /recipeEditSessions/{requestId} {
+      allow read, write: if false;
+    }
+
+    // Revision submissions are controlled by Cloud Functions.
+    match /recipeRevisionSubmissions/{requestId} {
+      allow read, write: if false;
+    }
+
+    // =========================================================
+    // COMMENT REACTIONS
+    // =========================================================
+
+    match /commentReactions/{reactionId} {
+
+      allow read: if isAuthenticated();
+
+      allow create: if
+        isAuthenticated()
+
+        && request.resource.data.userId == request.auth.uid
+
+        && request.resource.data.type in [
+          "like",
+          "dislike"
+        ];
+
+      allow update: if
+        isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.type in [
+          "like",
+          "dislike"
+        ];
+
+      allow delete: if
+        isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+    }
+
+
+    // =========================================================
+    // REELS
+    // =========================================================
+
+    match /reels/{reelId} {
+
+      allow read: if
+        isAuthenticated()
+        && (
+          isAdmin()
+
+          || resource.data.userId == request.auth.uid
+
+          || resource.data.visibility == "public"
+        );
+
+
+      allow create: if
+        canPostReels()
+
+        && request.resource.data.userId == request.auth.uid
+
+        && request.resource.data.author.userId == request.auth.uid
+
+        && request.resource.data.visibility in [
+          "public",
+          "private"
+        ]
+
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 3
+        && request.resource.data.title.size() <= 100
+
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 500
+
+        && request.resource.data.meal in [
+          "breakfast",
+          "lunch",
+          "dinner",
+          "dessert",
+          "snack"
+        ];
+
+
+      /*
+       * Reel owner content changes.
+       */
+      allow update: if
+        isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "title",
+            "description",
+            "meal",
+            "visibility",
+            "thumbnail",
+            "thumbnailUrl",
+            "updatedAt"
+          ]);
+
+      allow update: if
+        isAuthenticated()
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+           "likesCount",
+           "commentsCount",
+           "savesCount",
+           "sharesCount",
+           "viewsCount",
+           "updatedAt"
+          ]);
+
+
+      allow update: if isAdmin();
+
+
+      allow delete: if
+        isAuthenticated()
+        && (
+          resource.data.userId == request.auth.uid
+          || isAdmin()
+        );
+
+
+      // =======================================================
+      // REEL COMMENTS
+      // =======================================================
+
+      match /comments/{commentId} {
+
+        allow read: if isAuthenticated();
+
+        allow create: if
+          canComment()
+
+          && request.resource.data.userId == request.auth.uid
+
+          && request.resource.data.comment is string
+
+          && request.resource.data.comment.size() > 0
+
+          && request.resource.data.comment.size() <= 500;
+
+
+        allow update: if
+          isAuthenticated()
+
+          && resource.data.userId == request.auth.uid
+
+          && request.resource.data.userId == resource.data.userId
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "comment",
+              "edited",
+              "updatedAt"
+            ]);
+
+
+        allow delete: if
+          isAuthenticated()
+          && (
+            resource.data.userId == request.auth.uid
+            || isAdmin()
+          );
+      }
+    }
+
+
+    // =========================================================
+    // CONVERSATIONS
+    // =========================================================
+
+    match /conversations/{conversationId} {
+
+      /*
+       * Only participants may see the conversation.
+       */
+      allow read: if
+        isAuthenticated()
+        && request.auth.uid in resource.data.participantIds;
+
+
+      /*
+       * Creation requires:
+       *
+       * - direct conversation
+       * - exactly two users
+       * - authenticated user is one participant
+       * - both users mutually follow each other
+       * - neither blocks the other
+       */
+      allow create: if
+        isAuthenticated()
+
+        && request.resource.data.type == "direct"
+
+        && request.resource.data.participantIds is list
+
+        && request.resource.data.participantIds.size() == 2
+
+        && request.auth.uid
+          in request.resource.data.participantIds
+
+        && (
+          (
+            request.resource.data.participantIds[0]
+              == request.auth.uid
+
+            && canUsersMessage(
+              request.resource.data.participantIds[0],
+              request.resource.data.participantIds[1]
+            )
+          )
+
+          ||
+
+          (
+            request.resource.data.participantIds[1]
+              == request.auth.uid
+
+            && canUsersMessage(
+              request.resource.data.participantIds[1],
+              request.resource.data.participantIds[0]
+            )
+          )
+        );
+
+
+      allow update: if
+        isAuthenticated()
+
+        && request.auth.uid in resource.data.participantIds
+
+        && request.resource.data.participantIds
+          == resource.data.participantIds
+
+        && request.resource.data.type
+          == resource.data.type
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "lastMessage",
+            "unreadCount",
+            "lastReadAt",
+            "updatedAt"
+          ]);
+
+      allow delete: if isAdmin();
+
+
+      // =======================================================
+      // MESSAGES
+      // =======================================================
+
+      match /messages/{messageId} {
+
+        allow read: if
+          isConversationParticipant(conversationId);
+
+
+        allow create: if
+          isConversationParticipant(conversationId)
+
+          && request.resource.data.senderId
+            == request.auth.uid
+
+          && request.resource.data.receiverId
+            != request.auth.uid
+
+          && request.resource.data.senderId
+            in get(
+              /databases/$(database)/documents/conversations/$(conversationId)
+            ).data.participantIds
+
+          && request.resource.data.receiverId
+            in get(
+              /databases/$(database)/documents/conversations/$(conversationId)
+            ).data.participantIds
+
+          && canUsersMessage(
+            request.resource.data.senderId,
+            request.resource.data.receiverId
+          )
+
+          && request.resource.data.type in [
+            "text",
+            "image",
+            "recipe",
+            "reel"
+          ];
+
+
+        allow update: if false;
+
+
+        allow delete: if
+          isAuthenticated()
+          && (
+            resource.data.senderId == request.auth.uid
+            || isAdmin()
+          );
+      }
+    }
+
+
+    // =========================================================
+    // ADMIN MODERATION ACTIVITY
+    // =========================================================
+
+    match /adminModerationActivity/{activityId} {
+
+      allow read: if isAdmin();
+
+      allow create: if
+        isAdmin()
+        && request.resource.data.adminUserId == request.auth.uid;
+
+      allow update: if false;
+
+      allow delete: if isAdmin();
+    }
+
+    // =========================================================
+    // ADMIN REPORTS - COLLECTION GROUP READS
+    // =========================================================
+
+    match /users/{userId} {
+      allow read: if isAdmin();
+    }
+
+    match /recipes/{recipeId} {
+      allow read: if isAdmin();
+    }
+
+    match /{path=**}/savedRecipes/{savedRecipeId} {
+      allow read: if isAdmin();
+    }
+
+    match /{path=**}/comments/{commentId} {
+      allow read: if isAdmin();
+    }
+
+    // =========================================================
+    // DEFAULT DENY
+    // =========================================================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

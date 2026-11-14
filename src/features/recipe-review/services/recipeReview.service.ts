@@ -3,6 +3,7 @@ import { ReviewRecipe } from "../types/recipeReview.types";
 import { db } from "../../../firebase-config";
 import { ReviewSectionFeedback } from "../components/RecipeReviewSectionHeader";
 import { getAuth } from "firebase/auth";
+import { resolveStorageImage } from "../../../utils/resolveStorageItems";
 
 export type ReviewSectionKey =
   | "image"
@@ -166,25 +167,46 @@ export async function saveRecipeReviewFeedback({
   })
 }
 
+export async function resolveReviewRecipeImages(recipe: ReviewRecipe): Promise<ReviewRecipe> {
+  const [image, cookingSteps] = await Promise.all([
+    resolveStorageImage(recipe.image),
+
+    Promise.all(
+      (recipe.cookingSteps || []).map(async (step) => ({
+        ...step,
+        image: await resolveStorageImage(step.image),
+      }))
+    ),
+  ])
+
+  return {
+    ...recipe,
+    image,
+    cookingSteps,
+  }
+}
+
 export async function fetchPendingRecipes(): Promise<ReviewRecipe[]> {
     const recipesQuery = query(
-        collection(db, "recipes"),
-        where("status", "==", "pending"),
-        orderBy("createdAt", "desc"),
-        limit(30)
+      collection(db, "recipes"),
+      where("status", "==", "pending"),
+      orderBy("createdAt", "desc"),
+      limit(30)
     )
 
     const snapshot = await getDocs(recipesQuery)
 
-    return snapshot.docs.map((doc) => {
-        const data = doc.data() as ReviewRecipe
+  return Promise.all(
+    snapshot.docs.map((docSnap) => {
+      const data = docSnap.data() as ReviewRecipe
 
-        return {
-            ...data,
-            id: doc.id,
-            recipeId: data.recipeId || doc.id,
-        }
+      return resolveReviewRecipeImages({
+        ...data,
+        id: docSnap.id,
+        recipeId: data.recipeId || docSnap.id,
+      })
     })
+  )
 }
 
 async function getCurrentAdminMeta() {
@@ -231,21 +253,57 @@ export function subscribeToPendingRecipes({
     limit(100)
   )
 
-  return onSnapshot(
+  let isActive = true
+  let snapshotVersion = 0
+
+  const unsubscribe = onSnapshot(
     recipesQuery,
     (snapshot) => {
-      onChange(
-        snapshot.docs.map((docSnap) => {
-          const data = docSnap.data()
+      const currentVersion = ++snapshotVersion
 
-          return {
-            ...(data as ReviewRecipe),
-            id: docSnap.id,
-            recipeId: data.recipeId || docSnap.id,
-          }
-        })
+      const recipes = snapshot.docs.map((docSnap) => {
+        const data = docSnap.data() as ReviewRecipe
+
+        return {
+          ...data,
+          id: docSnap.id,
+          recipeId: data.recipeId || docSnap.id,
+        }
+      })
+
+      Promise.all(
+        recipes.map(resolveReviewRecipeImages)
       )
+        .then((resolvedRecipes) => {
+          if (!isActive || currentVersion !== snapshotVersion) {
+            return
+          }
+
+          onChange(resolvedRecipes)
+        })
+        .catch((error) => {
+          if (!isActive || currentVersion !== snapshotVersion) {
+            return
+          }
+
+          onError(
+            error instanceof Error
+              ? error
+              : new Error("Failed to resolve recipe images.")
+          )
+        })
     },
-    onError
+    (error) => {
+      if (!isActive) return
+
+      onError(error)
+    }
   )
+
+  return () => {
+    isActive = false
+    snapshotVersion++
+
+    unsubscribe()
+  }
 }

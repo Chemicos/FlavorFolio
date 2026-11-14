@@ -9,6 +9,7 @@ import { applyRecipeFilters, getAvailableCuisines } from "../utils/recipeFilters
 import { sortByMostSaved, sortByNewest, sortForYou, sortTrending } from "../utils/recipeSorters"
 import { fetchRecipesByIds, fetchRecommendationCandidates, subscribeToFollowingRecipes, subscribeToFollowingUserIds } from "../services/feed.service"
 import { buildRecipePreferenceProfile, RecipePreferenceProfile, sortRecipesForYou } from "../utils/recipeRecommendations"
+import { resolveRecipeImages } from "../utils/resolveRecipeImages"
 
 interface UseHomeDataParams {
   activeTab: string
@@ -108,12 +109,26 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
       : query(collection(db, "recipes"), ...constraints)
   }
 
-  const mapRecipeDocs = (docs: DocumentSnapshot[]) => {
-    return docs.map((docSnap) => ({
-      id: docSnap.id,
-      recipeId: docSnap.id,
-      ...docSnap.data(),
-    })) as Recipe[]
+  // const mapRecipeDocs = (docs: DocumentSnapshot[]) => {
+  //   return docs.map((docSnap) => ({
+  //     id: docSnap.id,
+  //     recipeId: docSnap.id,
+  //     ...docSnap.data(),
+  //   })) as Recipe[]
+  // }
+
+  const mapRecipeDocs = async (
+    docs: DocumentSnapshot[]
+  ): Promise<Recipe[]> => {
+    return Promise.all(
+      docs.map((docSnap) =>
+        resolveRecipeImages({
+          ...(docSnap.data() as Recipe),
+          id: docSnap.id,
+          recipeId: docSnap.id,
+        })
+      )
+    )
   }
 
   const fetchInitialRecipes = useCallback(async () => {
@@ -122,7 +137,9 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
     try {
       const snapshot = await getDocs(buildRecipesQuery())
 
-      setRecipes(mapRecipeDocs(snapshot.docs))
+      const resolvedRecipes = await mapRecipeDocs(snapshot.docs)
+      setRecipes(resolvedRecipes)
+
       setLastRecipeDoc(snapshot.docs[snapshot.docs.length - 1] ?? null)
       setHasMoreRecipes(snapshot.docs.length === PAGE_SIZE)
     } catch (error) {
@@ -139,7 +156,7 @@ export function useHomeData({ activeTab, filters }: UseHomeDataParams) {
 
     try {
       const snapshot = await getDocs(buildRecipesQuery(lastRecipeDoc))
-      const nextRecipes = mapRecipeDocs(snapshot.docs)
+      const nextRecipes = await mapRecipeDocs(snapshot.docs)
 
       setRecipes((prev) => {
         const existingIds = new Set(prev.map((recipe) => recipe.recipeId || recipe.id))

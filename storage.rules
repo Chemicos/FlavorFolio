@@ -1,0 +1,156 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedInAs(userId) {
+      return request.auth != null
+        && request.auth.uid == userId;
+    }
+
+    function validRecipeImage() {
+      return request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType.matches(
+          'image/(jpeg|png|webp)'
+        );
+    }
+
+    function validFileName(fileName) {
+      return fileName.matches(
+        '^[a-zA-Z0-9._-]{1,150}$'
+      )
+        && fileName != '.'
+        && fileName != '..';
+    }
+
+    function validRequestId(requestId) {
+      return requestId.matches(
+        '^[a-zA-Z0-9_-]{8,128}$'
+      );
+    }
+
+    function validUploadSession(userId, requestId) {
+      let session = firestore.get(
+        /databases/(default)/documents/recipeUploadSessions/$(requestId)
+      );
+
+      return session.data.userId == userId
+        && session.data.requestId == requestId
+        && session.data.status == "active"
+        && session.data.expiresAt is number
+        && session.data.expiresAt > request.time.toMillis();
+    }
+
+    function validRecipeEditSession(userId, requestId) {
+      let session = firestore.get(
+        /databases/(default)/documents/recipeEditSessions/$(requestId)
+      );
+
+      return session.data.userId == userId
+        && session.data.requestId == requestId
+        && session.data.action == "editRecipe"
+        && session.data.status == "active"
+        && session.data.expiresAt is number
+        && session.data.expiresAt > request.time.toMillis();
+    }
+
+    // =====================================================
+    // RECIPE UPLOADS - MAIN IMAGE
+    // =====================================================
+
+    match /recipe_uploads/{userId}/{requestId}/main/{fileName} {
+      allow get: if request.auth != null;
+      allow list: if false;
+
+      allow create: if resource == null
+        && signedInAs(userId)
+        && validRequestId(requestId)
+        && validFileName(fileName)
+        && validRecipeImage()
+        && validUploadSession(userId, requestId);
+
+      allow update, delete: if false;
+    }
+
+    // =====================================================
+    // RECIPE UPLOADS - COOKING STEP IMAGES
+    // =====================================================
+
+    match /recipe_uploads/{userId}/{requestId}/steps/{stepIndex}/{fileName} {
+      allow get: if request.auth != null;
+      allow list: if false;
+
+      allow create: if resource == null
+        && signedInAs(userId)
+        && validRequestId(requestId)
+        && validFileName(fileName)
+        && stepIndex.matches('^(0|[1-9]|[12][0-9])$')
+        && validRecipeImage()
+        && validUploadSession(userId, requestId);
+
+      allow update, delete: if false;
+    }
+
+    // =====================================================
+    // RECIPE EDIT UPLOADS - MAIN IMAGE
+    // =====================================================
+
+    match /recipe_edit_uploads/{userId}/{requestId}/main/{fileName} {
+      allow get: if request.auth != null;
+      allow list: if false;
+
+      allow create: if resource == null
+        && signedInAs(userId)
+        && validRequestId(requestId)
+        && validFileName(fileName)
+        && validRecipeImage()
+        && validRecipeEditSession(userId, requestId);
+
+      allow update, delete: if false;
+    }
+
+    // =====================================================
+    // RECIPE EDIT UPLOADS - STEP IMAGES
+    // =====================================================
+
+    match /recipe_edit_uploads/{userId}/{requestId}/steps/{stepIndex}/{fileName} {
+      allow get: if request.auth != null;
+      allow list: if false;
+
+      allow create: if resource == null
+        && signedInAs(userId)
+        && validRequestId(requestId)
+        && validFileName(fileName)
+        && stepIndex.matches('^(0|[1-9]|[12][0-9])$')
+        && validRecipeImage()
+        && validRecipeEditSession(userId, requestId);
+
+      allow update, delete: if false;
+    }
+
+    // =====================================================
+    // LEGACY RECIPE IMAGES
+    // =====================================================
+
+    match /recipe_images/{fileName} {
+      allow get: if request.auth != null;
+      allow list: if false;
+
+      // New uploads must use the Cloud Functions workflow.
+      allow create, update, delete: if false;
+    }
+
+    // =====================================================
+    // LEGACY COOKING STEP IMAGES
+    // =====================================================
+
+    match /cooking_steps_images/{fileName} {
+      allow get: if request.auth != null;
+      allow list: if false;
+
+      allow create, update, delete: if false;
+    }
+  }
+}

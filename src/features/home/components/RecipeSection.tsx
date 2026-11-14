@@ -185,12 +185,12 @@ export default function RecipeSection({
             <RecipeGridSkeleton count={12} />
         ) : recipes.length === 0 ? (
             <div className="flex min-h-[360px] w-full items-center justify-center">
-                <div className="w-full max-w-[520px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-8 py-12 text-center shadow-[var(--shadow-card)]">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]">
+                <div className="w-full max-w-[520px] text-center">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]">
                         <TuneIcon sx={{ fontSize: 22 }} />
                     </div>
 
-                    <h3 className="mt-5 text-base font-bold text-[var(--text-primary)]">
+                    <h3 className="mt-5 text-lg font-bold text-[var(--text-primary)]">
                         {hasActiveFilters
                         ? "No recipes match your filters"
                         : title === "Following"

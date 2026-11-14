@@ -305,7 +305,7 @@ export default function PostReelForm({
       </header>
 
       <div className="flex-1 px-6 py-7">
-        <div className="rounded-[2rem] border border-[var(--recipe-form-border)] bg-[var(--card-bg)] p-6 shadow-[var(--shadow-card)] transition-colors">
+        <div className="bg-[var(--card-bg)] shadow-[var(--shadow-card)] transition-colors">
           <section>
             <div className="mb-4">
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">

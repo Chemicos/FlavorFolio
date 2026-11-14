@@ -6,6 +6,8 @@ import PostRecipeSubmissionInfo from "./PostRecipeSubmissionInfo"
 import { Recipe } from "../../types"
 import { CreatePostType } from "../../pages/Home"
 import PostReelForm from "./PostReelForm"
+import { UpdateNeedsRevisionRecipePayload } from "../../../needs-revision/services/needsRevision.service"
+import { SaveRecipeEditOptions } from "../../services/recipeEditCallable.service"
 
 interface PostRecipeDrawerProps {
     currentUser: CurrentUserCardData | null
@@ -24,10 +26,13 @@ interface PostRecipeDrawerProps {
     topOffset?: number
     onResizeStart?: (event: React.MouseEvent<HTMLDivElement>) => void
     updateMode?: "default" | "revision_draft"
-    onRevisionDraftUpdate?: (payload: {
+    onRevisionDraftUpdate?: (data: {
         recipeId: string
-        payload: Record<string, any>
-    }) => Promise<Recipe>
+        payload: UpdateNeedsRevisionRecipePayload
+        options?: SaveRecipeEditOptions & {
+            requestId?: string
+        }
+    }) => Promise<unknown>
 }
 
 export default function PostRecipeDrawer({

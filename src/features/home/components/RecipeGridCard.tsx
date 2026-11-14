@@ -78,23 +78,66 @@ export default function RecipeGridCard({
 
     const authorImage = recipe.author?.profileImage || recipe.userProfileImage || ""
 
+    // const handleFavoriteClick = async (
+    //     event: React.MouseEvent<HTMLButtonElement>
+    // ) => {
+    //     event.stopPropagation()
+
+    //     if (!currentUser?.uid || !recipe.recipeId || isFavoriteLoading) return
+
+    //     const wasFavorite = isFavorite
+
+    //     await handleToggleFavorite(event)
+
+    //     showSnackbar(
+    //         wasFavorite
+    //         ? "Recipe removed from saved recipes."
+    //         : "Recipe saved.",
+    //         wasFavorite ? "info" : "success"
+    //     )
+    // }
+
     const handleFavoriteClick = async (
-        event: React.MouseEvent<HTMLButtonElement>
+      event: React.MouseEvent<HTMLButtonElement>
     ) => {
-        event.stopPropagation()
+      event.stopPropagation()
 
-        if (!currentUser?.uid || !recipe.recipeId || isFavoriteLoading) return
+      if (
+        !currentUser?.uid ||
+        !(recipe.recipeId || recipe.id) ||
+        isFavoriteLoading
+      ) {
+        return
+      }
 
-        const wasFavorite = isFavorite
+      const isNowSaved = await handleToggleFavorite(event)
 
-        await handleToggleFavorite(event)
-
+      if (typeof isNowSaved === "boolean") {
         showSnackbar(
-            wasFavorite
-            ? "Recipe removed from saved recipes."
-            : "Recipe saved.",
-            wasFavorite ? "info" : "success"
+          isNowSaved
+            ? "Recipe saved."
+            : "Recipe removed from saved recipes.",
+          isNowSaved ? "success" : "info"
         )
+      }
+
+      // try {
+      //   await handleToggleFavorite(event)
+
+      //   showSnackbar(
+      //     wasFavorite
+      //       ? "Recipe removed from saved recipes."
+      //       : "Recipe saved.",
+      //     wasFavorite ? "info" : "success"
+      //   )
+      // } catch (error) {
+      //   console.error("Failed to update saved recipe:", error)
+
+      //   showSnackbar(
+      //     "Unable to confirm the saved recipe action. You can retry safely.",
+      //     "error"
+      //   )
+      // }
     }
 
     const handleCardClick = (event: React.MouseEvent<HTMLElement>) => {

@@ -133,7 +133,7 @@ export default function PostRecipeSteps({
             setDraft(emptyDraft)
           }}
           disabled={isAdding}
-          className="flex h-9 items-center gap-2 rounded-lg bg-[var(--button-secondary-bg)] border border-[var(--button-secondary-border)] px-3 text-sm font-medium text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 items-center gap-2 rounded-md bg-[var(--button-secondary-bg)] border border-[var(--button-secondary-border)] px-3 text-sm font-medium text-[var(--button-secondary-text)] transition hover:bg-[var(--button-secondary-hover)] hover:text-[var(--text-primary)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span>Add</span>
           <AddRoundedIcon sx={{ fontSize: 18 }} />

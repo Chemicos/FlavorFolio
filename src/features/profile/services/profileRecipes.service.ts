@@ -1,8 +1,11 @@
 import { deleteObject, ref } from "firebase/storage"
 import { ProfileRecipeGridItem, ProfileRecipeStatus } from "../components/ProfileRecipeGrid"
-import { db, storage } from "../../../firebase-config"
+import { db, functions, storage } from "../../../firebase-config"
 import { collection, deleteDoc, doc, documentId, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where } from "@firebase/firestore"
 import { Recipe } from "../../home/types"
+import { resolveStorageImage } from "../../../utils/resolveStorageItems"
+import { resolveRecipeImages } from "../../home/utils/resolveRecipeImages"
+import { httpsCallable } from "firebase/functions"
 
 export interface ProfileRecipeDocument {
   id?: string
@@ -64,11 +67,11 @@ export async function fetchProfileRecipeById(recipeId: string): Promise<Recipe> 
     throw new Error("Recipe not found.")
   }
 
-  return {
+  return resolveRecipeImages({
+    ...recipeSnap.data(),
     recipeId: recipeSnap.id,
     id: recipeSnap.id,
-    ...recipeSnap.data(),
-  } as Recipe
+  } as Recipe)
 }
 
 function mapProfileRecipe(docId: string, data: ProfileRecipeDocument): ProfileRecipeGridItem {
@@ -86,6 +89,18 @@ function mapProfileRecipe(docId: string, data: ProfileRecipeDocument): ProfileRe
     commentsCount: Number(data.stats?.commentsCount || 0),
     savesCount: Number(data.stats?.savesCount || 0),
     createdAt: String(getDateMs(data.createdAt || data.updatedAt)),
+  }
+}
+
+async function mapResolvedProfileRecipe(
+  docId: string,
+  data: ProfileRecipeDocument
+): Promise<ProfileRecipeGridItem> {
+  const recipe = mapProfileRecipe(docId, data)
+
+  return {
+    ...recipe,
+    image: await resolveStorageImage(recipe.image),
   }
 }
 
@@ -124,11 +139,16 @@ export async function fetchMySavedProfileRecipes(
 
     const snapshot = await getDocs(recipesQuery)
 
-    snapshot.docs.forEach((docSnap) => {
-      recipes.push(
-        mapProfileRecipe(docSnap.id, docSnap.data() as ProfileRecipeDocument)
+    const resolvedRecipes = await Promise.all(
+      snapshot.docs.map((docSnap) =>
+        mapResolvedProfileRecipe(
+          docSnap.id,
+          docSnap.data() as ProfileRecipeDocument
+        )
       )
-    })
+    )
+
+    recipes.push(...resolvedRecipes)
   }
 
   return recipes
@@ -149,8 +169,13 @@ export async function fetchMyProfileRecipes(userId: string): Promise<ProfileReci
 
   const snapshot = await getDocs(recipesQuery)
 
-  return snapshot.docs.map((docSnap) =>
-    mapProfileRecipe(docSnap.id, docSnap.data() as ProfileRecipeDocument)
+  return Promise.all(
+    snapshot.docs.map((docSnap) =>
+      mapResolvedProfileRecipe(
+        docSnap.id,
+        docSnap.data() as ProfileRecipeDocument
+      )
+    )
   )
 }
 
@@ -185,17 +210,36 @@ export async function deleteProfileRecipe(recipeId: string) {
   await deleteDoc(recipeRef)
 }
 
-export async function resubmitProfileRecipe(recipeId: string) {
-  if (!recipeId) {
-    throw new Error("Recipe id is required.")
-  }
+// export async function resubmitProfileRecipe(recipeId: string) {
+//   if (!recipeId) {
+//     throw new Error("Recipe id is required.")
+//   }
 
-  await updateDoc(doc(db, "recipes", recipeId), {
-    status: "pending",
-    updatedAt: serverTimestamp(),
-    "moderation.submittedAt": serverTimestamp(),
-    "moderation.reviewedAt": null,
-    "moderation.reviewedBy": null,
+//   await updateDoc(doc(db, "recipes", recipeId), {
+//     status: "pending",
+//     updatedAt: serverTimestamp(),
+//     "moderation.submittedAt": serverTimestamp(),
+//     "moderation.reviewedAt": null,
+//     "moderation.reviewedBy": null,
+//   })
+// }
+
+const submitRecipeRevisionCallable = httpsCallable<
+  { recipeId: string; requestId: string },
+  {
+    recipeId: string
+    status: "pending"
+    alreadyCompleted: boolean
+  }
+>(functions, "submitRecipeRevision")
+
+export async function resubmitProfileRecipe(
+  recipeId: string,
+  requestId: string = crypto.randomUUID()
+): Promise<void> {
+  await submitRecipeRevisionCallable({
+    recipeId,
+    requestId,
   })
 }
 
@@ -216,6 +260,32 @@ export async function setProfileRecipeVisibility({
   })
 }
 
+// export function subscribeToMyProfileRecipes(
+//   userId: string,
+//   onChange: (recipes: ProfileRecipeGridItem[]) => void,
+//   onError: (error: Error) => void
+// ) {
+//   const recipesQuery = query(
+//     collection(db, "recipes"),
+//     where("userId", "==", userId),
+//     where("status", "in", ["published", "pending", "needs_revision", "draft"]),
+//     orderBy("updatedAt", "desc"),
+//     limit(80)
+//   )
+
+//   return onSnapshot(
+//     recipesQuery,
+//     (snapshot) => {
+//       onChange(
+//         snapshot.docs.map((docSnap) =>
+//           mapProfileRecipe(docSnap.id, docSnap.data() as ProfileRecipeDocument)
+//         )
+//       )
+//     },
+//     onError
+//   )
+// }
+
 export function subscribeToMyProfileRecipes(
   userId: string,
   onChange: (recipes: ProfileRecipeGridItem[]) => void,
@@ -224,44 +294,164 @@ export function subscribeToMyProfileRecipes(
   const recipesQuery = query(
     collection(db, "recipes"),
     where("userId", "==", userId),
-    where("status", "in", ["published", "pending", "needs_revision", "draft"]),
+    where("status", "in", [
+      "published",
+      "pending",
+      "needs_revision",
+      "draft",
+    ]),
     orderBy("updatedAt", "desc"),
     limit(80)
   )
 
-  return onSnapshot(
+  let isActive = true
+  let snapshotVersion = 0
+
+  const unsubscribe = onSnapshot(
     recipesQuery,
     (snapshot) => {
-      onChange(
+      const currentVersion = ++snapshotVersion
+
+      Promise.all(
         snapshot.docs.map((docSnap) =>
-          mapProfileRecipe(docSnap.id, docSnap.data() as ProfileRecipeDocument)
+          mapResolvedProfileRecipe(
+            docSnap.id,
+            docSnap.data() as ProfileRecipeDocument
+          )
         )
       )
+        .then((resolvedRecipes) => {
+          if (
+            !isActive ||
+            currentVersion !== snapshotVersion
+          ) {
+            return
+          }
+
+          onChange(resolvedRecipes)
+        })
+        .catch((error: unknown) => {
+          if (
+            !isActive ||
+            currentVersion !== snapshotVersion
+          ) {
+            return
+          }
+
+          onError(
+            error instanceof Error
+              ? error
+              : new Error("Failed to resolve profile images.")
+          )
+        })
     },
     onError
   )
+
+  return () => {
+    isActive = false
+    snapshotVersion++
+    unsubscribe()
+  }
 }
+
+// export function subscribeToMySavedProfileRecipes(
+//   userId: string,
+//   onChange: (recipes: ProfileRecipeGridItem[]) => void,
+//   onError: (error: Error) => void
+// ) {
+//   const savedRecipesRef = collection(db, "users", userId, "savedRecipes")
+
+//   return onSnapshot(
+//     savedRecipesRef,
+//     async () => {
+//       try {
+//         const savedRecipes = await fetchMySavedProfileRecipes(userId)
+//         onChange(savedRecipes)
+//       } catch (error) {
+//         onError(error as Error)
+//       }
+//     },
+//     onError
+//   )
+// }
 
 export function subscribeToMySavedProfileRecipes(
   userId: string,
   onChange: (recipes: ProfileRecipeGridItem[]) => void,
   onError: (error: Error) => void
 ) {
-  const savedRecipesRef = collection(db, "users", userId, "savedRecipes")
+  const savedRecipesRef = collection(
+    db,
+    "users",
+    userId,
+    "savedRecipes"
+  )
 
-  return onSnapshot(
+  let isActive = true
+  let snapshotVersion = 0
+
+  const unsubscribe = onSnapshot(
     savedRecipesRef,
-    async () => {
-      try {
-        const savedRecipes = await fetchMySavedProfileRecipes(userId)
-        onChange(savedRecipes)
-      } catch (error) {
-        onError(error as Error)
-      }
+    () => {
+      const currentVersion = ++snapshotVersion
+
+      fetchMySavedProfileRecipes(userId)
+        .then((recipes) => {
+          if (
+            !isActive ||
+            currentVersion !== snapshotVersion
+          ) return
+
+          onChange(recipes)
+        })
+        .catch((error: unknown) => {
+          if (
+            !isActive ||
+            currentVersion !== snapshotVersion
+          ) return
+
+          onError(
+            error instanceof Error
+              ? error
+              : new Error("Failed to load saved recipes.")
+          )
+        })
     },
     onError
   )
+
+  return () => {
+    isActive = false
+    snapshotVersion++
+    unsubscribe()
+  }
 }
+
+// export function subscribeToProfileRecipeById(
+//   recipeId: string,
+//   onChange: (recipe: Recipe | null) => void,
+//   onError: (error: Error) => void
+// ) {
+//   const recipeRef = doc(db, "recipes", recipeId)
+
+//   return onSnapshot(
+//     recipeRef,
+//     (snapshot) => {
+//       if (!snapshot.exists()) {
+//         onChange(null)
+//         return
+//       }
+
+//       onChange({
+//         recipeId: snapshot.id,
+//         id: snapshot.id,
+//         ...snapshot.data(),
+//       } as Recipe)
+//     },
+//     onError
+//   )
+// }
 
 export function subscribeToProfileRecipeById(
   recipeId: string,
@@ -270,20 +460,57 @@ export function subscribeToProfileRecipeById(
 ) {
   const recipeRef = doc(db, "recipes", recipeId)
 
-  return onSnapshot(
+  let isActive = true
+  let snapshotVersion = 0
+
+  const unsubscribe = onSnapshot(
     recipeRef,
     (snapshot) => {
+      const currentVersion = ++snapshotVersion
+
       if (!snapshot.exists()) {
         onChange(null)
         return
       }
 
-      onChange({
+      const recipe = {
+        ...snapshot.data(),
         recipeId: snapshot.id,
         id: snapshot.id,
-        ...snapshot.data(),
-      } as Recipe)
+      } as Recipe
+
+      resolveRecipeImages(recipe)
+        .then((resolvedRecipe) => {
+          if (
+            !isActive ||
+            currentVersion !== snapshotVersion
+          ) {
+            return
+          }
+
+          onChange(resolvedRecipe)
+        })
+        .catch((error: unknown) => {
+          if (
+            !isActive ||
+            currentVersion !== snapshotVersion
+          ) {
+            return
+          }
+
+          onError(
+            error instanceof Error
+              ? error
+              : new Error("Failed to resolve recipe images.")
+          )
+        })
     },
     onError
   )
+
+  return () => {
+    isActive = false
+    snapshotVersion++
+    unsubscribe()
+  }
 }

@@ -7,20 +7,59 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+functions/lib/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+!.env.example
+*.local
+
+# Firebase emulator / CLI data
+.firebase/
+**/.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+firestore-debug.*.log
+ui-debug.log
+ui-debug.*.log
+firebase-export/
+emulator-data/
+emulator-export/
+
+# Firebase local secrets
+**/.secret.local
+serviceAccountKey.json
+*service-account*.json
+*serviceAccount*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.key
+
+# Coverage
+coverage/
+
 node_modules
 dist
 dist-ssr
-*.local
 
 # Editor directories and files
 migrations/
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-.env
