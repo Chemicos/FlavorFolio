@@ -71,27 +71,58 @@ export default function ViewRecipeCommentsSection({
     )
   }, [blockedUserIds, blockedByUserIds])
 
+  // const visibleComments = useMemo(() => {
+  //   return comments
+  //     .filter((comment) => {
+  //       const userId = comment.userId?.trim()
+  //       return userId && !hiddenUserIds.has(userId)
+  //     })
+  //     .map((comment) => ({
+  //       ...comment,
+  //       replies: (comment.replies || []).filter((reply) => {
+  //         const userId = reply.userId?.trim()
+  //         return userId && !hiddenUserIds.has(userId)
+  //       }),
+  //     }))
+  // }, [comments, hiddenUserIds])
+
   const visibleComments = useMemo(() => {
     return comments
       .filter((comment) => {
+        if (comment.isDeleted) {
+          return true
+        }
+
         const userId = comment.userId?.trim()
-        return userId && !hiddenUserIds.has(userId)
+
+        return Boolean(userId) && !hiddenUserIds.has(userId)
       })
       .map((comment) => ({
         ...comment,
         replies: (comment.replies || []).filter((reply) => {
+          if (reply.isDeleted) {
+            return true
+          }
+
           const userId = reply.userId?.trim()
-          return userId && !hiddenUserIds.has(userId)
+
+          return Boolean(userId) && !hiddenUserIds.has(userId)
         }),
       }))
   }, [comments, hiddenUserIds])
 
   const visibleCommentsCount = useMemo(() => {
-    return visibleComments.reduce(
-      (total, comment) => total + 1 + (comment.replies?.length || 0),
-      0
-    )
+    return visibleComments.reduce((total, comment) => {
+      const rootCount = comment.isDeleted ? 0 : 1
+
+      const repliesCount = (comment.replies || []).filter(
+        (reply) => !reply.isDeleted
+      ).length
+
+      return total + rootCount + repliesCount
+    }, 0)
   }, [visibleComments])
+
   return (
     <div className="mt-4">
       <div className="flex items-center gap-3">

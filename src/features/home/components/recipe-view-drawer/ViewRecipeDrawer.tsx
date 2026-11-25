@@ -28,7 +28,7 @@ import {
     createRecipeReply, 
     deleteRecipeComment, 
     listenToRecipeCommentReactions, 
-    toggleRecipeCommentReaction, 
+    setRecipeCommentReaction, 
     updateRecipeComment 
 } from "../../services/comments.service"
 import ViewRecipeIngredients from "./ViewRecipeIngredients"
@@ -192,10 +192,17 @@ export default function ViewRecipeDrawer({
     const {comments, isLoadingComments} = useRecipeComments(recipe.recipeId)
     const {restrictions} = useUserCapabilities()
     const canComment = restrictions.canComment
+    const pendingReactionIdsRef = useRef<Set<string>>(new Set())
 
     const totalLiveCommentsCount = useMemo(() => {
         return comments.reduce((total, comment) => {
-            return total + 1 + (comment.replies?.length || 0)
+            const rootCount = comment.isDeleted ? 0 : 1
+
+            const repliesCount = (comment.replies || []).filter(
+            (reply) => !reply.isDeleted
+            ).length
+
+            return total + rootCount + repliesCount
         }, 0)
     }, [comments])
 
@@ -348,11 +355,18 @@ export default function ViewRecipeDrawer({
         }))
     }, [commentsWithReactions, hiddenCommentUserIds])
 
-     const visibleCommentsCount = useMemo(() => {
+    const visibleCommentsCount = useMemo(() => {
         return visibleCommentsWithReactions.reduce((total, comment) => {
-            return total + 1 + (comment.replies?.length || 0)
+            const rootCount = comment.isDeleted ? 0 : 1
+
+            const repliesCount = (comment.replies || []).filter(
+            (reply) => !reply.isDeleted
+            ).length
+
+            return total + rootCount + repliesCount
         }, 0)
     }, [visibleCommentsWithReactions])
+
     const displayedCommentsCount = visibleCommentsCount
     const showComments = isRecipePublic
 
@@ -431,28 +445,87 @@ export default function ViewRecipeDrawer({
         }
     }
 
-    const handleSubmitComment = async (value: string) => {
-        if (!currentUser?.uid || !recipe.recipeId || isSubmittingComment || !canComment) return
+    // const handleSubmitComment = async (value: string) => {
+    //     if (!currentUser?.uid || !recipe.recipeId || isSubmittingComment || !canComment) return
+
+    //     try {
+    //         setIsSubmittingComment(true)
+
+    //         await createRecipeComment({
+    //             recipeId: recipe.recipeId,
+    //             userId: currentUser.uid,
+    //             username: currentUser.username || "Unknown",
+    //             profileImage: currentUser.profileImage || "",
+    //             comment: value,
+    //         })
+    //     } catch (error) {
+    //         console.error("Failed to submit comment:", error)
+    //     } finally {
+    //         setIsSubmittingComment(false)
+    //     }
+    // }
+
+    const handleSubmitComment = async (value: string): Promise<void> => {
+        if ( !currentUser?.uid || !recipe.recipeId || isSubmittingComment || !canComment ) {
+            throw new Error("Comment submission is unavailable.")
+        }
 
         try {
             setIsSubmittingComment(true)
 
             await createRecipeComment({
-                recipeId: recipe.recipeId,
-                userId: currentUser.uid,
-                username: currentUser.username || "Unknown",
-                profileImage: currentUser.profileImage || "",
-                comment: value,
+            recipeId: recipe.recipeId,
+            userId: currentUser.uid,
+            username: currentUser.username || "Unknown",
+            profileImage: currentUser.profileImage || "",
+            comment: value,
             })
         } catch (error) {
             console.error("Failed to submit comment:", error)
+            throw error
         } finally {
             setIsSubmittingComment(false)
         }
     }
 
-    const handleSubmitReply = async (comment: ViewRecipeComment, value: string) => {
-        if (!currentUser?.uid || !recipe.recipeId || isSubmittingReply || !canComment) return
+    // const handleSubmitReply = async (comment: ViewRecipeComment, value: string) => {
+    //     if (!currentUser?.uid || !recipe.recipeId || isSubmittingReply || !canComment) return
+
+    //     try {
+    //         setIsSubmittingReply(true)
+
+    //         await createRecipeReply({
+    //             recipeId: recipe.recipeId,
+    //             parentCommentId: comment.parentCommentId || comment.id,
+    //             replyToCommentId: comment.id,
+    //             userId: currentUser.uid,
+    //             username: currentUser.username || "Unknown",
+    //             profileImage: currentUser.profileImage || "",
+    //             comment: value,
+    //             replyToUserId: comment.userId,
+    //             replyToUsername: comment.username,
+    //         })
+
+    //         setReplyingCommentId(null)
+    //     } catch (error) {
+    //         console.error("Failed to submit reply:", error)
+    //     } finally {
+    //         setIsSubmittingReply(false)
+    //     }
+    // }
+
+    const handleSubmitReply = async (
+        comment: ViewRecipeComment,
+        value: string
+    ) => {
+        if (
+            !currentUser?.uid ||
+            !recipe.recipeId ||
+            isSubmittingReply ||
+            !canComment
+        ) {
+            return
+        }
 
         try {
             setIsSubmittingReply(true)
@@ -516,22 +589,73 @@ export default function ViewRecipeDrawer({
         }
     }
 
+    // const handleToggleCommentReaction = async (
+    //     comment: ViewRecipeComment,
+    //     type: "like" | "dislike"
+    // ) => {
+    //     if (!currentUser?.uid || !recipe.recipeId) return
+    //     try {
+    //         await toggleRecipeCommentReaction({
+    //             recipeId: recipe.recipeId,
+    //             commentId: comment.id,
+    //             userId: currentUser.uid,
+    //             username: currentUser.username || "User",
+    //             profileImage: currentUser.profileImage || "",
+    //             type,
+    //         })
+    //     } catch (error) {
+    //         console.error("Failed to toggle comment reaction:", error)
+    //     }
+    // }
+
     const handleToggleCommentReaction = async (
         comment: ViewRecipeComment,
         type: "like" | "dislike"
     ) => {
-        if (!currentUser?.uid || !recipe.recipeId) return
+        if (
+            !currentUser?.uid ||
+            !recipe.recipeId ||
+            comment.isDeleted
+        ) {
+            return
+        }
+
+        const commentId = comment.id
+
+        if (pendingReactionIdsRef.current.has(commentId)) {
+            return
+        }
+
+        const currentReaction =
+            commentReactions[commentId] || null
+
+        const desiredReaction =
+            currentReaction === type ? null : type
+
+        pendingReactionIdsRef.current.add(commentId)
+
         try {
-            await toggleRecipeCommentReaction({
-                recipeId: recipe.recipeId,
-                commentId: comment.id,
-                userId: currentUser.uid,
-                username: currentUser.username || "User",
-                profileImage: currentUser.profileImage || "",
-                type,
+            const result = await setRecipeCommentReaction({
+            recipeId: recipe.recipeId,
+            commentId,
+            reaction: desiredReaction,
+            })
+
+            setCommentReactions((previous) => {
+            const next = { ...previous }
+
+            if (result.reaction === null) {
+                delete next[commentId]
+            } else {
+                next[commentId] = result.reaction
+            }
+
+            return next
             })
         } catch (error) {
-            console.error("Failed to toggle comment reaction:", error)
+            console.error("Failed to update comment reaction:", error)
+        } finally {
+            pendingReactionIdsRef.current.delete(commentId)
         }
     }
 
@@ -1043,7 +1167,11 @@ export default function ViewRecipeDrawer({
                 isOpen={Boolean(commentToDelete)} 
                 isDeleting={isDeletingComment}
                 title="Delete comment?"
-                description="This action cannot be undone. The comment will be permanently removed."
+                description={
+                    commentToDelete?.parentCommentId || !commentToDelete?.replies?.length
+                        ? "This comment will be permanently removed."
+                        : "Your comment will be removed, but existing replies will remain visible."
+                }
                 onCancel={() => setCommentToDelete(null)}
                 onConfirm={handleConfirmDeleteComment}
             />

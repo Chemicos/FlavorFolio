@@ -17,21 +17,22 @@ import { CircularProgress } from "@mui/material"
 import { useDismissibleLayer } from "../../../../hooks/useDismissibleLayer"
 
 export interface ViewRecipeComment {
-  id: string
-  userId?: string
-  username: string
-  profileImage?: string
-  text: string
-  createdAtLabel?: string
-  edited?: boolean
-  parentCommentId?: string | null
-  replyToUserId?: string
-  replyToUsername?: string
-  repliesCount?: number
-  likesCount?: number
-  dislikesCount?: number
-  currentUserReaction?: "like" | "dislike" | null
-  replies?: ViewRecipeComment[]
+    id: string
+    userId?: string
+    username: string
+    profileImage?: string
+    text: string
+    createdAtLabel?: string
+    edited?: boolean
+    parentCommentId?: string | null
+    replyToUserId?: string
+    replyToUsername?: string
+    repliesCount?: number
+    likesCount?: number
+    dislikesCount?: number
+    currentUserReaction?: "like" | "dislike" | null
+    replies?: ViewRecipeComment[]
+    isDeleted?: boolean
 }
 
 interface ViewRecipeCommentListProps {
@@ -206,6 +207,8 @@ function CommentItem({
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement | null>(null)
 
+    const isDeleted = comment.isDeleted === true
+
     useDismissibleLayer({
         isOpen: isMenuOpen,
         refs: [menuRef],
@@ -308,7 +311,7 @@ function CommentItem({
                                 }}
                                 className="truncate text-sm font-bold text-[var(--text-primary)] transition hover:text-[var(--accent-text)] disabled:hover:text-[var(--text-primary)]"
                             >
-                                {comment.username}
+                                {isDeleted ? "Deleted user" : comment.username}
                             </button>
 
                             <span className="text-sm text-[var(--text-muted)]">
@@ -322,75 +325,77 @@ function CommentItem({
                             )}
                         </div>
 
-                        <div ref={menuRef} className="relative">
-                            <button
-                                type="button"
-                                onClick={() => setIsMenuOpen((prev) => !prev)}
-                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] active:scale-95"
-                                aria-label="Comment options"
-                            >
-                                <MoreHorizIcon sx={{ fontSize: 20 }} />
-                            </button>
-
-                            <AnimatePresence>
-                                {isMenuOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 6, scale: 0.96 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 6, scale: 0.96 }}
-                                    transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                                    className="absolute bottom-full right-0 z-20 mb-2 w-44 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
+                        {!isDeleted && (
+                            <div ref={menuRef} className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMenuOpen((prev) => !prev)}
+                                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--hover)] hover:text-[var(--text-primary)] active:scale-95"
+                                    aria-label="Comment options"
                                 >
-                                    {isOwnComment && (
-                                        <>
-                                            <button type="button"
-                                                onClick={() => {
-                                                    setIsMenuOpen(false)
-                                                    onStartEditComment?.(comment)
-                                                }}
-                                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
-                                            >
-                                                <EditRoundedIcon sx={{ fontSize: 18 }} />
-                                                Edit comment
-                                            </button>                                        
+                                    <MoreHorizIcon sx={{ fontSize: 20 }} />
+                                </button>
 
-                                            <button type="button" 
+                                <AnimatePresence>
+                                    {isMenuOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                                        transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                                        className="absolute bottom-full right-0 z-20 mb-2 w-44 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--dropdown-bg)] p-1 shadow-[var(--shadow-dropdown)]"
+                                    >
+                                        {isOwnComment && (
+                                            <>
+                                                <button type="button"
+                                                    onClick={() => {
+                                                        setIsMenuOpen(false)
+                                                        onStartEditComment?.(comment)
+                                                    }}
+                                                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[var(--text-secondary)] transition hover:bg-[var(--dropdown-hover)] hover:text-[var(--text-primary)]"
+                                                >
+                                                    <EditRoundedIcon sx={{ fontSize: 18 }} />
+                                                    Edit comment
+                                                </button>                                        
+
+                                                <button type="button" 
+                                                    onClick={() => {
+                                                        setIsMenuOpen(false)
+                                                        onDeleteComment?.(comment)
+                                                    }}
+                                                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)]"
+                                                >
+                                                    <DeleteOutlineRoundedIcon sx={{ fontSize: 18 }} />
+                                                    Delete comment
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {!isOwnComment && !isBlocked && (
+                                            <button
+                                                type="button"
                                                 onClick={() => {
+                                                    if (!comment.userId) return
+
                                                     setIsMenuOpen(false)
-                                                    onDeleteComment?.(comment)
+
+                                                    onBlockUser?.({
+                                                        userId: comment.userId,
+                                                        username: comment.username,
+                                                        profileImage: comment.profileImage || "",
+                                                    })
                                                 }}
                                                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)]"
                                             >
-                                                <DeleteOutlineRoundedIcon sx={{ fontSize: 18 }} />
-                                                Delete comment
+                                                <BlockRoundedIcon sx={{ fontSize: 18 }} />
+                                                Block user
                                             </button>
-                                        </>
+                                        )}
+                                    </motion.div>
                                     )}
-
-                                    {!isOwnComment && !isBlocked && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                if (!comment.userId) return
-
-                                                setIsMenuOpen(false)
-
-                                                onBlockUser?.({
-                                                    userId: comment.userId,
-                                                    username: comment.username,
-                                                    profileImage: comment.profileImage || "",
-                                                })
-                                            }}
-                                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-[var(--danger-text)] transition hover:bg-[var(--danger-soft-hover)] hover:text-[var(--danger)]"
-                                        >
-                                            <BlockRoundedIcon sx={{ fontSize: 18 }} />
-                                            Block user
-                                        </button>
-                                    )}
-                                </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
+                                </AnimatePresence>
+                            </div>
+                        )}
                     </div>
                     
                     {isEditing ? (
@@ -430,13 +435,17 @@ function CommentItem({
                                 </button>
                             </div>
                         </div>
+                    ) : isDeleted ? (
+                        <p className="text-sm italic leading-7 text-[var(--text-muted)]">
+                            This comment has been deleted.
+                        </p>
                     ) : (
-                        <p className="leading-7 text-[var(--text-primary)] text-sm">
+                        <p className="text-sm leading-7 text-[var(--text-primary)]">
                             {renderCommentText(comment)}
                         </p>
                     )}
 
-                    {!isEditing && (
+                    {!isEditing && !isDeleted && (
                         <div className="mt-1 flex items-center gap-3 text-[var(--text-muted)]">
                             <button 
                                 type="button" 
@@ -496,7 +505,7 @@ function CommentItem({
                     )}
 
                     <AnimatePresence initial={false}>
-                        {isReplying && !isEditing && (
+                        {isReplying && !isEditing && !isDeleted && (
                             <motion.div
                                 initial={{ height: 0, opacity: 0, y: -6 }}
                                 animate={{ height: "auto", opacity: 1, y: 0 }}

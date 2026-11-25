@@ -189,7 +189,7 @@ export default function Navigation() {
   return (
     <>
       <div className='fixed left-0 top-0 z-50 w-full'>
-          <nav className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6 shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-colors duration-200">    
+          <nav className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-[var(--border)] backdrop-blur-xl px-6 shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-colors duration-200">    
             <Link
               to="/home"
               className='flex items-center transition duration-200 hover:scale-105'
@@ -267,10 +267,10 @@ export default function Navigation() {
                   aria-haspopup="true"
                   onClick={handleMenuOpen}
                   className={[
-                    "flex items-center gap-3 rounded-xl border border-transparent px-3 py-1 pr-4",
+                    "flex items-center gap-3 rounded-xl px-3 py-1 pr-4",
                     "text-[var(--text-secondary)] transition",
-                    "hover:border-[var(--border)] hover:bg-[var(--surface-hover)]",
-                    menuOpen ? "border-[var(--border)] bg-[var(--surface-active)]" : "",
+                    "hover:bg-[var(--surface-hover)]",
+                    menuOpen ? "bg-[var(--surface-active)]" : "",
                   ].join(" ")}
                 >
                   <div className='relative h-8 w-8 overflow-hidden rounded-md bg-[var(--surface-muted)]'>

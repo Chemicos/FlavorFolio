@@ -1,7 +1,8 @@
 import { collection, doc, getDoc, increment, onSnapshot, orderBy, query, runTransaction, serverTimestamp, Timestamp, updateDoc, where } from "@firebase/firestore"
 import { ViewRecipeComment } from "../components/recipe-view-drawer/ViewRecipeCommentList"
-import { db } from "../../../firebase-config"
+import { db, functions } from "../../../firebase-config"
 import { formatRelativeDate } from "../utils/dateFormatters"
+import { httpsCallable } from "firebase/functions"
 
 interface CreateRecipeCommentInput {
     recipeId: string
@@ -53,309 +54,403 @@ async function assertUserCanComment(userId: string) {
   }
 }
 
-export async function createRecipeComment(input: CreateRecipeCommentInput) {
-  await assertUserCanComment(input.userId)
+const createRecipeCommentCallable = httpsCallable<
+  { recipeId: string; comment: string },
+  { commentId: string }
+>(functions, "createRecipeComment")
 
-  const recipeRef = doc(db, "recipes", input.recipeId)
-  const commentRef = doc(collection(db, "recipes", input.recipeId, "comments"))
+const createRecipeReplyCallable = httpsCallable<
+  {
+    recipeId: string
+    parentCommentId: string
+    replyToCommentId: string
+    comment: string
+  },
+  {
+    replyId: string
+    parentCommentId: string
+  }
+>(functions, "createRecipeReply")
 
-  await runTransaction(db, async (transaction) => {
-      const recipeSnap = await transaction.get(recipeRef)
+// export async function createRecipeComment(input: CreateRecipeCommentInput) {
+//   await assertUserCanComment(input.userId)
 
-      if (!recipeSnap.exists()) {
-          throw new Error("Recipe document missing.")
-      }
+//   const recipeRef = doc(db, "recipes", input.recipeId)
+//   const commentRef = doc(collection(db, "recipes", input.recipeId, "comments"))
 
-      const recipeData = recipeSnap.data()
-      const recipeOwnerId = recipeData?.userId || ""
-      const recipeTitle = recipeData?.title || "your recipe"
+//   await runTransaction(db, async (transaction) => {
+//       const recipeSnap = await transaction.get(recipeRef)
 
-      const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
+//       if (!recipeSnap.exists()) {
+//           throw new Error("Recipe document missing.")
+//       }
 
-      transaction.set(commentRef, {
-          comment: input.comment,
-          userId: input.userId,
-          username: input.username,
-          profileImage: input.profileImage || "",
-          parentCommentId: null,
-          repliesCount: 0,
-          likesCount: 0,
-          dislikesCount: 0,
-          edited: false,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-      })
+//       const recipeData = recipeSnap.data()
+//       const recipeOwnerId = recipeData?.userId || ""
+//       const recipeTitle = recipeData?.title || "your recipe"
 
-      if (recipeOwnerId && recipeOwnerId !== input.userId) {
-          const notificationRef = doc(
-              db,
-              "users",
-              recipeOwnerId,
-              "notifications",
-              getCommentNotificationId(input.recipeId, commentRef.id)
-          )
+//       const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
 
-          transaction.set(notificationRef, {
-              type: "comment",
-              recipientUserId: recipeOwnerId,
-              actorUserId: input.userId,
-              actorUsername: input.username || "Someone",
-              actorProfileImage: input.profileImage || "",
-              recipeId: input.recipeId,
-              recipeTitle,
-              commentId: commentRef.id,
-              commentPreview:
-              input.comment.length > 120
-                  ? `${input.comment.slice(0, 120)}...`
-                  : input.comment,
-              message: `${input.username || "Someone"} commented on ${recipeTitle}.`,
-              read: false,
-              createdAt: serverTimestamp(),
-          })
-      }
+//       transaction.set(commentRef, {
+//           comment: input.comment,
+//           userId: input.userId,
+//           username: input.username,
+//           profileImage: input.profileImage || "",
+//           parentCommentId: null,
+//           repliesCount: 0,
+//           likesCount: 0,
+//           dislikesCount: 0,
+//           edited: false,
+//           createdAt: serverTimestamp(),
+//           updatedAt: serverTimestamp(),
+//       })
 
-      transaction.set(
-          recipeRef,
-          {
-              stats: {
-                  ...recipeData?.stats,
-                  commentsCount: currentCommentsCount + 1,
-              }
-          },
-          {merge: true}
-      )
+//       if (recipeOwnerId && recipeOwnerId !== input.userId) {
+//           const notificationRef = doc(
+//               db,
+//               "users",
+//               recipeOwnerId,
+//               "notifications",
+//               getCommentNotificationId(input.recipeId, commentRef.id)
+//           )
+
+//           transaction.set(notificationRef, {
+//               type: "comment",
+//               recipientUserId: recipeOwnerId,
+//               actorUserId: input.userId,
+//               actorUsername: input.username || "Someone",
+//               actorProfileImage: input.profileImage || "",
+//               recipeId: input.recipeId,
+//               recipeTitle,
+//               commentId: commentRef.id,
+//               commentPreview:
+//               input.comment.length > 120
+//                   ? `${input.comment.slice(0, 120)}...`
+//                   : input.comment,
+//               message: `${input.username || "Someone"} commented on ${recipeTitle}.`,
+//               read: false,
+//               createdAt: serverTimestamp(),
+//           })
+//       }
+
+//       transaction.set(
+//           recipeRef,
+//           {
+//               stats: {
+//                   ...recipeData?.stats,
+//                   commentsCount: currentCommentsCount + 1,
+//               }
+//           },
+//           {merge: true}
+//       )
+//   })
+// }
+
+export async function createRecipeComment(
+  input: CreateRecipeCommentInput
+): Promise<{ commentId: string }> {
+  const response = await createRecipeCommentCallable({
+    recipeId: input.recipeId,
+    comment: input.comment,
   })
+
+  return response.data
 }
 
-export async function createRecipeReply(input: CreateRecipeReplyInput) {
-  await assertUserCanComment(input.userId)
+// export async function createRecipeReply(input: CreateRecipeReplyInput) {
+//   await assertUserCanComment(input.userId)
   
-  const recipeRef = doc(db, "recipes", input.recipeId)
-  const parentCommentRef = doc(
-    db,
-    "recipes",
-    input.recipeId,
-    "comments",
-    input.parentCommentId
-  )
-  const replyRef = doc(collection(db, "recipes", input.recipeId, "comments"))
+//   const recipeRef = doc(db, "recipes", input.recipeId)
+//   const parentCommentRef = doc(
+//     db,
+//     "recipes",
+//     input.recipeId,
+//     "comments",
+//     input.parentCommentId
+//   )
+//   const replyRef = doc(collection(db, "recipes", input.recipeId, "comments"))
 
-  await runTransaction(db, async (transaction) => {
-    const recipeSnap = await transaction.get(recipeRef)
-    const parentCommentSnap = await transaction.get(parentCommentRef)
+//   await runTransaction(db, async (transaction) => {
+//     const recipeSnap = await transaction.get(recipeRef)
+//     const parentCommentSnap = await transaction.get(parentCommentRef)
 
-    if (!recipeSnap.exists()) {
-      throw new Error("Recipe document missing.")
-    }
+//     if (!recipeSnap.exists()) {
+//       throw new Error("Recipe document missing.")
+//     }
 
-    if (!parentCommentSnap.exists()) {
-      throw new Error("Parent comment missing.")
-    }
+//     if (!parentCommentSnap.exists()) {
+//       throw new Error("Parent comment missing.")
+//     }
 
-    const recipeData = recipeSnap.data()
-    const parentData = parentCommentSnap.data()
+//     const recipeData = recipeSnap.data()
+//     const parentData = parentCommentSnap.data()
 
-    const recipeTitle = recipeData?.title || "your recipe"
-    const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
-    const currentRepliesCount = Number(parentData?.repliesCount || 0)
+//     const recipeTitle = recipeData?.title || "your recipe"
+//     const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
+//     const currentRepliesCount = Number(parentData?.repliesCount || 0)
 
-    transaction.set(replyRef, {
-      comment: input.comment,
-      userId: input.userId,
-      username: input.username,
-      profileImage: input.profileImage || "",
-      parentCommentId: input.parentCommentId,
-      replyToUserId: input.replyToUserId || "",
-      replyToUsername: input.replyToUsername || "",
-      replyToCommentId: input.replyToCommentId || input.parentCommentId,
-      likesCount: 0,
-      dislikesCount: 0,
-      edited: false,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    })
+//     transaction.set(replyRef, {
+//       comment: input.comment,
+//       userId: input.userId,
+//       username: input.username,
+//       profileImage: input.profileImage || "",
+//       parentCommentId: input.parentCommentId,
+//       replyToUserId: input.replyToUserId || "",
+//       replyToUsername: input.replyToUsername || "",
+//       replyToCommentId: input.replyToCommentId || input.parentCommentId,
+//       likesCount: 0,
+//       dislikesCount: 0,
+//       edited: false,
+//       createdAt: serverTimestamp(),
+//       updatedAt: serverTimestamp(),
+//     })
 
-    if (input.replyToUserId && input.replyToUserId !== input.userId) {
-      const notificationRef = doc(
-        db,
-        "users",
-        input.replyToUserId,
-        "notifications",
-        getReplyNotificationId(input.recipeId, replyRef.id)
-      )
+//     if (input.replyToUserId && input.replyToUserId !== input.userId) {
+//       const notificationRef = doc(
+//         db,
+//         "users",
+//         input.replyToUserId,
+//         "notifications",
+//         getReplyNotificationId(input.recipeId, replyRef.id)
+//       )
 
-      transaction.set(notificationRef, {
-        type: "reply",
-        recipientUserId: input.replyToUserId,
-        actorUserId: input.userId,
-        actorUsername: input.username || "Someone",
-        actorProfileImage: input.profileImage || "",
-        recipeId: input.recipeId,
-        recipeTitle,
-        commentId: input.parentCommentId,
-        replyId: replyRef.id,
-        replyToCommentId: input.replyToCommentId || input.parentCommentId,
-        replyPreview:
-          input.comment.length > 120
-            ? `${input.comment.slice(0, 120)}...`
-            : input.comment,
-        message: `${input.username || "Someone"} replied to your comment on ${recipeTitle}.`,
-        read: false,
-        createdAt: serverTimestamp(),
-      })
-    }
+//       transaction.set(notificationRef, {
+//         type: "reply",
+//         recipientUserId: input.replyToUserId,
+//         actorUserId: input.userId,
+//         actorUsername: input.username || "Someone",
+//         actorProfileImage: input.profileImage || "",
+//         recipeId: input.recipeId,
+//         recipeTitle,
+//         commentId: input.parentCommentId,
+//         replyId: replyRef.id,
+//         replyToCommentId: input.replyToCommentId || input.parentCommentId,
+//         replyPreview:
+//           input.comment.length > 120
+//             ? `${input.comment.slice(0, 120)}...`
+//             : input.comment,
+//         message: `${input.username || "Someone"} replied to your comment on ${recipeTitle}.`,
+//         read: false,
+//         createdAt: serverTimestamp(),
+//       })
+//     }
 
-    transaction.set(
-      parentCommentRef,
-      {
-        repliesCount: currentRepliesCount + 1,
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    )
+//     transaction.set(
+//       parentCommentRef,
+//       {
+//         repliesCount: currentRepliesCount + 1,
+//         updatedAt: serverTimestamp(),
+//       },
+//       { merge: true }
+//     )
 
-    transaction.set(
-      recipeRef,
-      {
-        stats: {
-          ...recipeData?.stats,
-          commentsCount: currentCommentsCount + 1,
-        },
-      },
-      { merge: true }
-    )
+//     transaction.set(
+//       recipeRef,
+//       {
+//         stats: {
+//           ...recipeData?.stats,
+//           commentsCount: currentCommentsCount + 1,
+//         },
+//       },
+//       { merge: true }
+//     )
+//   })
+// }
+
+export async function createRecipeReply(
+  input: CreateRecipeReplyInput
+): Promise<{
+  replyId: string
+  parentCommentId: string
+}> {
+  const response = await createRecipeReplyCallable({
+    recipeId: input.recipeId,
+    parentCommentId: input.parentCommentId,
+    replyToCommentId:
+      input.replyToCommentId || input.parentCommentId,
+    comment: input.comment,
   })
+
+  return response.data
 }
 
-type CommentReactionType = "like" | "dislike"
+export type CommentReactionType = "like" | "dislike"
 
-export async function toggleRecipeCommentReaction({
-    recipeId,
-    commentId,
-    userId,
-    username,
-    profileImage,
-    type,
-}: {
+const deleteRecipeCommentCallable = httpsCallable<
+  {
     recipeId: string
     commentId: string
-    userId: string
-    username: string
-    profileImage?: string
-    type: CommentReactionType
-}) {
-   const recipeRef = doc(db, "recipes", recipeId)
-  const commentRef = doc(db, "recipes", recipeId, "comments", commentId)
+  },
+  {
+    commentId: string
+    deletionType: "hard" | "soft" | "already-deleted"
+    commentsCount: number
+  }
+>(functions, "deleteRecipeComment")
 
-  const reactionId = `${recipeId}_${commentId}_${userId}`
-  const reactionRef = doc(db, "commentReactions", reactionId)
+export type DesiredCommentReaction = CommentReactionType | null
 
-  await runTransaction(db, async (transaction) => {
-    const recipeSnap = await transaction.get(recipeRef)
-    const commentSnap = await transaction.get(commentRef)
-    const reactionSnap = await transaction.get(reactionRef)
+interface CommentReactionResult {
+  reaction: DesiredCommentReaction
+  likesCount: number
+  dislikesCount: number
+  changed: boolean
+}
 
-    if (!recipeSnap.exists()) {
-      throw new Error("Recipe document does not exist.")
-    }
+const setCommentReactionCallable = httpsCallable<
+  {
+    recipeId: string
+    commentId: string
+    reaction: DesiredCommentReaction
+  },
+  CommentReactionResult
+>(functions, "setRecipeCommentReaction")
 
-    if (!commentSnap.exists()) {
-      throw new Error("Comment document does not exist.")
-    }
+// export async function toggleRecipeCommentReaction({
+//     recipeId,
+//     commentId,
+//     userId,
+//     username,
+//     profileImage,
+//     type,
+// }: {
+//     recipeId: string
+//     commentId: string
+//     userId: string
+//     username: string
+//     profileImage?: string
+//     type: CommentReactionType
+// }) {
+//    const recipeRef = doc(db, "recipes", recipeId)
+//   const commentRef = doc(db, "recipes", recipeId, "comments", commentId)
 
-    const recipeData = recipeSnap.data()
-    const commentData = commentSnap.data()
+//   const reactionId = `${recipeId}_${commentId}_${userId}`
+//   const reactionRef = doc(db, "commentReactions", reactionId)
 
-    const commentOwnerId = commentData?.userId || ""
-    const recipeTitle = recipeData?.title || "your recipe"
-    const isReply = Boolean(commentData?.parentCommentId)
+//   await runTransaction(db, async (transaction) => {
+//     const recipeSnap = await transaction.get(recipeRef)
+//     const commentSnap = await transaction.get(commentRef)
+//     const reactionSnap = await transaction.get(reactionRef)
 
-    const previousType = reactionSnap.exists()
-      ? (reactionSnap.data()?.type as CommentReactionType)
-      : null
+//     if (!recipeSnap.exists()) {
+//       throw new Error("Recipe document does not exist.")
+//     }
 
-    const notificationRef = doc(
-      db,
-      "users",
-      commentOwnerId,
-      "notifications",
-      getCommentReactionNotificationId(commentId, userId)
-    )
+//     if (!commentSnap.exists()) {
+//       throw new Error("Comment document does not exist.")
+//     }
 
-    if (previousType === type) {
-      transaction.delete(reactionRef)
+//     const recipeData = recipeSnap.data()
+//     const commentData = commentSnap.data()
 
-      transaction.update(commentRef, {
-        [`${type}sCount`]: increment(-1),
-        updatedAt: serverTimestamp(),
-      })
+//     const commentOwnerId = commentData?.userId || ""
+//     const recipeTitle = recipeData?.title || "your recipe"
+//     const isReply = Boolean(commentData?.parentCommentId)
 
-      if (commentOwnerId && commentOwnerId !== userId) {
-        transaction.delete(notificationRef)
-      }
+//     const previousType = reactionSnap.exists()
+//       ? (reactionSnap.data()?.type as CommentReactionType)
+//       : null
 
-      return
-    }
+//     const notificationRef = doc(
+//       db,
+//       "users",
+//       commentOwnerId,
+//       "notifications",
+//       getCommentReactionNotificationId(commentId, userId)
+//     )
 
-    if (previousType) {
-      transaction.update(commentRef, {
-        [`${previousType}sCount`]: increment(-1),
-        [`${type}sCount`]: increment(1),
-        updatedAt: serverTimestamp(),
-      })
-    } else {
-      transaction.update(commentRef, {
-        [`${type}sCount`]: increment(1),
-        updatedAt: serverTimestamp(),
-      })
-    }
+//     if (previousType === type) {
+//       transaction.delete(reactionRef)
 
-    transaction.set(
-      reactionRef,
-      {
-        recipeId,
-        commentId,
-        userId,
-        type,
-        createdAt: reactionSnap.exists()
-          ? reactionSnap.data()?.createdAt
-          : serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    )
+//       transaction.update(commentRef, {
+//         [`${type}sCount`]: increment(-1),
+//         updatedAt: serverTimestamp(),
+//       })
 
-    if (commentOwnerId && commentOwnerId !== userId) {
-      const notificationType =
-        isReply
-          ? type === "like"
-            ? "reply_like"
-            : "reply_dislike"
-          : type === "like"
-            ? "comment_like"
-            : "comment_dislike"
+//       if (commentOwnerId && commentOwnerId !== userId) {
+//         transaction.delete(notificationRef)
+//       }
 
-      transaction.set(
-        notificationRef,
-        {
-          type: notificationType,
-          recipientUserId: commentOwnerId,
-          actorUserId: userId,
-          actorUsername: username || "Someone",
-          actorProfileImage: profileImage || "",
-          recipeId,
-          recipeTitle,
-          commentId,
-          parentCommentId: commentData?.parentCommentId || null,
-          reactionType: type,
-          message: `${username || "Someone"} ${type === "like" ? "liked" : "disliked"} your ${isReply ? "reply" : "comment"} on ${recipeTitle}.`,
-          read: false,
-          createdAt: serverTimestamp(),
-        },
-        { merge: true }
-      )
-    }
+//       return
+//     }
+
+//     if (previousType) {
+//       transaction.update(commentRef, {
+//         [`${previousType}sCount`]: increment(-1),
+//         [`${type}sCount`]: increment(1),
+//         updatedAt: serverTimestamp(),
+//       })
+//     } else {
+//       transaction.update(commentRef, {
+//         [`${type}sCount`]: increment(1),
+//         updatedAt: serverTimestamp(),
+//       })
+//     }
+
+//     transaction.set(
+//       reactionRef,
+//       {
+//         recipeId,
+//         commentId,
+//         userId,
+//         type,
+//         createdAt: reactionSnap.exists()
+//           ? reactionSnap.data()?.createdAt
+//           : serverTimestamp(),
+//         updatedAt: serverTimestamp(),
+//       },
+//       { merge: true }
+//     )
+
+//     if (commentOwnerId && commentOwnerId !== userId) {
+//       const notificationType =
+//         isReply
+//           ? type === "like"
+//             ? "reply_like"
+//             : "reply_dislike"
+//           : type === "like"
+//             ? "comment_like"
+//             : "comment_dislike"
+
+//       transaction.set(
+//         notificationRef,
+//         {
+//           type: notificationType,
+//           recipientUserId: commentOwnerId,
+//           actorUserId: userId,
+//           actorUsername: username || "Someone",
+//           actorProfileImage: profileImage || "",
+//           recipeId,
+//           recipeTitle,
+//           commentId,
+//           parentCommentId: commentData?.parentCommentId || null,
+//           reactionType: type,
+//           message: `${username || "Someone"} ${type === "like" ? "liked" : "disliked"} your ${isReply ? "reply" : "comment"} on ${recipeTitle}.`,
+//           read: false,
+//           createdAt: serverTimestamp(),
+//         },
+//         { merge: true }
+//       )
+//     }
+//   })
+// }
+
+export async function setRecipeCommentReaction({
+  recipeId,
+  commentId,
+  reaction,
+}: {
+  recipeId: string
+  commentId: string
+  reaction: DesiredCommentReaction
+}): Promise<CommentReactionResult> {
+  const response = await setCommentReactionCallable({
+    recipeId,
+    commentId,
+    reaction,
   })
+
+  return response.data
 }
 
 export function listenToRecipeCommentReactions(
@@ -417,6 +512,7 @@ export function listenToRecipeComments(
                 dislikesCount: Number(data.dislikesCount || 0),
                 currentUserReaction: null,
                 replies: [],
+                isDeleted: data.isDeleted === true
             } satisfies ViewRecipeComment
         })
 
@@ -465,56 +561,68 @@ export async function updateRecipeComment({
     })
 }
 
-export async function deleteRecipeComment({recipeId, commentId}: {recipeId: string, commentId: string}) {
-    const recipeRef = doc(db, "recipes", recipeId)
-    const commentRef = doc(db, "recipes", recipeId, "comments", commentId)
+// export async function deleteRecipeComment({recipeId, commentId}: {recipeId: string, commentId: string}) {
+//     const recipeRef = doc(db, "recipes", recipeId)
+//     const commentRef = doc(db, "recipes", recipeId, "comments", commentId)
 
-    await runTransaction(db, async (transaction) => {
-        const recipeSnap = await transaction.get(recipeRef)
-        const commentSnap = await transaction.get(commentRef)
+//     await runTransaction(db, async (transaction) => {
+//         const recipeSnap = await transaction.get(recipeRef)
+//         const commentSnap = await transaction.get(commentRef)
 
-        if (!recipeSnap.exists()) throw new Error("Recipe document does not exist.")
-        if (!commentSnap.exists()) throw new Error("Comment document does not exist.")
+//         if (!recipeSnap.exists()) throw new Error("Recipe document does not exist.")
+//         if (!commentSnap.exists()) throw new Error("Comment document does not exist.")
 
-        const recipeData = recipeSnap.data()
-        const commentData = commentSnap.data()
+//         const recipeData = recipeSnap.data()
+//         const commentData = commentSnap.data()
 
-        const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
-        const parentCommentId = commentData?.parentCommentId || null
+//         const currentCommentsCount = Number(recipeData?.stats?.commentsCount || 0)
+//         const parentCommentId = commentData?.parentCommentId || null
 
-        let parentCommentRef = null
-        let parentCommentSnap = null
+//         let parentCommentRef = null
+//         let parentCommentSnap = null
 
-        if (parentCommentId) {
-        parentCommentRef = doc(db, "recipes", recipeId, "comments", parentCommentId)
-        parentCommentSnap = await transaction.get(parentCommentRef)
-        }
+//         if (parentCommentId) {
+//         parentCommentRef = doc(db, "recipes", recipeId, "comments", parentCommentId)
+//         parentCommentSnap = await transaction.get(parentCommentRef)
+//         }
 
-        transaction.delete(commentRef)
+//         transaction.delete(commentRef)
 
-        transaction.set(
-        recipeRef,
-        {
-            stats: {
-            ...recipeData.stats,
-            commentsCount: Math.max(0, currentCommentsCount - 1),
-            },
-        },
-        { merge: true }
-        )
+//         transaction.set(
+//         recipeRef,
+//         {
+//             stats: {
+//             ...recipeData.stats,
+//             commentsCount: Math.max(0, currentCommentsCount - 1),
+//             },
+//         },
+//         { merge: true }
+//         )
 
-        if (parentCommentRef && parentCommentSnap?.exists()) {
-        const parentData = parentCommentSnap.data()
-        const currentRepliesCount = Number(parentData?.repliesCount || 0)
+//         if (parentCommentRef && parentCommentSnap?.exists()) {
+//         const parentData = parentCommentSnap.data()
+//         const currentRepliesCount = Number(parentData?.repliesCount || 0)
 
-        transaction.set(
-            parentCommentRef,
-            {
-            repliesCount: Math.max(0, currentRepliesCount - 1),
-            updatedAt: serverTimestamp(),
-            },
-            { merge: true }
-        )
-        }
-    })
+//         transaction.set(
+//             parentCommentRef,
+//             {
+//             repliesCount: Math.max(0, currentRepliesCount - 1),
+//             updatedAt: serverTimestamp(),
+//             },
+//             { merge: true }
+//         )
+//         }
+//     })
+// }
+
+export async function deleteRecipeComment({
+  recipeId,
+  commentId,
+}: {
+  recipeId: string
+  commentId: string
+}) {
+  const response = await deleteRecipeCommentCallable({ recipeId, commentId, })
+
+  return response.data
 }

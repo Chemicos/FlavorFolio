@@ -697,27 +697,17 @@ service cloud.firestore {
       // =======================================================
 
       match /comments/{commentId} {
-
+        // Authenticated users can read comments and replies.
         allow read: if isAuthenticated();
 
-        allow create: if
-          canComment()
-          && request.resource.data.userId == request.auth.uid
-          && request.resource.data.comment is string
-          && request.resource.data.comment.size() > 0
-          && request.resource.data.comment.size() <= 5000;
+        // Creation is handled exclusively by Cloud Functions.
+        allow create: if false;
 
-
-        /*
-         * Comment owner may edit comment text.
-         *
-         * Reaction counters must also be updateable by other users,
-         * therefore there is another rule immediately below.
-         */
+        // Comment owner can edit their own comment text.
         allow update: if
           isAuthenticated()
           && resource.data.userId == request.auth.uid
-
+          && resource.data.get("isDeleted", false) == false
           && request.resource.data.userId == resource.data.userId
 
           && request.resource.data
@@ -727,12 +717,20 @@ service cloud.firestore {
               "comment",
               "edited",
               "updatedAt"
-            ]);
+            ])
 
+          && request.resource.data.comment is string
+          && request.resource.data.comment.size() > 0
+          && request.resource.data.comment.size() <= 2000
+
+          && request.resource.data.edited == true
+          && request.resource.data.updatedAt == request.time;
+
+        // Comment owner may refresh their displayed identity.
         allow update: if
           isAuthenticated()
-
           && resource.data.userId == request.auth.uid
+          && resource.data.get("isDeleted", false) == false
           && request.resource.data.userId == resource.data.userId
 
           && request.resource.data
@@ -742,29 +740,14 @@ service cloud.firestore {
               "username",
               "profileImage",
               "authorIdentityUpdatedAt"
-            ]);
+            ])
 
+          && request.resource.data.username is string
+          && request.resource.data.profileImage is string
+          && request.resource.data.authorIdentityUpdatedAt == request.time;
 
-        allow update: if
-          isAuthenticated()
-
-          && request.resource.data
-            .diff(resource.data)
-            .affectedKeys()
-            .hasOnly([
-              "likesCount",
-              "dislikesCount",
-              "repliesCount",
-              "updatedAt"
-            ]);
-
-
-        allow delete: if
-          isAuthenticated()
-          && (
-            resource.data.userId == request.auth.uid
-            || isAdmin()
-          );
+        // Deletion is handled exclusively by Cloud Functions.
+        allow delete: if false;
       }
 
 
@@ -830,36 +813,10 @@ service cloud.firestore {
     // =========================================================
 
     match /commentReactions/{reactionId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
 
-      allow read: if isAuthenticated();
-
-      allow create: if
-        isAuthenticated()
-
-        && request.resource.data.userId == request.auth.uid
-
-        && request.resource.data.type in [
-          "like",
-          "dislike"
-        ];
-
-      allow update: if
-        isAuthenticated()
-        && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == resource.data.userId
-        && request.resource.data.type in [
-          "like",
-          "dislike"
-        ];
-
-      allow delete: if
-        isAuthenticated()
-        && (
-          resource.data.userId == request.auth.uid
-          || isAdmin()
-        );
+      allow create, update, delete: if false;
     }
-
 
     // =========================================================
     // REELS

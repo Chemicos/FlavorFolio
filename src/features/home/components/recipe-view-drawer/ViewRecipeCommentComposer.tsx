@@ -10,7 +10,7 @@ import { CurrentUserCardData } from "../../types/recipeCard.types"
 interface ViewRecipeCommentComposerProps {
     scrollContainerRef?: RefObject<HTMLDivElement | null>
     currentUser: CurrentUserCardData | null
-    onSubmit?: (commentText: string) => void
+    onSubmit?: (commentText: string) => Promise<void>
     isSubmiting?: boolean
     canComment?: boolean
 }
@@ -51,16 +51,35 @@ export default function ViewRecipeCommentComposer({
         setIsExpanded(false)
     }
 
+    // const handleSubmit = async () => {
+    //     if (!canComment) return 
+
+    //     const trimmedValue = commentText.trim()
+    //     if (!trimmedValue || isSubmiting) return
+
+    //     await onSubmit?.(trimmedValue)
+
+    //     setCommentText("")
+    //     setIsExpanded(false)
+    // }
+
     const handleSubmit = async () => {
-        if (!canComment) return 
+        if (!canComment) return
 
         const trimmedValue = commentText.trim()
-        if (!trimmedValue || isSubmiting) return
 
-        await onSubmit?.(trimmedValue)
+        if (!trimmedValue || isSubmiting || !onSubmit) {
+            return
+        }
 
-        setCommentText("")
-        setIsExpanded(false)
+        try {
+            await onSubmit(trimmedValue)
+
+            setCommentText("")
+            setIsExpanded(false)
+        } catch (error) {
+            console.error("Comment submission failed:", error)
+        }
     }
 
     const keepComposerVisible = () => {

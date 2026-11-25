@@ -667,6 +667,59 @@ try {
       )
   )
 
+  await expectDenied(
+    "42. User cannot create comment directly",
+    () =>
+      setDoc(
+        doc(
+          userDb,
+          "recipes",
+          recipeId,
+          "comments",
+          `rules-comment-${suffix}`
+        ),
+        {
+          userId,
+          username: "RulesTestUser",
+          comment: "Attempt to bypass Cloud Functions",
+          parentCommentId: null,
+          repliesCount: 0,
+          likesCount: 0,
+          dislikesCount: 0,
+          edited: false,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        }
+      )
+  )
+
+  await expectDenied(
+    "43. User cannot create reply directly",
+    () =>
+      setDoc(
+        doc(
+          userDb,
+          "recipes",
+          recipeId,
+          "comments",
+          `rules-reply-${suffix}`
+        ),
+        {
+          userId,
+          username: "RulesTestUser",
+          comment: "Attempt to create reply directly",
+          parentCommentId: `rules-parent-${suffix}`,
+          replyToCommentId: `rules-parent-${suffix}`,
+          repliesCount: 0,
+          likesCount: 0,
+          dislikesCount: 0,
+          edited: false,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        }
+      )
+  )
+
   console.log("\n=== RESULTS ===")
   console.log("Passed:", results.passed)
   console.log("Failed:", results.failed)

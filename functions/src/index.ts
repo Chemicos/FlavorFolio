@@ -40,6 +40,22 @@ export {
   rateRecipe,
 } from "./recipes/rateRecipe.function"
 export {
+  createRecipeComment,
+} from "./recipes/createRecipeComment.function"
+export {
+  createRecipeReply,
+} from "./recipes/createRecipeReply.function"
+export {
+  deleteRecipeComment,
+} from "./recipes/deleteRecipeComment.function"
+export {
+  setRecipeCommentReaction,
+} from "./recipes/setRecipeCommentReaction.function"
+export {
+  cleanupSoftDeletedCommentReactions,
+  cleanupHardDeletedCommentReactions,
+} from "./recipes/cleanupDeletedCommentReactions.function"
+export {
   cleanupAbandonedRecipeUploads,
 } from "./recipes/cleanupAbandonedRecipeUploads.function";
 setGlobalOptions({maxInstances: 10});
